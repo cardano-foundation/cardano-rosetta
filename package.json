@@ -4,7 +4,8 @@
   "description": "Rosetta API server specification implementation",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "generate-rosetta-types": "dtsgen --out ./types/types.d.ts ./rosetta-specifications/api.json"
   },
   "repository": {
     "type": "git",
@@ -21,5 +22,9 @@
   "bugs": {
     "url": "https://github.com/input-output-hk/cardano-rosetta-server/issues"
   },
-  "homepage": "https://github.com/input-output-hk/cardano-rosetta-server#readme"
+  "homepage": "https://github.com/input-output-hk/cardano-rosetta-server#readme",
+  "devDependencies": {
+    "dtsgenerator": "3.1.1",
+    "typescript": "3.9.5"
+  }
 }
