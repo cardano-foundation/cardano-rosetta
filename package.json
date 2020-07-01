@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "generate-rosetta-types": "dtsgen --out ./types/types.d.ts ./rosetta-specifications/api.json"
+    "generate-rosetta-types": "dtsgen --out ./types/types.d.ts ./rosetta-specifications/api.json",
+    "dev": "ts-node --files ./src/server/index.ts"
   },
   "repository": {
     "type": "git",
@@ -24,7 +25,14 @@
   },
   "homepage": "https://github.com/input-output-hk/cardano-rosetta-server#readme",
   "devDependencies": {
+    "@types/node": "14.0.14",
     "dtsgenerator": "3.1.1",
+    "ts-node": "8.10.2",
     "typescript": "3.9.5"
+  },
+  "dependencies": {
+    "fastify": "2.15.1",
+    "fastify-blipp": "2.3.1",
+    "fastify-openapi-glue": "1.6.0"
   }
 }
