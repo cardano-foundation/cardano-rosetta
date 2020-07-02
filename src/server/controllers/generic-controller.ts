@@ -1,15 +1,21 @@
-import { FastifyRequest } from 'fastify';
+import { DefaultBody } from 'fastify';
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+type Services = { [index: string]: Function };
 
 /**
  * As `fastify-openapi-glue provides an instance of FastifyRequest when invoking the handler
  * but the service layer only needs the request body this wrapper function acts as a controller
- * adapting both interfaces
+I * adapting both interfaces
  */
-export function wrap(services: { [index: string]: Function }) {
-  return Object.keys(services).reduce((acc, method) => {
-    return {
-      ...acc,
-      [method]: (req: FastifyRequest) => services[method](req.body),
-    };
-  }, {});
-}
+const wrap = function wrap(services: Services): Services {
+  return Object.keys(services).reduce(
+    (accumulator, method) => ({
+      ...accumulator,
+      [method]: (request: { body: DefaultBody }) => services[method](request.body)
+    }),
+    {}
+  );
+};
+
+export { wrap };

@@ -1,0 +1,10 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "extends": ["@atixlabs/eslint-config/configurations/node", "plugin:@typescript-eslint/recommended"],
+  "ignorePatterns": ["types.d.ts"],
+  "settings": {
+    "import/resolver": {
+      "typescript": {}
+    }
+  }
+}

@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 export interface AccountService {
   accountBalance(
     request: Components.Schemas.AccountBalanceRequest
@@ -5,11 +6,11 @@ export interface AccountService {
 }
 
 const accountService: AccountService = {
-  async accountBalance(req) {
+  async accountBalance(request) {
     return {
       block_identifier: {
         index: 1123941,
-        hash: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85',
+        hash: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85'
       },
       balances: [
         {
@@ -18,17 +19,17 @@ const accountService: AccountService = {
             symbol: 'BTC',
             decimals: 8,
             metadata: {
-              Issuer: 'Satoshi',
-            },
+              Issuer: 'Satoshi'
+            }
           },
-          metadata: {},
-        },
+          metadata: {}
+        }
       ],
       metadata: {
-        sequence_number: 23,
-      },
+        sequence_number: 23
+      }
     };
-  },
+  }
 };
 
 export default accountService;

@@ -7,7 +7,8 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "generate-rosetta-types": "dtsgen --out ./types/types.d.ts ./rosetta-specifications/api.json",
-    "dev": "ts-node --files ./src/server/index.ts"
+    "dev": "ts-node --files ./src/server/index.ts",
+    "lint": "eslint \"./test/**/*.ts\" \"./src/**/*.ts\""
   },
   "repository": {
     "type": "git",
@@ -26,10 +27,22 @@
   },
   "homepage": "https://github.com/input-output-hk/cardano-rosetta-server#readme",
   "devDependencies": {
+    "@atixlabs/eslint-config": "1.2.2",
     "@types/jest": "26.0.3",
     "@types/node": "14.0.14",
+    "@typescript-eslint/eslint-plugin": "3.5.0",
+    "@typescript-eslint/parser": "3.5.0",
     "dtsgenerator": "3.1.1",
+    "eslint": "6.7.2",
+    "eslint-import-resolver-typescript": "2.0.0",
+    "eslint-plugin-filenames": "1.3.2",
+    "eslint-plugin-import": "2.19.1",
+    "eslint-plugin-prettier": "3.1.1",
+    "eslint-plugin-promise": "4.2.1",
+    "eslint-plugin-sonarjs": "0.5.0",
+    "eslint-plugin-unicorn": "14.0.1",
     "jest": "26.1.0",
+    "prettier": "1.19.1",
     "ts-jest": "26.1.1",
     "ts-node": "8.10.2",
     "typescript": "3.9.5"

@@ -7,7 +7,7 @@ const services = {
   ...accountService,
   ...blockService,
   ...constructionService,
-  ...networkService,
+  ...networkService
 };
 
 export default services;

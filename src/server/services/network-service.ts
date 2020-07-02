@@ -1,4 +1,4 @@
-import { FastifyRequest } from 'fastify';
+/* eslint-disable camelcase */
 
 export interface NetworkService {
   networkList(
@@ -15,7 +15,7 @@ export interface NetworkService {
 }
 
 const networkService: NetworkService = {
-  async networkList(req) {
+  async networkList(request) {
     return {
       network_identifiers: [
         {
@@ -24,59 +24,59 @@ const networkService: NetworkService = {
           sub_network_identifier: {
             network: 'shard 1',
             metadata: {
-              producer: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5',
-            },
-          },
-        },
-      ],
+              producer: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5'
+            }
+          }
+        }
+      ]
     };
   },
-  async networkStatus(req) {
+  async networkStatus(request) {
     return {
       current_block_identifier: {
         index: 1123941,
-        hash: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85',
+        hash: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85'
       },
       current_block_timestamp: 1582833600000,
       genesis_block_identifier: {
         index: 1123941,
-        hash: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85',
+        hash: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85'
       },
       peers: [
         {
           peer_id: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5',
-          metadata: {},
-        },
-      ],
+          metadata: {}
+        }
+      ]
     };
   },
-  async networkOptions(req) {
+  async networkOptions(request) {
     return {
       version: {
         rosetta_version: '1.2.5',
         node_version: '1.0.2',
         middleware_version: '0.2.7',
-        metadata: {},
+        metadata: {}
       },
       allow: {
         operation_statuses: [
           {
             status: 'SUCCESS',
-            successful: true,
-          },
+            successful: true
+          }
         ],
         operation_types: ['TRANSFER'],
         errors: [
           {
             code: 0,
             message: 'string',
-            retriable: true,
-          },
+            retriable: true
+          }
         ],
-        historical_balance_lookup: true,
-      },
+        historical_balance_lookup: true
+      }
     };
-  },
+  }
 };
 
 export default networkService;

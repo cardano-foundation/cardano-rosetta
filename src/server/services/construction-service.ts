@@ -33,62 +33,62 @@ export interface ConstructionService {
 }
 
 const constructionService: ConstructionService = {
-  async constructionDerive(request) {
+  async constructionDerive(request): Promise<Components.Schemas.ConstructionDeriveResponse | Components.Schemas.Error> {
     return {
       code: 0,
       message: 'string',
-      retriable: true,
+      retriable: true
     };
   },
   async constructionPreprocess(request) {
     return {
-      code: 0,
+      code: 1,
       message: 'string',
-      retriable: true,
+      retriable: true
     };
   },
   async constructionMetadata(request) {
     return {
-      code: 0,
+      code: 2,
       message: 'string',
-      retriable: true,
+      retriable: true
     };
   },
   async constructionPayloads(request) {
     return {
-      code: 0,
+      code: 3,
       message: 'string',
-      retriable: true,
+      retriable: true
     };
   },
   async constructionCombine(request) {
     return {
-      code: 0,
+      code: 4,
       message: 'string',
-      retriable: true,
+      retriable: true
     };
   },
   async constructionParse(request) {
     return {
-      code: 0,
+      code: 5,
       message: 'string',
-      retriable: true,
+      retriable: true
     };
   },
   async constructionHash(request) {
     return {
-      code: 0,
+      code: 6,
       message: 'string',
-      retriable: true,
+      retriable: true
     };
   },
   async constructionSubmit(request) {
     return {
-      code: 0,
+      code: 7,
       message: 'string',
-      retriable: true,
+      retriable: true
     };
-  },
+  }
 };
 
 export default constructionService;
