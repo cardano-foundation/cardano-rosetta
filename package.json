@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/input-output-hk/cardano-rosetta-server#readme",
   "devDependencies": {
-    "@atixlabs/eslint-config": "1.2.2",
+    "@atixlabs/eslint-config": "1.2.3",
     "@types/jest": "26.0.3",
     "@types/node": "14.0.14",
     "@typescript-eslint/eslint-plugin": "3.5.0",
