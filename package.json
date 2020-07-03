@@ -7,7 +7,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "generate-rosetta-types": "dtsgen --out ./types/types.d.ts ./rosetta-specifications/api.json",
-    "dev": "ts-node --files ./src/server/index.ts",
+    "dev": "ts-node-dev --respawn --transpileOnly --watch ./src ./src/server/index.ts",
     "lint": "eslint \"./test/**/*.ts\" \"./src/**/*.ts\""
   },
   "lint-staged": {
@@ -56,7 +56,7 @@
     "lint-staged": "10.2.11",
     "prettier": "1.19.1",
     "ts-jest": "26.1.1",
-    "ts-node": "8.10.2",
+    "ts-node-dev": "1.0.0-pre.50",
     "typescript": "3.9.5"
   },
   "dependencies": {
