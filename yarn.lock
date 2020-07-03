@@ -34,17 +34,17 @@
     openapi-types "^1.3.5"
     z-schema "^4.2.2"
 
-"@atixlabs/eslint-config@1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@atixlabs/eslint-config/-/eslint-config-1.2.2.tgz#6af0f5b29b4b34e5fcf2f072bae82225b0210cc2"
-  integrity sha512-hLOneEydkr+RbrJq/jItUB9Ar7h6TsVqEK7iJ/QO6Y8kQDFFRlUXgL9Z+VOqEHBENNIy4BSDi+mOB1xainUJDQ==
+"@atixlabs/eslint-config@1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@atixlabs/eslint-config/-/eslint-config-1.2.3.tgz#6b8d4bb20697900f0ac1c0a12d6f1d008fbc1c4f"
+  integrity sha512-TmxLveV6K9XHdPIXMLfAf7D9Ocu8EqoffpUr887y47HmFzp2NbYztWh4MTTE19ZVWdfWnujLyijMKlDVaF0w+w==
   dependencies:
     babel-eslint "10.0.3"
     begoo "1.1.2"
     eslint-config-formidable "4.0.0"
     inquirer "7.0.0"
-    npm-programmatic "git+https://github.com/atixlabs/npm-programmatic.git#63d5c0d18e83c960922ad8bb5c04bdd52ee40144"
     ora "4.0.3"
+    pkg-install "1.0.0"
 
 "@babel/code-frame@^7.0.0", "@babel/code-frame@^7.10.4":
   version "7.10.4"
@@ -841,6 +841,13 @@
   resolved "https://registry.yarnpkg.com/@types/eslint-visitor-keys/-/eslint-visitor-keys-1.0.0.tgz#1ee30d79544ca84d68d4b3cdb0af4f205663dd2d"
   integrity sha512-OCutwjDZ4aFS6PB1UZ988C4YgwlBHJd6wCeQqaLdmadZ/7e+w79+hbMUFC1QXDNCmdyoRfAFdm0RypzwR+Qpag==
 
+"@types/execa@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@types/execa/-/execa-0.9.0.tgz#9b025d2755f17e80beaf9368c3f4f319d8b0fb93"
+  integrity sha512-mgfd93RhzjYBUHHV532turHC2j4l/qxsF/PbfDmprHDEUHmNZGlDn1CEsulGK3AfsPdhkWzZQT/S/k0UGhLGsA==
+  dependencies:
+    "@types/node" "*"
+
 "@types/glob@^7.1.1":
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/@types/glob/-/glob-7.1.2.tgz#06ca26521353a545d94a0adc74f38a59d232c987"
@@ -925,6 +932,11 @@
   version "14.0.14"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-14.0.14.tgz#24a0b5959f16ac141aeb0c5b3cd7a15b7c64cbce"
   integrity sha512-syUgf67ZQpaJj01/tRTknkMNoBBLWJOBODF0Zm4NrXmiSuxjymFrxnTu1QVYRubhVkRcZLYZG8STTwJRdVm/WQ==
+
+"@types/node@^11.9.4":
+  version "11.15.16"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-11.15.16.tgz#0d7072715d51bb0f1dced2a7749db77b61b7a8e6"
+  integrity sha512-QUb2Wgrw0aq7Pfk9LhjOXrnm8E7CmwHSa5fy0IYvxWSujNVV0wDkaGxnAsu2WZcdYRBerYqnf6e6Qiq1FkBxGw==
 
 "@types/node@^13.7.0":
   version "13.13.12"
@@ -1590,11 +1602,6 @@ bl@^4.0.1:
     buffer "^5.5.0"
     inherits "^2.0.4"
     readable-stream "^3.4.0"
-
-bluebird@^3.4.1:
-  version "3.7.2"
-  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.7.2.tgz#9f229c15be272454ffa973ace0dbee79a1b0c36f"
-  integrity sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==
 
 boxen@^4.2.0:
   version "4.2.0"
@@ -5292,12 +5299,6 @@ normalize-url@^4.1.0:
   resolved "https://registry.yarnpkg.com/normalize-url/-/normalize-url-4.5.0.tgz#453354087e6ca96957bd8f5baf753f5982142129"
   integrity sha512-2s47yzUxdexf1OhyRi4Em83iQk0aPvwTddtFz4hnSSw9dCEsLEGf6SwIO8ss/19S9iBb5sJaOuTvTGDeZI00BQ==
 
-"npm-programmatic@git+https://github.com/atixlabs/npm-programmatic.git#63d5c0d18e83c960922ad8bb5c04bdd52ee40144":
-  version "0.0.12"
-  resolved "git+https://github.com/atixlabs/npm-programmatic.git#63d5c0d18e83c960922ad8bb5c04bdd52ee40144"
-  dependencies:
-    bluebird "^3.4.1"
-
 npm-run-path@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-2.0.2.tgz#35a9232dfa35d7067b4cb2ddf2357b1871536c5f"
@@ -5772,6 +5773,15 @@ pkg-dir@^4.2.0:
   integrity sha512-HRDzbaKjC+AOWVXxAU/x54COGeIv9eb+6CkDSQoNTt4XyWoIJvuPsXizxu/Fr23EiekbtZwmh1IcIG/l/a10GQ==
   dependencies:
     find-up "^4.0.0"
+
+pkg-install@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/pkg-install/-/pkg-install-1.0.0.tgz#a0c2e64e14d1733d670571489c303605527063fe"
+  integrity sha512-UGI8bfhrDb1KN01RZ7Bq08GRQc8rmVjxQ2up0g4mUHPCYDTK1FzQ0PMmLOBCHg3yaIijZ2U3Fn9ofLa4N392Ug==
+  dependencies:
+    "@types/execa" "^0.9.0"
+    "@types/node" "^11.9.4"
+    execa "^1.0.0"
 
 please-upgrade-node@^3.2.0:
   version "3.2.0"
