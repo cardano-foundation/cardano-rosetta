@@ -20,7 +20,7 @@ In order to setup the repository you will need to have:
 ### Setup
 
 ```
-yarn install
+yarn --offline
 ```
 
 ### Run tests
