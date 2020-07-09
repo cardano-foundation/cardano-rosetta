@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/input-output-hk/cardano-rosetta-server.git"
+    "url": "git+https://github.com/input-output-hk/cardano-rosetta.git"
   },
   "keywords": [
     "cardano",
@@ -33,9 +33,9 @@
   "author": "IOHK",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/input-output-hk/cardano-rosetta-server/issues"
+    "url": "https://github.com/input-output-hk/cardano-rosetta/issues"
   },
-  "homepage": "https://github.com/input-output-hk/cardano-rosetta-server#readme",
+  "homepage": "https://github.com/input-output-hk/cardano-rosetta#readme",
   "devDependencies": {
     "@atixlabs/eslint-config": "1.2.3",
     "@types/jest": "26.0.3",
@@ -63,5 +63,8 @@
     "fastify": "2.15.1",
     "fastify-blipp": "2.3.1",
     "fastify-openapi-glue": "1.6.0"
+  },
+  "resolutions": {
+    "typescript": "3.9.5"
   }
 }
