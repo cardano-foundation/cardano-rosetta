@@ -101,6 +101,10 @@ describe('/block endpoint', () => {
     expect(response.json()).toEqual(block1000WithoutTxs);
   });
 
+  test.skip('should properly return for genesis block', async () => {
+    // FIXME: Check why genesis block cannot be referenced by 0
+  });
+
   // test('should return latest block information if no information is sent in the BlockIdentifier', async () => {});
   //
   //  test('should a block with no transactions if all the parameters are sent', async () => {});
