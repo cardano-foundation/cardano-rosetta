@@ -32,6 +32,13 @@ const block1000WithoutTxs = {
       hash: '0x18c7525617b8747a721c3fb003776826fe60a55e64f6b4f5396d06b1ff88ce02'
     },
     timestamp: 1506233871000,
+    metadata: {
+      transactionsCount: 0,
+      createdBy: 'SlotLeader-5411c7bf87c25260',
+      size: 669,
+      epochNo: 0,
+      slotNo: 999
+    },
     transactions: []
   }
 };
@@ -43,7 +50,7 @@ describe('/block endpoint', () => {
     database = await createPool(process.env.DB_CONNECTION_STRING);
     const repository = Repostories.configure(database);
     const services = Services.configure(repository);
-    server = buildServer(services, false);
+    server = buildServer(services, process.env.LOGGER_ENABLED === 'true');
   });
 
   afterAll(async () => {

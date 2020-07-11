@@ -21,12 +21,18 @@ const configure = (repository: BlockchainRepository): BlockService => ({
             index: result.number
           },
           parent_block_identifier: {
-            index: result.parent.number,
-            hash: result.parent.hash
+            index: result.number === 0 ? 0 : result.number - 1,
+            hash: result.previousBlockHash
           },
-          timestamp: result.time,
+          timestamp: result.createdAt,
+          metadata: {
+            transactionsCount: result.transactionsCount,
+            createdBy: result.createdBy,
+            size: result.size,
+            epochNo: result.epochNo,
+            slotNo: result.slotNo
+          },
           transactions: []
-          // TODO: Do we need to consider metadata as well with slot, epoch, size, slot leader?
         }
       };
     }

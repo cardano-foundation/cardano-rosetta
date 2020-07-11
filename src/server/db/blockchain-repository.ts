@@ -4,11 +4,13 @@ import { Pool } from 'pg';
 export interface Block {
   hash: string;
   number: number;
-  time: number;
-  parent: {
-    hash: string;
-    number: number;
-  };
+  createdAt: number;
+  previousBlockHash: string;
+  transactionsCount: number;
+  createdBy: string;
+  size: number;
+  epochNo: number;
+  slotNo: number;
   // transactions: Transaction[];
 }
 
@@ -25,16 +27,20 @@ export interface BlockchainRepository {
 
 const findBlockQuery = (blockNumber?: number, blockHash?: string) => `
 SELECT 
-  b1.block_no,
+  b1.number,
   b1.hash,
-  b1.time,
-  b2.block_no as parent_block_no,
-  b2.hash as parent_hash
+  b1."createdAt",
+  b1."previousBlockHash",
+  b1."transactionsCount",
+  b1."createdBy",
+  b1.size,
+  b1."transactionsCount",
+  b1."epochNo",
+  b1."slotNo"
 FROM 
-  BLOCK b1
-LEFT JOIN block b2 on (b1.block_no - 1) = b2.block_no
+  "Block" b1
 WHERE
-  ${blockNumber ? 'b1.block_no = $1' : '$1 = $1'} AND
+  ${blockNumber ? 'b1.number = $1' : '$1 = $1'} AND
   ${blockHash ? 'b1.hash = $2' : '$2 = $2'}
 LIMIT 1
 `;
@@ -50,15 +56,27 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     const result = await databaseInstance.query(query, parameters);
     /* eslint-disable camelcase */
     if (result.rows.length === 1) {
-      const { block_no, hash, time, parent_block_no, parent_hash } = result.rows[0];
+      const {
+        number,
+        hash,
+        createdAt,
+        previousBlockHash,
+        transactionsCount,
+        createdBy,
+        size,
+        epochNo,
+        slotNo
+      } = result.rows[0];
       return {
-        number: block_no,
+        number,
         hash: hashFormatter(hash),
-        time,
-        parent: {
-          number: parent_block_no,
-          hash: hashFormatter(parent_hash)
-        }
+        createdAt,
+        previousBlockHash: hashFormatter(previousBlockHash),
+        transactionsCount,
+        createdBy,
+        size,
+        epochNo,
+        slotNo
       };
     }
     return null;
