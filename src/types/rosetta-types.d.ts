@@ -1,3 +1,5 @@
+/* eslint-disable max-len */
+/* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable camelcase */
 declare namespace Components {
   namespace Schemas {
