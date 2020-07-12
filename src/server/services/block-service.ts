@@ -1,6 +1,6 @@
 import StatusCodes from 'http-status-codes';
-import { BlockchainRepository } from '../db/blockchain-repository';
-import ApiError from '../api-error';
+import { BlockchainRepository, Transaction, Block } from '../db/blockchain-repository';
+import ApiError, { NotImplementedError } from '../api-error';
 
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -10,6 +10,106 @@ export interface BlockService {
   ): Promise<Components.Schemas.BlockTransactionResponse | Components.Schemas.Error>;
 }
 
+/**
+ * Creates a Rosetta operation for the given information ready to be consumed by clients
+ *
+ * @param index
+ * @param type
+ * @param status
+ * @param address
+ * @param value
+ * @param relatedOperations
+ */
+const createOperation = (
+  index: number,
+  type: string,
+  status: string,
+  address: string,
+  value: string,
+  relatedOperations?: Components.Schemas.OperationIdentifier[]
+  // eslint-disable-next-line max-params
+): Components.Schemas.Operation => ({
+  operation_identifier: {
+    index
+  },
+  type,
+  status,
+  account: {
+    address
+  },
+  amount: {
+    value,
+    currency: {
+      symbol: 'ADA',
+      decimals: 6
+    }
+  },
+  related_operations: relatedOperations
+});
+
+/**
+ * Converts a Cardano Transaction into a Rosetta one
+ *
+ * @param transaction to be mapped
+ */
+const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.Transaction => {
+  const feeOperation = createOperation(0, 'fee', 'success', 'addr1', transaction.fee);
+
+  const inputsAsOperations = transaction.inputs.map((input, index) =>
+    createOperation(index + 1, 'transfer', 'success', input.address, `-${input.value}`)
+  );
+  // Output related operations are all the inputs.This will iterate over the collection again
+  // but it's better for the sake of clarity and tx are bounded by block size (it can be
+  // refactored to use a reduce)
+  const relatedOperations = inputsAsOperations.map(input => ({
+    index: input.operation_identifier.index
+  }));
+
+  const outputsAsOperations = transaction.outputs.map((output, index) =>
+    createOperation(
+      inputsAsOperations.length + index + 1,
+      'transfer',
+      'success',
+      output.address,
+      output.value,
+      relatedOperations
+    )
+  );
+
+  return {
+    transaction_identifier: {
+      hash: transaction.hash
+    },
+    operations: [feeOperation].concat(inputsAsOperations).concat(outputsAsOperations)
+  };
+};
+
+/**
+ * Returns a Rosetta block based on a Cardano block and it's transactions
+ *
+ * @param block cardano block
+ * @param transactions cardano transactions for the given block
+ */
+const mapToRosettaBlock = (block: Block, transactions: Transaction[]): Components.Schemas.Block => ({
+  block_identifier: {
+    hash: block.hash,
+    index: block.number
+  },
+  parent_block_identifier: {
+    index: block.number === 0 ? 0 : block.number - 1,
+    hash: block.previousBlockHash
+  },
+  timestamp: block.createdAt,
+  metadata: {
+    transactionsCount: block.transactionsCount,
+    createdBy: block.createdBy,
+    size: block.size,
+    epochNo: block.epochNo,
+    slotNo: block.slotNo
+  },
+  transactions: transactions.map(mapToRosettaTransaction)
+});
+
 const configure = (repository: BlockchainRepository): BlockService => ({
   async block(request) {
     const searchLatestBlock =
@@ -18,83 +118,20 @@ const configure = (repository: BlockchainRepository): BlockService => ({
       ? await repository.findLatestBlockNumber().then(blockIndex => repository.findBlock(blockIndex))
       : await repository.findBlock(request.block_identifier.index, request.block_identifier.hash);
     if (result !== null) {
+      const transactions = await repository.findTransactionsByBlock(
+        request.block_identifier.index,
+        request.block_identifier.hash
+      );
       return {
-        block: {
-          block_identifier: {
-            hash: result.hash,
-            index: result.number
-          },
-          parent_block_identifier: {
-            index: result.number === 0 ? 0 : result.number - 1,
-            hash: result.previousBlockHash
-          },
-          timestamp: result.createdAt,
-          metadata: {
-            transactionsCount: result.transactionsCount,
-            createdBy: result.createdBy,
-            size: result.size,
-            epochNo: result.epochNo,
-            slotNo: result.slotNo
-          },
-          transactions: []
-        }
+        block: mapToRosettaBlock(result, transactions)
       };
     }
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Block not found', false);
   },
-  async blockTransaction(request) {
-    return {
-      transaction: {
-        transaction_identifier: {
-          hash: '0x2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f'
-        },
-        operations: [
-          {
-            operation_identifier: {
-              index: 1,
-              network_index: 0
-            },
-            related_operations: [
-              {
-                index: 0,
-                operation_identifier: {
-                  index: 0
-                }
-              }
-            ],
-            type: 'Transfer',
-            status: 'Reverted',
-            account: {
-              address: '0x3a065000ab4183c6bf581dc1e55a605455fc6d61',
-              sub_account: {
-                address: '0x6b175474e89094c44da98b954eedeac495271d0f',
-                metadata: {}
-              },
-              metadata: {}
-            },
-            amount: {
-              value: '1238089899992',
-              currency: {
-                symbol: 'BTC',
-                decimals: 8,
-                metadata: {
-                  Issuer: 'Satoshi'
-                }
-              },
-              metadata: {}
-            },
-            metadata: {
-              asm: '03301a8259a12e35694cc22ebc45fee635f4993064190f6ce96e7fb19a03bb6be2',
-              hex: '192293847312348239457438932489'
-            }
-          }
-        ],
-        metadata: {
-          size: 12378,
-          lockTime: 1582272577
-        }
-      }
-    };
+  async blockTransaction() {
+    // As `block` request returns the block with it's transaction, this endpoint
+    // shouldn't return any data
+    throw new NotImplementedError();
   }
 });
 

@@ -1,6 +1,7 @@
 import fastify from 'fastify';
 import fastifyBlipp from 'fastify-blipp';
 import openapiGlue from 'fastify-openapi-glue';
+import StatusCodes from 'http-status-codes';
 import { wrap } from './controllers/generic-controller';
 import ApiError from './api-error';
 import { Services } from './services/services';
@@ -31,8 +32,8 @@ const buildServer = (
   server.setErrorHandler((error: Error, request, reply) => {
     request.log.error(error);
     if (error instanceof ApiError) {
-      // eslint-disable-next-line no-magic-numbers
-      reply.status(500).send({
+      // rosseta-go-sdk always returns 500
+      reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
         ...error,
         message: error.message
       });

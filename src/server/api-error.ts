@@ -1,7 +1,9 @@
+import StatusCodes from 'http-status-codes';
+
 /**
  * Custom error class to implement Rosetta Error Schema
  */
-class ApiError extends Error implements Components.Schemas.Error {
+export default class ApiError extends Error implements Components.Schemas.Error {
   code: number;
   message: string;
   retriable: boolean;
@@ -20,4 +22,8 @@ class ApiError extends Error implements Components.Schemas.Error {
   }
 }
 
-export default ApiError;
+export class NotImplementedError extends ApiError {
+  constructor() {
+    super(StatusCodes.NOT_IMPLEMENTED, 'Not implemented', false);
+  }
+}

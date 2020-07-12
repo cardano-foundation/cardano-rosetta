@@ -1,4 +1,3 @@
-/* eslint-disable camelcase */
 /* eslint-disable no-magic-numbers */
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
@@ -6,6 +5,7 @@ import * as Repostories from '../../src/server/db/repositories';
 import * as Services from '../../src/server/services/services';
 import createPool from '../../src/server/db/connection';
 import buildServer from '../../src/server/server';
+import { block1000WithoutTxs, block23236WithTransactions } from './fixture-data';
 import { Pool } from 'pg';
 
 const generatePayload = (index?: number, hash?: string) => ({
@@ -21,32 +21,11 @@ const generatePayload = (index?: number, hash?: string) => ({
   }
 });
 
-const block1000WithoutTxs = {
-  block: {
-    block_identifier: {
-      index: 1000,
-      hash: '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9'
-    },
-    parent_block_identifier: {
-      index: 999,
-      hash: '0x18c7525617b8747a721c3fb003776826fe60a55e64f6b4f5396d06b1ff88ce02'
-    },
-    timestamp: 1506233871000,
-    metadata: {
-      transactionsCount: 0,
-      createdBy: 'SlotLeader-5411c7bf87c25260',
-      size: 669,
-      epochNo: 0,
-      slotNo: 999
-    },
-    transactions: []
-  }
-};
-
-describe('/block endpoint', () => {
+describe('Block API', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
+    // FIXME: this could be moved to a helper function
     database = await createPool(process.env.DB_CONNECTION_STRING);
     const repository = Repostories.configure(database);
     const services = Services.configure(repository);
@@ -57,53 +36,88 @@ describe('/block endpoint', () => {
     await database.end();
   });
 
-  test('should return an error if block not found', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: '/block',
-      payload: generatePayload(1000, '0xdeadbeefdeadbeef')
+  describe('/block endpoint', () => {
+    test('should return an error if block not found', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload(1000, '0xdeadbeefdeadbeef')
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({ code: StatusCodes.BAD_REQUEST, message: 'Block not found', retriable: false });
     });
 
-    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual({ code: StatusCodes.BAD_REQUEST, message: 'Block not found', retriable: false });
-  });
+    test('should properly return a block without transactions if requested by block number', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload(1000)
+      });
 
-  test('should properly return a block without transactions if requested by block number', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: '/block',
-      payload: generatePayload(1000)
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual(block1000WithoutTxs);
     });
 
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual(block1000WithoutTxs);
-  });
+    test('should properly return a block without transactions if requested by block hash', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload(undefined, '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9')
+      });
 
-  test('should properly return a block without transactions if requested by block hash', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: '/block',
-      payload: generatePayload(undefined, '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9')
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual(block1000WithoutTxs);
     });
 
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual(block1000WithoutTxs);
-  });
+    test('should properly return a block without transactions if requested by block and hash', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload(1000, '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9')
+      });
 
-  test('should properly return a block without transactions if requested by block and hash', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: '/block',
-      payload: generatePayload(1000, '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9')
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual(block1000WithoutTxs);
     });
 
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual(block1000WithoutTxs);
+    // FIXME: Check why genesis block is failing when queried for 0
+    test.todo('should properly return for genesis block');
+
+    // FIXME: Add a test for this case when testing with a mock db is done
+    test.todo('should be able to fetch latest block information');
+
+    test('should properly return a block with transactions', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload(23236)
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual(block23236WithTransactions);
+    });
   });
+  describe('/block/transactions endpoint', () => {
+    test('should should a not implemented error', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block/transaction',
+        payload: {
+          ...generatePayload(1000, '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9'),
+          // eslint-disable-next-line camelcase
+          transaction_identifier: {
+            hash: '0x2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f'
+          }
+        }
+      });
 
-  // FIXME: Check why genesis block is failing when queried for 0
-  test.todo('should properly return for genesis block');
-
-  // FIXME: Add a test for this case when testing with a mock db is done
-  test.todo('should be able to fetch latest block information');
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 501,
+        message: 'Not implemented',
+        retriable: false
+      });
+    });
+  });
 });
