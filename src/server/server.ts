@@ -29,6 +29,7 @@ const buildServer = (
   // Custom error handling is needed as the specified by Rosetta API doesn't match
   // the fastify default one
   server.setErrorHandler((error: Error, request, reply) => {
+    request.log.error(error);
     if (error instanceof ApiError) {
       // eslint-disable-next-line no-magic-numbers
       reply.status(500).send({
