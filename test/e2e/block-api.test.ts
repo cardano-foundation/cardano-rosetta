@@ -101,21 +101,9 @@ describe('/block endpoint', () => {
     expect(response.json()).toEqual(block1000WithoutTxs);
   });
 
-  test.skip('should properly return for genesis block', async () => {
-    // FIXME: Check why genesis block cannot be referenced by 0
-  });
+  // FIXME: Check why genesis block is failing when queried for 0
+  test.todo('should properly return for genesis block');
 
-  // test('should return latest block information if no information is sent in the BlockIdentifier', async () => {});
-  //
-  //  test('should a block with no transactions if all the parameters are sent', async () => {});
-  //
-  //  test('should return if proper network, block hash and index are sent', async () => {});
-  //
-  //  test('should fail if wrong blockchain is sent', async () => {
-  //    expect(false).toBe(true);
-  //  });
-  //
-  //  test('should return if proper block and block number is sent', async () => {
-  //    expect(false).toBe(true);
-  //  });
+  // FIXME: Add a test for this case when testing with a mock db is done
+  test.todo('should be able to fetch latest block information');
 });

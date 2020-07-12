@@ -23,6 +23,11 @@ export interface BlockchainRepository {
    * @param blockHash
    */
   findBlock(number?: number, blockHash?: string): Promise<Block | null>;
+
+  /**
+   * Returns the tip of the chain block number
+   */
+  findLatestBlockNumber(): Promise<number>;
 }
 
 const findBlockQuery = (blockNumber?: number, blockHash?: string) => `
@@ -80,5 +85,10 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       };
     }
     return null;
+  },
+
+  async findLatestBlockNumber(): Promise<number> {
+    const result = await databaseInstance.query('SELECT "blockHeight" FROM "Cardano"');
+    return result.rows[0].blockHeight;
   }
 });
