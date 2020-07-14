@@ -1,7 +1,14 @@
 import StatusCodes from 'http-status-codes';
 import { NetworkRepository } from '../db/network-repository';
 import ApiError from '../api-error';
-import { CARDANO } from '../utils/constants';
+import {
+  CARDANO,
+  transferOperationType,
+  successOperationState,
+  rosettaVersion,
+  middlewareVersion
+} from '../utils/constants';
+import { errors } from '../utils/errors';
 
 /* eslint-disable camelcase */
 export interface NetworkService {
@@ -50,29 +57,20 @@ const configure = (repository: NetworkRepository): NetworkService => ({
       ]
     };
   },
-  async networkOptions(request) {
+  async networkOptions() {
     return {
       version: {
-        rosetta_version: '1.2.5',
+        // FIXME unhardcode node_version. It'll be done in issue #28
+        rosetta_version: rosettaVersion,
         node_version: '1.0.2',
-        middleware_version: '0.2.7',
+        middleware_version: middlewareVersion,
         metadata: {}
       },
       allow: {
-        operation_statuses: [
-          {
-            status: 'SUCCESS',
-            successful: true
-          }
-        ],
-        operation_types: ['TRANSFER'],
-        errors: [
-          {
-            code: 0,
-            message: 'string',
-            retriable: true
-          }
-        ],
+        operation_statuses: [successOperationState],
+        operation_types: [transferOperationType],
+        // TODO for each custom error we add to this implementation we should add it here (update that array)
+        errors,
         historical_balance_lookup: true
       }
     };
