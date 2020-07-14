@@ -33,6 +33,7 @@ describe('/network/list endpoint', () => {
       url: '/network/list',
       payload: {}
     });
+    
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(cardanoMainnet);
   });
