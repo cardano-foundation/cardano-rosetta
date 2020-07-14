@@ -49,23 +49,6 @@ export const block23236WithTransactions = {
             operation_identifier: {
               index: 0
             },
-            type: 'fee',
-            status: 'success',
-            account: {
-              address: 'addr1'
-            },
-            amount: {
-              value: '0',
-              currency: {
-                symbol: 'ADA',
-                decimals: 6
-              }
-            }
-          },
-          {
-            operation_identifier: {
-              index: 1
-            },
             type: 'transfer',
             status: 'success',
             account: {
@@ -81,11 +64,11 @@ export const block23236WithTransactions = {
           },
           {
             operation_identifier: {
-              index: 2
+              index: 1
             },
             related_operations: [
               {
-                index: 1
+                index: 0
               }
             ],
             type: 'transfer',
@@ -113,23 +96,6 @@ export const block23236WithTransactions = {
             operation_identifier: {
               index: 0
             },
-            type: 'fee',
-            status: 'success',
-            account: {
-              address: 'addr1'
-            },
-            amount: {
-              value: '0',
-              currency: {
-                symbol: 'ADA',
-                decimals: 6
-              }
-            }
-          },
-          {
-            operation_identifier: {
-              index: 1
-            },
             type: 'transfer',
             status: 'success',
             account: {
@@ -145,11 +111,11 @@ export const block23236WithTransactions = {
           },
           {
             operation_identifier: {
-              index: 2
+              index: 1
             },
             related_operations: [
               {
-                index: 1
+                index: 0
               }
             ],
             type: 'transfer',

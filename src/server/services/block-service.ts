@@ -53,10 +53,8 @@ const createOperation = (
  * @param transaction to be mapped
  */
 const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.Transaction => {
-  const feeOperation = createOperation(0, 'fee', 'success', 'addr1', transaction.fee);
-
   const inputsAsOperations = transaction.inputs.map((input, index) =>
-    createOperation(index + 1, 'transfer', 'success', input.address, `-${input.value}`)
+    createOperation(index, 'transfer', 'success', input.address, `-${input.value}`)
   );
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
@@ -67,7 +65,7 @@ const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.T
 
   const outputsAsOperations = transaction.outputs.map((output, index) =>
     createOperation(
-      inputsAsOperations.length + index + 1,
+      inputsAsOperations.length + index,
       'transfer',
       'success',
       output.address,
@@ -80,7 +78,7 @@ const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.T
     transaction_identifier: {
       hash: transaction.hash
     },
-    operations: [feeOperation].concat(inputsAsOperations).concat(outputsAsOperations)
+    operations: inputsAsOperations.concat(outputsAsOperations)
   };
 };
 
