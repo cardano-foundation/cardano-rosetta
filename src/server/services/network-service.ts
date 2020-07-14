@@ -21,10 +21,15 @@ export interface NetworkService {
 }
 
 const configure = (repository: NetworkRepository): NetworkService => ({
-  async networkList(request) {
+  async networkList() {
     const networkIdentifiers = await repository.findAllNetworksSupported();
     if (networkIdentifiers !== null) {
-      return { network_identifiers: networkIdentifiers.map(({ network }) => ({ network, blockchain: cardano })) };
+      return {
+        network_identifiers: networkIdentifiers.map(({ network_name }) => ({
+          network: network_name,
+          blockchain: cardano
+        }))
+      };
     }
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Networks not found', false);
   },

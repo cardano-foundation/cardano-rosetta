@@ -1,7 +1,8 @@
 import { Pool } from 'pg';
 
 export interface Network {
-  network: string;
+  /* eslint-disable camelcase */
+  network_name: string;
 }
 
 export interface NetworkRepository {
@@ -9,9 +10,9 @@ export interface NetworkRepository {
 }
 
 const findAllNetworksQuery = `SELECT 
-    m.networkName
+    m.network_name
  FROM
-    "Meta" m`;
+    meta m`;
 
 export const configure = (databaseInstance: Pool): NetworkRepository => ({
   async findAllNetworksSupported(): Promise<Network[] | null> {
