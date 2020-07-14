@@ -89,7 +89,6 @@ describe('/network/list endpoint', () => {
 describe('/network/options endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
-
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
