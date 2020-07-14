@@ -1,8 +1,7 @@
 import { Pool } from 'pg';
 
 export interface Network {
-  /* eslint-disable camelcase */
-  network_name: string;
+  networkName: string;
 }
 
 export interface NetworkRepository {
@@ -10,7 +9,7 @@ export interface NetworkRepository {
 }
 
 const findAllNetworksQuery = `SELECT 
-    m.network_name
+    m.network_name as "networkName"
  FROM
     meta m`;
 

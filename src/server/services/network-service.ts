@@ -1,9 +1,7 @@
 import StatusCodes from 'http-status-codes';
 import { NetworkRepository } from '../db/network-repository';
 import ApiError from '../api-error';
-
-// TODO will be better to extract this to a consts files or something like that?
-const cardano = 'cardano';
+import { cardano } from '../utils/constants';
 
 /* eslint-disable camelcase */
 export interface NetworkService {
@@ -25,8 +23,8 @@ const configure = (repository: NetworkRepository): NetworkService => ({
     const networkIdentifiers = await repository.findAllNetworksSupported();
     if (networkIdentifiers !== null) {
       return {
-        network_identifiers: networkIdentifiers.map(({ network_name }) => ({
-          network: network_name,
+        network_identifiers: networkIdentifiers.map(({ networkName }) => ({
+          network: networkName,
           blockchain: cardano
         }))
       };
