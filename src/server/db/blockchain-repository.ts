@@ -1,5 +1,10 @@
+import { Pool, QueryResult } from 'pg';
 import { hashFormatter, hashStringToBuffer } from '../utils/formatters';
-import { Pool } from 'pg';
+import Queries, {
+  FindTransactionsByBlock,
+  FindTransactionsInputs,
+  FindTransactionsOutputs
+} from './queries/blockchain-queries';
 
 export interface Block {
   hash: string;
@@ -59,49 +64,84 @@ export interface BlockchainRepository {
   findLatestBlockNumber(): Promise<number>;
 }
 
-const findBlockQuery = (blockNumber?: number, blockHash?: string) => `
-SELECT 
-  *
-FROM 
-  "Block"
-WHERE
-  ${blockNumber ? 'number = $1' : '$1 = $1'} AND
-  ${blockHash ? 'hash = $2' : '$2 = $2'}
-LIMIT 1
-`;
+/**
+ * Creates a map of transactions where they key is the transaction hash
+ *
+ * @param rows a list of transaction rows returned by the DB
+ */
+const parseTransactionRows = (rows: FindTransactionsByBlock[]): NodeJS.Dict<Transaction> =>
+  rows.reduce((mappedTransactions, row) => {
+    const hash = hashFormatter(row.hash);
+    return {
+      ...mappedTransactions,
+      [hash]: {
+        hash,
+        blockHash: row.blockHash,
+        fee: row.fee,
+        size: row.size,
+        inputs: [],
+        outputs: []
+      }
+    };
+  }, {});
 
-const findTransactionsByBlockQuery = (blockNumber?: number, blockHash?: string) => `
-SELECT 
-  tx.*,
-  block.hash as blockHash
-FROM tx
-JOIN block ON block.id = tx.block
-WHERE
-  ${blockNumber ? 'block.block_no = $1' : '$1 = $1'} AND
-  ${blockHash ? 'block.hash = $2' : '$2 = $2'}
-`;
+/**
+ * Updates the transactions map appending inputs for each transaction
+ *
+ * @param transactionsMap
+ * @param inputs
+ */
+const parseInputsRows = (transactionsMap: NodeJS.Dict<Transaction>, inputs: FindTransactionsInputs[]) =>
+  inputs.reduce((updatedTransactionsMap, input) => {
+    const transaction = updatedTransactionsMap[hashFormatter(input.txHash)];
+    // This case is not supposed to happen but still this if is required
+    if (transaction) {
+      const transactionWithInputs: Transaction = {
+        ...transaction,
+        inputs: transaction.inputs.concat({
+          address: input.address,
+          value: input.value,
+          sourceTransactionHash: hashFormatter(input.sourceTxHash),
+          sourceTransactionIndex: input.sourceTxIndex
+        })
+      };
+      return {
+        ...updatedTransactionsMap,
+        [transaction.hash]: transactionWithInputs
+      };
+    }
+    return updatedTransactionsMap;
+  }, transactionsMap);
 
-const findTransactionsInputsQuery = `
-SELECT 
-  *
-FROM 
-  "TransactionInput"
-WHERE
-  "txHash" = ANY ($1)
-`;
-
-const findTransactionsOutputsQuery = `
-SELECT 
-  *
-FROM 
-  "TransactionOutput"
-WHERE
-  "txHash" = ANY ($1)
-`;
+/**
+ * Updates the transactions map appending output for each transaction
+ *
+ * @param transactionsMap
+ * @param inputs
+ */
+const parseOutputRows = (transactionsMap: NodeJS.Dict<Transaction>, outputs: FindTransactionsOutputs[]) =>
+  outputs.reduce((updatedTransactionsMap, output) => {
+    const transaction = updatedTransactionsMap[hashFormatter(output.txHash)];
+    if (transaction) {
+      const transactionWithOutputs = {
+        ...transaction,
+        outputs: transaction.outputs.concat({
+          address: output.address,
+          value: output.value,
+          index: output.index
+        })
+      };
+      return {
+        ...updatedTransactionsMap,
+        [transaction.hash]: transactionWithOutputs
+      };
+    }
+    return updatedTransactionsMap;
+  }, transactionsMap);
 
 export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   async findBlock(blockNumber?: number, blockHash?: string): Promise<Block | null> {
-    const query = findBlockQuery(blockNumber, blockHash);
+    const query = Queries.findBlock(blockNumber, blockHash);
     // Add paramter or short-circuit it
     const parameters = [
       blockNumber ? blockNumber : true,
@@ -137,69 +177,26 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   },
 
   async findTransactionsByBlock(blockNumber?: number, blockHash?: string): Promise<Transaction[]> {
-    // FIXME: We could add some types here although it's easier to map the results without them
-    // Yet this implementation looks like re-implementing an ORM we found it might not be worthy
-    // to actually include one for this single API. There are no other method that require
-    // fetching results from multiple tables
-
-    const query = findTransactionsByBlockQuery(blockNumber, blockHash);
+    const query = Queries.findTransactionsByBlock(blockNumber, blockHash);
     // Add paramter or short-circuit it
     const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
-    const result = await databaseInstance.query(query, parameters);
+    const result: QueryResult<FindTransactionsByBlock> = await databaseInstance.query(query, parameters);
     if (result.rows.length > 0) {
       // Fetch the transactions first
-      let transactionsMap = result.rows.reduce(
-        (mappedTransactions, row) => ({
-          ...mappedTransactions,
-          [hashFormatter(row.hash)]: {
-            hash: hashFormatter(row.hash),
-            blockHash: row.blockHash,
-            fee: row.fee,
-            size: row.size,
-            inputs: [],
-            outputs: []
-          }
-        }),
-        {}
-      );
+      let transactionsMap = parseTransactionRows(result.rows);
       const transactionsHashes = Object.keys(transactionsMap).map(hashStringToBuffer);
       // Look for inputs and outputs based on found tx hashes
-      const inputs = await databaseInstance.query(findTransactionsInputsQuery, [transactionsHashes]);
-      const outputs = await databaseInstance.query(findTransactionsOutputsQuery, [transactionsHashes]);
-      // Parse transaction inputs result set
-      transactionsMap = inputs.rows.reduce((updatedTransactionsMap, input) => {
-        const transaction = updatedTransactionsMap[hashFormatter(input.txHash)];
-        const transactionWithInputs: Transaction = {
-          ...transaction,
-          inputs: transaction.inputs.concat({
-            address: input.address,
-            value: input.value,
-            sourceTransactionHash: hashFormatter(input.sourceTxHash),
-            sourceTransactionIndex: input.sourceTxIndex
-          })
-        };
-        return {
-          ...updatedTransactionsMap,
-          [transaction.hash]: transactionWithInputs
-        };
-      }, transactionsMap);
-      // Parse transaction outputs result set
-      transactionsMap = outputs.rows.reduce((updatedTransactionsMap, output) => {
-        const transaction = updatedTransactionsMap[hashFormatter(output.txHash)];
-        const transactionWithOutputs = {
-          ...transaction,
-          outputs: transaction.outputs.concat({
-            address: output.address,
-            value: output.value,
-            index: output.indx
-          })
-        };
-        return {
-          ...updatedTransactionsMap,
-          [transaction.hash]: transactionWithOutputs
-        };
-      }, transactionsMap);
-
+      const inputs: QueryResult<FindTransactionsInputs> = await databaseInstance.query(Queries.findTransactionsInputs, [
+        transactionsHashes
+      ]);
+      const outputs: QueryResult<FindTransactionsOutputs> = await databaseInstance.query(
+        Queries.findTransactionsOutputs,
+        [transactionsHashes]
+      );
+      transactionsMap = parseInputsRows(transactionsMap, inputs.rows);
+      transactionsMap = parseOutputRows(transactionsMap, outputs.rows);
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore it will never be undefined
       return Object.values(transactionsMap);
     }
     return [];

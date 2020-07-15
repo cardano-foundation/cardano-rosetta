@@ -99,7 +99,7 @@ describe('Block API', () => {
     });
   });
   describe('/block/transactions endpoint', () => {
-    test('should should a not implemented error', async () => {
+    test('should return a not implemented error', async () => {
       const response = await server.inject({
         method: 'post',
         url: '/block/transaction',
