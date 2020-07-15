@@ -1,1 +1,1 @@
-export const cardano = 'cardano';
+export const CARDANO = 'cardano';

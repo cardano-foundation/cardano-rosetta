@@ -1,7 +1,7 @@
 import StatusCodes from 'http-status-codes';
 import { NetworkRepository } from '../db/network-repository';
 import ApiError from '../api-error';
-import { cardano } from '../utils/constants';
+import { CARDANO } from '../utils/constants';
 
 /* eslint-disable camelcase */
 export interface NetworkService {
@@ -25,7 +25,7 @@ const configure = (repository: NetworkRepository): NetworkService => ({
       return {
         network_identifiers: networkIdentifiers.map(({ networkName }) => ({
           network: networkName,
-          blockchain: cardano
+          blockchain: CARDANO
         }))
       };
     }

@@ -27,11 +27,11 @@ describe('/network/list endpoint', () => {
     await database.end();
   });
 
-  test('if requested without params it should properly return an array of one element equal to cardano mainnet', async () => {
+  test('if requested with an empty request body it should properly return an array of one element equal to cardano mainnet', async () => {
     const response = await server.inject({
       method: 'post',
       url: '/network/list',
-      payload: generatePayload()
+      payload: {}
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(cardanoMainnet);
