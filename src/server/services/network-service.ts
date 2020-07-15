@@ -1,5 +1,6 @@
 import StatusCodes from 'http-status-codes';
-import { NetworkRepository } from '../db/network-repository';
+import { NetworkRepository, Network } from '../db/network-repository';
+import { BlockService } from './block-service';
 import {
   CARDANO,
   SUCCESS_OPERATION_STATE,
@@ -44,12 +45,12 @@ const ẁithNetworkValidation = async <T, R>(
   return await nextFn(parameters);
 };
 
-const configure = (repository: NetworkRepository): NetworkService => ({
+const configure = (networkRepository: NetworkRepository, blockchainService: BlockService): NetworkService => ({
   async networkList() {
-    const networkIdentifiers = await repository.findAllNetworksSupported();
+    const networkIdentifiers = await networkRepository.findAllNetworksSupported();
     if (networkIdentifiers !== null) {
       return {
-        network_identifiers: networkIdentifiers.map(({ networkName }) => ({
+        network_identifiers: networkIdentifiers.map(({ networkName }: Network) => ({
           network: networkName,
           blockchain: CARDANO
         }))
@@ -57,42 +58,60 @@ const configure = (repository: NetworkRepository): NetworkService => ({
     }
     throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.NETWORKS_NOT_FOUND, false);
   },
-  async networkStatus(request) {
-    return {
-      current_block_identifier: {
-        index: 1123941,
-        hash: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85'
-      },
-      current_block_timestamp: 1582833600000,
-      genesis_block_identifier: {
-        index: 1123941,
-        hash: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85'
-      },
-      peers: [
-        {
-          peer_id: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5',
-          metadata: {}
-        }
-      ]
-    };
-  },
-  networkOptions: async networkOptionsRequest =>
-    ẁithNetworkValidation(networkOptionsRequest.network_identifier, repository, networkOptionsRequest, async () => ({
-      version: {
-        // FIXME unhardcode node_version. It'll be done in issue #28
-        rosetta_version: ROSETTA_VERSION,
-        node_version: '1.0.2',
-        middleware_version: MIDDLEWARE_VERSION,
-        metadata: {}
-      },
-      allow: {
-        operation_statuses: [SUCCESS_OPERATION_STATE],
-        operation_types: [operationType.TRANSFER],
-        // TODO for each custom error we add to this implementation we should add it here (update that array)
-        errors,
-        historical_balance_lookup: true
+  networkStatus: async networkStatusRequest =>
+    ẁithNetworkValidation(
+      networkStatusRequest.network_identifier,
+      networkRepository,
+      networkStatusRequest,
+      async () => {
+        // fetch latest block
+        const latestBlock = await blockchainService.getLatestBlock();
+
+        // fetch genesis block
+        const genesisBlock = await blockchainService.getGenesisBlock();
+
+        // peer must be queried from some node file, filePath should be place on .env
+        return {
+          current_block_identifier: {
+            index: latestBlock.number,
+            hash: latestBlock.hash
+          },
+          current_block_timestamp: latestBlock.createdAt,
+          genesis_block_identifier: {
+            index: genesisBlock.number,
+            hash: genesisBlock.hash
+          },
+          peers: [
+            {
+              peer_id: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5',
+              metadata: {}
+            }
+          ]
+        };
       }
-    }))
+    ),
+  networkOptions: async networkOptionsRequest =>
+    ẁithNetworkValidation(
+      networkOptionsRequest.network_identifier,
+      networkRepository,
+      networkOptionsRequest,
+      async () => ({
+        version: {
+          // FIXME unhardcode node_version. It'll be done in issue #28
+          rosetta_version: ROSETTA_VERSION,
+          node_version: '1.0.2',
+          middleware_version: MIDDLEWARE_VERSION,
+          metadata: {}
+        },
+        allow: {
+          operation_statuses: [SUCCESS_OPERATION_STATE],
+          operation_types: [operationType.TRANSFER],
+          // TODO for each custom error we add to this implementation we should add it here (update that array)
+          errors,
+          historical_balance_lookup: true
+        }
+      })
+    )
 });
 
 export default configure;

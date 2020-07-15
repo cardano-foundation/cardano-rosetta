@@ -63,6 +63,15 @@ JOIN tx as source_tx
 WHERE
   tx.hash = ANY ($1)`;
 
+const findGenesisBlock = `
+SELECT
+  *
+FROM
+  "Block"
+WHERE
+  "previousBlockHash" IS NULL
+LIMIT 1`;
+
 export interface FindTransactionsOutputs {
   address: string;
   value: string;
@@ -97,7 +106,8 @@ const Queries = {
   findTransactionsByBlock,
   findTransactionsInputs,
   findTransactionsOutputs,
-  findLatestBlockNumber
+  findLatestBlockNumber,
+  findGenesisBlock
 };
 
 export default Queries;

@@ -9,6 +9,8 @@ export interface BlockService {
   blockTransaction(
     request: Components.Schemas.BlockTransactionRequest
   ): Promise<Components.Schemas.BlockTransactionResponse | Components.Schemas.Error>;
+  getGenesisBlock(): Promise<Block>;
+  getLatestBlock(): Promise<Block>;
 }
 
 /**
@@ -127,6 +129,16 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     // As `block` request returns the block with it's transaction, this endpoint
     // shouldn't return any data
     throw new NotImplementedError();
+  },
+  async getLatestBlock() {
+    const latestBlock = await repository.findBlock();
+    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, 'Gensis block not found', false);
+    return latestBlock;
+  },
+  async getGenesisBlock() {
+    const latestBlock = await repository.findGenesisBlock();
+    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, 'Gensis block not found', false);
+    return latestBlock;
   }
 });
 

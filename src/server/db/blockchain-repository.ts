@@ -62,6 +62,12 @@ export interface BlockchainRepository {
    * Returns the tip of the chain block number
    */
   findLatestBlockNumber(): Promise<number>;
+
+  /**
+   * FIXME i think this query could be much better done
+   * Returns the genesis block
+   */
+  findGenesisBlock(): Promise<Block | null>;
 }
 
 /**
@@ -205,5 +211,13 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   async findLatestBlockNumber(): Promise<number> {
     const result = await databaseInstance.query(Queries.findLatestBlockNumber);
     return result.rows[0].blockHeight;
+  },
+
+  async findGenesisBlock(): Promise<Block | null> {
+    const result = await databaseInstance.query(Queries.findGenesisBlock);
+    if (result.rows.length === 1) {
+      return result.rows[0];
+    }
+    return null;
   }
 });
