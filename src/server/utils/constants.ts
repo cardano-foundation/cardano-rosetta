@@ -1,14 +1,15 @@
 import rosettaApiJson from '../../../rosetta-specifications/api.json';
 import packageJson from '../../../package.json';
 
-export const rosettaVersion = rosettaApiJson.info.version;
-export const middlewareVersion = packageJson.version;
+export const ROSETTA_VERSION = rosettaApiJson.info.version;
+export const MIDDLEWARE_VERSION = packageJson.version;
 
 export const CARDANO = 'cardano';
 
-export const transferOperationType = 'TRANSFER';
+export const TRANSFER_OPERATION_TYPE = 'transfer';
+export const SUCCESS_STATUS = 'success';
 
-export const successOperationState = {
-  status: 'SUCCESS',
+export const SUCCESS_OPERATION_STATE = {
+  status: SUCCESS_STATUS,
   successful: true
 };

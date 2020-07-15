@@ -3,10 +3,10 @@ import { NetworkRepository } from '../db/network-repository';
 import ApiError from '../api-error';
 import {
   CARDANO,
-  transferOperationType,
-  successOperationState,
-  rosettaVersion,
-  middlewareVersion
+  TRANSFER_OPERATION_TYPE,
+  SUCCESS_OPERATION_STATE,
+  ROSETTA_VERSION,
+  MIDDLEWARE_VERSION
 } from '../utils/constants';
 import { errors } from '../utils/errors';
 
@@ -61,14 +61,14 @@ const configure = (repository: NetworkRepository): NetworkService => ({
     return {
       version: {
         // FIXME unhardcode node_version. It'll be done in issue #28
-        rosetta_version: rosettaVersion,
+        rosetta_version: ROSETTA_VERSION,
         node_version: '1.0.2',
-        middleware_version: middlewareVersion,
+        middleware_version: MIDDLEWARE_VERSION,
         metadata: {}
       },
       allow: {
-        operation_statuses: [successOperationState],
-        operation_types: [transferOperationType],
+        operation_statuses: [SUCCESS_OPERATION_STATE],
+        operation_types: [TRANSFER_OPERATION_TYPE],
         // TODO for each custom error we add to this implementation we should add it here (update that array)
         errors,
         historical_balance_lookup: true

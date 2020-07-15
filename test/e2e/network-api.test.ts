@@ -23,11 +23,11 @@ const version = {
 const allow = {
   operation_statuses: [
     {
-      status: 'SUCCESS',
+      status: 'success',
       successful: true
     }
   ],
-  operation_types: ['TRANSFER'],
+  operation_types: ['transfer'],
   errors: [
     {
       code: 0,
