@@ -25,6 +25,23 @@ export interface NetworkService {
   ): Promise<Components.Schemas.NetworkOptionsResponse | Components.Schemas.Error>;
 }
 
+const validateNetwork = async (
+  networkIdentifier: Components.Schemas.NetworkIdentifier,
+  repository: NetworkRepository
+) => {
+  const blockchain: string = networkIdentifier.blockchain;
+  const network: string = networkIdentifier.network;
+
+  if (blockchain !== CARDANO) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid blockchain', false);
+  }
+
+  const networkIdentifiersSupported = await repository.findNetworkByNetworkName(network);
+  if (!networkIdentifiersSupported) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Network not found', false);
+  }
+};
+
 const configure = (repository: NetworkRepository): NetworkService => ({
   async networkList() {
     const networkIdentifiers = await repository.findAllNetworksSupported();
@@ -57,7 +74,8 @@ const configure = (repository: NetworkRepository): NetworkService => ({
       ]
     };
   },
-  async networkOptions() {
+  async networkOptions(request) {
+    await validateNetwork(request.network_identifier, repository);
     return {
       version: {
         // FIXME unhardcode node_version. It'll be done in issue #28
