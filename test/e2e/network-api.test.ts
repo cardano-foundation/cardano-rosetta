@@ -69,9 +69,14 @@ describe('/network/list endpoint', () => {
 describe('/network/options endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
+
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
+  });
+
+  afterAll(async () => {
+    await database.end();
   });
 
   test('if requested with proper payload it should properly return an object containing proper version information', async () => {

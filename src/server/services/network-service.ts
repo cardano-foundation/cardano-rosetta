@@ -3,10 +3,10 @@ import { NetworkRepository } from '../db/network-repository';
 import ApiError from '../api-error';
 import {
   CARDANO,
-  TRANSFER_OPERATION_TYPE,
   SUCCESS_OPERATION_STATE,
   ROSETTA_VERSION,
-  MIDDLEWARE_VERSION
+  MIDDLEWARE_VERSION,
+  operationType
 } from '../utils/constants';
 import { errors } from '../utils/errors';
 
@@ -25,9 +25,11 @@ export interface NetworkService {
   ): Promise<Components.Schemas.NetworkOptionsResponse | Components.Schemas.Error>;
 }
 
-const validateNetwork = async (
+const ẁithNetworkValidation = async <T, R>(
   networkIdentifier: Components.Schemas.NetworkIdentifier,
-  repository: NetworkRepository
+  repository: NetworkRepository,
+  parameters: T,
+  nextFn: (param: T) => R
 ) => {
   const blockchain: string = networkIdentifier.blockchain;
   const network: string = networkIdentifier.network;
@@ -36,10 +38,11 @@ const validateNetwork = async (
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid blockchain', false);
   }
 
-  const networkIdentifiersSupported = await repository.findNetworkByNetworkName(network);
-  if (!networkIdentifiersSupported) {
+  const networkExists = await repository.networkExists(network);
+  if (!networkExists) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Network not found', false);
   }
+  return await nextFn(parameters);
 };
 
 const configure = (repository: NetworkRepository): NetworkService => ({
@@ -74,9 +77,8 @@ const configure = (repository: NetworkRepository): NetworkService => ({
       ]
     };
   },
-  async networkOptions(request) {
-    await validateNetwork(request.network_identifier, repository);
-    return {
+  networkOptions: async networkOptionsRequest =>
+    ẁithNetworkValidation(networkOptionsRequest.network_identifier, repository, networkOptionsRequest, async () => ({
       version: {
         // FIXME unhardcode node_version. It'll be done in issue #28
         rosetta_version: ROSETTA_VERSION,
@@ -86,13 +88,12 @@ const configure = (repository: NetworkRepository): NetworkService => ({
       },
       allow: {
         operation_statuses: [SUCCESS_OPERATION_STATE],
-        operation_types: [TRANSFER_OPERATION_TYPE],
+        operation_types: [operationType.TRANSFER],
         // TODO for each custom error we add to this implementation we should add it here (update that array)
         errors,
         historical_balance_lookup: true
       }
-    };
-  }
+    }))
 });
 
 export default configure;

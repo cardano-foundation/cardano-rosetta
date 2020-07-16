@@ -6,10 +6,18 @@ export const MIDDLEWARE_VERSION = packageJson.version;
 
 export const CARDANO = 'cardano';
 
+export enum operationType {
+  TRANSFER = 'transfer'
+}
+
+enum operationTypeStatus {
+  SUCCESS = 'success'
+}
+
 export const TRANSFER_OPERATION_TYPE = 'transfer';
 export const SUCCESS_STATUS = 'success';
 
 export const SUCCESS_OPERATION_STATE = {
-  status: SUCCESS_STATUS,
+  status: operationTypeStatus.SUCCESS,
   successful: true
 };

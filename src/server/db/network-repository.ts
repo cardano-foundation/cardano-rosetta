@@ -7,7 +7,7 @@ export interface Network {
 
 export interface NetworkRepository {
   findAllNetworksSupported(): Promise<Network[] | null>;
-  findNetworkByNetworkName(networkName: string): Promise<Network | null>;
+  networkExists(networkName: string): Promise<boolean>;
 }
 
 export const configure = (databaseInstance: Pool): NetworkRepository => ({
@@ -18,11 +18,8 @@ export const configure = (databaseInstance: Pool): NetworkRepository => ({
     }
     return null;
   },
-  async findNetworkByNetworkName(networkName): Promise<Network | null> {
+  async networkExists(networkName): Promise<boolean> {
     const networkResults = await databaseInstance.query(findNetworkByNetworkName, [networkName]);
-    if (networkResults.rows.length === 1) {
-      return networkResults.rows[0].networkName;
-    }
-    return null;
+    return networkResults.rows[0].count > 0;
   }
 });
