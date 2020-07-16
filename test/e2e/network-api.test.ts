@@ -19,7 +19,7 @@ const generatePayload = (blockchain: string, network: string) => ({
   }
 });
 
-const genesis_block_identifier = { hash: '_ ߓ5��&\u0001����$�^�R���M\u0013\u0017�=C.�\u000e�', index: 0 };
+const genesis_block_identifier = { hash: '_ ߓ5��&\u0001����$�^�R���M\u0013\u0017�=C.�\u000e�', index: 1 };
 const cardanoMainnet = { network_identifiers: [{ network: MAINNET, blockchain: CARDANO }] };
 const version = {
   rosetta_version: '1.4.0',
@@ -166,7 +166,7 @@ describe('/network/status endpoint', () => {
       payload: generatePayload(CARDANO, MAINNET)
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    //assert latestBlock here
+    // assert latestBlock here
   });
 
   test('If requested with valid payload, it should properly return an object containing proper latestGenesis information', async () => {

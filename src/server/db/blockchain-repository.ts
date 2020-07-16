@@ -18,6 +18,11 @@ export interface Block {
   slotNo: number;
 }
 
+export interface GenesisBlock {
+  hash: string;
+  index: number;
+}
+
 export interface TransactionInput {
   address: string;
   value: string;
@@ -67,7 +72,7 @@ export interface BlockchainRepository {
    * FIXME i think this query could be much better done
    * Returns the genesis block
    */
-  findGenesisBlock(): Promise<Block | null>;
+  findGenesisBlock(): Promise<GenesisBlock | null>;
 }
 
 /**
@@ -213,7 +218,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     return result.rows[0].blockHeight;
   },
 
-  async findGenesisBlock(): Promise<Block | null> {
+  async findGenesisBlock(): Promise<GenesisBlock | null> {
     const result = await databaseInstance.query(Queries.findGenesisBlock);
     if (result.rows.length === 1) {
       return result.rows[0];

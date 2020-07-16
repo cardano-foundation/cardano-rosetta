@@ -65,11 +65,12 @@ WHERE
 
 const findGenesisBlock = `
 SELECT
-  *
+  hash,
+  id as index
 FROM
-  "Block"
+  block
 WHERE
-  "previousBlockHash" IS NULL
+  previous IS NULL
 LIMIT 1`;
 
 export interface FindTransactionsOutputs {

@@ -1,7 +1,7 @@
 import StatusCodes from 'http-status-codes';
-import { BlockchainRepository, Transaction, Block } from '../db/blockchain-repository';
 import { NotImplementedError } from '../api-error';
 import { buildApiError, errorMessage } from '../utils/errors';
+import { BlockchainRepository, Transaction, Block, GenesisBlock } from '../db/blockchain-repository';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -9,7 +9,7 @@ export interface BlockService {
   blockTransaction(
     request: Components.Schemas.BlockTransactionRequest
   ): Promise<Components.Schemas.BlockTransactionResponse | Components.Schemas.Error>;
-  getGenesisBlock(): Promise<Block>;
+  getGenesisBlock(): Promise<GenesisBlock>;
   getLatestBlock(): Promise<Block>;
 }
 

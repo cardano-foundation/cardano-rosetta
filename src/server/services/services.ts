@@ -17,9 +17,12 @@ export interface Services
  *
  * @param repositories repositories to be used by the services
  */
-export const configure = (repositories: Repositories): Services => ({
-  ...accountService,
-  ...blockService(repositories.blockchainRepository),
-  ...constructionService,
-  ...networkService(repositories.networkRepository)
-});
+export const configure = (repositories: Repositories): Services => {
+  const blockServiceInstance = blockService(repositories.blockchainRepository);
+  return {
+    ...accountService,
+    ...blockServiceInstance,
+    ...constructionService,
+    ...networkService(repositories.networkRepository, blockServiceInstance)
+  };
+};

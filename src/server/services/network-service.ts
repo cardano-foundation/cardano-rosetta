@@ -78,7 +78,7 @@ const configure = (networkRepository: NetworkRepository, blockchainService: Bloc
           },
           current_block_timestamp: latestBlock.createdAt,
           genesis_block_identifier: {
-            index: genesisBlock.number,
+            index: genesisBlock.index,
             hash: genesisBlock.hash
           },
           peers: [
