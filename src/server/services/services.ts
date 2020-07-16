@@ -21,5 +21,5 @@ export const configure = (repositories: Repositories): Services => ({
   ...accountService,
   ...blockService(repositories.blockchainRepository),
   ...constructionService,
-  ...networkService
+  ...networkService(repositories.networkRepository)
 });

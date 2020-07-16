@@ -1,12 +1,9 @@
 /* eslint-disable no-magic-numbers */
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
-import * as Repostories from '../../src/server/db/repositories';
-import * as Services from '../../src/server/services/services';
-import createPool from '../../src/server/db/connection';
-import buildServer from '../../src/server/server';
-import { block1000WithoutTxs, block23236WithTransactions } from './fixture-data';
 import { Pool } from 'pg';
+import { block1000WithoutTxs, block23236WithTransactions } from './fixture-data';
+import { setupDatabase, setupServer } from './utils/test-utils';
 
 const generatePayload = (index?: number, hash?: string) => ({
   // eslint-disable-next-line camelcase
@@ -25,11 +22,8 @@ describe('Block API', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
-    // FIXME: this could be moved to a helper function
-    database = await createPool(process.env.DB_CONNECTION_STRING);
-    const repository = Repostories.configure(database);
-    const services = Services.configure(repository);
-    server = buildServer(services, process.env.LOGGER_ENABLED === 'true');
+    database = setupDatabase();
+    server = setupServer(database);
   });
 
   afterAll(async () => {

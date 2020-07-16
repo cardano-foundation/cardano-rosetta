@@ -1,5 +1,9 @@
-/* eslint-disable camelcase */
+import StatusCodes from 'http-status-codes';
+import { NetworkRepository } from '../db/network-repository';
+import ApiError from '../api-error';
+import { CARDANO } from '../utils/constants';
 
+/* eslint-disable camelcase */
 export interface NetworkService {
   networkList(
     request: Components.Schemas.MetadataRequest
@@ -14,22 +18,18 @@ export interface NetworkService {
   ): Promise<Components.Schemas.NetworkOptionsResponse | Components.Schemas.Error>;
 }
 
-const networkService: NetworkService = {
-  async networkList(request) {
-    return {
-      network_identifiers: [
-        {
-          blockchain: 'bitcoin',
-          network: 'mainnet',
-          sub_network_identifier: {
-            network: 'shard 1',
-            metadata: {
-              producer: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5'
-            }
-          }
-        }
-      ]
-    };
+const configure = (repository: NetworkRepository): NetworkService => ({
+  async networkList() {
+    const networkIdentifiers = await repository.findAllNetworksSupported();
+    if (networkIdentifiers !== null) {
+      return {
+        network_identifiers: networkIdentifiers.map(({ networkName }) => ({
+          network: networkName,
+          blockchain: CARDANO
+        }))
+      };
+    }
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Networks not found', false);
   },
   async networkStatus(request) {
     return {
@@ -77,6 +77,6 @@ const networkService: NetworkService = {
       }
     };
   }
-};
+});
 
-export default networkService;
+export default configure;
