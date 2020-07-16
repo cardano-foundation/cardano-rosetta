@@ -4,6 +4,7 @@ import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { setupDatabase, setupServer } from './utils/test-utils';
+import { assert } from 'console';
 
 const CARDANO = 'cardano';
 const MAINNET = 'mainnet';
@@ -18,6 +19,7 @@ const generatePayload = (blockchain: string, network: string) => ({
   }
 });
 
+const genesis_block_identifier = { hash: '_ ߓ5��&\u0001����$�^�R���M\u0013\u0017�=C.�\u000e�', index: 0 };
 const cardanoMainnet = { network_identifiers: [{ network: MAINNET, blockchain: CARDANO }] };
 const version = {
   rosetta_version: '1.4.0',
@@ -174,8 +176,7 @@ describe('/network/status endpoint', () => {
       payload: generatePayload(CARDANO, MAINNET)
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    const genesis_block_identifier = {};
-    //asser genesis block here
+    expect(response.json().genesis_block_identifier).toEqual(genesis_block_identifier);
   });
 
   test('If requested with invalid blockchain, it should properly throw an error', async () => {
