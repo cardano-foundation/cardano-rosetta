@@ -12,7 +12,7 @@ export const block1000WithoutTxs = {
     timestamp: 1506233871000,
     metadata: {
       transactionsCount: 0,
-      createdBy: 'SlotLeader-5411c7bf87c25260',
+      createdBy: 'SlotLeader-8e8a7b0f4a23f07a',
       size: 669,
       epochNo: 0,
       slotNo: 999
