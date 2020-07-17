@@ -34,9 +34,29 @@ const allow = {
   operation_types: ['transfer'],
   errors: [
     {
-      code: 0,
-      message: 'string',
-      retriable: true
+      code: 400,
+      message: 'Block not found',
+      retriable: false
+    },
+    {
+      code: 400,
+      message: 'Network not found',
+      retriable: false
+    },
+    {
+      code: 400,
+      message: 'Invalid blockchain',
+      retriable: false
+    },
+    {
+      code: 400,
+      message: 'Networks not found',
+      retriable: false
+    },
+    {
+      code: 501,
+      message: 'Not implemented',
+      retriable: false
     }
   ],
   historical_balance_lookup: true

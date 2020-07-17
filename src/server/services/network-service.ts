@@ -1,6 +1,5 @@
 import StatusCodes from 'http-status-codes';
 import { NetworkRepository } from '../db/network-repository';
-import ApiError from '../api-error';
 import {
   CARDANO,
   SUCCESS_OPERATION_STATE,
@@ -8,7 +7,7 @@ import {
   MIDDLEWARE_VERSION,
   operationType
 } from '../utils/constants';
-import { errors } from '../utils/errors';
+import { errors, buildApiError, errorMessage } from '../utils/errors';
 
 /* eslint-disable camelcase */
 export interface NetworkService {
@@ -35,12 +34,12 @@ const ẁithNetworkValidation = async <T, R>(
   const network: string = networkIdentifier.network;
 
   if (blockchain !== CARDANO) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid blockchain', false);
+    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.INVALID_BLOCKCHAIN, false);
   }
 
   const networkExists = await repository.networkExists(network);
   if (!networkExists) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Network not found', false);
+    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.NETWORK_NOT_FOUND, false);
   }
   return await nextFn(parameters);
 };
@@ -56,7 +55,7 @@ const configure = (repository: NetworkRepository): NetworkService => ({
         }))
       };
     }
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Networks not found', false);
+    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.NETWORKS_NOT_FOUND, false);
   },
   async networkStatus(request) {
     return {

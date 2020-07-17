@@ -1,6 +1,7 @@
 import StatusCodes from 'http-status-codes';
 import { BlockchainRepository, Transaction, Block } from '../db/blockchain-repository';
-import ApiError, { NotImplementedError } from '../api-error';
+import { NotImplementedError } from '../api-error';
+import { buildApiError, errorMessage } from '../utils/errors';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -124,7 +125,7 @@ const configure = (repository: BlockchainRepository): BlockService => ({
         block: mapToRosettaBlock(result, transactions)
       };
     }
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Block not found', false);
+    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);
   },
   async blockTransaction() {
     // As `block` request returns the block with it's transaction, this endpoint
