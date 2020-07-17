@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { findNetworkByNetworkName, findAllNetworksQuery } from './queries/network-queries';
 
 export interface Network {
   networkName: string;
@@ -6,12 +7,8 @@ export interface Network {
 
 export interface NetworkRepository {
   findAllNetworksSupported(): Promise<Network[] | null>;
+  networkExists(networkName: string): Promise<boolean>;
 }
-
-const findAllNetworksQuery = `SELECT 
-    m.network_name as "networkName"
- FROM
-    meta m`;
 
 export const configure = (databaseInstance: Pool): NetworkRepository => ({
   async findAllNetworksSupported(): Promise<Network[] | null> {
@@ -20,5 +17,9 @@ export const configure = (databaseInstance: Pool): NetworkRepository => ({
       return networksResult.rows;
     }
     return null;
+  },
+  async networkExists(networkName): Promise<boolean> {
+    const networkResults = await databaseInstance.query(findNetworkByNetworkName, [networkName]);
+    return networkResults.rows[0].count > 0;
   }
 });

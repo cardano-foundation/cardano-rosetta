@@ -1,7 +1,8 @@
 import StatusCodes from 'http-status-codes';
 import { BlockchainRepository, Transaction, Block } from '../db/blockchain-repository';
-import ApiError, { NotImplementedError } from '../api-error';
-
+import { NotImplementedError } from '../api-error';
+import { buildApiError, errorMessage } from '../utils/errors';
+import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 /* eslint-disable camelcase */
 export interface BlockService {
   block(request: Components.Schemas.BlockRequest): Promise<Components.Schemas.BlockResponse | Components.Schemas.Error>;
@@ -54,7 +55,7 @@ const createOperation = (
  */
 const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.Transaction => {
   const inputsAsOperations = transaction.inputs.map((input, index) =>
-    createOperation(index, 'transfer', 'success', input.address, `-${input.value}`)
+    createOperation(index, TRANSFER_OPERATION_TYPE, SUCCESS_STATUS, input.address, `-${input.value}`)
   );
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
@@ -66,8 +67,8 @@ const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.T
   const outputsAsOperations = transaction.outputs.map((output, index) =>
     createOperation(
       inputsAsOperations.length + index,
-      'transfer',
-      'success',
+      TRANSFER_OPERATION_TYPE,
+      SUCCESS_STATUS,
       output.address,
       output.value,
       relatedOperations
@@ -124,7 +125,7 @@ const configure = (repository: BlockchainRepository): BlockService => ({
         block: mapToRosettaBlock(result, transactions)
       };
     }
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Block not found', false);
+    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);
   },
   async blockTransaction() {
     // As `block` request returns the block with it's transaction, this endpoint
