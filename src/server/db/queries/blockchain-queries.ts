@@ -1,11 +1,21 @@
 const findBlock = (blockNumber?: number, blockHash?: string): string => `
 SELECT 
-  *
+  b.hash as hash,
+  b.block_no as number,
+  b.time as "createdAt",
+  b2.hash as "previousBlockHash",
+  b.tx_count as "transactionsCount",
+  s.description as "createdBy",
+  b.size as size,
+  b.epoch_no as "epochNo",
+  b.slot_no as "slotNo"
 FROM 
-  "Block"
+  block b 
+  JOIN slot_leader s ON b.slot_leader = s.id
+  JOIN block b2 ON b.previous = b2.id
 WHERE
-  ${blockNumber ? 'number = $1' : '$1 = $1'} AND
-  ${blockHash ? 'hash = $2' : '$2 = $2'}
+  ${blockNumber ? 'b.block_no = $1' : '$1 = $1'} AND
+  ${blockHash ? 'b.hash = $2' : '$2 = $2'}
 LIMIT 1
 `;
 
