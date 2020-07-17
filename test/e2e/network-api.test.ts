@@ -19,7 +19,10 @@ const generatePayload = (blockchain: string, network: string) => ({
   }
 });
 
-const genesis_block_identifier = { hash: '_ ߓ5��&\u0001����$�^�R���M\u0013\u0017�=C.�\u000e�', index: 1 };
+const genesis_block_identifier = {
+  hash: '0x5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb',
+  index: 1
+};
 const cardanoMainnet = { network_identifiers: [{ network: MAINNET, blockchain: CARDANO }] };
 const version = {
   rosetta_version: '1.4.0',

@@ -221,7 +221,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   async findGenesisBlock(): Promise<GenesisBlock | null> {
     const result = await databaseInstance.query(Queries.findGenesisBlock);
     if (result.rows.length === 1) {
-      return result.rows[0];
+      return { hash: hashFormatter(result.rows[0].hash), index: result.rows[0].index };
     }
     return null;
   }
