@@ -56,9 +56,9 @@ RUN yarn --offline --frozen-lockfile --non-interactive --production
 FROM node:${NODEJS_VERSION}-alpine${ALPINE_VERSION}
 RUN apk add --update yarn
 RUN mkdir cardano-rosetta
-COPY --from=rosetta_server_production_deps cardano-rosetta/dist cardano-rosetta/dist
-COPY --from=rosetta_server_builder cardano-rosetta/node_modules cardano-rosetta/node_modules
+COPY --from=rosetta_server_builder cardano-rosetta/dist cardano-rosetta/dist
 COPY --from=rosetta_server_builder cardano-rosetta/package.json cardano-rosetta/
+COPY --from=rosetta_server_production_deps cardano-rosetta/node_modules cardano-rosetta/node_modules
 WORKDIR /cardano-rosetta/dist
 EXPOSE 8080
 CMD ["node", "index.js"]
