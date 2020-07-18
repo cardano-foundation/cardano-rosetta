@@ -7,5 +7,6 @@ module.exports = {
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
   testPathIgnorePatterns: ['/lib/', '/node_modules/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
-  setupFiles: ['./test/e2e/setup-environment.ts']
+  globalSetup: './test/e2e/jest-setup/jest-setup.ts',
+  globalTeardown: './test/e2e/jest-setup/jest-teardown.ts'
 };
