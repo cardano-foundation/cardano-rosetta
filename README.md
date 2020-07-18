@@ -11,7 +11,7 @@ This web service allows you to query and interact with the Cardano network throu
 The Dockerfile can be [built anywhere](https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere)
 
 ```console
-wget https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/0.1.0/Dockerfile
+wget --secure-protocol=TLSv1_2 https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/0.1.0/Dockerfile
 docker build -t cardano-rosetta:0.1.0 .
 ``` 
 _Optionally_ override the managed dependencies using build arg flags in the `docker build` command. [See releases](docs/MAINTAINER.md#Internal-Software) 
