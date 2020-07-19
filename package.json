@@ -4,7 +4,7 @@
   "description": "Rosetta API server specification implementation",
   "main": "index.js",
   "scripts": {
-    "build": "yarn generate-rosetta-types && tsc",
+    "build": "tsc -p tsconfig-dist.json",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "generate-rosetta-types": "dtsgen --out ./types/rosetta-types.d.ts ./rosetta-specifications/api.json",

@@ -1,4 +1,4 @@
-import rosettaApiJson from '../../../rosetta-specifications/api.json';
+import rosettaApiJson from '../openApi.json';
 import packageJson from '../../../package.json';
 
 export const ROSETTA_VERSION = rosettaApiJson.info.version;
