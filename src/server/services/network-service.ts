@@ -9,6 +9,7 @@ import {
   operationType
 } from '../utils/constants';
 import { errors, buildApiError, errorMessage } from '../utils/errors';
+import { withNetworkValidation } from './utils/services-helper';
 
 /* eslint-disable camelcase */
 export interface NetworkService {
@@ -24,26 +25,6 @@ export interface NetworkService {
     request: Components.Schemas.NetworkRequest
   ): Promise<Components.Schemas.NetworkOptionsResponse | Components.Schemas.Error>;
 }
-
-const ẁithNetworkValidation = async <T, R>(
-  networkIdentifier: Components.Schemas.NetworkIdentifier,
-  repository: NetworkRepository,
-  parameters: T,
-  nextFn: (param: T) => R
-) => {
-  const blockchain: string = networkIdentifier.blockchain;
-  const network: string = networkIdentifier.network;
-
-  if (blockchain !== CARDANO) {
-    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.INVALID_BLOCKCHAIN, false);
-  }
-
-  const networkExists = await repository.networkExists(network);
-  if (!networkExists) {
-    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.NETWORK_NOT_FOUND, false);
-  }
-  return await nextFn(parameters);
-};
 
 interface Producer {
   addr: string;
@@ -82,7 +63,7 @@ const configure = (
     throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.NETWORKS_NOT_FOUND, false);
   },
   networkStatus: async networkStatusRequest =>
-    ẁithNetworkValidation(
+    withNetworkValidation(
       networkStatusRequest.network_identifier,
       networkRepository,
       networkStatusRequest,
@@ -109,7 +90,7 @@ const configure = (
       }
     ),
   networkOptions: async networkOptionsRequest =>
-    ẁithNetworkValidation(
+    withNetworkValidation(
       networkOptionsRequest.network_identifier,
       networkRepository,
       networkOptionsRequest,

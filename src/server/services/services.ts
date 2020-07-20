@@ -30,7 +30,7 @@ const loadTopologyFile = () => {
 export const configure = (repositories: Repositories): Services => {
   const blockServiceInstance = blockService(repositories.blockchainRepository);
   return {
-    ...accountService,
+    ...accountService(repositories.networkRepository, blockServiceInstance),
     ...blockServiceInstance,
     ...constructionService,
     ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile())

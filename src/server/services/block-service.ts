@@ -1,8 +1,16 @@
 import StatusCodes from 'http-status-codes';
+import {
+  BlockchainRepository,
+  Transaction,
+  Block,
+  Utxo,
+  PartialBlockIdentifier,
+  GenesisBlock
+} from '../db/blockchain-repository';
 import { NotImplementedError } from '../api-error';
 import { buildApiError, errorMessage } from '../utils/errors';
-import { BlockchainRepository, Transaction, Block, GenesisBlock } from '../db/blockchain-repository';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
+
 /* eslint-disable camelcase */
 export interface BlockService {
   block(request: Components.Schemas.BlockRequest): Promise<Components.Schemas.BlockResponse | Components.Schemas.Error>;
@@ -11,6 +19,9 @@ export interface BlockService {
   ): Promise<Components.Schemas.BlockTransactionResponse | Components.Schemas.Error>;
   getGenesisBlock(): Promise<GenesisBlock>;
   getLatestBlock(): Promise<Block>;
+  findBalanceByAddressAndBlock(address: string, blockNumber: number): Promise<string>;
+  findUtxoByAddressAndBlock(address: string, blockNumber: number): Promise<Utxo[]>;
+  findBlock(blockIdentifier: PartialBlockIdentifier): Promise<Block | null>;
 }
 
 /**
@@ -112,15 +123,18 @@ const mapToRosettaBlock = (block: Block, transactions: Transaction[]): Component
 });
 
 const configure = (repository: BlockchainRepository): BlockService => ({
+  async findBlock(blockIdentifier) {
+    const searchLatestBlock = blockIdentifier.hash === undefined && blockIdentifier.index === undefined;
+    const blockNumber = searchLatestBlock ? await repository.findLatestBlockNumber() : blockIdentifier.index;
+    return repository.findBlock(blockNumber, blockIdentifier.hash);
+  },
   async block(request) {
-    const searchLatestBlock =
-      request.block_identifier.hash === undefined && request.block_identifier.index === undefined;
-    const blockNumber = searchLatestBlock ? await repository.findLatestBlockNumber() : request.block_identifier.index;
-    const result = await repository.findBlock(blockNumber, request.block_identifier.hash);
-    if (result !== null) {
-      const transactions = await repository.findTransactionsByBlock(blockNumber, request.block_identifier.hash);
+    const block = await this.findBlock(request.block_identifier);
+    if (block !== null) {
+      const { number } = block;
+      const transactions = await repository.findTransactionsByBlock(number, request.block_identifier.hash);
       return {
-        block: mapToRosettaBlock(result, transactions)
+        block: mapToRosettaBlock(block, transactions)
       };
     }
     throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);
@@ -140,6 +154,12 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     const latestBlock = await repository.findGenesisBlock();
     if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.GENESIS_BLOCK_NOT_FOUND, false);
     return latestBlock;
+  },
+  async findBalanceByAddressAndBlock(address, blockNumber) {
+    return (await repository.findBalanceByAddressAndBlock(address, blockNumber)).toString();
+  },
+  async findUtxoByAddressAndBlock(address, blockNumber) {
+    return await repository.findUtxoByAddressAndBlock(address, blockNumber);
   }
 });
 

@@ -102,13 +102,53 @@ ORDER BY block_no DESC
 LIMIT 1
 `;
 
+export interface FindBalance {
+  balance: number;
+}
+
+const findBalanceByAddressAndBlock = `
+SELECT
+  sum(utxo.value) as balance
+FROM
+  utxo_view utxo 
+JOIN tx ON utxo.tx_id = tx.id
+JOIN block b ON b.id = tx.block
+WHERE
+  utxo.address = $1
+AND 
+  b.block_no <= $2`;
+
+export interface FindUtxo {
+  address: string;
+  value: number;
+  blockNumber: number;
+  txHash: Buffer;
+}
+
+const findUtxoByAddressAndBlock = `
+SELECT
+  utxo.address as address,
+  utxo.value as value,
+  b.block_no as "blockNumber",
+  tx.hash as "txHash"
+FROM
+  utxo_view utxo 
+JOIN tx ON utxo.tx_id = tx.id
+JOIN block b ON b.id = tx.block
+WHERE
+  utxo.address = $1
+AND 
+  b.block_no <= $2`;
+
 const Queries = {
   findBlock,
   findTransactionsByBlock,
   findTransactionsInputs,
   findTransactionsOutputs,
   findLatestBlockNumber,
-  findGenesisBlock
+  findGenesisBlock,
+  findBalanceByAddressAndBlock,
+  findUtxoByAddressAndBlock
 };
 
 export default Queries;
