@@ -45,6 +45,23 @@ const ẁithNetworkValidation = async <T, R>(
   return await nextFn(parameters);
 };
 
+interface Peer {
+  addr: string;
+}
+
+const getPeersFromConfig = () => {
+  const topologyPath = process.env.TOPOLOGY_FILE_PATH;
+  if (topologyPath === undefined) {
+    throw buildApiError(StatusCodes.INTERNAL_SERVER_ERROR, errorMessage.TOPOLOGY_FILE_NOT_FOUND, false);
+  }
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const topologyFile = require(topologyPath);
+  const { Producers } = topologyFile;
+  return Producers.map((peer: Peer) => ({
+    peer_id: peer.addr
+  }));
+};
+
 const configure = (networkRepository: NetworkRepository, blockchainService: BlockService): NetworkService => ({
   async networkList() {
     const networkIdentifiers = await networkRepository.findAllNetworksSupported();
@@ -81,12 +98,7 @@ const configure = (networkRepository: NetworkRepository, blockchainService: Bloc
             index: genesisBlock.index,
             hash: genesisBlock.hash
           },
-          peers: [
-            {
-              peer_id: '0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5',
-              metadata: {}
-            }
-          ]
+          peers: getPeersFromConfig()
         };
       }
     ),
