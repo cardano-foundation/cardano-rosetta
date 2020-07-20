@@ -34,59 +34,12 @@ export const block23236WithTransactions = {
     timestamp: 1506678871000,
     metadata: {
       transactionsCount: 2,
-      createdBy: 'SlotLeader-65904a89e6d0e5f8',
+      createdBy: 'SlotLeader-64c61078e9577d3b',
       size: 1155,
       epochNo: 1,
       slotNo: 23249
     },
     transactions: [
-      {
-        transaction_identifier: {
-          hash: '0xd864f781436f0122a21335b672fe7943ab1d123f6c2ed770541669d70a870d75'
-        },
-        operations: [
-          {
-            operation_identifier: {
-              index: 0
-            },
-            type: 'transfer',
-            status: 'success',
-            account: {
-              address: 'Ae2tdPwUPEZE74MFSWpMuXKTbh8uyc7GVXT8Rc4dk1kCUfVpX19jk1VW2CW'
-            },
-            amount: {
-              value: '-386848000000',
-              currency: {
-                symbol: 'ADA',
-                decimals: 6
-              }
-            }
-          },
-          {
-            operation_identifier: {
-              index: 1
-            },
-            related_operations: [
-              {
-                index: 0
-              }
-            ],
-            type: 'transfer',
-            status: 'success',
-            account: {
-              address:
-                'DdzFFzCqrhsra7iVHeD6D94CjdHz3rPvPCsGouLHmxv8YZS8xptCPomaooFhLqeexen988tCbx5hTa2iM4wD6JLNjfij8QCZLvmS8eKP'
-            },
-            amount: {
-              value: '386848000000',
-              currency: {
-                symbol: 'ADA',
-                decimals: 6
-              }
-            }
-          }
-        ]
-      },
       {
         transaction_identifier: {
           hash: '0xabbeb108ebc3990c7f031113bcb8ce8f306a1eec8f313acffcdcd256379208f4'
@@ -126,6 +79,53 @@ export const block23236WithTransactions = {
             },
             amount: {
               value: '1249999000000',
+              currency: {
+                symbol: 'ADA',
+                decimals: 6
+              }
+            }
+          }
+        ]
+      },
+      {
+        transaction_identifier: {
+          hash: '0xd864f781436f0122a21335b672fe7943ab1d123f6c2ed770541669d70a870d75'
+        },
+        operations: [
+          {
+            operation_identifier: {
+              index: 0
+            },
+            type: 'transfer',
+            status: 'success',
+            account: {
+              address: 'Ae2tdPwUPEZE74MFSWpMuXKTbh8uyc7GVXT8Rc4dk1kCUfVpX19jk1VW2CW'
+            },
+            amount: {
+              value: '-386848000000',
+              currency: {
+                symbol: 'ADA',
+                decimals: 6
+              }
+            }
+          },
+          {
+            operation_identifier: {
+              index: 1
+            },
+            related_operations: [
+              {
+                index: 0
+              }
+            ],
+            type: 'transfer',
+            status: 'success',
+            account: {
+              address:
+                'DdzFFzCqrhsra7iVHeD6D94CjdHz3rPvPCsGouLHmxv8YZS8xptCPomaooFhLqeexen988tCbx5hTa2iM4wD6JLNjfij8QCZLvmS8eKP'
+            },
+            amount: {
+              value: '386848000000',
               currency: {
                 symbol: 'ADA',
                 decimals: 6
