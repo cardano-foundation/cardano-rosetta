@@ -1,7 +1,8 @@
 import Docker from 'dockerode';
-import { containerExec } from 'dockerode-utils';
+import { containerExec, pullImageAsync, imageExists } from 'dockerode-utils';
 import path from 'path';
 
+const CONTAINER_IMAGE = 'postgres:11.5-alpine';
 const CONTAINER_TEMP_DIR = '/tmp';
 const CONTAINER_NAME = 'cardano-test';
 
@@ -20,8 +21,11 @@ export const setupPostgresContainer = async (
 ): Promise<void> => {
   const docker = new Docker();
 
+  const needsToPull = !(await imageExists(docker, CONTAINER_IMAGE));
+  if (needsToPull) await pullImageAsync(docker, CONTAINER_IMAGE);
+
   const container = await docker.createContainer({
-    Image: 'postgres:alpine',
+    Image: CONTAINER_IMAGE,
     Env: [`POSTGRES_DB=${database}`, `POSTGRES_PASSWORD=${password}`, `POSTGRES_USER=${user}`],
     HostConfig: {
       PortBindings: {
