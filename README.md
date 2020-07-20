@@ -50,8 +50,12 @@ BIND_ADDRESS=127.0.0.1
 DB_CONNECTION_STRING="postgresql://postgres:password@127.0.0.1:5432/db"
 ```
 
-### Setup
-
+### Build base Docker images
+Build base images maintained in the release [Dockerfile](./Dockerfile) for [development](./dev.Dockerfile)
+```
+./scripts/build_base_docker_images.sh
+```
+### Install packages from offline cache
 ```
 yarn --offline
 ```

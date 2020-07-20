@@ -1,64 +1,38 @@
-ARG NODEJS_VERSION=14.5.0
-ARG ALPINE_VERSION=3.11
-ARG CARDANO_ROSETTA_SERVER_TAG=0.1.0
+ARG UBUNTU_VERSION=20.04
 
-#############################################################
-#####################  Offline ##############################
-#############################################################
+FROM ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
+ARG NODEJS_MAJOR_VERSION=14
+RUN apt-get update && apt-get install curl -y
+RUN curl --proto '=https' --tlsv1.2 -sSf -L https://deb.nodesource.com/setup_${NODEJS_MAJOR_VERSION}.x | bash -
+RUN apt-get install nodejs -y
 
-FROM node:${NODEJS_VERSION}-alpine${ALPINE_VERSION} as rosetta_server_offline_builder
-RUN apk add --update python make g++ yarn
-RUN mkdir cardano-rosetta
-COPY package.json yarn.lock .yarnrc tsconfig-dist.json tsconfig.json /cardano-rosetta/
-COPY packages-cache /cardano-rosetta/packages-cache
-COPY src /cardano-rosetta/src
-WORKDIR /cardano-rosetta
-RUN yarn --offline --frozen-lockfile --non-interactive
-RUN yarn build
+FROM ubuntu-nodejs as nodejs-builder
+RUN apt-get update && apt-get install gcc g++ make gnupg2 -y
+RUN curl --proto '=https' --tlsv1.2 -sSf -L https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update && apt-get install yarn -y
 
-FROM node:${NODEJS_VERSION}-alpine${ALPINE_VERSION} as rosetta_server_offline_production_deps
-RUN apk add --update python make g++ yarn
-RUN mkdir cardano-rosetta
-COPY --from=rosetta_server_offline_builder cardano-rosetta/packages-cache cardano-rosetta/packages-cache
-COPY --from=rosetta_server_offline_builder cardano-rosetta/.yarnrc cardano-rosetta/yarn.lock cardano-rosetta/package.json cardano-rosetta/
-WORKDIR /cardano-rosetta
-RUN yarn --offline --frozen-lockfile --non-interactive --production
-
-FROM node:${NODEJS_VERSION}-alpine${ALPINE_VERSION} as rosetta_offline_server
-RUN apk add --update python make g++ yarn
-RUN mkdir cardano-rosetta
-COPY --from=rosetta_server_offline_builder cardano-rosetta/dist cardano-rosetta/dist
-COPY --from=rosetta_server_offline_builder cardano-rosetta/package.json cardano-rosetta/
-COPY --from=rosetta_server_offline_production_deps cardano-rosetta/node_modules cardano-rosetta/node_modules
-WORKDIR /cardano-rosetta/dist
-EXPOSE 8080
-CMD ["node", "src/server/index.js"]
-
-#############################################################
-######  Spec-compliant, build from anywhere (default) #######
-#############################################################
-
-FROM node:${NODEJS_VERSION}-alpine${ALPINE_VERSION} as rosetta_server_builder
-RUN apk add --update python make g++ yarn
+FROM nodejs-builder as rosetta-server-builder
+ARG CARDANO_ROSETTA_SERVER_TAG=1.0.0
+RUN apt-get update && apt-get install git -y
 RUN git clone -b ${CARDANO_ROSETTA_SERVER_TAG} https://github.com/input-output-hk/cardano-rosetta
 WORKDIR /cardano-rosetta
 RUN yarn --offline --frozen-lockfile --non-interactive
 RUN yarn build
 
-FROM node:${NODEJS_VERSION}-alpine${ALPINE_VERSION} as rosetta_server_production_deps
-RUN apk add --update python make g++ yarn
+FROM nodejs-builder as rosetta-server-production-deps
 RUN mkdir cardano-rosetta
-COPY --from=rosetta_server_builder cardano-rosetta/packages-cache cardano-rosetta/packages-cache
-COPY --from=rosetta_server_builder cardano-rosetta/.yarnrc cardano-rosetta/yarn.lock cardano-rosetta/package.json cardano-rosetta/
+COPY --from=rosetta-server-builder cardano-rosetta/packages-cache cardano-rosetta/packages-cache
+COPY --from=rosetta-server-builder cardano-rosetta/.yarnrc cardano-rosetta/yarn.lock cardano-rosetta/package.json cardano-rosetta/
 WORKDIR /cardano-rosetta
 RUN yarn --offline --frozen-lockfile --non-interactive --production
 
-FROM node:${NODEJS_VERSION}-alpine${ALPINE_VERSION}
-RUN apk add --update yarn
+FROM ubuntu-nodejs
 RUN mkdir cardano-rosetta
-COPY --from=rosetta_server_builder cardano-rosetta/dist cardano-rosetta/dist
-COPY --from=rosetta_server_builder cardano-rosetta/package.json cardano-rosetta/
-COPY --from=rosetta_server_production_deps cardano-rosetta/node_modules cardano-rosetta/node_modules
+COPY --from=rosetta-server-builder cardano-rosetta/dist cardano-rosetta/dist
+COPY --from=rosetta-server-builder cardano-rosetta/package.json cardano-rosetta/
+COPY --from=rosetta-server-production-deps cardano-rosetta/node_modules cardano-rosetta/node_modules
 WORKDIR /cardano-rosetta/dist
 EXPOSE 8080
 CMD ["node", "src/server/index.js"]
+

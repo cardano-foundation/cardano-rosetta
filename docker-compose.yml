@@ -57,7 +57,7 @@ services:
   cardano-rosetta-server:
     build:
       context: .
-      target: rosetta_offline_server
+      dockerfile: dev.Dockerfile
     expose:
       - 8080
     ports:
