@@ -45,14 +45,23 @@ export interface FindTransactionsInputs {
   sourceTxIndex: number;
 }
 
-const findTransactionsInputs = `
-SELECT 
-  *
-FROM 
-  "TransactionInput"
+const findTransactionsInputs = `SELECT
+  source_tx_out.address as address,
+  source_tx_out.value as value,
+  tx.hash as "txHash",
+  source_tx.hash as "sourceTxHash",
+  tx_in.tx_out_index as "sourceTxIndex"
+FROM
+  tx
+JOIN tx_in
+  ON tx_in.tx_in_id = tx.id
+JOIN tx_out as source_tx_out
+  ON tx_in.tx_out_id = source_tx_out.tx_id
+  AND tx_in.tx_out_index = source_tx_out.index
+JOIN tx as source_tx
+  ON source_tx_out.tx_id = source_tx.id
 WHERE
-  "txHash" = ANY ($1)
-`;
+  tx.hash = ANY ($1)`;
 
 export interface FindTransactionsOutputs {
   address: string;
@@ -62,12 +71,16 @@ export interface FindTransactionsOutputs {
 }
 
 const findTransactionsOutputs = `
-SELECT 
-  *
-FROM 
-  "TransactionOutput"
+SELECT
+  address,
+  value,
+  tx.hash as "txHash",
+  index
+FROM tx
+JOIN tx_out
+  ON tx.id = tx_out.tx_id
 WHERE
-  "txHash" = ANY ($1)
+  tx.hash = ANY ($1)
 `;
 
 const Queries = {
