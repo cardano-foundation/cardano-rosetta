@@ -170,17 +170,7 @@ describe('/network/status endpoint', () => {
     await database.end();
   });
 
-  test('If requested with valid payload, it should properly return an object containing proper latestBlock information', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: NETWORK_STATUS_ENDPOINT,
-      payload: generatePayload(CARDANO, MAINNET)
-    });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    // assert latestBlock here
-  });
-
-  test('If requested with valid payload, it should properly return an object containing proper latestGenesis information', async () => {
+  test('If requested with valid payload, it should properly return an object containing proper status information', async () => {
     const response = await server.inject({
       method: 'post',
       url: NETWORK_STATUS_ENDPOINT,
@@ -188,15 +178,6 @@ describe('/network/status endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().genesis_block_identifier).toEqual(genesis_block_identifier);
-  });
-
-  test('If requested with valid payload, it should properly return an object containing proper peers information', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: NETWORK_STATUS_ENDPOINT,
-      payload: generatePayload(CARDANO, MAINNET)
-    });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().peers).toEqual(peers);
   });
 

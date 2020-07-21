@@ -45,24 +45,30 @@ const ẁithNetworkValidation = async <T, R>(
   return await nextFn(parameters);
 };
 
+interface Producer {
+  addr: string;
+}
+
+interface TopologyConfig {
+  Producers: Producer[];
+}
+
 interface Peer {
   addr: string;
 }
 
-const getPeersFromConfig = () => {
-  const topologyPath = process.env.TOPOLOGY_FILE_PATH;
-  if (topologyPath === undefined) {
-    throw buildApiError(StatusCodes.INTERNAL_SERVER_ERROR, errorMessage.TOPOLOGY_FILE_NOT_FOUND, false);
-  }
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const topologyFile = require(topologyPath);
+const getPeersFromConfig = (topologyFile: TopologyConfig) => {
   const { Producers } = topologyFile;
   return Producers.map((peer: Peer) => ({
     peer_id: peer.addr
   }));
 };
 
-const configure = (networkRepository: NetworkRepository, blockchainService: BlockService): NetworkService => ({
+const configure = (
+  networkRepository: NetworkRepository,
+  blockchainService: BlockService,
+  topologyFile: TopologyConfig
+): NetworkService => ({
   async networkList() {
     const networkIdentifiers = await networkRepository.findAllNetworksSupported();
     if (networkIdentifiers !== null) {
@@ -98,7 +104,7 @@ const configure = (networkRepository: NetworkRepository, blockchainService: Bloc
             index: genesisBlock.index,
             hash: genesisBlock.hash
           },
-          peers: getPeersFromConfig()
+          peers: getPeersFromConfig(topologyFile)
         };
       }
     ),

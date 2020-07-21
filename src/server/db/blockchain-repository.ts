@@ -69,7 +69,6 @@ export interface BlockchainRepository {
   findLatestBlockNumber(): Promise<number>;
 
   /**
-   * FIXME i think this query could be much better done
    * Returns the genesis block
    */
   findGenesisBlock(): Promise<GenesisBlock | null>;
