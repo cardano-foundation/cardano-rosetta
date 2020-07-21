@@ -25,7 +25,7 @@ const genesis_block_identifier = {
   index: 0 // FIXME this is not ok
 };
 const last_block_identifier = {
-  hash: '0x89d9b5a5b8ddc8d7e5a6795e9774d97faf1efea59b2caf7eaf9f8c5b32059df4',
+  hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
   index: 65168
 };
 
@@ -73,6 +73,11 @@ const allow = {
     {
       code: 500,
       message: 'Topology file not found',
+      retriable: false
+    },
+    {
+      code: 400,
+      message: 'Genesis block not found',
       retriable: false
     }
   ],

@@ -7,7 +7,8 @@ export enum errorMessage {
   NETWORKS_NOT_FOUND = 'Networks not found',
   INVALID_BLOCKCHAIN = 'Invalid blockchain',
   NOT_IMPLEMENTED = 'Not implemented',
-  TOPOLOGY_FILE_NOT_FOUND = 'Topology file not found'
+  TOPOLOGY_FILE_NOT_FOUND = 'Topology file not found',
+  GENESIS_BLOCK_NOT_FOUND = 'Genesis block not found'
 }
 
 export const buildApiError = (code: number, message: string, retriable: boolean, details?: string): ApiError =>
@@ -24,6 +25,7 @@ const topoloyFileNotFound = buildApiError(
   false
 );
 const notImplentedError = new NotImplementedError();
+const genesisBlockNotFound = buildApiError(StatusCodes.BAD_REQUEST, errorMessage.GENESIS_BLOCK_NOT_FOUND, false);
 
 export const errors = [
   blockNotFoundError,
@@ -31,5 +33,6 @@ export const errors = [
   invalidBlockchainError,
   networksNotFoundError,
   notImplentedError,
-  topoloyFileNotFound
+  topoloyFileNotFound,
+  genesisBlockNotFound
 ];
