@@ -203,7 +203,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   },
 
   async findLatestBlockNumber(): Promise<number> {
-    const result = await databaseInstance.query('SELECT "blockHeight" FROM "Cardano"');
+    const result = await databaseInstance.query(Queries.findLatestBlockNumber);
     return result.rows[0].blockHeight;
   }
 });

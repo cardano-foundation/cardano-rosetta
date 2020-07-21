@@ -21,6 +21,28 @@ export const block1000WithoutTxs = {
   }
 };
 
+export const latestBlock = {
+  block: {
+    block_identifier: {
+      index: 65168,
+      hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252'
+    },
+    parent_block_identifier: {
+      index: 65167,
+      hash: '0x1e783f0c84e0aa06e5b8dbc7965674e8856aebd87838f9466952b5b738381adf'
+    },
+    timestamp: 1507517771000,
+    transactions: [],
+    metadata: {
+      transactionsCount: 0,
+      createdBy: 'SlotLeader-52df0f2c5539b2b1',
+      size: 669,
+      epochNo: 3,
+      slotNo: 65194
+    }
+  }
+};
+
 export const block23236WithTransactions = {
   block: {
     block_identifier: {

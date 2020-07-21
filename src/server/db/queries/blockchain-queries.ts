@@ -83,11 +83,21 @@ WHERE
   tx.hash = ANY ($1)
 `;
 
+const findLatestBlockNumber = `
+SELECT
+  block_no as "blockHeight"
+FROM block
+WHERE block_no IS NOT NULL
+ORDER BY block_no DESC
+LIMIT 1
+`;
+
 const Queries = {
   findBlock,
   findTransactionsByBlock,
   findTransactionsInputs,
-  findTransactionsOutputs
+  findTransactionsOutputs,
+  findLatestBlockNumber
 };
 
 export default Queries;
