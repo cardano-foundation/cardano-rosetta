@@ -131,13 +131,14 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     throw new NotImplementedError();
   },
   async getLatestBlock() {
-    const latestBlock = await repository.findBlock();
-    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, 'Gensis block not found', false);
+    const latestBlockNumber = await repository.findLatestBlockNumber();
+    const latestBlock = await repository.findBlock(latestBlockNumber);
+    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, 'Latest block not found', false);
     return latestBlock;
   },
   async getGenesisBlock() {
     const latestBlock = await repository.findGenesisBlock();
-    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, 'Gensis block not found', false);
+    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, 'Genesis block not found', false);
     return latestBlock;
   }
 });

@@ -66,7 +66,7 @@ WHERE
 const findGenesisBlock = `
 SELECT
   hash,
-  id as index
+  block_no as index
 FROM
   block
 WHERE

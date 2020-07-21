@@ -22,8 +22,13 @@ const NETWORK_NOT_FOUND = 'Network not found';
 const INVALID_BLOCKCHAIN = 'Invalid blockchain';
 const genesis_block_identifier = {
   hash: '0x5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb',
-  index: 1
+  index: 0 // FIXME this is not ok
 };
+const last_block_identifier = {
+  hash: '0x89d9b5a5b8ddc8d7e5a6795e9774d97faf1efea59b2caf7eaf9f8c5b32059df4',
+  index: 65168
+};
+
 const cardanoMainnet = { network_identifiers: [{ network: MAINNET, blockchain: CARDANO }] };
 const version = {
   rosetta_version: '1.4.0',
@@ -178,6 +183,7 @@ describe('/network/status endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().genesis_block_identifier).toEqual(genesis_block_identifier);
+    expect(response.json().current_block_identifier).toEqual(last_block_identifier);
     expect(response.json().peers).toEqual(peers);
   });
 
