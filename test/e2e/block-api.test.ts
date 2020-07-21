@@ -2,7 +2,7 @@
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { block1000WithoutTxs, block23236WithTransactions } from './fixture-data';
+import { block1000WithoutTxs, block23236WithTransactions, latestBlock } from './fixture-data';
 import { setupDatabase, setupServer } from './utils/test-utils';
 
 const generatePayload = (index?: number, hash?: string) => ({
@@ -79,7 +79,16 @@ describe('Block API', () => {
     test.todo('should properly return for genesis block');
 
     // FIXME: Add a test for this case when testing with a mock db is done
-    test.todo('should be able to fetch latest block information');
+    test('should be able to fetch latest block information', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload()
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual(latestBlock);
+    });
 
     test('should properly return a block with transactions', async () => {
       const response = await server.inject({

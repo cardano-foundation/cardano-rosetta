@@ -113,14 +113,10 @@ const configure = (repository: BlockchainRepository): BlockService => ({
   async block(request) {
     const searchLatestBlock =
       request.block_identifier.hash === undefined && request.block_identifier.index === undefined;
-    const result = searchLatestBlock
-      ? await repository.findLatestBlockNumber().then(blockIndex => repository.findBlock(blockIndex))
-      : await repository.findBlock(request.block_identifier.index, request.block_identifier.hash);
+    const blockNumber = searchLatestBlock ? await repository.findLatestBlockNumber() : request.block_identifier.index;
+    const result = await repository.findBlock(blockNumber, request.block_identifier.hash);
     if (result !== null) {
-      const transactions = await repository.findTransactionsByBlock(
-        request.block_identifier.index,
-        request.block_identifier.hash
-      );
+      const transactions = await repository.findTransactionsByBlock(blockNumber, request.block_identifier.hash);
       return {
         block: mapToRosettaBlock(result, transactions)
       };
