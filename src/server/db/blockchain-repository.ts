@@ -18,6 +18,11 @@ export interface Block {
   slotNo: number;
 }
 
+export interface GenesisBlock {
+  hash: string;
+  index: number;
+}
+
 export interface TransactionInput {
   address: string;
   value: string;
@@ -62,6 +67,11 @@ export interface BlockchainRepository {
    * Returns the tip of the chain block number
    */
   findLatestBlockNumber(): Promise<number>;
+
+  /**
+   * Returns the genesis block
+   */
+  findGenesisBlock(): Promise<GenesisBlock | null>;
 }
 
 /**
@@ -205,5 +215,13 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   async findLatestBlockNumber(): Promise<number> {
     const result = await databaseInstance.query(Queries.findLatestBlockNumber);
     return result.rows[0].blockHeight;
+  },
+
+  async findGenesisBlock(): Promise<GenesisBlock | null> {
+    const result = await databaseInstance.query(Queries.findGenesisBlock);
+    if (result.rows.length === 1) {
+      return { hash: hashFormatter(result.rows[0].hash), index: result.rows[0].index };
+    }
+    return null;
   }
 });

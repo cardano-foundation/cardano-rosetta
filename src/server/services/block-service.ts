@@ -1,7 +1,7 @@
 import StatusCodes from 'http-status-codes';
-import { BlockchainRepository, Transaction, Block } from '../db/blockchain-repository';
 import { NotImplementedError } from '../api-error';
 import { buildApiError, errorMessage } from '../utils/errors';
+import { BlockchainRepository, Transaction, Block, GenesisBlock } from '../db/blockchain-repository';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -9,6 +9,8 @@ export interface BlockService {
   blockTransaction(
     request: Components.Schemas.BlockTransactionRequest
   ): Promise<Components.Schemas.BlockTransactionResponse | Components.Schemas.Error>;
+  getGenesisBlock(): Promise<GenesisBlock>;
+  getLatestBlock(): Promise<Block>;
 }
 
 /**
@@ -127,6 +129,17 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     // As `block` request returns the block with it's transaction, this endpoint
     // shouldn't return any data
     throw new NotImplementedError();
+  },
+  async getLatestBlock() {
+    const latestBlockNumber = await repository.findLatestBlockNumber();
+    const latestBlock = await repository.findBlock(latestBlockNumber);
+    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);
+    return latestBlock;
+  },
+  async getGenesisBlock() {
+    const latestBlock = await repository.findGenesisBlock();
+    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.GENESIS_BLOCK_NOT_FOUND, false);
+    return latestBlock;
   }
 });
 

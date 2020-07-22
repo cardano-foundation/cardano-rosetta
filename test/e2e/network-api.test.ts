@@ -8,6 +8,7 @@ import { setupDatabase, setupServer } from './utils/test-utils';
 const CARDANO = 'cardano';
 const MAINNET = 'mainnet';
 const NETWORK_OPTIONS_ENDPOINT = '/network/options';
+const NETWORK_STATUS_ENDPOINT = '/network/status';
 
 const generatePayload = (blockchain: string, network: string) => ({
   // eslint-disable-next-line camelcase
@@ -16,6 +17,17 @@ const generatePayload = (blockchain: string, network: string) => ({
     network
   }
 });
+
+const NETWORK_NOT_FOUND = 'Network not found';
+const INVALID_BLOCKCHAIN = 'Invalid blockchain';
+const genesis_block_identifier = {
+  hash: '0x5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb',
+  index: 0 // FIXME this is not ok
+};
+const last_block_identifier = {
+  hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
+  index: 65168
+};
 
 const cardanoMainnet = { network_identifiers: [{ network: MAINNET, blockchain: CARDANO }] };
 const version = {
@@ -40,12 +52,12 @@ const allow = {
     },
     {
       code: 400,
-      message: 'Network not found',
+      message: NETWORK_NOT_FOUND,
       retriable: false
     },
     {
       code: 400,
-      message: 'Invalid blockchain',
+      message: INVALID_BLOCKCHAIN,
       retriable: false
     },
     {
@@ -57,10 +69,22 @@ const allow = {
       code: 501,
       message: 'Not implemented',
       retriable: false
+    },
+    {
+      code: 500,
+      message: 'Topology file not found',
+      retriable: false
+    },
+    {
+      code: 400,
+      message: 'Genesis block not found',
+      retriable: false
     }
   ],
   historical_balance_lookup: true
 };
+
+const peers = [{ peer_id: 'relays-new.cardano-mainnet.iohk.io' }];
 
 describe('/network/list endpoint', () => {
   let database: Pool;
@@ -89,7 +113,6 @@ describe('/network/list endpoint', () => {
 describe('/network/options endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
-
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
@@ -127,7 +150,7 @@ describe('/network/options endpoint', () => {
       payload: generatePayload(CARDANO, 'testnet')
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual({ code: StatusCodes.BAD_REQUEST, message: 'Network not found', retriable: false });
+    expect(response.json()).toEqual({ code: StatusCodes.BAD_REQUEST, message: NETWORK_NOT_FOUND, retriable: false });
   });
 
   test('If requested with invalid blockchain, it should throw an error', async () => {
@@ -139,7 +162,60 @@ describe('/network/options endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
       code: StatusCodes.BAD_REQUEST,
-      message: 'Invalid blockchain',
+      message: INVALID_BLOCKCHAIN,
+      retriable: false
+    });
+  });
+});
+
+describe('/network/status endpoint', () => {
+  let database: Pool;
+  let server: FastifyInstance;
+  beforeAll(async () => {
+    database = setupDatabase();
+    server = setupServer(database);
+  });
+
+  afterAll(async () => {
+    await database.end();
+  });
+
+  test('If requested with valid payload, it should properly return an object containing proper status information', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: NETWORK_STATUS_ENDPOINT,
+      payload: generatePayload(CARDANO, MAINNET)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().genesis_block_identifier).toEqual(genesis_block_identifier);
+    expect(response.json().current_block_identifier).toEqual(last_block_identifier);
+    expect(response.json().peers).toEqual(peers);
+  });
+
+  test('If requested with invalid blockchain, it should properly throw an error', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: NETWORK_STATUS_ENDPOINT,
+      payload: generatePayload('bitcoin', MAINNET)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: StatusCodes.BAD_REQUEST,
+      message: INVALID_BLOCKCHAIN,
+      retriable: false
+    });
+  });
+
+  test('If requested with invalid networkName, it should properly throw an error', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: NETWORK_STATUS_ENDPOINT,
+      payload: generatePayload(CARDANO, 'testnet')
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: StatusCodes.BAD_REQUEST,
+      message: NETWORK_NOT_FOUND,
       retriable: false
     });
   });
