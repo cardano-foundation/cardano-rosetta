@@ -1,5 +1,5 @@
 import { Pool, QueryResult } from 'pg';
-import { hashFormatter, hashStringToBuffer } from '../utils/formatters';
+import { hashFormatter, hashStringToBuffer, replace0xOnHash } from '../utils/formatters';
 import Queries, {
   FindTransactionsByBlock,
   FindTransactionsInputs,
@@ -254,7 +254,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     return null;
   },
   async findBalanceByAddressAndBlock(address, blockNumber): Promise<number> {
-    const parameters = [address.replace('0x', ''), blockNumber];
+    const parameters = [replace0xOnHash(address), blockNumber];
     const result: QueryResult<FindBalance> = await databaseInstance.query(
       Queries.findBalanceByAddressAndBlock,
       parameters
@@ -265,7 +265,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     return result.rows[0].balance;
   },
   async findUtxoByAddressAndBlock(address, blockNumber): Promise<Utxo[]> {
-    const parameters = [address.replace('0x', ''), blockNumber];
+    const parameters = [replace0xOnHash(address), blockNumber];
     const result: QueryResult<FindUtxo> = await databaseInstance.query(Queries.findUtxoByAddressAndBlock, parameters);
     return result.rows.map(utxo => ({
       address: utxo.address,

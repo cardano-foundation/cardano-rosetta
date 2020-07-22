@@ -41,6 +41,7 @@ const configure = (networkRepository: NetworkRepository, blockService: BlockServ
                   issuer: accountAddress.address
                 }
               },
+              // FIXME fastify is filtering metadata https://github.com/input-output-hk/cardano-rosetta/issues/43
               metadata: { utxo_details: details }
             }
           ],
