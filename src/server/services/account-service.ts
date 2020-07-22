@@ -1,3 +1,10 @@
+import StatusCodes from 'http-status-codes';
+import { withNetworkValidation } from './utils/services-helper';
+import { NetworkRepository } from '../db/network-repository';
+import { BlockService } from './block-service';
+import { ADA, ADA_DECIMALS } from '../utils/constants';
+import { buildApiError, errorMessage } from '../utils/errors';
+
 /* eslint-disable camelcase */
 export interface AccountService {
   accountBalance(
@@ -5,31 +12,45 @@ export interface AccountService {
   ): Promise<Components.Schemas.AccountBalanceResponse | Components.Schemas.Error>;
 }
 
-const accountService: AccountService = {
-  async accountBalance(request) {
-    return {
-      block_identifier: {
-        index: 1123941,
-        hash: '0x1f2cc6c5027d2f201a5453ad1119574d2aed23a392654742ac3c78783c071f85'
-      },
-      balances: [
-        {
-          value: '1238089899992',
-          currency: {
-            symbol: 'BTC',
-            decimals: 8,
-            metadata: {
-              Issuer: 'Satoshi'
-            }
-          },
-          metadata: {}
+const configure = (networkRepository: NetworkRepository, blockService: BlockService): AccountService => ({
+  accountBalance: async accountBalanceRequest =>
+    withNetworkValidation(
+      accountBalanceRequest.network_identifier,
+      networkRepository,
+      accountBalanceRequest,
+      async () => {
+        const block = await blockService.findBlock(accountBalanceRequest.block_identifier || {});
+        if (block === null) {
+          throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);
         }
-      ],
-      metadata: {
-        sequence_number: 23
+        const accountAddress = accountBalanceRequest.account_identifier;
+        const balanceForAddress = await blockService.findBalanceByAddressAndBlock(accountAddress.address, block.number);
+        const details = await blockService.findUtxoByAddressAndBlock(accountAddress.address, block.number);
+        return {
+          block_identifier: {
+            index: block.number,
+            hash: block.hash
+          },
+          balances: [
+            {
+              value: balanceForAddress,
+              currency: {
+                symbol: ADA,
+                decimals: ADA_DECIMALS,
+                metadata: {
+                  issuer: accountAddress.address
+                }
+              },
+              // FIXME fastify is filtering metadata https://github.com/input-output-hk/cardano-rosetta/issues/43
+              metadata: { utxo_details: details }
+            }
+          ],
+          metadata: {
+            sequence_number: 23
+          }
+        };
       }
-    };
-  }
-};
+    )
+});
 
-export default accountService;
+export default configure;

@@ -1,9 +1,11 @@
 import { Pool, QueryResult } from 'pg';
-import { hashFormatter, hashStringToBuffer } from '../utils/formatters';
+import { hashFormatter, hashStringToBuffer, replace0xOnHash } from '../utils/formatters';
 import Queries, {
   FindTransactionsByBlock,
   FindTransactionsInputs,
-  FindTransactionsOutputs
+  FindTransactionsOutputs,
+  FindBalance,
+  FindUtxo
 } from './queries/blockchain-queries';
 
 export interface Block {
@@ -21,6 +23,23 @@ export interface Block {
 export interface GenesisBlock {
   hash: string;
   index: number;
+}
+
+export interface BlockIdentifier {
+  index: number;
+  hash: string;
+}
+
+export interface PartialBlockIdentifier {
+  index?: number;
+  hash?: string;
+}
+
+export interface Utxo {
+  address: string;
+  value: number;
+  blockNumber: number;
+  txHash: string;
 }
 
 export interface TransactionInput {
@@ -72,6 +91,19 @@ export interface BlockchainRepository {
    * Returns the genesis block
    */
   findGenesisBlock(): Promise<GenesisBlock | null>;
+  /*
+   * Returns balance available for address till block identified by blockIdentifier if present, else the last
+   * @param address account's address to count balance
+   * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
+   */
+  findBalanceByAddressAndBlock(address: string, blockNumber: number): Promise<number>;
+
+  /**
+   * Returns an array containing all utxo for address till block identified by blockIdentifier if present, else the last
+   * @param address account's address to count balance
+   * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
+   */
+  findUtxoByAddressAndBlock(address: string, blockNumber: number): Promise<Utxo[]>;
 }
 
 /**
@@ -153,10 +185,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   async findBlock(blockNumber?: number, blockHash?: string): Promise<Block | null> {
     const query = Queries.findBlock(blockNumber, blockHash);
     // Add paramter or short-circuit it
-    const parameters = [
-      blockNumber ? blockNumber : true,
-      blockHash ? Buffer.from(blockHash.replace('0x', ''), 'hex') : true
-    ];
+    const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
     const result = await databaseInstance.query(query, parameters);
     /* eslint-disable camelcase */
     if (result.rows.length === 1) {
@@ -223,5 +252,26 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       return { hash: hashFormatter(result.rows[0].hash), index: result.rows[0].index };
     }
     return null;
+  },
+  async findBalanceByAddressAndBlock(address, blockNumber): Promise<number> {
+    const parameters = [replace0xOnHash(address), blockNumber];
+    const result: QueryResult<FindBalance> = await databaseInstance.query(
+      Queries.findBalanceByAddressAndBlock,
+      parameters
+    );
+    if (result.rows[0].balance === null) {
+      return 0;
+    }
+    return result.rows[0].balance;
+  },
+  async findUtxoByAddressAndBlock(address, blockNumber): Promise<Utxo[]> {
+    const parameters = [replace0xOnHash(address), blockNumber];
+    const result: QueryResult<FindUtxo> = await databaseInstance.query(Queries.findUtxoByAddressAndBlock, parameters);
+    return result.rows.map(utxo => ({
+      address: utxo.address,
+      value: utxo.value,
+      blockNumber: utxo.blockNumber,
+      txHash: hashFormatter(utxo.txHash)
+    }));
   }
 });

@@ -5,6 +5,8 @@ export const ROSETTA_VERSION = rosettaApiJson.info.version;
 export const MIDDLEWARE_VERSION = packageJson.version;
 
 export const CARDANO = 'cardano';
+export const ADA = 'ADA';
+export const ADA_DECIMALS = 6;
 
 export enum operationType {
   TRANSFER = 'transfer'
