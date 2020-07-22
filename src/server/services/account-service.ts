@@ -19,7 +19,6 @@ const configure = (networkRepository: NetworkRepository, blockService: BlockServ
       networkRepository,
       accountBalanceRequest,
       async () => {
-        // TODO should i use only address here since we dont have subaccounts? Do we have subaccounts?
         const block = await blockService.findBlock(accountBalanceRequest.block_identifier || {});
         if (block === null) {
           throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);

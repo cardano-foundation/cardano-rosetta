@@ -24,7 +24,7 @@ const generatePayload = (
 
 const ACCOUNT_BALANCE_ENDPOINT = '/account/balance';
 
-describe.only('/account/balance endpoint', () => {
+describe('/account/balance endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
