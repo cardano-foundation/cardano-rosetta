@@ -10,6 +10,7 @@ import {
 import { NotImplementedError } from '../api-error';
 import { buildApiError, errorMessage } from '../utils/errors';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
+import { formatADADecimals } from '../utils/formatters';
 
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -156,7 +157,7 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     return latestBlock;
   },
   async findBalanceByAddressAndBlock(address, blockNumber) {
-    return (await repository.findBalanceByAddressAndBlock(address, blockNumber)).toString();
+    return formatADADecimals(await repository.findBalanceByAddressAndBlock(address, blockNumber));
   },
   async findUtxoByAddressAndBlock(address, blockNumber) {
     return await repository.findUtxoByAddressAndBlock(address, blockNumber);

@@ -22,6 +22,38 @@ const generatePayload = (
   block_identifier: { index: blockIndex, hash: blockHash }
 });
 
+const emptyBalances = [
+  {
+    currency: {
+      decimals: 6,
+      metadata: {},
+      symbol: 'ADA'
+    },
+    metadata: {},
+    value: '0'
+  }
+];
+
+const AE2HashAccountBalances = [
+  {
+    currency: {
+      decimals: 6,
+      metadata: {},
+      symbol: 'ADA'
+    },
+    metadata: {},
+    value: '1153846000000'
+  }
+];
+
+const AE2HashAccountUtxos = [
+  {
+    index: 0,
+    transactionHash: '0x2d51b929d79a0ac8f360f38e8a38cdcb28ca84139aced314c5d7edc739aa4366',
+    value: '1153846000000'
+  }
+];
+
 const ACCOUNT_BALANCE_ENDPOINT = '/account/balance';
 
 describe('/account/balance endpoint', () => {
@@ -48,7 +80,7 @@ describe('/account/balance endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      balances: [{ currency: { decimals: 6, metadata: {}, symbol: 'ADA' }, metadata: {}, value: '21063' }],
+      balances: [{ currency: { decimals: 6, metadata: {}, symbol: 'ADA' }, metadata: {}, value: '4999421063' }],
       block_identifier: {
         hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
         index: 65168
@@ -59,14 +91,18 @@ describe('/account/balance endpoint', () => {
             index: 0,
             transactionHash: '0xaf0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad',
             value: '21063'
+          },
+          {
+            index: 1,
+            transactionHash: '0xaf0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad',
+            value: '4999400000'
           }
         ]
       }
     });
   });
 
-  // FIXME: This tests is not working as it's not considering genesis UTXOs
-  test.only('should only consider balance up to block number if specified', async () => {
+  test('should only consider balance up to block number if specified', async () => {
     const response = await server.inject({
       method: 'post',
       url: ACCOUNT_BALANCE_ENDPOINT,
@@ -74,23 +110,13 @@ describe('/account/balance endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      balances: [
-        {
-          currency: {
-            decimals: 6,
-            metadata: {},
-            symbol: 'ADA'
-          },
-          metadata: {},
-          value: '1153846'
-        }
-      ],
+      balances: AE2HashAccountBalances,
       block_identifier: {
         hash: '0x7c6901c6346781c2bc5cbc49577490e336c2545c320ce4a61605bc71a9c5bed0',
         index: 20
       },
       metadata: {
-        utxos: []
+        utxos: AE2HashAccountUtxos
       }
     });
   });
@@ -109,23 +135,13 @@ describe('/account/balance endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      balances: [
-        {
-          currency: {
-            decimals: 6,
-            metadata: {},
-            symbol: 'ADA'
-          },
-          metadata: {},
-          value: '1153846'
-        }
-      ],
+      balances: AE2HashAccountBalances,
       block_identifier: {
         hash: '0x7c6901c6346781c2bc5cbc49577490e336c2545c320ce4a61605bc71a9c5bed0',
         index: 20
       },
       metadata: {
-        utxos: []
+        utxos: AE2HashAccountUtxos
       }
     });
   });
@@ -137,15 +153,22 @@ describe('/account/balance endpoint', () => {
       payload: generatePayload(
         CARDANO,
         'mainnet',
-        '0xDdzFFzCqrhsdufpFxByLTQmktKJnTrudktaHq1nK2MAEDLXjz5kbRcr5prHi9gHb6m8pTvhgK6JbFDZA1LTiTcP6g8KuPSF1TfKP8ewp',
+        '0xAe2tdPwUPEZGvXJ3ebp4LDgBhbxekAH2oKZgfahKq896fehv8oCJxmGJgLt',
         30,
-        '0xe88f87dd0791c14a8063a95dd387b34ce5b0b425f21b6478195a7bf7eadb425d'
+        '0xd3fdc8c8ea4050cc87a21cb73110d54e3ec92f8ae76941e8a1957ed6e6a7e0b0'
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().balances[0].value).toEqual('999800000');
-    // // FIXME add asserts for metada
-    expect(response.json().balances[0].currency).toEqual({ symbol: 'ADA', decimals: 6, metadata: {} });
+    expect(response.json()).toEqual({
+      balances: AE2HashAccountBalances,
+      block_identifier: {
+        hash: '0xd3fdc8c8ea4050cc87a21cb73110d54e3ec92f8ae76941e8a1957ed6e6a7e0b0',
+        index: 30
+      },
+      metadata: {
+        utxos: AE2HashAccountUtxos
+      }
+    });
   });
 
   test('should fail if specified block number and hash dont match', async () => {
@@ -160,11 +183,27 @@ describe('/account/balance endpoint', () => {
         '0xe88f87dd0791c14a8063a95dd387b34ce5b0b425f21b6478195a7bf7eadb425d'
       )
     });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().balances[0].value).toEqual('999800000');
-    // // FIXME add asserts for metada
-    expect(response.json().balances[0].currency).toEqual({ symbol: 'ADA', decimals: 6, metadata: {} });
+
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
   });
 
-  test.todo('should return empty if address doesnt exist');
+  test('should return empty if address doesnt exist', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(CARDANO, 'mainnet', 'fakeAddress', 44)
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      balances: emptyBalances,
+      block_identifier: {
+        hash: '0xf1c244bece74921b7aa85fc20f32f65ba17d9596eeb8ce4cf1152f67922e7b74',
+        index: 44
+      },
+      metadata: {
+        utxos: []
+      }
+    });
+  });
 });
