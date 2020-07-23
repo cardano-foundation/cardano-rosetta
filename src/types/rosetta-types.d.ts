@@ -1,6 +1,3 @@
-/* eslint-disable max-len */
-/* eslint-disable @typescript-eslint/ban-types */
-/* eslint-disable camelcase */
 declare namespace Components {
   namespace Schemas {
     /**
@@ -107,7 +104,13 @@ declare namespace Components {
        *   "difficulty": "123891724987128947"
        * }
        */
-      metadata?: {};
+      metadata?: {
+        transactionsCount?: number;
+        createdBy?: string;
+        size?: number;
+        epochNo?: number;
+        slotNo?: number;
+      };
     }
     /**
      * The block_identifier uniquely identifies a block in a particular network.
