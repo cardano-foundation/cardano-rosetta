@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig-dist.json",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "generate-rosetta-types": "dtsgen --out ./types/rosetta-types.d.ts ./rosetta-specifications/api.json",
+    "generate-rosetta-types": "dtsgen --out ./src/types/rosetta-types.d.ts ./src/server/openApi.json && prettier --write ./src/types/rosetta-types.d.ts",
     "dev": "ts-node-dev --respawn --transpileOnly -r dotenv/config --watch ./src ./src/server/index.ts",
     "lint": "eslint \"./test/**/*.ts\" \"./src/**/*.ts\""
   },
