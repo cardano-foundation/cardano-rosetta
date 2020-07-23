@@ -915,6 +915,16 @@
           }
         }
       },
+      "Utxo": {
+        "description": "Unspent set for a given Account",
+        "type": "object",
+        "required": ["value", "index", "transactionHash"],
+        "properties": {
+          "value": { "type": "string" },
+          "index": { "type": "number" },
+          "transactionHash": { "type": "string" }
+        }
+      },
       "Currency": {
         "description": "Currency is composed of a canonical Symbol and Decimals. This Decimals value is used to convert an Amount.Value from atomic units (Satoshis) to standard units (Bitcoins).",
         "type": "object",
@@ -1132,11 +1142,16 @@
             }
           },
           "metadata": {
-            "description": "Account-based blockchains that utilize a nonce or sequence number should include that number in the metadata. This number could be unique to the identifier or global across the account address.",
             "type": "object",
-            "example": {
-              "sequence_number": 23
-            }
+            "properties": {
+              "utxos": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Utxo"
+                }
+              }
+            },
+            "required": ["utxos"]
           }
         }
       },

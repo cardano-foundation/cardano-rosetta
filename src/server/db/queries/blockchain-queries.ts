@@ -119,17 +119,15 @@ AND
   b.block_no <= $2`;
 
 export interface FindUtxo {
-  address: string;
-  value: number;
-  blockNumber: number;
+  value: string;
+  index: number;
   txHash: Buffer;
 }
 
 const findUtxoByAddressAndBlock = `
 SELECT
-  utxo.address as address,
   utxo.value as value,
-  b.block_no as "blockNumber",
+  utxo.index as index,
   tx.hash as "txHash"
 FROM
   utxo_view utxo 

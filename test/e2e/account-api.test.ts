@@ -36,7 +36,7 @@ describe('/account/balance endpoint', () => {
     await database.end();
   });
 
-  test('if requested with no block_identifier and other proper params it should return the balance and metadata till latest block of requested address', async () => {
+  test('should return all utxos until last block if no block number is specified', async () => {
     const response = await server.inject({
       method: 'post',
       url: ACCOUNT_BALANCE_ENDPOINT,
@@ -47,24 +47,90 @@ describe('/account/balance endpoint', () => {
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().balances[0].value).toEqual('21063');
-    // FIXME add asserts for metada
-    expect(response.json().balances[0].currency).toEqual({ symbol: 'ADA', decimals: 6, metadata: {} });
+    expect(response.json()).toEqual({
+      balances: [{ currency: { decimals: 6, metadata: {}, symbol: 'ADA' }, metadata: {}, value: '21063' }],
+      block_identifier: {
+        hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
+        index: 65168
+      },
+      metadata: {
+        utxos: [
+          {
+            index: 0,
+            transactionHash: '0xaf0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad',
+            value: '21063'
+          }
+        ]
+      }
+    });
   });
 
-  test('if requested with only blockHash identifier and other proper params it should return the balance and metadata till latest block of requested address', async () => {
+  // FIXME: This tests is not working as it's not considering genesis UTXOs
+  test.only('should only consider balance up to block number if specified', async () => {
     const response = await server.inject({
       method: 'post',
       url: ACCOUNT_BALANCE_ENDPOINT,
       payload: generatePayload(CARDANO, 'mainnet', '0xAe2tdPwUPEZGvXJ3ebp4LDgBhbxekAH2oKZgfahKq896fehv8oCJxmGJgLt', 20)
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().balances[0].value).toEqual('0');
-    // // FIXME add asserts for metada
-    expect(response.json().balances[0].currency).toEqual({ symbol: 'ADA', decimals: 6, metadata: {} });
+    expect(response.json()).toEqual({
+      balances: [
+        {
+          currency: {
+            decimals: 6,
+            metadata: {},
+            symbol: 'ADA'
+          },
+          metadata: {},
+          value: '1153846'
+        }
+      ],
+      block_identifier: {
+        hash: '0x7c6901c6346781c2bc5cbc49577490e336c2545c320ce4a61605bc71a9c5bed0',
+        index: 20
+      },
+      metadata: {
+        utxos: []
+      }
+    });
   });
 
-  test('if requested with only blockNumber identifier and other proper params it should return the balance and metadata till latest block of requested address', async () => {
+  test('should only consider balance up to block identifier if specified', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        '0xAe2tdPwUPEZGvXJ3ebp4LDgBhbxekAH2oKZgfahKq896fehv8oCJxmGJgLt',
+        undefined,
+        '0x7c6901c6346781c2bc5cbc49577490e336c2545c320ce4a61605bc71a9c5bed0'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      balances: [
+        {
+          currency: {
+            decimals: 6,
+            metadata: {},
+            symbol: 'ADA'
+          },
+          metadata: {},
+          value: '1153846'
+        }
+      ],
+      block_identifier: {
+        hash: '0x7c6901c6346781c2bc5cbc49577490e336c2545c320ce4a61605bc71a9c5bed0',
+        index: 20
+      },
+      metadata: {
+        utxos: []
+      }
+    });
+  });
+
+  test('should use both identifier and number if specified', async () => {
     const response = await server.inject({
       method: 'post',
       url: ACCOUNT_BALANCE_ENDPOINT,
@@ -72,7 +138,7 @@ describe('/account/balance endpoint', () => {
         CARDANO,
         'mainnet',
         '0xDdzFFzCqrhsdufpFxByLTQmktKJnTrudktaHq1nK2MAEDLXjz5kbRcr5prHi9gHb6m8pTvhgK6JbFDZA1LTiTcP6g8KuPSF1TfKP8ewp',
-        undefined,
+        30,
         '0xe88f87dd0791c14a8063a95dd387b34ce5b0b425f21b6478195a7bf7eadb425d'
       )
     });
@@ -81,4 +147,24 @@ describe('/account/balance endpoint', () => {
     // // FIXME add asserts for metada
     expect(response.json().balances[0].currency).toEqual({ symbol: 'ADA', decimals: 6, metadata: {} });
   });
+
+  test('should fail if specified block number and hash dont match', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        '0xDdzFFzCqrhsdufpFxByLTQmktKJnTrudktaHq1nK2MAEDLXjz5kbRcr5prHi9gHb6m8pTvhgK6JbFDZA1LTiTcP6g8KuPSF1TfKP8ewp',
+        44,
+        '0xe88f87dd0791c14a8063a95dd387b34ce5b0b425f21b6478195a7bf7eadb425d'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().balances[0].value).toEqual('999800000');
+    // // FIXME add asserts for metada
+    expect(response.json().balances[0].currency).toEqual({ symbol: 'ADA', decimals: 6, metadata: {} });
+  });
+
+  test.todo('should return empty if address doesnt exist');
 });
