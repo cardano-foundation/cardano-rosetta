@@ -63,6 +63,10 @@ export interface Transaction {
   outputs: TransactionOutput[];
 }
 
+export interface TransactionHash {
+  hash: string;
+}
+
 export interface BlockchainRepository {
   /**
    * Finds a block based on the given block number or hash. If non sent, latest (tip) block information
@@ -72,6 +76,14 @@ export interface BlockchainRepository {
    * @param blockHash
    */
   findBlock(number?: number, blockHash?: string): Promise<Block | null>;
+
+  /**
+   * Returns the block transaction hashes (if any)
+   *
+   * @param number block number to look transactions for
+   * @param blockHash block hash to look transactions for
+   */
+  findBlockTransactionHashes(number?: number, blockHash?: string): Promise<TransactionHash[]>;
 
   /**
    * Returns, if any, the transactions a block contains
@@ -203,7 +215,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
         number,
         hash: hashFormatter(hash),
         createdAt,
-        previousBlockHash: hashFormatter(previousBlockHash),
+        previousBlockHash: previousBlockHash && hashFormatter(previousBlockHash),
         transactionsCount,
         createdBy,
         size,
@@ -212,6 +224,19 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       };
     }
     return null;
+  },
+
+  async findBlockTransactionHashes(blockNumber?: number, blockHash?: string): Promise<TransactionHash[]> {
+    const query = Queries.findTransactionsByBlock(blockNumber, blockHash);
+    // Add paramter or short-circuit it
+    const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
+    const result: QueryResult<FindTransactionsByBlock> = await databaseInstance.query(query, parameters);
+    if (result.rows.length > 0) {
+      return result.rows.map(row => ({
+        hash: hashFormatter(row.hash)
+      }));
+    }
+    return [];
   },
 
   async findTransactionsByBlock(blockNumber?: number, blockHash?: string): Promise<Transaction[]> {

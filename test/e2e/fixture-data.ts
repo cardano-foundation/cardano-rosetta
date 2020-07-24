@@ -258,3 +258,51 @@ export const block7134WithTxs = {
     ]
   }
 };
+
+export const blockWith8Txs = {
+  block: {
+    block_identifier: {
+      index: 23712,
+      hash: '0x7a8dbe66c6a1b41bdbf4f3865ea20aebbf93b9697bf39024d5d08ffad10ab1e8'
+    },
+    parent_block_identifier: {
+      index: 23711,
+      hash: '0xcf3d86d870defa1c90f8aeeb753985e0051fef638184f1c334179950b8cd901e'
+    },
+    timestamp: 1506688391000,
+    transactions: [],
+    metadata: {
+      transactionsCount: 8,
+      createdBy: 'SlotLeader-888c451ae09a16fe',
+      size: 2845,
+      epochNo: 1,
+      slotNo: 23725
+    }
+  },
+  other_transactions: [
+    {
+      hash: '0xe1c3e53ff15df4b3f477284fcf971618ec30f2a70209ddb0bc2f0c6e0d90665d'
+    },
+    {
+      hash: '0xa9c267305af2cabb9c54c929dad82afd8b61d5e49045efc80e2d664c98f3190d'
+    },
+    {
+      hash: '0xd2e1019b18f0f5fbb9a6f8868775fe482fe4aff9db818fb517fc673ea185f33c'
+    },
+    {
+      hash: '0xb1ae3d1ba40535a87b300a81ba9bac26339ea14bdca2b8b689c3fc2d5f106fe7'
+    },
+    {
+      hash: '0x88df3562c7d741cec167538c08cb6a5116781e82c93d2efe8c44df087c6bbaf4'
+    },
+    {
+      hash: '0x83f86f288c4128ad967431b17880098a352056ce3671932e07c87a4c8290ca68'
+    },
+    {
+      hash: '0xa52f6e01074711d6eae12a2bb3eeb2d9ccf2cdfcec2aac1ddb28248218be2797'
+    },
+    {
+      hash: '0x4bbb5c30666c31c700d8dbfdf9811d1b5398a030796c3447e7d56285e9f49282'
+    }
+  ]
+};

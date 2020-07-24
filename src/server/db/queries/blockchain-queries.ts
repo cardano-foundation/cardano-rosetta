@@ -12,7 +12,7 @@ SELECT
 FROM 
   block b 
   JOIN slot_leader s ON b.slot_leader = s.id
-  JOIN block b2 ON b.previous = b2.id
+  LEFT JOIN block b2 ON b.previous = b2.id
 WHERE
   ${blockNumber ? 'b.block_no = $1' : '$1 = $1'} AND
   ${blockHash ? 'b.hash = $2' : '$2 = $2'}
