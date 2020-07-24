@@ -132,6 +132,15 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     const block = await this.findBlock(request.block_identifier);
     if (block !== null) {
       const { number } = block;
+      const transactionsHashes = await repository.findBlockTransactionHashes(number, request.block_identifier.hash);
+      // TODO: Move this to a env config and a parameter to be sent passed to this service
+      const PAGE_SIZE = 100;
+      if (transactionsHashes.length > PAGE_SIZE) {
+        return {
+          block: mapToRosettaBlock(block, []),
+          other_transactions: transactionsHashes
+        };
+      }
       const transactions = await repository.findTransactionsByBlock(number, request.block_identifier.hash);
       return {
         block: mapToRosettaBlock(block, transactions)
