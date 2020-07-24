@@ -69,8 +69,7 @@ export const block23236WithTransactions = {
         operations: [
           {
             operation_identifier: {
-              index: 0,
-              network_index: 0
+              index: 0
             },
             type: 'transfer',
             status: 'success',
@@ -87,7 +86,8 @@ export const block23236WithTransactions = {
           },
           {
             operation_identifier: {
-              index: 1
+              index: 1,
+              network_index: 0
             },
             related_operations: [
               {
@@ -117,8 +117,7 @@ export const block23236WithTransactions = {
         operations: [
           {
             operation_identifier: {
-              index: 0,
-              network_index: 0
+              index: 0
             },
             type: 'transfer',
             status: 'success',
@@ -135,7 +134,8 @@ export const block23236WithTransactions = {
           },
           {
             operation_identifier: {
-              index: 1
+              index: 1,
+              network_index: 0
             },
             related_operations: [
               {
