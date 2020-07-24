@@ -38,11 +38,13 @@ const createOperation = (
   status: string,
   address: string,
   value: string,
-  relatedOperations?: Components.Schemas.OperationIdentifier[]
+  relatedOperations?: Components.Schemas.OperationIdentifier[],
+  network_index?: number
   // eslint-disable-next-line max-params
 ): Components.Schemas.Operation => ({
   operation_identifier: {
-    index
+    index,
+    network_index
   },
   type,
   status,
@@ -74,7 +76,6 @@ const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.T
   const relatedOperations = inputsAsOperations.map(input => ({
     index: input.operation_identifier.index
   }));
-
   const outputsAsOperations = transaction.outputs.map((output, index) =>
     createOperation(
       inputsAsOperations.length + index,
@@ -82,7 +83,8 @@ const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.T
       SUCCESS_STATUS,
       output.address,
       output.value,
-      relatedOperations
+      relatedOperations,
+      output.index
     )
   );
 
