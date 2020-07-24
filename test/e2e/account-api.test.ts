@@ -80,7 +80,7 @@ describe('/account/balance endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      balances: [{ currency: { decimals: 6, metadata: {}, symbol: 'ADA' }, metadata: {}, value: '4999421063' }],
+      balances: [{ currency: { decimals: 6, metadata: {}, symbol: 'ADA' }, metadata: {}, value: '21063' }],
       block_identifier: {
         hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
         index: 65168
@@ -91,11 +91,6 @@ describe('/account/balance endpoint', () => {
             index: 0,
             transactionHash: '0xaf0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad',
             value: '21063'
-          },
-          {
-            index: 1,
-            transactionHash: '0xaf0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad',
-            value: '4999400000'
           }
         ]
       }

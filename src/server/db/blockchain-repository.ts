@@ -95,7 +95,7 @@ export interface BlockchainRepository {
    * @param address account's address to count balance
    * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
    */
-  findBalanceByAddressAndBlock(address: string, blockNumber: number): Promise<number>;
+  findBalanceByAddressAndBlock(address: string, blockNumber: number): Promise<string>;
 
   /**
    * Returns an array containing all utxo for address till block identified by blockIdentifier if present, else the last
@@ -252,14 +252,14 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     }
     return null;
   },
-  async findBalanceByAddressAndBlock(address, blockNumber): Promise<number> {
+  async findBalanceByAddressAndBlock(address, blockNumber): Promise<string> {
     const parameters = [replace0xOnHash(address), blockNumber];
     const result: QueryResult<FindBalance> = await databaseInstance.query(
       Queries.findBalanceByAddressAndBlock,
       parameters
     );
     if (result.rows[0].balance === null) {
-      return 0;
+      return '0';
     }
     return result.rows[0].balance;
   },
