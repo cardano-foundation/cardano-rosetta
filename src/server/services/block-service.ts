@@ -190,7 +190,6 @@ const configure = (
   async findUtxoByAddressAndBlock(address, blockNumber) {
     return await repository.findUtxoByAddressAndBlock(address, blockNumber);
   },
-
   blockTransaction: async blockTransactionRequest =>
     withNetworkValidation(
       blockTransactionRequest.network_identifier,
