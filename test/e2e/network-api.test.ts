@@ -46,37 +46,37 @@ const allow = {
   operation_types: ['transfer'],
   errors: [
     {
-      code: 400,
+      code: 4001,
       message: 'Block not found',
       retriable: false
     },
     {
-      code: 400,
+      code: 4002,
       message: NETWORK_NOT_FOUND,
       retriable: false
     },
     {
-      code: 400,
+      code: 4004,
       message: INVALID_BLOCKCHAIN,
       retriable: false
     },
     {
-      code: 400,
+      code: 4003,
       message: 'Networks not found',
       retriable: false
     },
     {
-      code: 501,
+      code: 5001,
       message: 'Not implemented',
       retriable: false
     },
     {
-      code: 500,
+      code: 5002,
       message: 'Topology file not found',
       retriable: false
     },
     {
-      code: 400,
+      code: 4005,
       message: 'Genesis block not found',
       retriable: false
     }
@@ -150,7 +150,7 @@ describe('/network/options endpoint', () => {
       payload: generatePayload(CARDANO, 'testnet')
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual({ code: StatusCodes.BAD_REQUEST, message: NETWORK_NOT_FOUND, retriable: false });
+    expect(response.json()).toEqual({ code: 4002, message: NETWORK_NOT_FOUND, retriable: false });
   });
 
   test('If requested with invalid blockchain, it should throw an error', async () => {
@@ -161,7 +161,7 @@ describe('/network/options endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      code: StatusCodes.BAD_REQUEST,
+      code: 4004,
       message: INVALID_BLOCKCHAIN,
       retriable: false
     });
@@ -200,7 +200,7 @@ describe('/network/status endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      code: StatusCodes.BAD_REQUEST,
+      code: 4004,
       message: INVALID_BLOCKCHAIN,
       retriable: false
     });
@@ -214,7 +214,7 @@ describe('/network/status endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      code: StatusCodes.BAD_REQUEST,
+      code: 4002,
       message: NETWORK_NOT_FOUND,
       retriable: false
     });

@@ -1,14 +1,13 @@
-import StatusCodes from 'http-status-codes';
-import { NetworkRepository, Network } from '../db/network-repository';
-import { BlockService } from './block-service';
+import { Network, NetworkRepository } from '../db/network-repository';
 import {
   CARDANO,
-  SUCCESS_OPERATION_STATE,
-  ROSETTA_VERSION,
   MIDDLEWARE_VERSION,
-  operationType
+  operationType,
+  ROSETTA_VERSION,
+  SUCCESS_OPERATION_STATE
 } from '../utils/constants';
-import { errors, buildApiError, errorMessage } from '../utils/errors';
+import { ErrorFactory } from '../utils/errors';
+import { BlockService } from './block-service';
 import { withNetworkValidation } from './utils/services-helper';
 
 /* eslint-disable camelcase */
@@ -60,7 +59,7 @@ const configure = (
         }))
       };
     }
-    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.NETWORKS_NOT_FOUND, false);
+    throw ErrorFactory.networkNotFoundError();
   },
   networkStatus: async networkStatusRequest =>
     withNetworkValidation(
@@ -105,8 +104,7 @@ const configure = (
         allow: {
           operation_statuses: [SUCCESS_OPERATION_STATE],
           operation_types: [operationType.TRANSFER],
-          // TODO for each custom error we add to this implementation we should add it here (update that array)
-          errors,
+          errors: Object.values(ErrorFactory).map(fn => fn()),
           historical_balance_lookup: true
         }
       })
