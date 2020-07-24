@@ -22,7 +22,8 @@ export const Errors = {
   INVALID_BLOCKCHAIN: { message: 'Invalid blockchain', code: 4004 },
   GENESIS_BLOCK_NOT_FOUND: { message: 'Genesis block not found', code: 4005 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
-  TOPOLOGY_FILE_NOT_FOUND: { message: 'Topology file not found', code: 5002 }
+  TOPOLOGY_FILE_NOT_FOUND: { message: 'Topology file not found', code: 5002 },
+  PAGE_SIZE_NOT_FOUND: { message: 'Page size config not found', code: 5003 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -36,6 +37,7 @@ const networksNotFoundError: CreateErrorFunction = () => buildApiError(Errors.NE
 const topoloyFileNotFound: CreateErrorFunction = () => buildApiError(Errors.TOPOLOGY_FILE_NOT_FOUND, false);
 const notImplentedError: CreateErrorFunction = () => buildApiError(Errors.NOT_IMPLEMENTED, false);
 const genesisBlockNotFound: CreateErrorFunction = () => buildApiError(Errors.GENESIS_BLOCK_NOT_FOUND, false);
+const pageSizeNotFund: CreateErrorFunction = () => buildApiError(Errors.PAGE_SIZE_NOT_FOUND, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -44,5 +46,6 @@ export const ErrorFactory = {
   networksNotFoundError,
   notImplentedError,
   topoloyFileNotFound,
-  genesisBlockNotFound
+  genesisBlockNotFound,
+  pageSizeNotFund
 };

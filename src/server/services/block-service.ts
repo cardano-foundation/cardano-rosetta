@@ -122,7 +122,7 @@ const mapToRosettaBlock = (block: Block, transactions: Transaction[]): Component
   transactions: transactions.map(mapToRosettaTransaction)
 });
 
-const configure = (repository: BlockchainRepository): BlockService => ({
+const configure = (repository: BlockchainRepository, PAGE_SIZE: number): BlockService => ({
   async findBlock(blockIdentifier) {
     const searchLatestBlock = blockIdentifier.hash === undefined && blockIdentifier.index === undefined;
     const blockNumber = searchLatestBlock ? await repository.findLatestBlockNumber() : blockIdentifier.index;
@@ -133,8 +133,6 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     if (block !== null) {
       const { number } = block;
       const transactionsHashes = await repository.findBlockTransactionHashes(number, request.block_identifier.hash);
-      // TODO: Move this to a env config and a parameter to be sent passed to this service
-      const PAGE_SIZE = 100;
       if (transactionsHashes.length > PAGE_SIZE) {
         return {
           block: mapToRosettaBlock(block, []),
