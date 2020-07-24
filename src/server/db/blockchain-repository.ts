@@ -215,7 +215,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
         number,
         hash: hashFormatter(hash),
         createdAt,
-        previousBlockHash: hashFormatter(previousBlockHash),
+        previousBlockHash: previousBlockHash && hashFormatter(previousBlockHash),
         transactionsCount,
         createdBy,
         size,
