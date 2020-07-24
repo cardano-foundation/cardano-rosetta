@@ -35,7 +35,11 @@ const loadPageSize = (): number => {
  * @param repositories repositories to be used by the services
  */
 export const configure = (repositories: Repositories): Services => {
-  const blockServiceInstance = blockService(repositories.blockchainRepository, loadPageSize());
+  const blockServiceInstance = blockService(
+    repositories.blockchainRepository,
+    loadPageSize(),
+    repositories.networkRepository
+  );
   return {
     ...accountService(repositories.networkRepository, blockServiceInstance),
     ...blockServiceInstance,
