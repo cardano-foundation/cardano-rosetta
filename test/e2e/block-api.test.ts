@@ -96,7 +96,6 @@ describe('Block API', () => {
         url: '/block',
         payload: generatePayload(23236)
       });
-
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual(block23236WithTransactions);
     });

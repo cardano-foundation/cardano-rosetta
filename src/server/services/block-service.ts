@@ -40,11 +40,13 @@ const createOperation = (
   status: string,
   address: string,
   value: string,
-  relatedOperations?: Components.Schemas.OperationIdentifier[]
+  relatedOperations?: Components.Schemas.OperationIdentifier[],
+  network_index?: number
   // eslint-disable-next-line max-params
 ): Components.Schemas.Operation => ({
   operation_identifier: {
-    index
+    index,
+    network_index
   },
   type,
   status,
@@ -68,7 +70,15 @@ const createOperation = (
  */
 const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.Transaction => {
   const inputsAsOperations = transaction.inputs.map((input, index) =>
-    createOperation(index, TRANSFER_OPERATION_TYPE, SUCCESS_STATUS, input.address, `-${input.value}`)
+    createOperation(
+      index,
+      TRANSFER_OPERATION_TYPE,
+      SUCCESS_STATUS,
+      input.address,
+      `-${input.value}`,
+      undefined,
+      input.sourceTransactionIndex
+    )
   );
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
