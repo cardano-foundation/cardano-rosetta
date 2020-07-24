@@ -103,42 +103,37 @@ LIMIT 1
 `;
 
 export interface FindBalance {
-  balance: number;
+  balance: string;
 }
 
-const findBalanceByAddressAndBlock = `
-SELECT
-  sum(utxo.value) as balance
-FROM
-  utxo_view utxo 
-JOIN tx ON utxo.tx_id = tx.id
-JOIN block b ON b.id = tx.block
-WHERE
-  utxo.address = $1
-AND 
-  b.block_no <= $2`;
-
 export interface FindUtxo {
-  address: string;
-  value: number;
-  blockNumber: number;
+  value: string;
+  index: number;
   txHash: Buffer;
 }
 
-const findUtxoByAddressAndBlock = `
-SELECT
-  utxo.address as address,
-  utxo.value as value,
-  b.block_no as "blockNumber",
-  tx.hash as "txHash"
-FROM
-  utxo_view utxo 
-JOIN tx ON utxo.tx_id = tx.id
-JOIN block b ON b.id = tx.block
-WHERE
-  utxo.address = $1
-AND 
-  b.block_no <= $2`;
+const findUtxoFieldsByAddressAndBlock = (selectFields: string): string => `
+${selectFields}
+FROM tx
+JOIN tx_out
+  ON tx.id = tx_out.tx_id
+LEFT OUTER JOIN tx_in
+  ON tx_out.tx_id = tx_in.tx_out_id
+    AND tx_out.index = tx_in.tx_out_index
+WHERE tx_in.tx_in_id is null
+  AND tx_out.address = $1
+  AND tx.block <= (SELECT id FROM block WHERE block_no = $2)`;
+
+const selectUtxoDetail = `SELECT
+  tx_out.value as value,
+  tx.hash as "txHash",
+  tx_out.index as index`;
+
+const findUtxoByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectUtxoDetail);
+
+const selectBalanceFromUtxo = 'SELECT cast(sum(tx_out.value) AS TEXT) as balance ';
+
+const findBalanceByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectBalanceFromUtxo);
 
 const Queries = {
   findBlock,

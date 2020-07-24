@@ -17,14 +17,9 @@ declare namespace Components {
        * A single account may have a balance in multiple currencies.
        */
       balances: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount[];
-      /**
-       * Account-based blockchains that utilize a nonce or sequence number should include that number in the metadata. This number could be unique to the identifier or global across the account address.
-       * example:
-       * {
-       *   "sequence_number": 23
-       * }
-       */
-      metadata?: {};
+      metadata?: {
+        utxos: /* Unspent set for a given Account */ Utxo[];
+      };
     }
     /**
      * The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated).
@@ -642,6 +637,14 @@ declare namespace Components {
        * 0x2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f
        */
       hash: string;
+    }
+    /**
+     * Unspent set for a given Account
+     */
+    export interface Utxo {
+      value: string;
+      index: number;
+      transactionHash?: string;
     }
     /**
      * The Version object is utilized to inform the client of the versions of different components of the Rosetta implementation.

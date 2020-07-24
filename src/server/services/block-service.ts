@@ -156,7 +156,7 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     return latestBlock;
   },
   async findBalanceByAddressAndBlock(address, blockNumber) {
-    return (await repository.findBalanceByAddressAndBlock(address, blockNumber)).toString();
+    return await repository.findBalanceByAddressAndBlock(address, blockNumber);
   },
   async findUtxoByAddressAndBlock(address, blockNumber) {
     return await repository.findUtxoByAddressAndBlock(address, blockNumber);
