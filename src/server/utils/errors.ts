@@ -1,33 +1,43 @@
-import StatusCodes from 'http-status-codes';
-import ApiError, { NotImplementedError } from '../api-error';
+import ApiError from '../api-error';
 
-export enum errorMessage {
-  BLOCK_NOT_FOUND = 'Block not found',
-  NETWORK_NOT_FOUND = 'Network not found',
-  NETWORKS_NOT_FOUND = 'Networks not found',
-  INVALID_BLOCKCHAIN = 'Invalid blockchain',
-  NOT_IMPLEMENTED = 'Not implemented',
-  TOPOLOGY_FILE_NOT_FOUND = 'Topology file not found',
-  GENESIS_BLOCK_NOT_FOUND = 'Genesis block not found'
+export interface Error {
+  message: string;
+  code: number;
 }
 
-export const buildApiError = (code: number, message: string, retriable: boolean, details?: string): ApiError =>
-  new ApiError(code, message, retriable, details);
+export enum ErrorTypes {
+  BLOCK_NOT_FOUND,
+  NETWORK_NOT_FOUND,
+  NETWORKS_NOT_FOUND,
+  INVALID_BLOCKCHAIN,
+  NOT_IMPLEMENTED,
+  TOPOLOGY_FILE_NOT_FOUND,
+  GENESIS_BLOCK_NOT_FOUND
+}
 
-// I think we could use these to instantiate ApiError
-const blockNotFoundError = buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);
-const invalidBlockchainError = buildApiError(StatusCodes.BAD_REQUEST, errorMessage.INVALID_BLOCKCHAIN, false);
-const networkNotFoundError = buildApiError(StatusCodes.BAD_REQUEST, errorMessage.NETWORK_NOT_FOUND, false);
-const networksNotFoundError = buildApiError(StatusCodes.BAD_REQUEST, errorMessage.NETWORKS_NOT_FOUND, false);
-const topoloyFileNotFound = buildApiError(
-  StatusCodes.INTERNAL_SERVER_ERROR,
-  errorMessage.TOPOLOGY_FILE_NOT_FOUND,
-  false
-);
-const notImplentedError = new NotImplementedError();
-const genesisBlockNotFound = buildApiError(StatusCodes.BAD_REQUEST, errorMessage.GENESIS_BLOCK_NOT_FOUND, false);
+export const Errors = {
+  BLOCK_NOT_FOUND: { message: 'Block not found', code: 4001 },
+  NETWORK_NOT_FOUND: { message: 'Network not found', code: 4002 },
+  NETWORKS_NOT_FOUND: { message: 'Networks not found', code: 4003 },
+  INVALID_BLOCKCHAIN: { message: 'Invalid blockchain', code: 4004 },
+  GENESIS_BLOCK_NOT_FOUND: { message: 'Genesis block not found', code: 4005 },
+  NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
+  TOPOLOGY_FILE_NOT_FOUND: { message: 'Topology file not found', code: 5002 }
+};
 
-export const errors = [
+export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
+  new ApiError(error.code, error.message, retriable, details);
+
+type CreateErrorFunction = () => ApiError;
+const blockNotFoundError: CreateErrorFunction = () => buildApiError(Errors.BLOCK_NOT_FOUND, false);
+const invalidBlockchainError: CreateErrorFunction = () => buildApiError(Errors.INVALID_BLOCKCHAIN, false);
+const networkNotFoundError: CreateErrorFunction = () => buildApiError(Errors.NETWORK_NOT_FOUND, false);
+const networksNotFoundError: CreateErrorFunction = () => buildApiError(Errors.NETWORKS_NOT_FOUND, false);
+const topoloyFileNotFound: CreateErrorFunction = () => buildApiError(Errors.TOPOLOGY_FILE_NOT_FOUND, false);
+const notImplentedError: CreateErrorFunction = () => buildApiError(Errors.NOT_IMPLEMENTED, false);
+const genesisBlockNotFound: CreateErrorFunction = () => buildApiError(Errors.GENESIS_BLOCK_NOT_FOUND, false);
+
+export const ErrorFactory = {
   blockNotFoundError,
   networkNotFoundError,
   invalidBlockchainError,
@@ -35,4 +45,4 @@ export const errors = [
   notImplentedError,
   topoloyFileNotFound,
   genesisBlockNotFound
-];
+};

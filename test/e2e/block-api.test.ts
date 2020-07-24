@@ -39,7 +39,7 @@ describe('Block API', () => {
       });
 
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.json()).toEqual({ code: StatusCodes.BAD_REQUEST, message: 'Block not found', retriable: false });
+      expect(response.json()).toEqual({ code: 4001, message: 'Block not found', retriable: false });
     });
 
     test('should properly return a block without transactions if requested by block number', async () => {
@@ -117,7 +117,7 @@ describe('Block API', () => {
 
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({
-        code: 501,
+        code: 5001,
         message: 'Not implemented',
         retriable: false
       });

@@ -1,9 +1,8 @@
-import StatusCodes from 'http-status-codes';
-import { withNetworkValidation } from './utils/services-helper';
 import { NetworkRepository } from '../db/network-repository';
-import { BlockService } from './block-service';
 import { ADA, ADA_DECIMALS } from '../utils/constants';
-import { buildApiError, errorMessage } from '../utils/errors';
+import { ErrorFactory } from '../utils/errors';
+import { BlockService } from './block-service';
+import { withNetworkValidation } from './utils/services-helper';
 
 /* eslint-disable camelcase */
 export interface AccountService {
@@ -21,7 +20,7 @@ const configure = (networkRepository: NetworkRepository, blockService: BlockServ
       async () => {
         const block = await blockService.findBlock(accountBalanceRequest.block_identifier || {});
         if (block === null) {
-          throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);
+          throw ErrorFactory.blockNotFoundError();
         }
         const accountAddress = accountBalanceRequest.account_identifier;
         const balanceForAddress = await blockService.findBalanceByAddressAndBlock(accountAddress.address, block.number);

@@ -1,7 +1,6 @@
-import StatusCodes from 'http-status-codes';
 import { NetworkRepository } from '../../db/network-repository';
 import { CARDANO } from '../../utils/constants';
-import { buildApiError, errorMessage } from '../../utils/errors';
+import { ErrorFactory } from '../../utils/errors';
 
 export const withNetworkValidation = async <T, R>(
   networkIdentifier: Components.Schemas.NetworkIdentifier,
@@ -13,12 +12,12 @@ export const withNetworkValidation = async <T, R>(
   const network: string = networkIdentifier.network;
 
   if (blockchain !== CARDANO) {
-    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.INVALID_BLOCKCHAIN, false);
+    throw ErrorFactory.invalidBlockchainError();
   }
 
   const networkExists = await repository.networkExists(network);
   if (!networkExists) {
-    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.NETWORK_NOT_FOUND, false);
+    throw ErrorFactory.networkNotFoundError();
   }
   return await nextFn(parameters);
 };

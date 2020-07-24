@@ -1,5 +1,3 @@
-import StatusCodes from 'http-status-codes';
-
 /**
  * Custom error class to implement Rosetta Error Schema
  */
@@ -19,11 +17,5 @@ export default class ApiError extends Error implements Components.Schemas.Error 
     this.message = message;
     this.retriable = retriable;
     this.details = details;
-  }
-}
-
-export class NotImplementedError extends ApiError {
-  constructor() {
-    super(StatusCodes.NOT_IMPLEMENTED, 'Not implemented', false);
   }
 }
