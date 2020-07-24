@@ -161,3 +161,100 @@ export const block23236WithTransactions = {
     ]
   }
 };
+
+export const block7134WithTxs = {
+  block: {
+    block_identifier: {
+      index: 7134,
+      hash: '0xaf3d6e553e7ef8552a40e4e8cdeaa7d8305e7439474c7e6e4e0477d5f9492e2d'
+    },
+    parent_block_identifier: {
+      index: 7133,
+      hash: '0x4314cd5fa8a645607b2f7668fd2bc53f40fb418c06de3db0a8e721761e458828'
+    },
+    timestamp: 1506356551000,
+    metadata: {
+      transactionsCount: 1,
+      createdBy: 'SlotLeader-52df0f2c5539b2b1',
+      size: 984,
+      epochNo: 0,
+      slotNo: 7133
+    },
+    transactions: [
+      {
+        transaction_identifier: {
+          hash: '0xc950e0d7d898a392ccf458a75728aa35afd4bd3776f118cbf0e0abb315205bc4'
+        },
+        operations: [
+          {
+            operation_identifier: {
+              index: 0
+            },
+            type: 'transfer',
+            status: 'success',
+            account: {
+              address:
+                'DdzFFzCqrhsjEtvKie4apJ4wHKQdG7eyGYrUBDuPoAiPvenD44RmDPJmaHVdVsTR9QjHjQDL1jDU6rS8upHyxspT7VP5PGJHnDZ94nNi'
+            },
+            amount: {
+              value: '-1000000',
+              currency: {
+                symbol: 'ADA',
+                decimals: 6
+              }
+            }
+          },
+          {
+            operation_identifier: {
+              index: 1,
+              network_index: 0
+            },
+
+            related_operations: [
+              {
+                index: 0
+              }
+            ],
+            type: 'transfer',
+            status: 'success',
+            account: {
+              address:
+                'DdzFFzCqrhswtV8kmjV78zcAC6AgrUNQRhELRmBip5AQkqKw9BWRSuxUyWNNSARLxuFpYc4kEAPyB3XQLsXjc3LQ48R4EPADo4rYzRbT'
+            },
+            amount: {
+              value: '329106',
+              currency: {
+                symbol: 'ADA',
+                decimals: 6
+              }
+            }
+          },
+          {
+            operation_identifier: {
+              index: 2,
+              network_index: 1
+            },
+            related_operations: [
+              {
+                index: 0
+              }
+            ],
+            type: 'transfer',
+            status: 'success',
+            account: {
+              address:
+                'DdzFFzCqrhszzyrUXDCZJHs9yFCbcnLD4FSGm1S2F6MUUjV8Wvq351eqUdoTqaScmU3jZ19KJmX8H4fn12nwYwQg9HtoBi7cD16qzpdj'
+            },
+            amount: {
+              value: '500000',
+              currency: {
+                symbol: 'ADA',
+                decimals: 6
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+};

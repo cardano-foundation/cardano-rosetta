@@ -2,7 +2,7 @@
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { block1000WithoutTxs, block23236WithTransactions, latestBlock } from './fixture-data';
+import { block1000WithoutTxs, block23236WithTransactions, latestBlock, block7134WithTxs } from './fixture-data';
 import { setupDatabase, setupServer } from './utils/test-utils';
 
 const generatePayload = (index?: number, hash?: string) => ({
@@ -98,6 +98,16 @@ describe('Block API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual(block23236WithTransactions);
+    });
+
+    test('should properly return a block with 2 output transactions', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload(7134)
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual(block7134WithTxs);
     });
   });
   describe('/block/transactions endpoint', () => {

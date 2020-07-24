@@ -78,7 +78,6 @@ const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.T
   const relatedOperations = inputsAsOperations.map(input => ({
     index: input.operation_identifier.index
   }));
-
   const outputsAsOperations = transaction.outputs.map((output, index) =>
     createOperation(
       inputsAsOperations.length + index,
