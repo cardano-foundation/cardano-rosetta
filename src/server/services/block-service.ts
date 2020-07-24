@@ -1,4 +1,3 @@
-import StatusCodes from 'http-status-codes';
 import {
   BlockchainRepository,
   Transaction,
@@ -7,8 +6,7 @@ import {
   PartialBlockIdentifier,
   GenesisBlock
 } from '../db/blockchain-repository';
-import { NotImplementedError } from '../api-error';
-import { buildApiError, errorMessage } from '../utils/errors';
+import { ErrorFactory } from '../utils/errors';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 
 /* eslint-disable camelcase */
@@ -137,22 +135,22 @@ const configure = (repository: BlockchainRepository): BlockService => ({
         block: mapToRosettaBlock(block, transactions)
       };
     }
-    throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);
+    throw ErrorFactory.blockNotFoundError();
   },
   async blockTransaction() {
     // As `block` request returns the block with it's transaction, this endpoint
     // shouldn't return any data
-    throw new NotImplementedError();
+    throw ErrorFactory.notImplentedError();
   },
   async getLatestBlock() {
     const latestBlockNumber = await repository.findLatestBlockNumber();
     const latestBlock = await repository.findBlock(latestBlockNumber);
-    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.BLOCK_NOT_FOUND, false);
+    if (!latestBlock) throw ErrorFactory.blockNotFoundError();
     return latestBlock;
   },
   async getGenesisBlock() {
     const latestBlock = await repository.findGenesisBlock();
-    if (!latestBlock) throw buildApiError(StatusCodes.BAD_REQUEST, errorMessage.GENESIS_BLOCK_NOT_FOUND, false);
+    if (!latestBlock) throw ErrorFactory.genesisBlockNotFound();
     return latestBlock;
   },
   async findBalanceByAddressAndBlock(address, blockNumber) {
