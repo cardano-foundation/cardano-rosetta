@@ -124,6 +124,17 @@ const mapToRosettaBlock = (block: Block, transactions: Transaction[]): Component
 
 const configure = (repository: BlockchainRepository, PAGE_SIZE: number): BlockService => ({
   async findBlock(blockIdentifier) {
+    // cardano doesn't have block zero but we need to map it to genesis
+    const searchBlockZero = blockIdentifier.index === 0; // We need to manually check for the block hash if sent to server
+    if (searchBlockZero) {
+      const genesis = await repository.findGenesisBlock();
+      const isHashInvalidIfGiven = blockIdentifier.hash && genesis?.hash !== blockIdentifier.hash;
+      if (isHashInvalidIfGiven) {
+        throw ErrorFactory.blockNotFoundError();
+      }
+      return repository.findBlock(undefined, genesis?.hash);
+    }
+
     const searchLatestBlock = blockIdentifier.hash === undefined && blockIdentifier.index === undefined;
     const blockNumber = searchLatestBlock ? await repository.findLatestBlockNumber() : blockIdentifier.index;
     return repository.findBlock(blockNumber, blockIdentifier.hash);
@@ -132,14 +143,14 @@ const configure = (repository: BlockchainRepository, PAGE_SIZE: number): BlockSe
     const block = await this.findBlock(request.block_identifier);
     if (block !== null) {
       const { number } = block;
-      const transactionsHashes = await repository.findBlockTransactionHashes(number, request.block_identifier.hash);
+      const transactionsHashes = await repository.findBlockTransactionHashes(number, block.hash);
       if (transactionsHashes.length > PAGE_SIZE) {
         return {
           block: mapToRosettaBlock(block, []),
           other_transactions: transactionsHashes
         };
       }
-      const transactions = await repository.findTransactionsByBlock(number, request.block_identifier.hash);
+      const transactions = await repository.findTransactionsByBlock(number, block.hash);
       return {
         block: mapToRosettaBlock(block, transactions)
       };
