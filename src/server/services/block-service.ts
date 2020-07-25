@@ -152,7 +152,7 @@ const configure = (
     const block = await this.findBlock(request.block_identifier);
     if (block !== null) {
       // This condition is needed as genesis tx count for mainnet is zero
-      const blockContainsTransactions = block.transactionsCount !== 0 || block.previousBlockHash === block.hash;
+     const blockContainsTransactions = block.transactionsCount !== 0 || block.previousBlockHash === block.hash;
       let transactions: TransactionWithInputsAndOutputs[] = [];
       if (blockContainsTransactions) {
         const { number, hash } = block;
