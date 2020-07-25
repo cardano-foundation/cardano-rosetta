@@ -1,7 +1,7 @@
 import { Pool, QueryResult } from 'pg';
 import { hashFormatter, hashStringToBuffer, replace0xOnHash } from '../utils/formatters';
 import Queries, {
-  FindTransactionsByBlock,
+  FindTransaction,
   FindTransactionsInputs,
   FindTransactionsOutputs,
   FindBalance,
@@ -94,6 +94,13 @@ export interface BlockchainRepository {
   findTransactionsByBlock(number?: number, blockHash?: string): Promise<Transaction[]>;
 
   /**
+   * Returns the transaction for the given hash if any
+   *
+   * @param hash hex formatted transaction hash
+   */
+  findTransactionByHash(hash: string): Promise<Transaction | null>;
+
+  /**
    * Returns the tip of the chain block number
    */
   findLatestBlockNumber(): Promise<number>;
@@ -122,7 +129,7 @@ export interface BlockchainRepository {
  *
  * @param rows a list of transaction rows returned by the DB
  */
-const parseTransactionRows = (rows: FindTransactionsByBlock[]): NodeJS.Dict<Transaction> =>
+const parseTransactionRows = (rows: FindTransaction[]): NodeJS.Dict<Transaction> =>
   rows.reduce((mappedTransactions, row) => {
     const hash = hashFormatter(row.hash);
     return {
@@ -192,6 +199,34 @@ const parseOutputRows = (transactionsMap: NodeJS.Dict<Transaction>, outputs: Fin
     return updatedTransactionsMap;
   }, transactionsMap);
 
+/**
+ * This function returns an array of _proper_ transactions based on a FindTransaction query result, ie,
+ * parses the transaction and adds the corresponding inputs and outputs
+ *
+ * @param databaseInstance
+ * @param result
+ */
+const processTransactionsQueryResult = async (
+  databaseInstance: Pool,
+  result: QueryResult<FindTransaction>
+): Promise<Transaction[]> => {
+  // Fetch the transactions first
+  let transactionsMap = parseTransactionRows(result.rows);
+  const transactionsHashes = Object.keys(transactionsMap).map(hashStringToBuffer);
+  // Look for inputs and outputs based on found tx hashes
+  const inputs: QueryResult<FindTransactionsInputs> = await databaseInstance.query(Queries.findTransactionsInputs, [
+    transactionsHashes
+  ]);
+  const outputs: QueryResult<FindTransactionsOutputs> = await databaseInstance.query(Queries.findTransactionsOutputs, [
+    transactionsHashes
+  ]);
+  transactionsMap = parseInputsRows(transactionsMap, inputs.rows);
+  transactionsMap = parseOutputRows(transactionsMap, outputs.rows);
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore it will never be undefined
+  return Object.values(transactionsMap);
+};
+
 export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   async findBlock(blockNumber?: number, blockHash?: string): Promise<Block | null> {
     const query = Queries.findBlock(blockNumber, blockHash);
@@ -230,7 +265,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     const query = Queries.findTransactionsByBlock(blockNumber, blockHash);
     // Add paramter or short-circuit it
     const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
-    const result: QueryResult<FindTransactionsByBlock> = await databaseInstance.query(query, parameters);
+    const result: QueryResult<FindTransaction> = await databaseInstance.query(query, parameters);
     if (result.rows.length > 0) {
       return result.rows.map(row => ({
         hash: hashFormatter(row.hash)
@@ -243,26 +278,22 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     const query = Queries.findTransactionsByBlock(blockNumber, blockHash);
     // Add paramter or short-circuit it
     const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
-    const result: QueryResult<FindTransactionsByBlock> = await databaseInstance.query(query, parameters);
+    const result: QueryResult<FindTransaction> = await databaseInstance.query(query, parameters);
     if (result.rows.length > 0) {
-      // Fetch the transactions first
-      let transactionsMap = parseTransactionRows(result.rows);
-      const transactionsHashes = Object.keys(transactionsMap).map(hashStringToBuffer);
-      // Look for inputs and outputs based on found tx hashes
-      const inputs: QueryResult<FindTransactionsInputs> = await databaseInstance.query(Queries.findTransactionsInputs, [
-        transactionsHashes
-      ]);
-      const outputs: QueryResult<FindTransactionsOutputs> = await databaseInstance.query(
-        Queries.findTransactionsOutputs,
-        [transactionsHashes]
-      );
-      transactionsMap = parseInputsRows(transactionsMap, inputs.rows);
-      transactionsMap = parseOutputRows(transactionsMap, outputs.rows);
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore it will never be undefined
-      return Object.values(transactionsMap);
+      return await processTransactionsQueryResult(databaseInstance, result);
     }
     return [];
+  },
+
+  async findTransactionByHash(hash: string): Promise<Transaction | null> {
+    const result: QueryResult<FindTransaction> = await databaseInstance.query(Queries.findTransactionByHash, [
+      hashStringToBuffer(hash)
+    ]);
+    if (result.rows.length > 0) {
+      const [transaction] = await processTransactionsQueryResult(databaseInstance, result);
+      return transaction || null;
+    }
+    return null;
   },
 
   async findLatestBlockNumber(): Promise<number> {

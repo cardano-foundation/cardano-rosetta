@@ -80,6 +80,11 @@ const allow = {
       message: 'Genesis block not found',
       retriable: false
     },
+    {
+      code: 4006,
+      message: 'Transaction not found',
+      retriable: false
+    },
     { code: 5003, message: 'Page size config not found', retriable: false }
   ],
   historical_balance_lookup: true

@@ -127,25 +127,88 @@ describe('Block API', () => {
     });
   });
   describe('/block/transactions endpoint', () => {
-    test('should return a not implemented error', async () => {
+    const BLOCK_TRANSACTION_ENDPOINT = '/block/transaction';
+    test('should the transaction if a valid hash is sent', async () => {
+      const { index, hash } = block23236WithTransactions.block.block_identifier;
+      const [transaction] = block23236WithTransactions.block.transactions;
       const response = await server.inject({
         method: 'post',
-        url: '/block/transaction',
+        url: BLOCK_TRANSACTION_ENDPOINT,
         payload: {
-          ...generatePayload(1000, '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9'),
+          ...generatePayload(index, hash),
           // eslint-disable-next-line camelcase
           transaction_identifier: {
-            hash: '0x2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f'
+            hash: transaction.transaction_identifier.hash
+          }
+        }
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({ transaction });
+    });
+    test('should return an error if the transaction doesnt exist', async () => {
+      const { index, hash } = block23236WithTransactions.block.block_identifier;
+      const response = await server.inject({
+        method: 'post',
+        url: BLOCK_TRANSACTION_ENDPOINT,
+        payload: {
+          ...generatePayload(index, hash),
+          // eslint-disable-next-line camelcase
+          transaction_identifier: {
+            // Last digit was changed from 4 to 5
+            hash: '0xabbeb108ebc3990c7f031113bcb8ce8f306a1eec8f313acffcdcd256379208f5'
           }
         }
       });
 
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.json()).toEqual({
-        code: 5001,
-        message: 'Not implemented',
-        retriable: false
+      expect(response.json()).toEqual({ code: 4006, message: 'Transaction not found', retriable: false });
+    });
+    test('should fail if incorrect network identifier is sent', async () => {
+      const { index, hash } = block23236WithTransactions.block.block_identifier;
+      const [transaction] = block23236WithTransactions.block.transactions;
+      const response = await server.inject({
+        method: 'post',
+        url: BLOCK_TRANSACTION_ENDPOINT,
+        payload: {
+          ...generatePayload(index, hash),
+          // eslint-disable-next-line camelcase
+          network_identifier: {
+            blockchain: 'cardano',
+            network: 'testnet'
+          },
+          // eslint-disable-next-line camelcase
+          transaction_identifier: {
+            hash: transaction.transaction_identifier.hash
+          }
+        }
       });
+
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({ message: 'Network not found', code: 4002, retriable: false });
+    });
+    test('should fail if incorrect blockchain identifier is sent', async () => {
+      const { index, hash } = block23236WithTransactions.block.block_identifier;
+      const [transaction] = block23236WithTransactions.block.transactions;
+      const response = await server.inject({
+        method: 'post',
+        url: BLOCK_TRANSACTION_ENDPOINT,
+        payload: {
+          ...generatePayload(index, hash),
+          // eslint-disable-next-line camelcase
+          network_identifier: {
+            blockchain: 'incorrect',
+            network: 'mainnet'
+          },
+          // eslint-disable-next-line camelcase
+          transaction_identifier: {
+            hash: transaction.transaction_identifier.hash
+          }
+        }
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({ message: 'Invalid blockchain', code: 4004, retriable: false });
     });
   });
 });

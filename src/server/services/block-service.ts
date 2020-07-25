@@ -169,21 +169,20 @@ const configure = (
   async findUtxoByAddressAndBlock(address, blockNumber) {
     return await repository.findUtxoByAddressAndBlock(address, blockNumber);
   },
+
   blockTransaction: async blockTransactionRequest =>
     withNetworkValidation(
       blockTransactionRequest.network_identifier,
       networkRepository,
       blockTransactionRequest,
       async () => {
-        // FIXME what do we do with the block_id?
-        const transaction = transactionRepository.findTransactionByHash(
-          blockTransactionRequest.transaction_identifier.hash
-        );
+        const transaction = await repository.findTransactionByHash(blockTransactionRequest.transaction_identifier.hash);
         if (transaction === null) {
-          // TODO buildApiError
+          throw ErrorFactory.transactionNotFound();
         }
-        // TODO something with tx and return
-        return { transaction: [] };
+        return {
+          transaction: mapToRosettaTransaction(transaction)
+        };
       }
     )
 });
