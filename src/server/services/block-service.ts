@@ -10,6 +10,7 @@ import { ErrorFactory } from '../utils/errors';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 import { withNetworkValidation } from './utils/services-helper';
 import { NetworkRepository } from '../db/network-repository';
+import { triggerAsyncId } from 'async_hooks';
 
 /* eslint-disable camelcase */
 export interface BlockService {
