@@ -8,6 +8,8 @@ import {
 } from '../db/blockchain-repository';
 import { ErrorFactory } from '../utils/errors';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
+import { withNetworkValidation } from './utils/services-helper';
+import { NetworkRepository } from '../db/network-repository';
 
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -122,7 +124,11 @@ const mapToRosettaBlock = (block: Block, transactions: Transaction[]): Component
   transactions: transactions.map(mapToRosettaTransaction)
 });
 
-const configure = (repository: BlockchainRepository, PAGE_SIZE: number): BlockService => ({
+const configure = (
+  repository: BlockchainRepository,
+  PAGE_SIZE: number,
+  networkRepository: NetworkRepository
+): BlockService => ({
   async findBlock(blockIdentifier) {
     const searchLatestBlock = blockIdentifier.hash === undefined && blockIdentifier.index === undefined;
     const blockNumber = searchLatestBlock ? await repository.findLatestBlockNumber() : blockIdentifier.index;
@@ -146,11 +152,6 @@ const configure = (repository: BlockchainRepository, PAGE_SIZE: number): BlockSe
     }
     throw ErrorFactory.blockNotFoundError();
   },
-  async blockTransaction() {
-    // As `block` request returns the block with it's transaction, this endpoint
-    // shouldn't return any data
-    throw ErrorFactory.notImplentedError();
-  },
   async getLatestBlock() {
     const latestBlockNumber = await repository.findLatestBlockNumber();
     const latestBlock = await repository.findBlock(latestBlockNumber);
@@ -167,7 +168,23 @@ const configure = (repository: BlockchainRepository, PAGE_SIZE: number): BlockSe
   },
   async findUtxoByAddressAndBlock(address, blockNumber) {
     return await repository.findUtxoByAddressAndBlock(address, blockNumber);
-  }
+  },
+
+  blockTransaction: async blockTransactionRequest =>
+    withNetworkValidation(
+      blockTransactionRequest.network_identifier,
+      networkRepository,
+      blockTransactionRequest,
+      async () => {
+        const transaction = await repository.findTransactionByHash(blockTransactionRequest.transaction_identifier.hash);
+        if (transaction === null) {
+          throw ErrorFactory.transactionNotFound();
+        }
+        return {
+          transaction: mapToRosettaTransaction(transaction)
+        };
+      }
+    )
 });
 
 export default configure;

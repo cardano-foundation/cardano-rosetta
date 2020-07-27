@@ -19,7 +19,7 @@ WHERE
 LIMIT 1
 `;
 
-export interface FindTransactionsByBlock {
+export interface FindTransaction {
   hash: Buffer;
   blockHash: Buffer;
   fee: string;
@@ -35,6 +35,16 @@ JOIN block ON block.id = tx.block
 WHERE
   ${blockNumber ? 'block.block_no = $1' : '$1 = $1'} AND
   ${blockHash ? 'block.hash = $2' : '$2 = $2'}
+`;
+
+const findTransactionByHash = `
+SELECT 
+  tx.*,
+  block.hash as blockHash
+FROM tx
+JOIN block ON block.id = tx.block
+WHERE
+  tx.hash = $1
 `;
 
 export interface FindTransactionsInputs {
@@ -138,6 +148,7 @@ const findBalanceByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectBalan
 const Queries = {
   findBlock,
   findTransactionsByBlock,
+  findTransactionByHash,
   findTransactionsInputs,
   findTransactionsOutputs,
   findLatestBlockNumber,
