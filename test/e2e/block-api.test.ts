@@ -8,7 +8,8 @@ import {
   latestBlock,
   block7134WithTxs,
   blockWith8Txs,
-  GENESIS_HASH
+  GENESIS_HASH,
+  block1
 } from './fixture-data';
 import { setupDatabase, setupServer } from './utils/test-utils';
 
@@ -82,10 +83,6 @@ describe('Block API', () => {
       expect(response.json()).toEqual(block1000WithoutTxs);
     });
 
-    // FIXME: Check why genesis block is failing when queried for 0
-    test.todo('should properly return for genesis block');
-
-    // FIXME: Add a test for this case when testing with a mock db is done
     test('should be able to fetch latest block information', async () => {
       const response = await server.inject({
         method: 'post',
@@ -145,6 +142,18 @@ describe('Block API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json().block.block_identifier.hash).toEqual(GENESIS_HASH);
+    });
+
+    // Block 1 parent should be genesis,
+    test('should return boundary block 1 if requested by hash', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload(undefined, '0xf0f7892b5c333cffc4b3c4344de48af4cc63f55e44936196f365a9ef2244134f')
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual(block1);
+      expect(response.json().block.parent_block_identifier.hash).toEqual(GENESIS_HASH);
     });
   });
   describe('/block/transactions endpoint', () => {

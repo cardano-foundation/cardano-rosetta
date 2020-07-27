@@ -10,6 +10,7 @@ import { ErrorFactory } from '../utils/errors';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 import { withNetworkValidation } from './utils/services-helper';
 import { NetworkRepository } from '../db/network-repository';
+import { triggerAsyncId } from 'async_hooks';
 
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -19,8 +20,8 @@ export interface BlockService {
   ): Promise<Components.Schemas.BlockTransactionResponse | Components.Schemas.Error>;
   getGenesisBlock(): Promise<GenesisBlock>;
   getLatestBlock(): Promise<Block>;
-  findBalanceByAddressAndBlock(address: string, blockNumber: number): Promise<string>;
-  findUtxoByAddressAndBlock(address: string, blockNumber: number): Promise<Utxo[]>;
+  findBalanceByAddressAndBlock(address: string, blockHash: string): Promise<string>;
+  findUtxoByAddressAndBlock(address: string, blockHash: string): Promise<Utxo[]>;
   findBlock(blockIdentifier: PartialBlockIdentifier): Promise<Block | null>;
 }
 
@@ -113,7 +114,7 @@ const mapToRosettaBlock = (
     index: block.number
   },
   parent_block_identifier: {
-    index: block.number === 0 ? 0 : block.number - 1,
+    index: block.previousBlockNumber,
     hash: block.previousBlockHash
   },
   timestamp: block.createdAt,
@@ -149,10 +150,20 @@ const configure = (
     return repository.findBlock(blockNumber, blockIdentifier.hash);
   },
   async block(request) {
-    const block = await this.findBlock(request.block_identifier);
+    // cardano doesn't have block zero but we need to map it to genesis
+    let block;
+    if (request.block_identifier.index === 0) {
+      block = await this.getGenesisBlock();
+      // We need to manually check for the block index if sent on the request
+      const isHashInvalidIfGiven = request.block_identifier.hash && block.hash !== request.block_identifier.hash;
+      if (isHashInvalidIfGiven) {
+        throw ErrorFactory.blockNotFoundError();
+      }
+    }
+    block = await this.findBlock(request.block_identifier);
     if (block !== null) {
       // This condition is needed as genesis tx count for mainnet is zero
-     const blockContainsTransactions = block.transactionsCount !== 0 || block.previousBlockHash === block.hash;
+      const blockContainsTransactions = block.transactionsCount !== 0 || block.previousBlockHash === block.hash;
       let transactions: TransactionWithInputsAndOutputs[] = [];
       if (blockContainsTransactions) {
         const { number, hash } = block;
@@ -184,13 +195,12 @@ const configure = (
     if (!latestBlock) throw ErrorFactory.genesisBlockNotFound();
     return latestBlock;
   },
-  async findBalanceByAddressAndBlock(address, blockNumber) {
-    return await repository.findBalanceByAddressAndBlock(address, blockNumber);
+  async findBalanceByAddressAndBlock(address, blockHash) {
+    return await repository.findBalanceByAddressAndBlock(address, blockHash);
   },
-  async findUtxoByAddressAndBlock(address, blockNumber) {
-    return await repository.findUtxoByAddressAndBlock(address, blockNumber);
+  async findUtxoByAddressAndBlock(address, blockHash) {
+    return await repository.findUtxoByAddressAndBlock(address, blockHash);
   },
-
   blockTransaction: async blockTransactionRequest =>
     withNetworkValidation(
       blockTransactionRequest.network_identifier,

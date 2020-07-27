@@ -201,4 +201,76 @@ describe('/account/balance endpoint', () => {
       }
     });
   });
+
+  // tests with same address for more readability of /account/balance full flow
+  test('should only consider balance till block 3337 and balance should not be 0', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'DdzFFzCqrhsszHTvbjTmYje5hehGbadkT6WgWbaqCy5XNxNttsPNF13eAjjBHYT7JaLJz2XVxiucam1EvwBRPSTiCrT4TNCBas4hfzic',
+        3336
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: {
+        index: 3336,
+        hash: '0x824f66a4159ec3afb1b87ebb6c34deeef32788f6701ebadb40fa80f88add3702'
+      },
+      balances: [
+        {
+          value: '1000000',
+          currency: {
+            decimals: 6,
+            metadata: {},
+            symbol: 'ADA'
+          },
+          metadata: {}
+        }
+      ],
+      metadata: {
+        utxos: [
+          {
+            value: '1000000',
+            index: 0,
+            transactionHash: '0x6497b33b10fa2619c6efbd9f874ecd1c91badb10bf70850732aab45b90524d9e'
+          }
+        ]
+      }
+    });
+  });
+  test('should only consider balance till last block and balance SHOULD be 0', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'DdzFFzCqrhsszHTvbjTmYje5hehGbadkT6WgWbaqCy5XNxNttsPNF13eAjjBHYT7JaLJz2XVxiucam1EvwBRPSTiCrT4TNCBas4hfzic',
+        3337
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: {
+        index: 3337,
+        hash: '0x86b54dd69f404bb9656ee766e8c019dae3b5ef4ea00c04ef2e5597c9799214a8'
+      },
+      balances: [
+        {
+          value: '0',
+          currency: {
+            decimals: 6,
+            metadata: {},
+            symbol: 'ADA'
+          },
+          metadata: {}
+        }
+      ],
+      metadata: { utxos: [] }
+    });
+  });
 });

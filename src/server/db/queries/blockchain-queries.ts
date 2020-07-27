@@ -3,7 +3,17 @@ SELECT
   b.hash as hash,
   b.block_no as number,
   b.time as "createdAt",
-  b2.hash as "previousBlockHash",
+  CASE
+    WHEN b2.block_no IS NOT NULL THEN b2.block_no
+    WHEN b3.block_no IS NOT NULL THEN b3.block_no
+    ELSE 0
+  END AS "previousBlockNumber",
+  CASE
+    WHEN b2.block_no IS NOT NULL THEN b2.hash
+    WHEN b3.block_no IS NOT NULL THEN b3.hash
+    WHEN b.block_no = 1 THEN b3.hash -- block 1
+    ELSE b.hash -- genesis
+  END AS "previousBlockHash",
   b.tx_count as "transactionsCount",
   s.description as "createdBy",
   b.size as size,
@@ -13,6 +23,7 @@ FROM
   block b 
   JOIN slot_leader s ON b.slot_leader = s.id
   LEFT JOIN block b2 ON b.previous = b2.id
+  LEFT JOIN block b3 ON b2.previous = b3.id
 WHERE
   ${blockNumber ? 'b.block_no = $1' : '$1 = $1'} AND
   ${blockHash ? 'b.hash = $2' : '$2 = $2'}
@@ -124,19 +135,25 @@ export interface FindUtxo {
 
 const findUtxoFieldsByAddressAndBlock = (selectFields: string): string => `
 ${selectFields}
-FROM tx
-JOIN tx_out
-  ON tx.id = tx_out.tx_id
-LEFT OUTER JOIN tx_in
-  ON tx_out.tx_id = tx_in.tx_out_id
-    AND tx_out.index = tx_in.tx_out_index
-WHERE tx_in.tx_in_id is null
-  AND tx_out.address = $1
-  AND tx.block <= (SELECT id FROM block WHERE block_no = $2)`;
+  FROM tx_out
+  LEFT JOIN tx_in ON 
+		tx_out.tx_id = tx_in.tx_out_id AND 
+	tx_out.index::smallint = tx_in.tx_out_index::smallint 
+	LEFT JOIN tx as tx_in_tx ON 
+		tx_in_tx.id = tx_in.tx_in_id AND
+    tx_in_tx.block <= (select id from block where hash = $2)	
+	JOIN tx AS tx_out_tx ON
+	  tx_out_tx.id = tx_out.tx_id AND
+    tx_out_tx.block <= (select id from block where hash = $2)	
+  WHERE 
+	  tx_out.address = $1 AND
+	  tx_in_tx.id IS NULL
+		
+`;
 
 const selectUtxoDetail = `SELECT
   tx_out.value as value,
-  tx.hash as "txHash",
+  tx_out_tx.hash as "txHash",
   tx_out.index as index`;
 
 const findUtxoByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectUtxoDetail);
