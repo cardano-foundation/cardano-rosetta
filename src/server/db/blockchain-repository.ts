@@ -78,9 +78,9 @@ export interface BlockchainRepository {
   findBlock(number?: number, blockHash?: string): Promise<Block | null>;
 
   /**
-   * Fills a transactions with the inputs and outputs
+   * Looks for transactions given the hashes
    *
-   * @param transactions
+   * @param hashes
    */
   fillTransaction(transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]>;
 
@@ -113,14 +113,14 @@ export interface BlockchainRepository {
    * @param address account's address to count balance
    * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
    */
-  findBalanceByAddressAndBlock(address: string, blockNumber: number): Promise<string>;
+  findBalanceByAddressAndBlock(address: string, blockHash: string): Promise<string>;
 
   /**
    * Returns an array containing all utxo for address till block identified by blockIdentifier if present, else the last
    * @param address account's address to count balance
    * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
    */
-  findUtxoByAddressAndBlock(address: string, blockNumber: number): Promise<Utxo[]>;
+  findUtxoByAddressAndBlock(address: string, blockHash: string): Promise<Utxo[]>;
 }
 
 /**
@@ -335,8 +335,8 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     }
     return null;
   },
-  async findBalanceByAddressAndBlock(address, blockNumber): Promise<string> {
-    const parameters = [replace0xOnHash(address), blockNumber];
+  async findBalanceByAddressAndBlock(address, blockHash): Promise<string> {
+    const parameters = [replace0xOnHash(address), hashStringToBuffer(blockHash)];
     const result: QueryResult<FindBalance> = await databaseInstance.query(
       Queries.findBalanceByAddressAndBlock,
       parameters
@@ -346,8 +346,8 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     }
     return result.rows[0].balance;
   },
-  async findUtxoByAddressAndBlock(address, blockNumber): Promise<Utxo[]> {
-    const parameters = [replace0xOnHash(address), blockNumber];
+  async findUtxoByAddressAndBlock(address, blockHash): Promise<Utxo[]> {
+    const parameters = [replace0xOnHash(address), hashStringToBuffer(blockHash)];
     const result: QueryResult<FindUtxo> = await databaseInstance.query(Queries.findUtxoByAddressAndBlock, parameters);
     return result.rows.map(utxo => ({
       value: utxo.value,

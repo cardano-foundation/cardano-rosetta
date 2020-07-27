@@ -23,8 +23,8 @@ const configure = (networkRepository: NetworkRepository, blockService: BlockServ
           throw ErrorFactory.blockNotFoundError();
         }
         const accountAddress = accountBalanceRequest.account_identifier;
-        const balanceForAddress = await blockService.findBalanceByAddressAndBlock(accountAddress.address, block.number);
-        const details = await blockService.findUtxoByAddressAndBlock(accountAddress.address, block.number);
+        const balanceForAddress = await blockService.findBalanceByAddressAndBlock(accountAddress.address, block.hash);
+        const details = await blockService.findUtxoByAddressAndBlock(accountAddress.address, block.hash);
         return {
           block_identifier: {
             index: block.number,
@@ -44,7 +44,6 @@ const configure = (networkRepository: NetworkRepository, blockService: BlockServ
             }
           ],
           metadata: {
-            // FIXME fastify is filtering metadata https://github.com/input-output-hk/cardano-rosetta/issues/43
             utxos: details
           }
         };
