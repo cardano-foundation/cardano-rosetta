@@ -308,3 +308,25 @@ export const blockWith8Txs = {
 };
 
 export const GENESIS_HASH = '0x5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb';
+
+export const block1 = {
+  block: {
+    block_identifier: {
+      hash: '0xf0f7892b5c333cffc4b3c4344de48af4cc63f55e44936196f365a9ef2244134f',
+      index: 1
+    },
+    metadata: {
+      createdBy: 'SlotLeader-52df0f2c5539b2b1',
+      epochNo: 0,
+      size: 665,
+      slotNo: 0,
+      transactionsCount: 0
+    },
+    parent_block_identifier: {
+      hash: GENESIS_HASH,
+      index: 0
+    },
+    timestamp: 1506213891000,
+    transactions: []
+  }
+};
