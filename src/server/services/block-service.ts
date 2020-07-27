@@ -1,6 +1,6 @@
 import {
   BlockchainRepository,
-  Transaction,
+  TransactionWithInputsAndOutputs,
   Block,
   Utxo,
   PartialBlockIdentifier,
@@ -68,7 +68,7 @@ const createOperation = (
  *
  * @param transaction to be mapped
  */
-const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.Transaction => {
+const mapToRosettaTransaction = (transaction: TransactionWithInputsAndOutputs): Components.Schemas.Transaction => {
   const inputsAsOperations = transaction.inputs.map((input, index) =>
     createOperation(index, TRANSFER_OPERATION_TYPE, SUCCESS_STATUS, input.address, `-${input.value}`)
   );
@@ -104,7 +104,10 @@ const mapToRosettaTransaction = (transaction: Transaction): Components.Schemas.T
  * @param block cardano block
  * @param transactions cardano transactions for the given block
  */
-const mapToRosettaBlock = (block: Block, transactions: Transaction[]): Components.Schemas.Block => ({
+const mapToRosettaBlock = (
+  block: Block,
+  transactions: TransactionWithInputsAndOutputs[]
+): Components.Schemas.Block => ({
   block_identifier: {
     hash: block.hash,
     index: block.number
@@ -148,15 +151,22 @@ const configure = (
   async block(request) {
     const block = await this.findBlock(request.block_identifier);
     if (block !== null) {
-      const { number } = block;
-      const transactionsHashes = await repository.findBlockTransactionHashes(number, block.hash);
-      if (transactionsHashes.length > PAGE_SIZE) {
-        return {
-          block: mapToRosettaBlock(block, []),
-          other_transactions: transactionsHashes
-        };
+      // This condition is needed as genesis tx count for mainnet is zero
+     const blockContainsTransactions = block.transactionsCount !== 0 || block.previousBlockHash === block.hash;
+      let transactions: TransactionWithInputsAndOutputs[] = [];
+      if (blockContainsTransactions) {
+        const { number, hash } = block;
+        const transactionsFound = await repository.findTransactionsByBlock(number, hash);
+        if (transactionsFound.length > PAGE_SIZE) {
+          return {
+            block: mapToRosettaBlock(block, []),
+            other_transactions: transactionsFound.map(transaction => ({
+              hash: transaction.hash
+            }))
+          };
+        }
+        transactions = await repository.fillTransaction(transactionsFound);
       }
-      const transactions = await repository.findTransactionsByBlock(number, block.hash);
       return {
         block: mapToRosettaBlock(block, transactions)
       };
