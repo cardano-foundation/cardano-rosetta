@@ -7,7 +7,8 @@ import {
   block23236WithTransactions,
   latestBlock,
   block7134WithTxs,
-  blockWith8Txs
+  blockWith8Txs,
+  GENESIS_HASH
 } from './fixture-data';
 import { setupDatabase, setupServer } from './utils/test-utils';
 
@@ -124,6 +125,26 @@ describe('Block API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual(blockWith8Txs);
+    });
+
+    test('should return an error if hash sent in the request does not match the one in block 0', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload(0, '0x7a8dbe66c6a1b41bdbf4f3865ea20aebbf93b9697bf39024d5d08ffad10ab1e8')
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({ code: 4001, message: 'Block not found', retriable: false });
+    });
+
+    test('should be able to return block 0', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/block',
+        payload: generatePayload(0)
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json().block.block_identifier.hash).toEqual(GENESIS_HASH);
     });
   });
   describe('/block/transactions endpoint', () => {
