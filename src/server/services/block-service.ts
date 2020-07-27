@@ -114,7 +114,7 @@ const mapToRosettaBlock = (
     index: block.number
   },
   parent_block_identifier: {
-    index: block.number === 0 ? 0 : block.number - 1,
+    index: block.previousBlockNumber,
     hash: block.previousBlockHash
   },
   timestamp: block.createdAt,

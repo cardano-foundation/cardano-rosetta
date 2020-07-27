@@ -13,6 +13,7 @@ export interface Block {
   number: number;
   createdAt: number;
   previousBlockHash: string;
+  previousBlockNumber: number;
   transactionsCount: number;
   createdBy: string;
   size: number;
@@ -255,6 +256,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
         hash,
         createdAt,
         previousBlockHash,
+        previousBlockNumber,
         transactionsCount,
         createdBy,
         size,
@@ -266,6 +268,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
         hash: hashFormatter(hash),
         createdAt,
         previousBlockHash: previousBlockHash && hashFormatter(previousBlockHash),
+        previousBlockNumber,
         transactionsCount,
         createdBy,
         size,

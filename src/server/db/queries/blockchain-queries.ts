@@ -3,7 +3,17 @@ SELECT
   b.hash as hash,
   b.block_no as number,
   b.time as "createdAt",
-  b2.hash as "previousBlockHash",
+  CASE
+    WHEN b2.block_no IS NOT NULL THEN b2.block_no
+    WHEN b3.block_no IS NOT NULL THEN b3.block_no
+  ELSE 0
+  END AS "previousBlockNumber",
+  CASE
+    WHEN b2.block_no IS NOT NULL THEN b2.hash
+    WHEN b3.block_no IS NOT NULL THEN b3.hash
+    WHEN b.block_no = 1 THEN b3.hash -- block 1
+    ELSE b.hash -- genesis
+  END AS "previousBlockHash",
   b.tx_count as "transactionsCount",
   s.description as "createdBy",
   b.size as size,
@@ -13,6 +23,7 @@ FROM
   block b 
   JOIN slot_leader s ON b.slot_leader = s.id
   LEFT JOIN block b2 ON b.previous = b2.id
+  LEFT JOIN block b3 ON b2.previous = b3.id
 WHERE
   ${blockNumber ? 'b.block_no = $1' : '$1 = $1'} AND
   ${blockHash ? 'b.hash = $2' : '$2 = $2'}
