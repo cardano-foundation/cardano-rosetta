@@ -48,9 +48,8 @@ const AE2HashAccountBalances = [
 
 const AE2HashAccountUtxos = [
   {
-    index: 0,
-    transactionHash: '0x2d51b929d79a0ac8f360f38e8a38cdcb28ca84139aced314c5d7edc739aa4366',
-    value: '1153846000000'
+    coin_identifier: { identifier: '0x2d51b929d79a0ac8f360f38e8a38cdcb28ca84139aced314c5d7edc739aa4366' },
+    amount: { value: '1153846000000', currency: { symbol: 'ADA', decimals: 6 } }
   }
 ];
 
@@ -85,15 +84,12 @@ describe('/account/balance endpoint', () => {
         hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
         index: 65168
       },
-      metadata: {
-        utxos: [
-          {
-            index: 0,
-            transactionHash: '0xaf0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad',
-            value: '21063'
-          }
-        ]
-      }
+      coins: [
+        {
+          coin_identifier: { identifier: '0xaf0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad' },
+          amount: { value: '21063', currency: { symbol: 'ADA', decimals: 6 } }
+        }
+      ]
     });
   });
 
@@ -110,9 +106,7 @@ describe('/account/balance endpoint', () => {
         hash: '0x7c6901c6346781c2bc5cbc49577490e336c2545c320ce4a61605bc71a9c5bed0',
         index: 20
       },
-      metadata: {
-        utxos: AE2HashAccountUtxos
-      }
+      coins: AE2HashAccountUtxos
     });
   });
 
@@ -135,9 +129,7 @@ describe('/account/balance endpoint', () => {
         hash: '0x7c6901c6346781c2bc5cbc49577490e336c2545c320ce4a61605bc71a9c5bed0',
         index: 20
       },
-      metadata: {
-        utxos: AE2HashAccountUtxos
-      }
+      coins: AE2HashAccountUtxos
     });
   });
 
@@ -160,9 +152,7 @@ describe('/account/balance endpoint', () => {
         hash: '0xd3fdc8c8ea4050cc87a21cb73110d54e3ec92f8ae76941e8a1957ed6e6a7e0b0',
         index: 30
       },
-      metadata: {
-        utxos: AE2HashAccountUtxos
-      }
+      coins: AE2HashAccountUtxos
     });
   });
 
@@ -196,9 +186,7 @@ describe('/account/balance endpoint', () => {
         hash: '0xf1c244bece74921b7aa85fc20f32f65ba17d9596eeb8ce4cf1152f67922e7b74',
         index: 44
       },
-      metadata: {
-        utxos: []
-      }
+      coins: []
     });
   });
 
@@ -231,15 +219,12 @@ describe('/account/balance endpoint', () => {
           metadata: {}
         }
       ],
-      metadata: {
-        utxos: [
-          {
-            value: '1000000',
-            index: 0,
-            transactionHash: '0x6497b33b10fa2619c6efbd9f874ecd1c91badb10bf70850732aab45b90524d9e'
-          }
-        ]
-      }
+      coins: [
+        {
+          amount: { value: '1000000', currency: { symbol: 'ADA', decimals: 6 } },
+          coin_identifier: { identifier: '0x6497b33b10fa2619c6efbd9f874ecd1c91badb10bf70850732aab45b90524d9e' }
+        }
+      ]
     });
   });
   test('should only consider balance till last block and balance SHOULD be 0', async () => {
@@ -270,7 +255,7 @@ describe('/account/balance endpoint', () => {
           metadata: {}
         }
       ],
-      metadata: { utxos: [] }
+      coins: []
     });
   });
 });
