@@ -48,7 +48,7 @@ const AE2HashAccountBalances = [
 
 const AE2HashAccountUtxos = [
   {
-    coin_identifier: { identifier: '0x2d51b929d79a0ac8f360f38e8a38cdcb28ca84139aced314c5d7edc739aa4366' },
+    coin_identifier: { identifier: '0x2d51b929d79a0ac8f360f38e8a38cdcb28ca84139aced314c5d7edc739aa4366:0' },
     amount: { value: '1153846000000', currency: { symbol: 'ADA', decimals: 6 } }
   }
 ];
@@ -86,7 +86,7 @@ describe('/account/balance endpoint', () => {
       },
       coins: [
         {
-          coin_identifier: { identifier: '0xaf0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad' },
+          coin_identifier: { identifier: '0xaf0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad:0' },
           amount: { value: '21063', currency: { symbol: 'ADA', decimals: 6 } }
         }
       ]
@@ -172,6 +172,50 @@ describe('/account/balance endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
   });
 
+  test('should only consider balance till latest block', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        '0xDdzFFzCqrhsdufpFxByLTQmktKJnTrudktaHq1nK2MAEDLXjz5kbRcr5prHi9gHb6m8pTvhgK6JbFDZA1LTiTcP6g8KuPSF1TfKP8ewp'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: {
+        index: 65168,
+        hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252'
+      },
+      balances: [
+        {
+          value: '11509379714',
+          currency: {
+            decimals: 6,
+            metadata: {},
+            symbol: 'ADA'
+          },
+          metadata: {}
+        }
+      ],
+      coins: [
+        {
+          coin_identifier: {
+            identifier: '0xbcc57134d1bd588b00f40142f0fdc17db5f35047e3196cdf26aa7319524c0014:1'
+          },
+          amount: { value: '999800000', currency: { decimals: 6, symbol: 'ADA' } }
+        },
+        {
+          coin_identifier: {
+            identifier: '0x4bcf79c0c2967986749fd0ae03f5b54a712d51b35672a3d974707c060c4d8dac:1'
+          },
+          amount: { value: '10509579714', currency: { decimals: 6, symbol: 'ADA' } }
+        }
+      ]
+    });
+  });
+
   test('should return empty if address doesnt exist', async () => {
     const response = await server.inject({
       method: 'post',
@@ -222,7 +266,7 @@ describe('/account/balance endpoint', () => {
       coins: [
         {
           amount: { value: '1000000', currency: { symbol: 'ADA', decimals: 6 } },
-          coin_identifier: { identifier: '0x6497b33b10fa2619c6efbd9f874ecd1c91badb10bf70850732aab45b90524d9e' }
+          coin_identifier: { identifier: '0x6497b33b10fa2619c6efbd9f874ecd1c91badb10bf70850732aab45b90524d9e:0' }
         }
       ]
     });

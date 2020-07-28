@@ -15,7 +15,7 @@ export interface AccountService {
 const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] =>
   utxoDetails.map(utxoDetail => ({
     amount: { value: utxoDetail.value, currency: { symbol: ADA, decimals: ADA_DECIMALS } },
-    coin_identifier: { identifier: utxoDetail.transactionHash }
+    coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
   }));
 
 const configure = (networkRepository: NetworkRepository, blockService: BlockService): AccountService => ({

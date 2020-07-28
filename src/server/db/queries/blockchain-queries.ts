@@ -130,6 +130,7 @@ export interface FindBalance {
 export interface FindUtxo {
   value: string;
   txHash: Buffer;
+  index: number;
 }
 
 const findUtxoFieldsByAddressAndBlock = (selectFields: string): string => `
@@ -152,7 +153,8 @@ ${selectFields}
 
 const selectUtxoDetail = `SELECT
   tx_out.value as value,
-  tx_out_tx.hash as "txHash"`;
+  tx_out_tx.hash as "txHash",
+  tx_out.index as index`;
 
 const findUtxoByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectUtxoDetail);
 
