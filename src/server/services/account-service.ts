@@ -23,8 +23,8 @@ const configure = (networkRepository: NetworkRepository, blockService: BlockServ
           throw ErrorFactory.blockNotFoundError();
         }
         const accountAddress = accountBalanceRequest.account_identifier;
-        const balanceForAddress = await blockService.findBalanceByAddressAndBlock(accountAddress.address, block.hash);
         const details = await blockService.findUtxoByAddressAndBlock(accountAddress.address, block.hash);
+        const balanceForAddress = details.reduce((acum, current) => acum + Number(current.value), 0).toString();
         return {
           block_identifier: {
             index: block.number,

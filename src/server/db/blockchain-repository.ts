@@ -108,12 +108,6 @@ export interface BlockchainRepository {
    * Returns the genesis block
    */
   findGenesisBlock(): Promise<GenesisBlock | null>;
-  /*
-   * Returns balance available for address till block identified by blockIdentifier if present, else the last
-   * @param address account's address to count balance
-   * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
-   */
-  findBalanceByAddressAndBlock(address: string, blockHash: string): Promise<string>;
 
   /**
    * Returns an array containing all utxo for address till block identified by blockIdentifier if present, else the last
@@ -334,17 +328,6 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       return { hash: hashFormatter(result.rows[0].hash), index: result.rows[0].index };
     }
     return null;
-  },
-  async findBalanceByAddressAndBlock(address, blockHash): Promise<string> {
-    const parameters = [replace0xOnHash(address), hashStringToBuffer(blockHash)];
-    const result: QueryResult<FindBalance> = await databaseInstance.query(
-      Queries.findBalanceByAddressAndBlock,
-      parameters
-    );
-    if (result.rows[0].balance === null) {
-      return '0';
-    }
-    return result.rows[0].balance;
   },
   async findUtxoByAddressAndBlock(address, blockHash): Promise<Utxo[]> {
     const parameters = [replace0xOnHash(address), hashStringToBuffer(blockHash)];

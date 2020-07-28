@@ -158,10 +158,6 @@ const selectUtxoDetail = `SELECT
 
 const findUtxoByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectUtxoDetail);
 
-const selectBalanceFromUtxo = 'SELECT cast(sum(tx_out.value) AS TEXT) as balance ';
-
-const findBalanceByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectBalanceFromUtxo);
-
 const Queries = {
   findBlock,
   findTransactionsByBlock,
@@ -170,7 +166,6 @@ const Queries = {
   findTransactionsOutputs,
   findLatestBlockNumber,
   findGenesisBlock,
-  findBalanceByAddressAndBlock,
   findUtxoByAddressAndBlock
 };
 

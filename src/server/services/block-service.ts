@@ -10,7 +10,6 @@ import { ErrorFactory } from '../utils/errors';
 import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 import { withNetworkValidation } from './utils/services-helper';
 import { NetworkRepository } from '../db/network-repository';
-import { triggerAsyncId } from 'async_hooks';
 
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -20,7 +19,6 @@ export interface BlockService {
   ): Promise<Components.Schemas.BlockTransactionResponse | Components.Schemas.Error>;
   getGenesisBlock(): Promise<GenesisBlock>;
   getLatestBlock(): Promise<Block>;
-  findBalanceByAddressAndBlock(address: string, blockHash: string): Promise<string>;
   findUtxoByAddressAndBlock(address: string, blockHash: string): Promise<Utxo[]>;
   findBlock(blockIdentifier: PartialBlockIdentifier): Promise<Block | null>;
 }
@@ -194,9 +192,6 @@ const configure = (
     const latestBlock = await repository.findGenesisBlock();
     if (!latestBlock) throw ErrorFactory.genesisBlockNotFound();
     return latestBlock;
-  },
-  async findBalanceByAddressAndBlock(address, blockHash) {
-    return await repository.findBalanceByAddressAndBlock(address, blockHash);
   },
   async findUtxoByAddressAndBlock(address, blockHash) {
     return await repository.findUtxoByAddressAndBlock(address, blockHash);
