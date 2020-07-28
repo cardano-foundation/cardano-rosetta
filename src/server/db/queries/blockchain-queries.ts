@@ -48,7 +48,7 @@ WHERE
   ${blockHash ? 'block.hash = $2' : '$2 = $2'}
 `;
 
-const findTransactionByHash = `
+const findTransactionByHashAndBlock = `
 SELECT 
   tx.*,
   block.hash as blockHash
@@ -56,6 +56,8 @@ FROM tx
 JOIN block ON block.id = tx.block
 WHERE
   tx.hash = $1
+AND block.block_no = $2 
+AND block.hash = $3
 `;
 
 export interface FindTransactionsInputs {
@@ -165,7 +167,7 @@ const findBalanceByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectBalan
 const Queries = {
   findBlock,
   findTransactionsByBlock,
-  findTransactionByHash,
+  findTransactionByHashAndBlock,
   findTransactionsInputs,
   findTransactionsOutputs,
   findLatestBlockNumber,

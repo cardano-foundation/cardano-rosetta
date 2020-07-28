@@ -97,7 +97,10 @@ export interface BlockchainRepository {
    *
    * @param hash hex formatted transaction hash
    */
-  findTransactionByHash(hash: string): Promise<TransactionWithInputsAndOutputs | null>;
+  findTransactionByHashAndBlock(
+    hash: string,
+    blockIdentifier: Components.Schemas.BlockIdentifier
+  ): Promise<TransactionWithInputsAndOutputs | null>;
 
   /**
    * Returns the tip of the chain block number
@@ -311,10 +314,16 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     }
     return [];
   },
-
-  async findTransactionByHash(hash: string): Promise<TransactionWithInputsAndOutputs | null> {
-    const result: QueryResult<FindTransaction> = await databaseInstance.query(Queries.findTransactionByHash, [
-      hashStringToBuffer(hash)
+  async findTransactionByHashAndBlock(
+    hash: string,
+    blockIdentifier: Components.Schemas.BlockIdentifier
+  ): Promise<TransactionWithInputsAndOutputs | null> {
+    const blockNumber = blockIdentifier.index;
+    const blockHash = blockIdentifier.hash;
+    const result: QueryResult<FindTransaction> = await databaseInstance.query(Queries.findTransactionByHashAndBlock, [
+      hashStringToBuffer(hash),
+      blockNumber ? blockNumber : true,
+      blockHash ? hashStringToBuffer(blockHash) : true
     ]);
     if (result.rows.length > 0) {
       const [transaction] = await processTransactionsQueryResult(databaseInstance, result);

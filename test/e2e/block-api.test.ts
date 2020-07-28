@@ -240,5 +240,24 @@ describe('Block API', () => {
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({ message: 'Invalid blockchain', code: 4004, retriable: false });
     });
+
+    test('should fail if transaction is not within requested block', async () => {
+      const { hash } = block23236WithTransactions.block.block_identifier;
+      const [transaction] = block23236WithTransactions.block.transactions;
+      const response = await server.inject({
+        method: 'post',
+        url: BLOCK_TRANSACTION_ENDPOINT,
+        payload: {
+          ...generatePayload(1234, hash),
+          // eslint-disable-next-line camelcase
+          transaction_identifier: {
+            hash: transaction.transaction_identifier.hash
+          }
+        }
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({ message: 'Transaction not found', code: 4006, retriable: false });
+    });
   });
 });
