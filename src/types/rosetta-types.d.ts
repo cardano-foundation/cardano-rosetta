@@ -17,9 +17,18 @@ declare namespace Components {
        * A single account may have a balance in multiple currencies.
        */
       balances: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount[];
-      metadata?: {
-        utxos: /* Unspent set for a given Account */ Utxo[];
-      };
+      /**
+       * If a blockchain is UTXO-based, all unspent Coins owned by an account_identifier should be returned alongside the balance. It is highly recommended to populate this field so that users of the Rosetta API implementation don't need to maintain their own indexer to track their UTXOs.
+       */
+      coins?: /* Coin contains its unique identifier and the amount it represents. */ Coin[];
+      /**
+       * Account-based blockchains that utilize a nonce or sequence number should include that number in the metadata. This number could be unique to the identifier or global across the account address.
+       * example:
+       * {
+       *   "sequence_number": 23
+       * }
+       */
+      metadata?: {};
     }
     /**
      * The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated).
@@ -60,7 +69,7 @@ declare namespace Components {
       /**
        * All Errors that this implementation could return. Any error that is returned during parsing that is not listed here will cause client validation to error.
        */
-      errors: /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Error[];
+      errors: /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Error[];
       /**
        * Any Rosetta implementation that supports querying the balance of an account at any height in the past should set this to true.
        */
@@ -80,7 +89,7 @@ declare namespace Components {
       metadata?: {};
     }
     /**
-     * Blocks contain an array of Transactions that occurred at a particular BlockIdentifier.
+     * Blocks contain an array of Transactions that occurred at a particular BlockIdentifier. A hard requirement for blocks returned by Rosetta implementations is that they MUST be _inalterable_: once a client has requested and received a block identified by a specific BlockIndentifier, all future calls for that same BlockIdentifier must return the same block contents.
      */
     export interface Block {
       block_identifier: /* The block_identifier uniquely identifies a block in a particular network. */ BlockIdentifier;
@@ -134,7 +143,7 @@ declare namespace Components {
      * A BlockResponse includes a fully-populated block or a partially-populated block with a list of other transactions to fetch (other_transactions).
      */
     export interface BlockResponse {
-      block: /* Blocks contain an array of Transactions that occurred at a particular BlockIdentifier. */ Block;
+      block: /* Blocks contain an array of Transactions that occurred at a particular BlockIdentifier. A hard requirement for blocks returned by Rosetta implementations is that they MUST be _inalterable_: once a client has requested and received a block identified by a specific BlockIndentifier, all future calls for that same BlockIdentifier must return the same block contents. */ Block;
       /**
        * Some blockchains may require additional transactions to be fetched that weren't returned in the block response (ex: block only returns transaction hashes). For blockchains with a lot of transactions in each block, this can be very useful as consumers can concurrently fetch all transactions returned.
        */
@@ -153,6 +162,35 @@ declare namespace Components {
      */
     export interface BlockTransactionResponse {
       transaction: /* Transactions contain an array of Operations that are attributable to the same TransactionIdentifier. */ Transaction;
+    }
+    /**
+     * Coin contains its unique identifier and the amount it represents.
+     */
+    export interface Coin {
+      coin_identifier: /* CoinIdentifier uniquely identifies a Coin. */ CoinIdentifier;
+      amount: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
+    }
+    /**
+     * CoinActions are different state changes that a Coin can undergo. When a Coin is created, it is coin_created. When a Coin is spent, it is coin_spent. It is assumed that a single Coin cannot be created or spent more than once.
+     */
+    export type CoinAction = 'coin_created' | 'coin_spent';
+    /**
+     * CoinChange is used to represent a change in state of a some coin identified by a coin_identifier. This object is part of the Operation model and must be populated for UTXO-based blockchains. Coincidentally, this abstraction of UTXOs allows for supporting both account-based transfers and UTXO-based transfers on the same blockchain (when a transfer is account-based, don't populate this model).
+     */
+    export interface CoinChange {
+      coin_identifier: /* CoinIdentifier uniquely identifies a Coin. */ CoinIdentifier;
+      coin_action: /* CoinActions are different state changes that a Coin can undergo. When a Coin is created, it is coin_created. When a Coin is spent, it is coin_spent. It is assumed that a single Coin cannot be created or spent more than once. */ CoinAction;
+    }
+    /**
+     * CoinIdentifier uniquely identifies a Coin.
+     */
+    export interface CoinIdentifier {
+      /**
+       * Identifier should be populated with a globally unique identifier of a Coin. In Bitcoin, this identifier would be transaction_hash:index.
+       * example:
+       * 0x2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1
+       */
+      identifier: string;
     }
     /**
      * ConstructionCombineRequest is the input to the `/construction/combine` endpoint. It contains the unsigned transaction blob returned by `/construction/payloads` and all required signatures to create a network transaction.
@@ -192,12 +230,6 @@ declare namespace Components {
     export interface ConstructionHashRequest {
       network_identifier: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       signed_transaction: string;
-    }
-    /**
-     * ConstructionHashResponse is the output of the `/construction/hash` endpoint.
-     */
-    export interface ConstructionHashResponse {
-      transaction_hash: string;
     }
     /**
      * A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers.
@@ -287,13 +319,6 @@ declare namespace Components {
       signed_transaction: string;
     }
     /**
-     * A TransactionSubmitResponse contains the transaction_identifier of a submitted transaction that was accepted into the mempool.
-     */
-    export interface ConstructionSubmitResponse {
-      transaction_identifier: /* The transaction_identifier uniquely identifies a transaction in a particular network and block or in the mempool. */ TransactionIdentifier;
-      metadata?: {};
-    }
-    /**
      * Currency is composed of a canonical Symbol and Decimals. This Decimals value is used to convert an Amount.Value from atomic units (Satoshis) to standard units (Bitcoins).
      */
     export interface Currency {
@@ -323,7 +348,7 @@ declare namespace Components {
      */
     export type CurveType = 'secp256k1' | 'edwards25519';
     /**
-     * Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object.
+     * Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields.
      */
     export interface Error {
       /**
@@ -333,7 +358,7 @@ declare namespace Components {
        */
       code: number; // int32
       /**
-       * Message is a network-specific error message.
+       * Message is a network-specific error message. The message MUST NOT change for a given code. In particular, this means that any contextual information should be included in the details field.
        * example:
        * Invalid account format
        */
@@ -423,7 +448,7 @@ declare namespace Components {
       metadata?: {};
     }
     /**
-     * NetworkStatusResponse contains basic information about the node's view of a blockchain network. If a Rosetta implementation prunes historical state, it should populate the optional `oldest_block_identifier` field with the oldest block available to query. If this is not populated, it is assumed that the `genesis_block_identifier` is the oldest queryable block.
+     * NetworkStatusResponse contains basic information about the node's view of a blockchain network. It is assumed that any BlockIdentifier.Index less than or equal to CurrentBlockIdentifier.Index can be queried. If a Rosetta implementation prunes historical state, it should populate the optional `oldest_block_identifier` field with the oldest block available to query. If this is not populated, it is assumed that the `genesis_block_identifier` is the oldest queryable block. If a Rosetta implementation performs some pre-sync before it is possible to query blocks, sync_status should be populated so that clients can still monitor healthiness. Without this field, it may appear that the implementation is stuck syncing and needs to be terminated.
      */
     export interface NetworkStatusResponse {
       current_block_identifier: /* The block_identifier uniquely identifies a block in a particular network. */ BlockIdentifier;
@@ -435,6 +460,7 @@ declare namespace Components {
       Timestamp /* int64 */;
       genesis_block_identifier: /* The block_identifier uniquely identifies a block in a particular network. */ BlockIdentifier;
       oldest_block_identifier?: /* The block_identifier uniquely identifies a block in a particular network. */ BlockIdentifier;
+      sync_status?: /* SyncStatus is used to provide additional context about an implementation's sync status. It is often used to indicate that an implementation is healthy when it cannot be queried  until some sync phase occurs. If an implementation is immediately queryable, this model is often not populated. */ SyncStatus;
       peers: /* A Peer is a representation of a node's peer. */ Peer[];
     }
     /**
@@ -469,6 +495,7 @@ declare namespace Components {
       status: string;
       account?: /* The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated). */ AccountIdentifier;
       amount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
+      coin_change?: /* CoinChange is used to represent a change in state of a some coin identified by a coin_identifier. This object is part of the Operation model and must be populated for UTXO-based blockchains. Coincidentally, this abstraction of UTXOs allows for supporting both account-based transfers and UTXO-based transfers on the same blockchain (when a transfer is account-based, don't populate this model). */ CoinChange;
       /**
        * example:
        * {
@@ -606,6 +633,29 @@ declare namespace Components {
       metadata?: {};
     }
     /**
+     * SyncStatus is used to provide additional context about an implementation's sync status. It is often used to indicate that an implementation is healthy when it cannot be queried  until some sync phase occurs. If an implementation is immediately queryable, this model is often not populated.
+     */
+    export interface SyncStatus {
+      /**
+       * CurrentIndex is the index of the last synced block in the current stage.
+       * example:
+       * 100
+       */
+      current_index: number; // int64
+      /**
+       * TargetIndex is the index of the block that the implementation is attempting to sync to in the current stage.
+       * example:
+       * 150
+       */
+      target_index?: number; // int64
+      /**
+       * Stage is the phase of the sync process.
+       * example:
+       * header sync
+       */
+      stage?: string;
+    }
+    /**
      * The timestamp of the block in milliseconds since the Unix Epoch. The timestamp is stored in milliseconds because some blockchains produce blocks more often than once a second.
      * example:
      * 1582833600000
@@ -639,12 +689,19 @@ declare namespace Components {
       hash: string;
     }
     /**
+     * TransactionIdentifierResponse contains the transaction_identifier of a transaction that was submitted to either `/construction/hash` or `/construction/submit`.
+     */
+    export interface TransactionIdentifierResponse {
+      transaction_identifier: /* The transaction_identifier uniquely identifies a transaction in a particular network and block or in the mempool. */ TransactionIdentifier;
+      metadata?: {};
+    }
+    /**
      * Unspent set for a given Account
      */
     export interface Utxo {
       value: string;
       index: number;
-      transactionHash?: string;
+      transactionHash: string;
     }
     /**
      * The Version object is utilized to inform the client of the versions of different components of the Rosetta implementation.
@@ -680,112 +737,112 @@ declare namespace Paths {
     export type RequestBody = /* An AccountBalanceRequest is utilized to make a balance request on the /account/balance endpoint. If the block_identifier is populated, a historical balance query should be performed. */ Components.Schemas.AccountBalanceRequest;
     namespace Responses {
       export type $200 = /* An AccountBalanceResponse is returned on the /account/balance endpoint. If an account has a balance for each AccountIdentifier describing it (ex: an ERC-20 token balance on a few smart contracts), an account balance request must be made with each AccountIdentifier. */ Components.Schemas.AccountBalanceResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace Block {
     export type RequestBody = /* A BlockRequest is utilized to make a block request on the /block endpoint. */ Components.Schemas.BlockRequest;
     namespace Responses {
       export type $200 = /* A BlockResponse includes a fully-populated block or a partially-populated block with a list of other transactions to fetch (other_transactions). */ Components.Schemas.BlockResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace BlockTransaction {
     export type RequestBody = /* A BlockTransactionRequest is used to fetch a Transaction included in a block that is not returned in a BlockResponse. */ Components.Schemas.BlockTransactionRequest;
     namespace Responses {
       export type $200 = /* A BlockTransactionResponse contains information about a block transaction. */ Components.Schemas.BlockTransactionResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace ConstructionCombine {
     export type RequestBody = /* ConstructionCombineRequest is the input to the `/construction/combine` endpoint. It contains the unsigned transaction blob returned by `/construction/payloads` and all required signatures to create a network transaction. */ Components.Schemas.ConstructionCombineRequest;
     namespace Responses {
       export type $200 = /* ConstructionCombineResponse is returned by `/construction/combine`. The network payload will be sent directly to the `construction/submit` endpoint. */ Components.Schemas.ConstructionCombineResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace ConstructionDerive {
     export type RequestBody = /* ConstructionDeriveRequest is passed to the `/construction/derive` endpoint. Network is provided in the request because some blockchains have different address formats for different networks. Metadata is provided in the request because some blockchains allow for multiple address types (i.e. different address for validators vs normal accounts). */ Components.Schemas.ConstructionDeriveRequest;
     namespace Responses {
       export type $200 = /* ConstructionDeriveResponse is returned by the `/construction/derive` endpoint. */ Components.Schemas.ConstructionDeriveResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace ConstructionHash {
     export type RequestBody = /* ConstructionHashRequest is the input to the `/construction/hash` endpoint. */ Components.Schemas.ConstructionHashRequest;
     namespace Responses {
-      export type $200 = /* ConstructionHashResponse is the output of the `/construction/hash` endpoint. */ Components.Schemas.ConstructionHashResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $200 = /* TransactionIdentifierResponse contains the transaction_identifier of a transaction that was submitted to either `/construction/hash` or `/construction/submit`. */ Components.Schemas.TransactionIdentifierResponse;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace ConstructionMetadata {
     export type RequestBody = /* A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers. */ Components.Schemas.ConstructionMetadataRequest;
     namespace Responses {
       export type $200 = /* The ConstructionMetadataResponse returns network-specific metadata used for transaction construction. */ Components.Schemas.ConstructionMetadataResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace ConstructionParse {
     export type RequestBody = /* ConstructionParseRequest is the input to the `/construction/parse` endpoint. It allows the caller to parse either an unsigned or signed transaction. */ Components.Schemas.ConstructionParseRequest;
     namespace Responses {
       export type $200 = /* ConstructionParseResponse contains an array of operations that occur in a transaction blob. This should match the array of operations provided to `/construction/preprocess` and `/construction/payloads`. */ Components.Schemas.ConstructionParseResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace ConstructionPayloads {
     export type RequestBody = /* ConstructionPayloadsRequest is the request to `/construction/payloads`. It contains the network, a slice of operations, and arbitrary metadata that was returned by the call to `/construction/metadata`. */ Components.Schemas.ConstructionPayloadsRequest;
     namespace Responses {
       export type $200 = /* ConstructionTransactionResponse is returned by `/construction/payloads`. It contains an unsigned transaction blob (that is usually needed to construct the a network transaction from a collection of signatures) and an array of payloads that must be signed by the caller. */ Components.Schemas.ConstructionPayloadsResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace ConstructionPreprocess {
     export type RequestBody = /* ConstructionPreprocessRequest is passed to the `/construction/preprocess` endpoint so that a Rosetta implementation can determine which metadata it needs to request for construction. */ Components.Schemas.ConstructionPreprocessRequest;
     namespace Responses {
       export type $200 = /* ConstructionPreprocessResponse contains the request that will be sent directly to `/construction/metadata`. If it is not necessary to make a request to `/construction/metadata`, options should be null. */ Components.Schemas.ConstructionPreprocessResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace ConstructionSubmit {
     export type RequestBody = /* The transaction submission request includes a signed transaction. */ Components.Schemas.ConstructionSubmitRequest;
     namespace Responses {
-      export type $200 = /* A TransactionSubmitResponse contains the transaction_identifier of a submitted transaction that was accepted into the mempool. */ Components.Schemas.ConstructionSubmitResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $200 = /* TransactionIdentifierResponse contains the transaction_identifier of a transaction that was submitted to either `/construction/hash` or `/construction/submit`. */ Components.Schemas.TransactionIdentifierResponse;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace Mempool {
     export type RequestBody = /* A NetworkRequest is utilized to retrieve some data specific exclusively to a NetworkIdentifier. */ Components.Schemas.NetworkRequest;
     namespace Responses {
       export type $200 = /* A MempoolResponse contains all transaction identifiers in the mempool for a particular network_identifier. */ Components.Schemas.MempoolResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace MempoolTransaction {
     export type RequestBody = /* A MempoolTransactionRequest is utilized to retrieve a transaction from the mempool. */ Components.Schemas.MempoolTransactionRequest;
     namespace Responses {
       export type $200 = /* A MempoolTransactionResponse contains an estimate of a mempool transaction. It may not be possible to know the full impact of a transaction in the mempool (ex: fee paid). */ Components.Schemas.MempoolTransactionResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace NetworkList {
     export type RequestBody = /* A MetadataRequest is utilized in any request where the only argument is optional metadata. */ Components.Schemas.MetadataRequest;
     namespace Responses {
       export type $200 = /* A NetworkListResponse contains all NetworkIdentifiers that the node can serve information for. */ Components.Schemas.NetworkListResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace NetworkOptions {
     export type RequestBody = /* A NetworkRequest is utilized to retrieve some data specific exclusively to a NetworkIdentifier. */ Components.Schemas.NetworkRequest;
     namespace Responses {
       export type $200 = /* NetworkOptionsResponse contains information about the versioning of the node and the allowed operation statuses, operation types, and errors. */ Components.Schemas.NetworkOptionsResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
   namespace NetworkStatus {
     export type RequestBody = /* A NetworkRequest is utilized to retrieve some data specific exclusively to a NetworkIdentifier. */ Components.Schemas.NetworkRequest;
     namespace Responses {
-      export type $200 = /* NetworkStatusResponse contains basic information about the node's view of a blockchain network. If a Rosetta implementation prunes historical state, it should populate the optional `oldest_block_identifier` field with the oldest block available to query. If this is not populated, it is assumed that the `genesis_block_identifier` is the oldest queryable block. */ Components.Schemas.NetworkStatusResponse;
-      export type Default = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. */ Components.Schemas.Error;
+      export type $200 = /* NetworkStatusResponse contains basic information about the node's view of a blockchain network. It is assumed that any BlockIdentifier.Index less than or equal to CurrentBlockIdentifier.Index can be queried. If a Rosetta implementation prunes historical state, it should populate the optional `oldest_block_identifier` field with the oldest block available to query. If this is not populated, it is assumed that the `genesis_block_identifier` is the oldest queryable block. If a Rosetta implementation performs some pre-sync before it is possible to query blocks, sync_status should be populated so that clients can still monitor healthiness. Without this field, it may appear that the implementation is stuck syncing and needs to be terminated. */ Components.Schemas.NetworkStatusResponse;
+      export type $500 = /* Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields. */ Components.Schemas.Error;
     }
   }
 }
