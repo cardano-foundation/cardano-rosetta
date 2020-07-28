@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+const slotLeader2b1 = 'SlotLeader-52df0f2c5539b2b1';
 export const block1000WithoutTxs = {
   block: {
     block_identifier: {
@@ -35,7 +36,7 @@ export const latestBlock = {
     transactions: [],
     metadata: {
       transactionsCount: 0,
-      createdBy: 'SlotLeader-52df0f2c5539b2b1',
+      createdBy: slotLeader2b1,
       size: 669,
       epochNo: 3,
       slotNo: 65194
@@ -175,7 +176,7 @@ export const block7134WithTxs = {
     timestamp: 1506356551000,
     metadata: {
       transactionsCount: 1,
-      createdBy: 'SlotLeader-52df0f2c5539b2b1',
+      createdBy: slotLeader2b1,
       size: 984,
       epochNo: 0,
       slotNo: 7133
@@ -316,7 +317,7 @@ export const block1 = {
       index: 1
     },
     metadata: {
-      createdBy: 'SlotLeader-52df0f2c5539b2b1',
+      createdBy: slotLeader2b1,
       epochNo: 0,
       size: 665,
       slotNo: 0,
