@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.2",
   "info": {
-    "version": "1.4.0",
+    "version": "1.4.1",
     "title": "Rosetta",
     "description": "Build Once. Integrate Your Blockchain Everywhere.",
     "license": {
@@ -37,7 +37,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -77,7 +77,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -117,7 +117,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -133,7 +133,7 @@
     "/block": {
       "post": {
         "summary": "Get a Block",
-        "description": "Get a block by its Block Identifier. If transactions are returned in the same call to the node as fetching the block, the response should include these transactions in the Block object. If not, an array of Transaction Identifiers should be returned so /block/transaction fetches can be done to get all transaction information.",
+        "description": "Get a block by its Block Identifier. If transactions are returned in the same call to the node as fetching the block, the response should include these transactions in the Block object. If not, an array of Transaction Identifiers should be returned so /block/transaction fetches can be done to get all transaction information. When requesting a block by the hash component of the BlockIdentifier, this request MUST be idempotent: repeated invocations for the same hash-identified block must return the exact same block contents. No such restriction is imposed when requesting a block by height, given that a chain reorg event might cause the specific block at height `n` to be set to a different one.",
         "operationId": "block",
         "tags": ["Block"],
         "requestBody": {
@@ -157,7 +157,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -197,7 +197,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -237,7 +237,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -277,7 +277,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -317,7 +317,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -357,7 +357,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -397,7 +397,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -437,7 +437,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -477,7 +477,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -517,7 +517,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -557,7 +557,7 @@
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -592,12 +592,12 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConstructionHashResponse"
+                  "$ref": "#/components/schemas/TransactionIdentifierResponse"
                 }
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -632,12 +632,12 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ConstructionSubmitResponse"
+                  "$ref": "#/components/schemas/TransactionIdentifierResponse"
                 }
               }
             }
           },
-          "default": {
+          "500": {
             "description": "unexpected error",
             "content": {
               "application/json": {
@@ -790,7 +790,7 @@
         }
       },
       "Block": {
-        "description": "Blocks contain an array of Transactions that occurred at a particular BlockIdentifier.",
+        "description": "Blocks contain an array of Transactions that occurred at a particular BlockIdentifier. A hard requirement for blocks returned by Rosetta implementations is that they MUST be _inalterable_: once a client has requested and received a block identified by a specific BlockIndentifier, all future calls for that same BlockIdentifier must return the same block contents.",
         "type": "object",
         "required": ["block_identifier", "parent_block_identifier", "timestamp", "transactions"],
         "properties": {
@@ -888,6 +888,9 @@
           "amount": {
             "$ref": "#/components/schemas/Amount"
           },
+          "coin_change": {
+            "$ref": "#/components/schemas/CoinChange"
+          },
           "metadata": {
             "type": "object",
             "example": {
@@ -948,6 +951,30 @@
             "example": {
               "Issuer": "Satoshi"
             }
+          }
+        }
+      },
+      "SyncStatus": {
+        "description": "SyncStatus is used to provide additional context about an implementation's sync status. It is often used to indicate that an implementation is healthy when it cannot be queried  until some sync phase occurs. If an implementation is immediately queryable, this model is often not populated.",
+        "type": "object",
+        "required": ["current_index"],
+        "properties": {
+          "current_index": {
+            "description": "CurrentIndex is the index of the last synced block in the current stage.",
+            "type": "integer",
+            "format": "int64",
+            "example": 100
+          },
+          "target_index": {
+            "description": "TargetIndex is the index of the block that the implementation is attempting to sync to in the current stage.",
+            "type": "integer",
+            "format": "int64",
+            "example": 150
+          },
+          "stage": {
+            "description": "Stage is the phase of the sync process.",
+            "type": "string",
+            "example": "header sync"
           }
         }
       },
@@ -1110,6 +1137,49 @@
         "type": "string",
         "enum": ["ecdsa", "ecdsa_recovery", "ed25519"]
       },
+      "CoinAction": {
+        "description": "CoinActions are different state changes that a Coin can undergo. When a Coin is created, it is coin_created. When a Coin is spent, it is coin_spent. It is assumed that a single Coin cannot be created or spent more than once.",
+        "type": "string",
+        "enum": ["coin_created", "coin_spent"]
+      },
+      "CoinIdentifier": {
+        "description": "CoinIdentifier uniquely identifies a Coin.",
+        "type": "object",
+        "required": ["identifier"],
+        "properties": {
+          "identifier": {
+            "description": "Identifier should be populated with a globally unique identifier of a Coin. In Bitcoin, this identifier would be transaction_hash:index.",
+            "type": "string",
+            "example": "0x2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1"
+          }
+        }
+      },
+      "CoinChange": {
+        "description": "CoinChange is used to represent a change in state of a some coin identified by a coin_identifier. This object is part of the Operation model and must be populated for UTXO-based blockchains. Coincidentally, this abstraction of UTXOs allows for supporting both account-based transfers and UTXO-based transfers on the same blockchain (when a transfer is account-based, don't populate this model).",
+        "type": "object",
+        "required": ["coin_identifier", "coin_action"],
+        "properties": {
+          "coin_identifier": {
+            "$ref": "#/components/schemas/CoinIdentifier"
+          },
+          "coin_action": {
+            "$ref": "#/components/schemas/CoinAction"
+          }
+        }
+      },
+      "Coin": {
+        "description": "Coin contains its unique identifier and the amount it represents.",
+        "type": "object",
+        "required": ["coin_identifier", "amount"],
+        "properties": {
+          "coin_identifier": {
+            "$ref": "#/components/schemas/CoinIdentifier"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/Amount"
+          }
+        }
+      },
       "AccountBalanceRequest": {
         "description": "An AccountBalanceRequest is utilized to make a balance request on the /account/balance endpoint. If the block_identifier is populated, a historical balance query should be performed.",
         "type": "object",
@@ -1141,17 +1211,19 @@
               "$ref": "#/components/schemas/Amount"
             }
           },
+          "coins": {
+            "type": "array",
+            "description": "If a blockchain is UTXO-based, all unspent Coins owned by an account_identifier should be returned alongside the balance. It is highly recommended to populate this field so that users of the Rosetta API implementation don't need to maintain their own indexer to track their UTXOs.",
+            "items": {
+              "$ref": "#/components/schemas/Coin"
+            }
+          },
           "metadata": {
+            "description": "Account-based blockchains that utilize a nonce or sequence number should include that number in the metadata. This number could be unique to the identifier or global across the account address.",
             "type": "object",
-            "properties": {
-              "utxos": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Utxo"
-                }
-              }
-            },
-            "required": ["utxos"]
+            "example": {
+              "sequence_number": 23
+            }
           }
         }
       },
@@ -1290,7 +1362,7 @@
         }
       },
       "NetworkStatusResponse": {
-        "description": "NetworkStatusResponse contains basic information about the node's view of a blockchain network. If a Rosetta implementation prunes historical state, it should populate the optional `oldest_block_identifier` field with the oldest block available to query. If this is not populated, it is assumed that the `genesis_block_identifier` is the oldest queryable block.",
+        "description": "NetworkStatusResponse contains basic information about the node's view of a blockchain network. It is assumed that any BlockIdentifier.Index less than or equal to CurrentBlockIdentifier.Index can be queried. If a Rosetta implementation prunes historical state, it should populate the optional `oldest_block_identifier` field with the oldest block available to query. If this is not populated, it is assumed that the `genesis_block_identifier` is the oldest queryable block. If a Rosetta implementation performs some pre-sync before it is possible to query blocks, sync_status should be populated so that clients can still monitor healthiness. Without this field, it may appear that the implementation is stuck syncing and needs to be terminated.",
         "type": "object",
         "required": ["current_block_identifier", "current_block_timestamp", "genesis_block_identifier", "peers"],
         "properties": {
@@ -1305,6 +1377,9 @@
           },
           "oldest_block_identifier": {
             "$ref": "#/components/schemas/BlockIdentifier"
+          },
+          "sync_status": {
+            "$ref": "#/components/schemas/SyncStatus"
           },
           "peers": {
             "type": "array",
@@ -1532,16 +1607,6 @@
           }
         }
       },
-      "ConstructionHashResponse": {
-        "description": "ConstructionHashResponse is the output of the `/construction/hash` endpoint.",
-        "type": "object",
-        "required": ["transaction_hash"],
-        "properties": {
-          "transaction_hash": {
-            "type": "string"
-          }
-        }
-      },
       "ConstructionSubmitRequest": {
         "description": "The transaction submission request includes a signed transaction.",
         "type": "object",
@@ -1555,8 +1620,8 @@
           }
         }
       },
-      "ConstructionSubmitResponse": {
-        "description": "A TransactionSubmitResponse contains the transaction_identifier of a submitted transaction that was accepted into the mempool.",
+      "TransactionIdentifierResponse": {
+        "description": "TransactionIdentifierResponse contains the transaction_identifier of a transaction that was submitted to either `/construction/hash` or `/construction/submit`.",
         "type": "object",
         "required": ["transaction_identifier"],
         "properties": {
@@ -1569,7 +1634,7 @@
         }
       },
       "Error": {
-        "description": "Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object.",
+        "description": "Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields.",
         "type": "object",
         "required": ["code", "message", "retriable"],
         "properties": {
@@ -1581,7 +1646,7 @@
             "example": 12
           },
           "message": {
-            "description": "Message is a network-specific error message.",
+            "description": "Message is a network-specific error message. The message MUST NOT change for a given code. In particular, this means that any contextual information should be included in the details field.",
             "type": "string",
             "example": "Invalid account format"
           },

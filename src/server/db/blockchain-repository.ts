@@ -38,8 +38,8 @@ export interface PartialBlockIdentifier {
 
 export interface Utxo {
   value: string;
-  index: number;
   transactionHash: string;
+  index: number;
 }
 
 export interface TransactionInput {
@@ -334,8 +334,8 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     const result: QueryResult<FindUtxo> = await databaseInstance.query(Queries.findUtxoByAddressAndBlock, parameters);
     return result.rows.map(utxo => ({
       value: utxo.value,
-      index: utxo.index,
-      transactionHash: hashFormatter(utxo.txHash)
+      transactionHash: hashFormatter(utxo.txHash),
+      index: utxo.index
     }));
   }
 });

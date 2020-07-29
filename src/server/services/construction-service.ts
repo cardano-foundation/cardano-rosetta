@@ -25,11 +25,11 @@ export interface ConstructionService {
 
   constructionHash(
     request: Components.Schemas.ConstructionHashRequest
-  ): Promise<Components.Schemas.ConstructionHashResponse | Components.Schemas.Error>;
+  ): Promise<Components.Schemas.TransactionIdentifierResponse | Components.Schemas.Error>;
 
   constructionSubmit(
     request: Components.Schemas.ConstructionSubmitRequest
-  ): Promise<Components.Schemas.ConstructionSubmitResponse | Components.Schemas.Error>;
+  ): Promise<Components.Schemas.TransactionIdentifierResponse | Components.Schemas.Error>;
 }
 
 const constructionService: ConstructionService = {

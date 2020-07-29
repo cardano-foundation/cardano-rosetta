@@ -3,6 +3,7 @@ import { ADA, ADA_DECIMALS } from '../utils/constants';
 import { ErrorFactory } from '../utils/errors';
 import { BlockService } from './block-service';
 import { withNetworkValidation } from './utils/services-helper';
+import { Utxo } from '../db/blockchain-repository';
 
 /* eslint-disable camelcase */
 export interface AccountService {
@@ -10,6 +11,12 @@ export interface AccountService {
     request: Components.Schemas.AccountBalanceRequest
   ): Promise<Components.Schemas.AccountBalanceResponse | Components.Schemas.Error>;
 }
+
+const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] =>
+  utxoDetails.map(utxoDetail => ({
+    amount: { value: utxoDetail.value, currency: { symbol: ADA, decimals: ADA_DECIMALS } },
+    coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
+  }));
 
 const configure = (networkRepository: NetworkRepository, blockService: BlockService): AccountService => ({
   accountBalance: async accountBalanceRequest =>
@@ -23,8 +30,8 @@ const configure = (networkRepository: NetworkRepository, blockService: BlockServ
           throw ErrorFactory.blockNotFoundError();
         }
         const accountAddress = accountBalanceRequest.account_identifier;
-        const details = await blockService.findUtxoByAddressAndBlock(accountAddress.address, block.hash);
-        const balanceForAddress = details.reduce((acum, current) => acum + Number(current.value), 0).toString();
+        const utxoDetails = await blockService.findUtxoByAddressAndBlock(accountAddress.address, block.hash);
+        const balanceForAddress = utxoDetails.reduce((acum, current) => acum + Number(current.value), 0).toString();
         return {
           block_identifier: {
             index: block.number,
@@ -43,9 +50,7 @@ const configure = (networkRepository: NetworkRepository, blockService: BlockServ
               metadata: {}
             }
           ],
-          metadata: {
-            utxos: details
-          }
+          coins: parseUtxoDetails(utxoDetails)
         };
       }
     )

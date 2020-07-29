@@ -31,7 +31,7 @@ const last_block_identifier = {
 
 const cardanoMainnet = { network_identifiers: [{ network: MAINNET, blockchain: CARDANO }] };
 const version = {
-  rosetta_version: '1.4.0',
+  rosetta_version: '1.4.1',
   node_version: '1.0.2',
   middleware_version: '0.0.1',
   metadata: {}
