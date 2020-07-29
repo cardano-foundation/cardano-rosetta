@@ -1,3 +1,4 @@
+import { Logger } from 'fastify';
 import { Network, NetworkRepository } from '../db/network-repository';
 import {
   CARDANO,
@@ -37,8 +38,10 @@ interface Peer {
   addr: string;
 }
 
-const getPeersFromConfig = (topologyFile: TopologyConfig) => {
+const getPeersFromConfig = (topologyFile: TopologyConfig, logger: Logger) => {
+  logger.info('[getPeersFromConfig] Looking for peers from topologyFile');
   const { Producers } = topologyFile;
+  logger.debug(`[getPeersFromConfig] Found ${Producers.length} peers`);
   return Producers.map((peer: Peer) => ({
     peer_id: peer.addr
   }));
@@ -47,18 +50,24 @@ const getPeersFromConfig = (topologyFile: TopologyConfig) => {
 const configure = (
   networkRepository: NetworkRepository,
   blockchainService: BlockService,
-  topologyFile: TopologyConfig
+  topologyFile: TopologyConfig,
+  logger: Logger
 ): NetworkService => ({
   async networkList() {
+    logger.info('[networkList] Looking for all supported networks');
     const networkIdentifiers = await networkRepository.findAllNetworksSupported();
     if (networkIdentifiers !== null) {
-      return {
+      logger.info(`[networkList] Found ${networkIdentifiers.length} networks supported`);
+      const response = {
         network_identifiers: networkIdentifiers.map(({ networkName }: Network) => ({
           network: networkName,
           blockchain: CARDANO
         }))
       };
+      logger.debug('[networkList] Returning response:', response);
+      return response;
     }
+    logger.error('[networkList] There are no networks supported to list');
     throw ErrorFactory.networkNotFoundError();
   },
   networkStatus: async networkStatusRequest =>
@@ -67,14 +76,17 @@ const configure = (
       networkRepository,
       networkStatusRequest,
       async () => {
-        // fetch latest block
-        const latestBlock = await blockchainService.getLatestBlock();
+        logger.debug('[networkStatus] Request received:', networkStatusRequest);
 
-        // fetch genesis block
+        logger.info('[networkStatus] Looking for latest block');
+        const latestBlock = await blockchainService.getLatestBlock();
+        logger.debug('[networkStatus] Latest block found', latestBlock);
+        logger.info('[networkStatus] Looking for genesis block');
         const genesisBlock = await blockchainService.getGenesisBlock();
+        logger.debug('[networkStatus] Genesis block found', genesisBlock);
 
         // peer must be queried from some node file, filePath should be place on .env
-        return {
+        const response = {
           current_block_identifier: {
             index: latestBlock.number,
             hash: latestBlock.hash
@@ -84,30 +96,39 @@ const configure = (
             index: genesisBlock.index,
             hash: genesisBlock.hash
           },
-          peers: getPeersFromConfig(topologyFile)
+          peers: getPeersFromConfig(topologyFile, logger)
         };
-      }
+        logger.debug('[networkStatus] Returning response:', response);
+        return response;
+      },
+      logger
     ),
   networkOptions: async networkOptionsRequest =>
     withNetworkValidation(
       networkOptionsRequest.network_identifier,
       networkRepository,
       networkOptionsRequest,
-      async () => ({
-        version: {
-          // FIXME unhardcode node_version. It'll be done in issue #28
-          rosetta_version: ROSETTA_VERSION,
-          node_version: '1.0.2',
-          middleware_version: MIDDLEWARE_VERSION,
-          metadata: {}
-        },
-        allow: {
-          operation_statuses: [SUCCESS_OPERATION_STATE],
-          operation_types: [operationType.TRANSFER],
-          errors: Object.values(ErrorFactory).map(fn => fn()),
-          historical_balance_lookup: true
-        }
-      })
+      async () => {
+        logger.info('[networkOptions] Looking for networkOptions');
+        const response = {
+          version: {
+            // FIXME unhardcode node_version. It'll be done in issue #28
+            rosetta_version: ROSETTA_VERSION,
+            node_version: '1.0.2',
+            middleware_version: MIDDLEWARE_VERSION,
+            metadata: {}
+          },
+          allow: {
+            operation_statuses: [SUCCESS_OPERATION_STATE],
+            operation_types: [operationType.TRANSFER],
+            errors: Object.values(ErrorFactory).map(fn => fn()),
+            historical_balance_lookup: true
+          }
+        };
+        logger.debug('[networkOptions] Returning response:', response);
+        return response;
+      },
+      logger
     )
 });
 
