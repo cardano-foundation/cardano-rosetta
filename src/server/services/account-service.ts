@@ -32,18 +32,18 @@ const configure = (
       networkRepository,
       accountBalanceRequest,
       async () => {
-        logger.debug('[accountBalance] Request received', accountBalanceRequest);
-        logger.info('[accountBalance] Looking for block:', accountBalanceRequest.block_identifier || 'latest');
+        logger.debug({ accountBalanceRequest }, '[accountBalance] Request received');
+        logger.info(`[accountBalance] Looking for block: ${accountBalanceRequest.block_identifier || 'latest'}`);
         const block = await blockService.findBlock(accountBalanceRequest.block_identifier || {});
         if (block === null) {
           logger.error('[accountBalance] Block not found');
           throw ErrorFactory.blockNotFoundError();
         }
         const accountAddress = accountBalanceRequest.account_identifier;
-        logger.info('[accountBalance] Looking for utxo details for address:', accountAddress);
+        logger.info(`[accountBalance] Looking for utxo details for address: ${accountAddress}`);
         const utxoDetails = await blockService.findUtxoByAddressAndBlock(accountAddress.address, block.hash);
         logger.debug(`[accountBalance] Found ${utxoDetails.length} utxo details for addres ${accountAddress}: `);
-        logger.info('[accountBalance] Computing balance available for address ', accountAddress);
+        logger.info(`[accountBalance] Computing balance available for address ${accountAddress}`);
         const balanceForAddress = utxoDetails.reduce((acum, current) => acum + Number(current.value), 0).toString();
         logger.info(`[accountBalance] Balance for address ${accountAddress} is: `, balanceForAddress);
         return {

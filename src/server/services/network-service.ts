@@ -64,7 +64,7 @@ const configure = (
           blockchain: CARDANO
         }))
       };
-      logger.debug('[networkList] Returning response:', response);
+      logger.debug({ response }, '[networkList] Returning response:');
       return response;
     }
     logger.error('[networkList] There are no networks supported to list');
@@ -76,14 +76,14 @@ const configure = (
       networkRepository,
       networkStatusRequest,
       async () => {
-        logger.debug('[networkStatus] Request received:', networkStatusRequest);
+        logger.debug({ networkStatusRequest }, '[networkStatus] Request received:');
 
         logger.info('[networkStatus] Looking for latest block');
         const latestBlock = await blockchainService.getLatestBlock();
-        logger.debug('[networkStatus] Latest block found', latestBlock);
+        logger.debug({ latestBlock }, '[networkStatus] Latest block found');
         logger.info('[networkStatus] Looking for genesis block');
         const genesisBlock = await blockchainService.getGenesisBlock();
-        logger.debug('[networkStatus] Genesis block found', genesisBlock);
+        logger.debug({ genesisBlock }, '[networkStatus] Genesis block found');
 
         // peer must be queried from some node file, filePath should be place on .env
         const response = {
@@ -98,7 +98,7 @@ const configure = (
           },
           peers: getPeersFromConfig(topologyFile, logger)
         };
-        logger.debug('[networkStatus] Returning response:', response);
+        logger.debug({ response }, '[networkStatus] Returning response:');
         return response;
       },
       logger
@@ -125,7 +125,7 @@ const configure = (
             historical_balance_lookup: true
           }
         };
-        logger.debug('[networkOptions] Returning response:', response);
+        logger.debug({ response }, '[networkOptions] Returning response:');
         return response;
       },
       logger

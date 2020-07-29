@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import pino, { Logger } from 'pino';
+import { Logger } from 'pino';
 import { Repositories } from '../db/repositories';
 import { ErrorFactory } from '../utils/errors';
 import accountService, { AccountService } from './account-service';
@@ -26,26 +26,19 @@ const loadTopologyFile = () => {
 
 const loadPageSize = (logger: Logger): number => {
   const pageSize = process.env.PAGE_SIZE;
-  logger.debug('Loading page size: ', pageSize);
+  logger.debug(`Loading page size: ${pageSize}`);
   if (pageSize === undefined) {
     throw ErrorFactory.pageSizeNotFund();
   }
   return Number(pageSize);
 };
 
-const configLogger = () =>
-  pino({
-    name: 'cardano-rosetta',
-    level: process.env.LOGGER_LEVEL,
-    enabled: process.env.LOGGER_ENABLED !== 'false'
-  });
 /**
  * Configures all the services required by the app
  *
  * @param repositories repositories to be used by the services
  */
-export const configure = (repositories: Repositories): Services => {
-  const logger = configLogger();
+export const configure = (repositories: Repositories, logger: Logger): Services => {
   const blockServiceInstance = blockService(
     repositories.blockchainRepository,
     loadPageSize(logger),

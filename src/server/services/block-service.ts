@@ -134,33 +134,33 @@ const configure = (
   logger: Logger
 ): BlockService => ({
   async findBlock(blockIdentifier) {
-    logger.info('[findBlock] Looking for block:', blockIdentifier);
+    logger.info({ blockIdentifier }, '[findBlock] Looking for block:');
     // cardano doesn't have block zero but we need to map it to genesis
     const searchBlockZero = blockIdentifier.index === 0; // We need to manually check for the block hash if sent to server
-    logger.info('[findBlock] Do we have to look for genesisBlock? ', searchBlockZero);
+    logger.info(`[findBlock] Do we have to look for genesisBlock? ${searchBlockZero}`);
     if (searchBlockZero) {
       logger.info('[findBlock] Looking for genesis block');
       const genesis = await repository.findGenesisBlock();
       const isHashInvalidIfGiven = blockIdentifier.hash && genesis?.hash !== blockIdentifier.hash;
       if (isHashInvalidIfGiven) {
-        logger.error('[findBlock] The requested block has an invalid block hash parameter', blockIdentifier.hash);
+        logger.error('[findBlock] The requested block has an invalid block hash parameter');
         throw ErrorFactory.blockNotFoundError();
       }
       return repository.findBlock(undefined, genesis?.hash);
     }
     const searchLatestBlock = blockIdentifier.hash === undefined && blockIdentifier.index === undefined;
-    logger.info('[findBlock] Do we have to look for latestBlock? ', searchLatestBlock);
+    logger.info(`[findBlock] Do we have to look for latestBlock? ${searchLatestBlock}`);
     const blockNumber = searchLatestBlock ? await repository.findLatestBlockNumber() : blockIdentifier.index;
-    logger.info('[findBlock] Looking for block with blockNumber ', blockNumber);
+    logger.info(`[findBlock] Looking for block with blockNumber ${blockNumber}`);
     const response = await repository.findBlock(blockNumber, blockIdentifier.hash);
     logger.info('[findBlock] Block was found');
-    logger.debug('[findBlock] Returning response:', response);
+    logger.debug({ response }, '[findBlock] Returning response:');
     return response;
   },
   async block(request) {
     // cardano doesn't have block zero but we need to map it to genesis
     let block;
-    logger.debug('[block] Request received ', request);
+    logger.debug({ request }, '[block] Request received ');
     if (request.block_identifier.index === 0) {
       logger.info('[block] Looking for genesis block');
       block = await this.getGenesisBlock();
@@ -168,21 +168,18 @@ const configure = (
       // We need to manually check for the block index if sent on the request
       const isHashInvalidIfGiven = request.block_identifier.hash && block.hash !== request.block_identifier.hash;
       if (isHashInvalidIfGiven) {
-        logger.error(
-          '[findBlock] The requested block has an invalid block hash parameter',
-          request.block_identifier.hash
-        );
+        logger.error('[findBlock] The requested block has an invalid block hash parameter');
         throw ErrorFactory.blockNotFoundError();
       }
     }
-    logger.info('[block] Looking for block:', request.block_identifier);
+    logger.info(`[block] Looking for block ${request.block_identifier}`);
     block = await this.findBlock(request.block_identifier);
     if (block !== null) {
       logger.info('[block] Block was found');
       // This condition is needed as genesis tx count for mainnet is zero
       const blockContainsTransactions = block.transactionsCount !== 0 || block.previousBlockHash === block.hash;
       let transactions: TransactionWithInputsAndOutputs[] = [];
-      logger.debug('[block] Does requested block contains transactions?', blockContainsTransactions);
+      logger.debug(`[block] Does requested block contains transactions? ${blockContainsTransactions}`);
       if (blockContainsTransactions) {
         const { number, hash } = block;
         const transactionsFound = await repository.findTransactionsByBlock(number, hash);
@@ -202,19 +199,19 @@ const configure = (
         block: mapToRosettaBlock(block, transactions)
       };
     }
-    logger.error('[block] Block was not found ', request.block_identifier);
+    logger.error(`[block] Block was not found ${request.block_identifier}`);
     throw ErrorFactory.blockNotFoundError();
   },
   async getLatestBlock() {
     logger.info('[getLatestBlock] About to look for latest block');
     const latestBlockNumber = await repository.findLatestBlockNumber();
-    logger.info('[getLatestBlock] Latest block number is', latestBlockNumber);
+    logger.info(`[getLatestBlock] Latest block number is ${latestBlockNumber}`);
     const latestBlock = await repository.findBlock(latestBlockNumber);
     if (!latestBlock) {
       logger.error('[getLatestBlock] Latest block not found');
       throw ErrorFactory.blockNotFoundError();
     }
-    logger.debug('[getLatestBlock] Returning latest block', latestBlock);
+    logger.debug(`[getLatestBlock] Returning latest block ${latestBlock}`);
     return latestBlock;
   },
   async getGenesisBlock() {
@@ -224,7 +221,7 @@ const configure = (
       logger.error('[getGenesisBlock] Genesis block not found');
       throw ErrorFactory.genesisBlockNotFound();
     }
-    logger.debug('[getGenesisBlock] Returning genesis block', genesisBlock);
+    logger.debug(`[getGenesisBlock] Returning genesis block ${genesisBlock}`);
     return genesisBlock;
   },
   async findUtxoByAddressAndBlock(address, blockHash) {
@@ -250,7 +247,7 @@ const configure = (
           throw ErrorFactory.transactionNotFound();
         }
         const response = mapToRosettaTransaction(transaction);
-        logger.debug('[blockTransaction] Returning response ', response);
+        logger.debug({ response }, '[blockTransaction] Returning response ');
         return {
           transaction: response
         };
