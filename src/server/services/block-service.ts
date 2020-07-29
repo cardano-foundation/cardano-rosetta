@@ -202,7 +202,10 @@ const configure = (
       networkRepository,
       blockTransactionRequest,
       async () => {
-        const transaction = await repository.findTransactionByHash(blockTransactionRequest.transaction_identifier.hash);
+        const transaction = await repository.findTransactionByHashAndBlock(
+          blockTransactionRequest.transaction_identifier.hash,
+          blockTransactionRequest.block_identifier
+        );
         if (transaction === null) {
           throw ErrorFactory.transactionNotFound();
         }
