@@ -11,7 +11,7 @@ enum NetworkIdentifier {
 }
 
 export interface CardanoService {
-  generateAddress(networkId: NetworkIdentifier, publicKey: string): Promise<EnterpriseAddress>;
+  generateAddress(networkId: NetworkIdentifier, publicKey: string): EnterpriseAddress;
 }
 
 const convertePublicKeyToHash = (publicKey: string, logger: Logger): Ed25519KeyHash => {
@@ -23,7 +23,7 @@ const convertePublicKeyToHash = (publicKey: string, logger: Logger): Ed25519KeyH
 };
 
 const configure = (logger: Logger): CardanoService => ({
-  async generateAddress(network, publicKey) {
+  generateAddress(network, publicKey) {
     logger.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
     );
