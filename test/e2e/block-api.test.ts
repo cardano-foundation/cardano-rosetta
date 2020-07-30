@@ -26,6 +26,8 @@ const generatePayload = (index?: number, hash?: string) => ({
   }
 });
 
+const TRANSACTION_NOT_FOUND = 'Transaction not found';
+
 describe('Block API', () => {
   let database: Pool;
   let server: FastifyInstance;
@@ -192,7 +194,7 @@ describe('Block API', () => {
       });
 
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.json()).toEqual({ code: 4006, message: 'Transaction not found', retriable: false });
+      expect(response.json()).toEqual({ code: 4006, message: TRANSACTION_NOT_FOUND, retriable: false });
     });
     test('should fail if incorrect network identifier is sent', async () => {
       const { index, hash } = block23236WithTransactions.block.block_identifier;
@@ -257,7 +259,7 @@ describe('Block API', () => {
       });
 
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.json()).toEqual({ message: 'Transaction not found', code: 4006, retriable: false });
+      expect(response.json()).toEqual({ message: TRANSACTION_NOT_FOUND, code: 4006, retriable: false });
     });
     test('should fail if requested block hash does not correspond to requested block index', async () => {
       const { index } = block23236WithTransactions.block.block_identifier;
@@ -275,7 +277,7 @@ describe('Block API', () => {
       });
 
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.json()).toEqual({ message: 'Transaction not found', code: 4006, retriable: false });
+      expect(response.json()).toEqual({ message: TRANSACTION_NOT_FOUND, code: 4006, retriable: false });
     });
   });
 });

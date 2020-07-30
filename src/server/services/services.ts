@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { Repositories } from '../db/repositories';
 import { ErrorFactory } from '../utils/errors';
 import accountService, { AccountService } from './account-service';
@@ -18,8 +20,7 @@ const loadTopologyFile = () => {
   if (topologyPath === undefined) {
     throw ErrorFactory.topoloyFileNotFound();
   }
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  return require(topologyPath);
+  return JSON.parse(fs.readFileSync(path.resolve(topologyPath)).toString());
 };
 
 const loadPageSize = (): number => {
