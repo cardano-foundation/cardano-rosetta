@@ -14,7 +14,7 @@ export interface AccountService {
 }
 
 const parseUtxoDetails = (utxoDetails: Utxo[], logger: Logger): Components.Schemas.Coin[] => {
-  logger.info(`[accountBalance] About to parse ${utxoDetails.length} utxo details`);
+  logger.info(`[parseUtxoDetails] About to parse ${utxoDetails.length} utxo details`);
   return utxoDetails.map(utxoDetail => ({
     amount: { value: utxoDetail.value, currency: { symbol: ADA, decimals: ADA_DECIMALS } },
     coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }

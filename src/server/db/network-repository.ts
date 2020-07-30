@@ -13,18 +13,18 @@ export interface NetworkRepository {
 
 export const configure = (databaseInstance: Pool, logger: Logger): NetworkRepository => ({
   async findAllNetworksSupported(): Promise<Network[] | null> {
-    logger.info('[findAllNetworksSupported] About to run findAllNetworksQuery');
+    logger.debug('[findAllNetworksSupported] About to run findAllNetworksQuery');
     const networksResult = await databaseInstance.query(findAllNetworksQuery);
-    logger.info(`[findAllNetworksSupported] Found ${networksResult.rowCount} networks`);
+    logger.debug(`[findAllNetworksSupported] Found ${networksResult.rowCount} networks`);
     if (networksResult.rows.length > 0) {
       return networksResult.rows;
     }
     return null;
   },
   async networkExists(networkName): Promise<boolean> {
-    logger.info(`[networkExists] About to find if network ${networkName} exists`);
+    logger.debug(`[networkExists] About to find if network ${networkName} exists`);
     const networkResults = await databaseInstance.query(findNetworkByNetworkName, [networkName]);
-    logger.info(`[networkExists] Found ${networkResults.rows[0].count} networks`);
+    logger.debug(`[networkExists] Found ${networkResults.rows[0].count} networks`);
     return networkResults.rows[0].count > 0;
   }
 });

@@ -11,19 +11,7 @@ const configLogger = () =>
   pino({
     name: 'cardano-rosetta',
     level: process.env.LOGGER_LEVEL,
-    enabled: process.env.LOGGER_ENABLED !== 'false',
-    prettyPrint: {
-      levelFirst: true,
-      timestampKey: 'time',
-      translateTime: false,
-      colorize: true,
-      crlf: false,
-      errorLikeObjectKeys: ['err', 'error'],
-      errorProps: '',
-      messageKey: 'msg',
-      messageFormat: false,
-      ignore: 'pid,hostname'
-    }
+    enabled: process.env.LOGGER_ENABLED !== 'false'
   });
 
 const start = async (databaseInstance: Pool) => {

@@ -211,7 +211,7 @@ const configure = (
       logger.error('[getLatestBlock] Latest block not found');
       throw ErrorFactory.blockNotFoundError();
     }
-    logger.debug(`[getLatestBlock] Returning latest block ${latestBlock}`);
+    logger.debug({ latestBlock }, '[getLatestBlock] Returning latest block');
     return latestBlock;
   },
   async getGenesisBlock() {
@@ -221,7 +221,7 @@ const configure = (
       logger.error('[getGenesisBlock] Genesis block not found');
       throw ErrorFactory.genesisBlockNotFound();
     }
-    logger.debug(`[getGenesisBlock] Returning genesis block ${genesisBlock}`);
+    logger.debug({ genesisBlock }, '[getGenesisBlock] Returning genesis block');
     return genesisBlock;
   },
   async findUtxoByAddressAndBlock(address, blockHash) {
