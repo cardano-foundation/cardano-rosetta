@@ -125,6 +125,7 @@ const configure = (
             historical_balance_lookup: true
           }
         };
+        logger.info('[networkOptions] All network options has been succesfuly fetched.');
         logger.debug({ response }, '[networkOptions] Returning response:');
         return response;
       },
