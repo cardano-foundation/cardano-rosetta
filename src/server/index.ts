@@ -1,16 +1,25 @@
 /* eslint-disable no-console */
 import { Pool } from 'pg';
+import pino from 'pino';
 import buildServer from './server';
 import createPool from './db/connection';
 import * as Repostories from './db/repositories';
 import * as Services from './services/services';
-const { PORT, BIND_ADDRESS, DB_CONNECTION_STRING, LOGGER_ENABLED }: NodeJS.ProcessEnv = process.env;
+const { PORT, BIND_ADDRESS, DB_CONNECTION_STRING, LOGGER_ENABLED, LOGGER_LEVEL }: NodeJS.ProcessEnv = process.env;
+
+const configLogger = () =>
+  pino({
+    name: 'cardano-rosetta',
+    level: LOGGER_LEVEL,
+    enabled: LOGGER_ENABLED !== 'false'
+  });
 
 const start = async (databaseInstance: Pool) => {
   let server;
   try {
-    const repository = Repostories.configure(databaseInstance);
-    const services = Services.configure(repository);
+    const logger = configLogger();
+    const repository = Repostories.configure(databaseInstance, logger);
+    const services = Services.configure(repository, logger);
     server = buildServer(services, LOGGER_ENABLED === 'true');
     server.addHook('onClose', (fastify, done) => databaseInstance.end(done));
     // eslint-disable-next-line no-magic-numbers

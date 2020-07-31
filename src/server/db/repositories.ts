@@ -1,6 +1,7 @@
 import { Pool } from 'pg';
 import * as BlockchainRepository from './blockchain-repository';
 import * as NetworkRepository from './network-repository';
+import { Logger } from 'pino';
 
 export interface Repositories {
   blockchainRepository: BlockchainRepository.BlockchainRepository;
@@ -13,7 +14,7 @@ export interface Repositories {
  *
  * @param database connection to be used to run queries
  */
-export const configure = (database: Pool): Repositories => ({
-  blockchainRepository: BlockchainRepository.configure(database),
-  networkRepository: NetworkRepository.configure(database)
+export const configure = (database: Pool, logger: Logger): Repositories => ({
+  blockchainRepository: BlockchainRepository.configure(database, logger),
+  networkRepository: NetworkRepository.configure(database, logger)
 });

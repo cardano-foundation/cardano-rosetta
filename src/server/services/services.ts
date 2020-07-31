@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { Logger } from 'pino';
 import { Repositories } from '../db/repositories';
 import { ErrorFactory } from '../utils/errors';
 import accountService, { AccountService } from './account-service';
@@ -23,28 +24,31 @@ const loadTopologyFile = () => {
   return JSON.parse(fs.readFileSync(path.resolve(topologyPath)).toString());
 };
 
-const loadPageSize = (): number => {
+const loadPageSize = (logger: Logger): number => {
   const pageSize = process.env.PAGE_SIZE;
+  logger.debug(`Loading page size: ${pageSize}`);
   if (pageSize === undefined) {
     throw ErrorFactory.pageSizeNotFund();
   }
   return Number(pageSize);
 };
+
 /**
  * Configures all the services required by the app
  *
  * @param repositories repositories to be used by the services
  */
-export const configure = (repositories: Repositories): Services => {
+export const configure = (repositories: Repositories, logger: Logger): Services => {
   const blockServiceInstance = blockService(
     repositories.blockchainRepository,
-    loadPageSize(),
-    repositories.networkRepository
+    loadPageSize(logger),
+    repositories.networkRepository,
+    logger
   );
   return {
-    ...accountService(repositories.networkRepository, blockServiceInstance),
+    ...accountService(repositories.networkRepository, blockServiceInstance, logger),
     ...blockServiceInstance,
     ...constructionService,
-    ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile())
+    ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger)
   };
 };

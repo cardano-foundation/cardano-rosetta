@@ -7,6 +7,7 @@ import Queries, {
   FindUtxo,
   FindTransaction
 } from './queries/blockchain-queries';
+import { Logger } from 'pino';
 
 export interface Block {
   hash: string;
@@ -240,14 +241,16 @@ const processTransactionsQueryResult = async (
   return Object.values(transactionsMap);
 };
 
-export const configure = (databaseInstance: Pool): BlockchainRepository => ({
+export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRepository => ({
   async findBlock(blockNumber?: number, blockHash?: string): Promise<Block | null> {
     const query = Queries.findBlock(blockNumber, blockHash);
+    logger.debug(`[findBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`);
     // Add paramter or short-circuit it
     const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
     const result = await databaseInstance.query(query, parameters);
     /* eslint-disable camelcase */
     if (result.rows.length === 1) {
+      logger.debug('[findBlock] Block found!');
       const {
         number,
         hash,
@@ -273,14 +276,20 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
         slotNo
       };
     }
+    logger.debug('[findBlock] No block was found');
     return null;
   },
 
   async findTransactionsByBlock(blockNumber?: number, blockHash?: string): Promise<Transaction[]> {
     const query = Queries.findTransactionsByBlock(blockNumber, blockHash);
+    logger.debug(
+      `[findTransactionsByBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
+    );
     // Add paramter or short-circuit it
     const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
+    logger.debug({ parameters }, '[findTransactionsByBlock] About to run findTransactionsByBlock query with params');
     const result: QueryResult<FindTransaction> = await databaseInstance.query(query, parameters);
+    logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
     if (result.rows.length > 0) {
       return parseTransactionRows(result);
     }
@@ -292,20 +301,34 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       // Fetch the transactions first
       let transactionsMap = mapTransactionsToDict(transactions);
       const transactionsHashes = Object.keys(transactionsMap).map(hashStringToBuffer);
+      logger.debug(
+        { transactionsHashes },
+        `[fillTransaction] About to query for inputs and outputs given ${transactions.length} transaction's hashes`
+      );
       // Look for inputs and outputs based on found tx hashes
+      logger.debug('[fillTransaction] About to query for inputs');
       const inputs: QueryResult<FindTransactionsInputs> = await databaseInstance.query(Queries.findTransactionsInputs, [
         transactionsHashes
       ]);
+      logger.debug(`[fillTransaction] Found ${inputs.rowCount}`);
+
+      logger.debug('[fillTransaction] About to query for outputs');
       const outputs: QueryResult<FindTransactionsOutputs> = await databaseInstance.query(
         Queries.findTransactionsOutputs,
         [transactionsHashes]
       );
+      logger.debug(`[fillTransaction] Found ${outputs.rowCount}`);
+
+      logger.debug('[fillTransaction] Parsing inputs');
       transactionsMap = parseInputsRows(transactionsMap, inputs.rows);
+      logger.debug('[fillTransaction] Parsing outputs');
       transactionsMap = parseOutputRows(transactionsMap, outputs.rows);
+      logger.debug('[fillTransaction] Returning inputs and outputs as a transaction map');
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore it will never be undefined
       return Object.values(transactionsMap);
     }
+    logger.debug('[fillTransaction] Since no transactions were given, no inputs and outputs are looked for');
     return [];
   },
   async findTransactionByHashAndBlock(
@@ -314,11 +337,23 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   ): Promise<TransactionWithInputsAndOutputs | null> {
     const blockNumber = blockIdentifier.index;
     const blockHash = blockIdentifier.hash;
-    const result: QueryResult<FindTransaction> = await databaseInstance.query(Queries.findTransactionByHashAndBlock, [
+    logger.debug(
+      `[findTransactionByHashAndBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
+    );
+    const parameters = [
       hashStringToBuffer(hash),
       blockNumber ? blockNumber : true,
       blockHash ? hashStringToBuffer(blockHash) : true
-    ]);
+    ];
+    logger.debug(
+      '[findTransactionByHashAndBlock] About to run findTransactionsByHashAndBlock query with parameters',
+      parameters
+    );
+    const result: QueryResult<FindTransaction> = await databaseInstance.query(
+      Queries.findTransactionByHashAndBlock,
+      parameters
+    );
+    logger.debug(`[findTransactionByHashAndBlock] Found ${result.rowCount} transactions`);
     if (result.rows.length > 0) {
       const [transaction] = await processTransactionsQueryResult(databaseInstance, result);
       return transaction || null;
@@ -327,20 +362,31 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   },
 
   async findLatestBlockNumber(): Promise<number> {
+    logger.debug('[findLatestBlockNumber] About to run findLatestBlockNumber query');
     const result = await databaseInstance.query(Queries.findLatestBlockNumber);
-    return result.rows[0].blockHeight;
+    const latestBlockNumber = result.rows[0].blockHeight;
+    logger.debug(`[findLatestBlockNumber] Latest block number is ${latestBlockNumber}`);
+    return latestBlockNumber;
   },
 
   async findGenesisBlock(): Promise<GenesisBlock | null> {
+    logger.debug('[findGenesisBlock] About to run findGenesisBlock query');
     const result = await databaseInstance.query(Queries.findGenesisBlock);
     if (result.rows.length === 1) {
+      logger.debug('[findGenesisBlock] Genesis block was found');
       return { hash: hashFormatter(result.rows[0].hash), index: result.rows[0].index };
     }
+    logger.debug('[findGenesisBlock] Genesis block was not found');
     return null;
   },
   async findUtxoByAddressAndBlock(address, blockHash): Promise<Utxo[]> {
     const parameters = [replace0xOnHash(address), hashStringToBuffer(blockHash)];
+    logger.debug(
+      { address, blockHash },
+      '[findUtxoByAddressAndBlock] About to run findUtxoByAddressAndBlock query with parameters:'
+    );
     const result: QueryResult<FindUtxo> = await databaseInstance.query(Queries.findUtxoByAddressAndBlock, parameters);
+    logger.debug(`[findUtxoByAddressAndBlock] Found ${result.rowCount} utxos`);
     return result.rows.map(utxo => ({
       value: utxo.value,
       transactionHash: hashFormatter(utxo.txHash),
