@@ -17,6 +17,9 @@ export interface CardanoService {
 const isKeyValid = (publicKeyBytes: string, key: Buffer, curveType: string): boolean =>
   publicKeyBytes.length === PUBLIC_KEY_BYTES_LENGTH && key.length === PUBLIC_KEY_LENGTH && curveType === 'edwards25519';
 
+// TODO do something with curve type?
+const getPublicKeyStringFromPublicKey = (publicKey: Components.Schemas.PublicKey) => publicKey.hex_bytes;
+
 const configure = (logger: Logger): CardanoService => ({
   generateAddress(network, publicKey) {
     logger.info(
