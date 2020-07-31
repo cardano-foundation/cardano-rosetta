@@ -1,46 +1,47 @@
-import CardanoWasm, {
-  EnterpriseAddress,
-  Ed25519KeyHash,
-  Bip32PublicKey
-} from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm, { EnterpriseAddress } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
+import { ErrorFactory } from '../utils/errors';
+
+const PUBLIC_KEY_LENGTH = 32;
 
 export enum NetworkIdentifier {
-  WHATEVER_NETWORK
+  CARDANO_MAINNET_NETWORK = 1
 }
 
 export interface CardanoService {
   generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): EnterpriseAddress | null;
 }
 
-const convertPublicKeyToHash = (publicKey: string, logger: Logger): Ed25519KeyHash => {
-  logger.debug('[convertePublicKeyToHash] Converting public key string to hash');
-  const publicKeyBytes = new Uint8Array(Buffer.from(publicKey));
-  return Bip32PublicKey.from_bytes(publicKeyBytes)
-    .to_raw_key()
-    .hash();
-};
-
-// TODO do something with curve type?
-const getPublicKeyStringFromPublicKey = (publicKey: Components.Schemas.PublicKey) => publicKey.hex_bytes;
+const isKeyValid = (key: Buffer, curveType: string): boolean =>
+  key.length === PUBLIC_KEY_LENGTH && curveType === 'edwards25519';
 
 const configure = (logger: Logger): CardanoService => ({
   generateAddress(network, publicKey) {
     logger.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
     );
-    const publicKeyString = getPublicKeyStringFromPublicKey(publicKey);
-    const publicKeyHash = convertPublicKeyToHash(publicKeyString, logger);
-    logger.debug('[generateAddress] Public key hash has been derived succesfuly from public key string');
-    const baseAddr = CardanoWasm.EnterpriseAddress.new(
-      network,
-      CardanoWasm.StakeCredential.from_keyhash(publicKeyHash)
+
+    const publicKeyBuffer = Buffer.from(publicKey.hex_bytes, 'hex');
+
+    logger.info('[generateAddress] About to check if public key has valid length and curve type');
+    if (!isKeyValid(publicKeyBuffer, publicKey.curve_type)) {
+      logger.info('[generateAddress] Public key has an invalid format');
+      throw ErrorFactory.invalidPublicKeyFormat();
+    }
+    logger.info('[generateAddress] Public key has a valid format');
+
+    const pub = CardanoWasm.PublicKey.from_bytes(publicKeyBuffer);
+
+    logger.info('[generateAddress] Deriving cardano address from valid public key');
+    const address = CardanoWasm.EnterpriseAddress.new(
+      NetworkIdentifier.CARDANO_MAINNET_NETWORK,
+      CardanoWasm.StakeCredential.from_keyhash(pub.hash())
     );
-    if (!baseAddr) {
+    if (!address) {
       return null;
     }
-    logger.info(`[generateAddress] base address is ${baseAddr}`);
-    return baseAddr;
+    logger.info(`[generateAddress] base address is ${address}`);
+    return address;
   }
 });
 

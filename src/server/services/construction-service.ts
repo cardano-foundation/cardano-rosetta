@@ -50,7 +50,7 @@ const configure = (
       request,
       async () => {
         const publicKey = request.public_key;
-        const address = cardanoService.generateAddress(NetworkIdentifier.WHATEVER_NETWORK, publicKey);
+        const address = cardanoService.generateAddress(NetworkIdentifier.CARDANO_MAINNET_NETWORK, publicKey);
         if (!address) {
           logger.error('[constructionDerive] There was an error generating address');
           throw ErrorFactory.addressGenerationError();

@@ -25,7 +25,8 @@ export const Errors = {
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   TOPOLOGY_FILE_NOT_FOUND: { message: 'Topology file not found', code: 5002 },
   PAGE_SIZE_NOT_FOUND: { message: 'Page size config not found', code: 5003 },
-  ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5004 }
+  ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5004 },
+  INVALID_PUBLIC_KEY_FORMAT: { message: 'Invalid public key format', code: 4007 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -42,6 +43,7 @@ const genesisBlockNotFound: CreateErrorFunction = () => buildApiError(Errors.GEN
 const transactionNotFound: CreateErrorFunction = () => buildApiError(Errors.TRANSACTION_NOT_FOUND, false);
 const pageSizeNotFund: CreateErrorFunction = () => buildApiError(Errors.PAGE_SIZE_NOT_FOUND, false);
 const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.ADDRESS_GENERATION_ERROR, false);
+const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -53,5 +55,6 @@ export const ErrorFactory = {
   genesisBlockNotFound,
   transactionNotFound,
   pageSizeNotFund,
-  addressGenerationError
+  addressGenerationError,
+  invalidPublicKeyFormat
 };
