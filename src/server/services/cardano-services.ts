@@ -4,6 +4,7 @@ import { ErrorFactory } from '../utils/errors';
 
 const PUBLIC_KEY_LENGTH = 32;
 
+// TODO check if this is valid
 export enum NetworkIdentifier {
   CARDANO_MAINNET_NETWORK = 1
 }
