@@ -324,7 +324,7 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@emurgo/cardano-serialization-lib-nodejs@^1.0.1":
+"@emurgo/cardano-serialization-lib-nodejs@1.0.1":
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/@emurgo/cardano-serialization-lib-nodejs/-/cardano-serialization-lib-nodejs-1.0.1.tgz#79a27b68154defd2db878be58c23ea7cf0047423"
   integrity sha512-eTsTodYP69JFeL8JH08zADqny+ZO9NR+xgaU7r2ySCSh5jfA1mqhwKCjNUOSejpJvADyH5ppJwwIfICcwqKcDg==
@@ -1027,7 +1027,7 @@
   dependencies:
     "@types/node" "*"
 
-"@types/pino@^6.3.0":
+"@types/pino@6.3.0":
   version "6.3.0"
   resolved "https://registry.yarnpkg.com/@types/pino/-/pino-6.3.0.tgz#a4ad317278eca19becbc87f5ceafebb99d486604"
   integrity sha512-AuZ32IbQlzW3XY9jA9X8iXkhMTtloKWHz1Ze23ClPx7L8ES69BNGfH308LsU2tHnDCLLCFoZvMn8+1njBx2EKg==

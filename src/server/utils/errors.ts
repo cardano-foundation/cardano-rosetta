@@ -24,7 +24,8 @@ export const Errors = {
   TRANSACTION_NOT_FOUND: { message: 'Transaction not found', code: 4006 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   TOPOLOGY_FILE_NOT_FOUND: { message: 'Topology file not found', code: 5002 },
-  PAGE_SIZE_NOT_FOUND: { message: 'Page size config not found', code: 5003 }
+  PAGE_SIZE_NOT_FOUND: { message: 'Page size config not found', code: 5003 },
+  ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5004 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -40,6 +41,7 @@ const notImplentedError: CreateErrorFunction = () => buildApiError(Errors.NOT_IM
 const genesisBlockNotFound: CreateErrorFunction = () => buildApiError(Errors.GENESIS_BLOCK_NOT_FOUND, false);
 const transactionNotFound: CreateErrorFunction = () => buildApiError(Errors.TRANSACTION_NOT_FOUND, false);
 const pageSizeNotFund: CreateErrorFunction = () => buildApiError(Errors.PAGE_SIZE_NOT_FOUND, false);
+const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.ADDRESS_GENERATION_ERROR, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -50,5 +52,6 @@ export const ErrorFactory = {
   topoloyFileNotFound,
   genesisBlockNotFound,
   transactionNotFound,
-  pageSizeNotFund
+  pageSizeNotFund,
+  addressGenerationError
 };

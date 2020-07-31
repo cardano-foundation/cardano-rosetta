@@ -47,11 +47,12 @@ export const configure = (repositories: Repositories, logger: Logger): Services 
     repositories.networkRepository,
     logger
   );
+  const cardanoServiceInstance = cardanoService(logger);
   return {
     ...accountService(repositories.networkRepository, blockServiceInstance, logger),
     ...blockServiceInstance,
-    ...constructionService,
+    ...constructionService(cardanoServiceInstance, repositories.networkRepository, logger),
     ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger),
-    ...cardanoService(logger)
+    ...cardanoServiceInstance
   };
 };

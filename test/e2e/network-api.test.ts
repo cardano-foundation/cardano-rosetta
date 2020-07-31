@@ -85,7 +85,8 @@ const allow = {
       message: 'Transaction not found',
       retriable: false
     },
-    { code: 5003, message: 'Page size config not found', retriable: false }
+    { code: 5003, message: 'Page size config not found', retriable: false },
+    { code: 5004, message: 'Address generation error', retriable: false }
   ],
   historical_balance_lookup: true
 };
