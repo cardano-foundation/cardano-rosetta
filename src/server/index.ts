@@ -5,13 +5,13 @@ import buildServer from './server';
 import createPool from './db/connection';
 import * as Repostories from './db/repositories';
 import * as Services from './services/services';
-const { PORT, BIND_ADDRESS, DB_CONNECTION_STRING, LOGGER_ENABLED }: NodeJS.ProcessEnv = process.env;
+const { PORT, BIND_ADDRESS, DB_CONNECTION_STRING, LOGGER_ENABLED, LOGGER_LEVEL }: NodeJS.ProcessEnv = process.env;
 
 const configLogger = () =>
   pino({
     name: 'cardano-rosetta',
-    level: process.env.LOGGER_LEVEL,
-    enabled: process.env.LOGGER_ENABLED !== 'false'
+    level: LOGGER_LEVEL,
+    enabled: LOGGER_ENABLED !== 'false'
   });
 
 const start = async (databaseInstance: Pool) => {
