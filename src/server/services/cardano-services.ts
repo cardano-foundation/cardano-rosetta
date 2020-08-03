@@ -12,6 +12,7 @@ export enum NetworkIdentifier {
 
 export interface CardanoService {
   generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): string | null;
+  getHashOfSignedTransaction(signedTransaction: string): string;
 }
 
 const isKeyValid = (publicKeyBytes: string, key: Buffer, curveType: string): boolean =>
@@ -42,6 +43,16 @@ const configure = (logger: Logger): CardanoService => ({
     const address = enterpriseAddress.to_address().to_bech32();
     logger.info(`[generateAddress] base address is ${address}`);
     return address;
+  },
+  getHashOfSignedTransaction(signedTransaction) {
+    logger.info(`[getHashOfSignedTransaction] About to hash signed transaction ${signedTransaction}`);
+    const signedTransactionBytes = Buffer.from(signedTransaction);
+    logger.info('[getHashOfSignedTransaction] About to parse transaction from signed transaction bytes');
+    const parsed = CardanoWasm.Transaction.from_bytes(signedTransactionBytes);
+    logger.info('[getHashOfSignedTransaction] Returning transaction hash');
+    return CardanoWasm.hash_transaction(parsed.body())
+      .to_bytes()
+      .toString();
   }
 });
 

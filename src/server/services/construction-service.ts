@@ -73,6 +73,24 @@ const configure = (
       },
       logger
     ),
+  constructionHash: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () => {
+        const signedTransaction = request.signed_transaction;
+        logger.info('');
+        const transactionHash = cardanoService.getHashOfSignedTransaction(signedTransaction);
+        if (!transactionHash) {
+          logger.error('');
+        }
+        logger.info('');
+        // eslint-disable-next-line camelcase
+        return { transaction_identifier: { hash: transactionHash } };
+      },
+      logger
+    ),
   async constructionPreprocess(request) {
     return {
       code: 1,
@@ -104,13 +122,6 @@ const configure = (
   async constructionParse(request) {
     return {
       code: 5,
-      message: 'string',
-      retriable: true
-    };
-  },
-  async constructionHash(request) {
-    return {
-      code: 6,
       message: 'string',
       retriable: true
     };
