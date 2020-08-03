@@ -19,7 +19,7 @@ export interface CardanoService {
     fee: string,
     ttl: number
   ): CardanoWasm.TransactionBody;
-  createUnsignedTransaction(operations: Components.Schemas.Operation[], ttl: number): string;
+  createUnsignedTransaction(operations: Components.Schemas.Operation[], ttl: number): CardanoWasm.TransactionBody;
 }
 
 const isKeyValid = (key: Buffer, curveType: string): boolean =>
