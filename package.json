@@ -68,6 +68,7 @@
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "1.0.1",
+    "cbor": "^5.0.2",
     "dotenv": "8.2.0",
     "fastify": "2.15.1",
     "fastify-blipp": "2.3.1",
