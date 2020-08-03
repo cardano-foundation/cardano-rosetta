@@ -11,6 +11,15 @@ export enum NetworkIdentifier {
 
 export interface CardanoService {
   generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): EnterpriseAddress | null;
+  parseInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInput[];
+  parseOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutput[];
+  createTransactionBody(
+    inputs: CardanoWasm.TransactionInput[],
+    outputs: CardanoWasm.TransactionOutput[],
+    fee: string,
+    ttl: number
+  ): CardanoWasm.TransactionBody;
+  createUnsignedTransaction(operations: Components.Schemas.Operation[], ttl: number): string;
 }
 
 const isKeyValid = (key: Buffer, curveType: string): boolean =>
@@ -21,7 +30,6 @@ const configure = (logger: Logger): CardanoService => ({
     logger.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
     );
-
     const publicKeyBuffer = Buffer.from(publicKey.hex_bytes, 'hex');
 
     logger.info('[generateAddress] About to check if public key has valid length and curve type');
