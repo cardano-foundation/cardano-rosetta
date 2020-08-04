@@ -24,6 +24,8 @@ export interface BlockService {
   findBlock(blockIdentifier: PartialBlockIdentifier): Promise<Block | null>;
 }
 
+const COIN_CREATED_ACTION = 'coin_created';
+
 /**
  * Creates a Rosetta operation for the given information ready to be consumed by clients
  *
@@ -41,7 +43,8 @@ const createOperation = (
   address: string,
   value: string,
   relatedOperations?: Components.Schemas.OperationIdentifier[],
-  network_index?: number
+  network_index?: number,
+  coin_change?: Components.Schemas.CoinChange
   // eslint-disable-next-line max-params
 ): Components.Schemas.Operation => ({
   operation_identifier: {
@@ -60,7 +63,15 @@ const createOperation = (
       decimals: 6
     }
   },
+  coin_change,
   related_operations: relatedOperations
+});
+
+const getCoinChange = (index: number, hash: string): Components.Schemas.CoinChange => ({
+  coin_identifier: {
+    identifier: `${hash}:${index}`
+  },
+  coin_action: COIN_CREATED_ACTION
 });
 
 /**
@@ -86,7 +97,8 @@ const mapToRosettaTransaction = (transaction: TransactionWithInputsAndOutputs): 
       output.address,
       output.value,
       relatedOperations,
-      output.index
+      output.index,
+      getCoinChange(output.index, transaction.hash)
     )
   );
 
