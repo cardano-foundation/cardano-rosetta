@@ -50,9 +50,13 @@ const configure = (logger: Logger): CardanoService => ({
     logger.info('[getHashOfSignedTransaction] About to parse transaction from signed transaction bytes');
     const parsed = CardanoWasm.Transaction.from_bytes(signedTransactionBytes);
     logger.info('[getHashOfSignedTransaction] Returning transaction hash');
-    return CardanoWasm.hash_transaction(parsed.body())
-      .to_bytes()
-      .toString();
+    return (
+      parsed &&
+      parsed.body() &&
+      CardanoWasm.hash_transaction(parsed.body())
+        .to_bytes()
+        .toString()
+    );
   }
 });
 

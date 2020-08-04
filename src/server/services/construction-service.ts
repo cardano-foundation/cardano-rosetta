@@ -80,12 +80,13 @@ const configure = (
       request,
       async () => {
         const signedTransaction = request.signed_transaction;
-        logger.info('');
+        logger.info('[constructionHash] About to get hash of signed transaction');
         const transactionHash = cardanoService.getHashOfSignedTransaction(signedTransaction);
         if (!transactionHash) {
-          logger.error('');
+          logger.error('[constructionHash] Could not get hash of signed transaction');
+          throw ErrorFactory.hashOfSignedTransactionNotFound();
         }
-        logger.info('');
+        logger.info('[constructionHash] About to return hash of signed transaction');
         // eslint-disable-next-line camelcase
         return { transaction_identifier: { hash: transactionHash } };
       },
