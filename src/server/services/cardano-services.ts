@@ -1,6 +1,7 @@
 import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
+import { hashFormatter } from '../utils/formatters';
 
 const PUBLIC_KEY_LENGTH = 32;
 const PUBLIC_KEY_BYTES_LENGTH = 64;
@@ -12,7 +13,7 @@ export enum NetworkIdentifier {
 
 export interface CardanoService {
   generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): string | null;
-  getHashOfSignedTransaction(signedTransaction: string): string;
+  getHashOfSignedTransaction(signedTransaction: string): string | null;
 }
 
 const isKeyValid = (publicKeyBytes: string, key: Buffer, curveType: string): boolean =>
@@ -45,18 +46,21 @@ const configure = (logger: Logger): CardanoService => ({
     return address;
   },
   getHashOfSignedTransaction(signedTransaction) {
-    logger.info(`[getHashOfSignedTransaction] About to hash signed transaction ${signedTransaction}`);
-    const signedTransactionBytes = Buffer.from(signedTransaction);
-    logger.info('[getHashOfSignedTransaction] About to parse transaction from signed transaction bytes');
-    const parsed = CardanoWasm.Transaction.from_bytes(signedTransactionBytes);
-    logger.info('[getHashOfSignedTransaction] Returning transaction hash');
-    return (
-      parsed &&
-      parsed.body() &&
-      CardanoWasm.hash_transaction(parsed.body())
-        .to_bytes()
-        .toString()
-    );
+    try {
+      logger.info(`[getHashOfSignedTransaction] About to hash signed transaction ${signedTransaction}`);
+      const signedTransactionBytes = Buffer.from(signedTransaction, 'hex');
+      logger.info('[getHashOfSignedTransaction] About to parse transaction from signed transaction bytes');
+      const parsed = CardanoWasm.Transaction.from_bytes(signedTransactionBytes);
+      logger.info('[getHashOfSignedTransaction] Returning transaction hash');
+      const hashBuffer = parsed && parsed.body() && Buffer.from(CardanoWasm.hash_transaction(parsed.body()).to_bytes());
+      return hashFormatter(hashBuffer);
+    } catch (error) {
+      logger.error(
+        { error },
+        '[getHashOfSignedTransaction] There was an error extracting hash from signed transaction'
+      );
+      return null;
+    }
   }
 });
 

@@ -1,11 +1,12 @@
 /* eslint-disable camelcase */
 import { FastifyInstance } from 'fastify';
+import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { setupDatabase, setupServer } from './utils/test-utils';
+import { hashFormatter } from '../../src/server/utils/formatters';
 
 const generatePayload = (blockchain: string, network: string, key?: string, curveType?: string) => ({
-  // eslint-disable-next-line camelcase
   network_identifier: {
     blockchain,
     network
@@ -16,11 +17,16 @@ const generatePayload = (blockchain: string, network: string, key?: string, curv
   }
 });
 
+const generatePayloadWithSignedTransaction = (blockchain: string, network: string, signedTransaction: string) => ({
+  network_identifier: { blockchain, network },
+  signed_transaction: signedTransaction
+});
+
 const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
 const CONSTRUCTION_HASH_ENDPOINT = '/construction/endpoint';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
 
-describe('Construction API', () => {
+describe.only('Construction API', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
@@ -98,10 +104,34 @@ describe('Construction API', () => {
   });
 
   describe(CONSTRUCTION_HASH_ENDPOINT, () => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    test('Should return a valid hash when providing a proper signed transaction', async () => {});
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    test('Should return an error when providing an invalid transaction', async () => {});
+    test('Should return a valid hash when providing a proper signed transaction', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/construction/hash',
+        payload: generatePayloadWithSignedTransaction(
+          'cardano',
+          'mainnet',
+          '83a400818258203b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b700018182581d61a6274badf4c9ca583df893a73139625ff4dc73aaa3082e67d6d5d08e0102182a030aa10081825820e7d33eeb6f1df124f9f4c226428bc46b4c93ac4bc89dacc85748d1a2b47ded135840f39ee9a72d5de64b5a8ccffb7830cd7af4438944ffb16698f7e3b3a11ae684e14f213c5ac38a50852bf1d531f13f02fc0510610f7b549bec10d01dfe81ee080ef6'
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transaction_identifier: { hash: '0x4827ce27820b2605e0314af4d52c8a2b697f2f7a37f08079bbc2f7102b0572d1' }
+      });
+    });
+    test('Should return an error when providing an invalid transaction', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: '/construction/hash',
+        payload: generatePayloadWithSignedTransaction('cardano', 'mainnet', 'InvalidHashForTransaction')
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4008,
+        message: 'Hash of signed transaction not valid',
+        retriable: false
+      });
+    });
   });
 
   test('Should return an error when the address has an invalid format', async () => {

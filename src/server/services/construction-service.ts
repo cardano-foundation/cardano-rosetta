@@ -4,7 +4,6 @@ import { NetworkRepository } from '../db/network-repository';
 import { withNetworkValidation } from './utils/services-helper';
 import { ErrorFactory } from '../utils/errors';
 import { MAINNET, TESTNET } from '../utils/constants';
-import { Network } from 'dockerode';
 
 export interface ConstructionService {
   constructionDerive(
@@ -84,7 +83,7 @@ const configure = (
         const transactionHash = cardanoService.getHashOfSignedTransaction(signedTransaction);
         if (!transactionHash) {
           logger.error('[constructionHash] Could not get hash of signed transaction');
-          throw ErrorFactory.hashOfSignedTransactionNotFound();
+          throw ErrorFactory.hashOfSignedTransactionNotValid();
         }
         logger.info('[constructionHash] About to return hash of signed transaction');
         // eslint-disable-next-line camelcase
