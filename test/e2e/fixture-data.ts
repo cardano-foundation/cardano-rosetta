@@ -107,6 +107,12 @@ export const block23236WithTransactions = {
                 symbol: 'ADA',
                 decimals: 6
               }
+            },
+            coin_change: {
+              coin_action: 'coin_created',
+              coin_identifier: {
+                identifier: '0xabbeb108ebc3990c7f031113bcb8ce8f306a1eec8f313acffcdcd256379208f4:0'
+              }
             }
           }
         ]
@@ -154,6 +160,12 @@ export const block23236WithTransactions = {
               currency: {
                 symbol: 'ADA',
                 decimals: 6
+              }
+            },
+            coin_change: {
+              coin_action: 'coin_created',
+              coin_identifier: {
+                identifier: '0xd864f781436f0122a21335b672fe7943ab1d123f6c2ed770541669d70a870d75:0'
               }
             }
           }
@@ -228,6 +240,12 @@ export const block7134WithTxs = {
                 symbol: 'ADA',
                 decimals: 6
               }
+            },
+            coin_change: {
+              coin_action: 'coin_created',
+              coin_identifier: {
+                identifier: '0xc950e0d7d898a392ccf458a75728aa35afd4bd3776f118cbf0e0abb315205bc4:0'
+              }
             }
           },
           {
@@ -251,6 +269,12 @@ export const block7134WithTxs = {
               currency: {
                 symbol: 'ADA',
                 decimals: 6
+              }
+            },
+            coin_change: {
+              coin_action: 'coin_created',
+              coin_identifier: {
+                identifier: '0xc950e0d7d898a392ccf458a75728aa35afd4bd3776f118cbf0e0abb315205bc4:1'
               }
             }
           }
