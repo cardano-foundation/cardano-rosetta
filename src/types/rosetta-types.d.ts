@@ -239,7 +239,7 @@ declare namespace Components {
       /**
        * Some blockchains require different metadata for different types of transaction construction (ex: delegation versus a transfer). Instead of requiring a blockchain node to return all possible types of metadata for construction (which may require multiple node fetches), the client can populate an options object to limit the metadata returned to only the subset required.
        */
-      options: {};
+      options?: {};
     }
     /**
      * The ConstructionMetadataResponse returns network-specific metadata used for transaction construction.
@@ -252,7 +252,9 @@ declare namespace Components {
        *   "recent_block_hash": "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5"
        * }
        */
-      metadata: {};
+      metadata: {
+        ttl?: number;
+      };
     }
     /**
      * ConstructionParseRequest is the input to the `/construction/parse` endpoint. It allows the caller to parse either an unsigned or signed transaction.

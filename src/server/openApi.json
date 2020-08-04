@@ -1405,7 +1405,7 @@
       "ConstructionMetadataRequest": {
         "description": "A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers.",
         "type": "object",
-        "required": ["network_identifier", "options"],
+        "required": ["network_identifier"],
         "properties": {
           "network_identifier": {
             "$ref": "#/components/schemas/NetworkIdentifier"
@@ -1423,6 +1423,9 @@
         "properties": {
           "metadata": {
             "type": "object",
+            "properties": {
+              "ttl": { "type": "number" }
+            },
             "example": {
               "account_sequence": 23,
               "recent_block_hash": "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5"

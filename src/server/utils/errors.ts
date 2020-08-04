@@ -27,7 +27,8 @@ export const Errors = {
   PAGE_SIZE_NOT_FOUND: { message: 'Page size config not found', code: 5003 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5004 },
   INVALID_PUBLIC_KEY_FORMAT: { message: 'Invalid public key format', code: 4007 },
-  PARSE_SIGNED_TRANSACTION_ERROR: { message: 'Parse signed transaction error', code: 5005 }
+  PARSE_SIGNED_TRANSACTION_ERROR: { message: 'Parse signed transaction error', code: 5005 },
+  TTL_OFFSET_NOT_FOUND: { message: 'TTL offset config not found', code: 5006 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -47,6 +48,7 @@ const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.A
 const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
 const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
+const ttlOffsetNotFound: CreateErrorFunction = () => buildApiError(Errors.TTL_OFFSET_NOT_FOUND, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -60,5 +62,6 @@ export const ErrorFactory = {
   pageSizeNotFund,
   addressGenerationError,
   invalidPublicKeyFormat,
-  parseSignedTransactionError
+  parseSignedTransactionError,
+  ttlOffsetNotFound
 };

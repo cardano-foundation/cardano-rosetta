@@ -30,9 +30,20 @@ const loadPageSize = (logger: Logger): number => {
   const pageSize = process.env.PAGE_SIZE;
   logger.debug(`Loading page size: ${pageSize}`);
   if (pageSize === undefined) {
+    logger.error('Page size config not found');
     throw ErrorFactory.pageSizeNotFund();
   }
   return Number(pageSize);
+};
+
+const loadTTLOffset = (logger: Logger): number => {
+  const ttlOffset = process.env.TTL_OFFSET;
+  logger.debug(`Loading ttl offset: ${ttlOffset}`);
+  if (ttlOffset === undefined) {
+    logger.error('TTL offset config not found');
+    throw ErrorFactory.ttlOffsetNotFound();
+  }
+  return Number(ttlOffset);
 };
 
 /**
@@ -51,7 +62,13 @@ export const configure = (repositories: Repositories, logger: Logger): Services 
   return {
     ...accountService(repositories.networkRepository, blockServiceInstance, logger),
     ...blockServiceInstance,
-    ...constructionService(cardanoServiceInstance, repositories.networkRepository, logger),
+    ...constructionService(
+      cardanoServiceInstance,
+      repositories.networkRepository,
+      blockServiceInstance,
+      loadTTLOffset(logger),
+      logger
+    ),
     ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger),
     ...cardanoServiceInstance
   };
