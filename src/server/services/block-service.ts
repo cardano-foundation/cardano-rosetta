@@ -170,22 +170,8 @@ const configure = (
     return response;
   },
   async block(request) {
-    // cardano doesn't have block zero but we need to map it to genesis
-    let block;
-    logger.debug({ request }, '[block] Request received ');
-    if (request.block_identifier.index === 0) {
-      logger.info('[block] Looking for genesis block');
-      block = await this.getGenesisBlock();
-      logger.info('[block] Found genesis block');
-      // We need to manually check for the block index if sent on the request
-      const isHashInvalidIfGiven = request.block_identifier.hash && block.hash !== request.block_identifier.hash;
-      if (isHashInvalidIfGiven) {
-        logger.error('[findBlock] The requested block has an invalid block hash parameter');
-        throw ErrorFactory.blockNotFoundError();
-      }
-    }
     logger.info(`[block] Looking for block ${request.block_identifier}`);
-    block = await this.findBlock(request.block_identifier);
+    const block = await this.findBlock(request.block_identifier);
     if (block !== null) {
       logger.info('[block] Block was found');
       // This condition is needed as genesis tx count for mainnet is zero

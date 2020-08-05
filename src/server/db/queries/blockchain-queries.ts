@@ -37,6 +37,9 @@ export interface FindTransaction {
   size: number;
 }
 
+// AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
+// This condition is made because genesis block has block_no = null
+// Also, genesis number is 0, thats why $2 = 0.
 const findTransactionsByBlock = (blockNumber?: number, blockHash?: string): string => `
 SELECT 
   tx.*,
@@ -44,7 +47,7 @@ SELECT
 FROM tx
 JOIN block ON block.id = tx.block
 WHERE
-  ${blockNumber ? 'block.block_no = $1' : '$1 = $1'} AND
+  ${blockNumber ? '(block.block_no = $1 OR (block.block_no is null AND $1 = 0))' : '$1 = $1'} AND
   ${blockHash ? 'block.hash = $2' : '$2 = $2'}
 `;
 
