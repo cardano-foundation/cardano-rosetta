@@ -93,4 +93,18 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
   });
+
+  test('Should return an error when the address has an invalid format', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_DERIVE_ENDPOINT,
+      payload: generatePayload(
+        'cardano',
+        'mainnet',
+        '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F__.'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
+  });
 });
