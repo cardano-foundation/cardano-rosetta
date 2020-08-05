@@ -67,6 +67,7 @@
     "typescript": "3.9.5"
   },
   "dependencies": {
+    "@emurgo/cardano-serialization-lib-nodejs": "1.0.1",
     "dotenv": "8.2.0",
     "fastify": "2.15.1",
     "fastify-blipp": "2.3.1",

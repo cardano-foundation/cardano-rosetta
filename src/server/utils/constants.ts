@@ -19,6 +19,9 @@ enum operationTypeStatus {
 export const TRANSFER_OPERATION_TYPE = 'transfer';
 export const SUCCESS_STATUS = 'success';
 
+export const MAINNET = 'mainnet';
+export const TESTNET = 'testnet';
+
 export const SUCCESS_OPERATION_STATE = {
   status: operationTypeStatus.SUCCESS,
   successful: true

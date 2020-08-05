@@ -7,12 +7,14 @@ import accountService, { AccountService } from './account-service';
 import blockService, { BlockService } from './block-service';
 import constructionService, { ConstructionService } from './construction-service';
 import networkService, { NetworkService } from './network-service';
+import cardanoService, { CardanoService } from './cardano-services';
 
 export interface Services
   extends AccountService,
     BlockService,
     ConstructionService,
     NetworkService,
+    CardanoService,
     // eslint-disable-next-line @typescript-eslint/ban-types
     NodeJS.Dict<Function> {}
 
@@ -45,10 +47,12 @@ export const configure = (repositories: Repositories, logger: Logger): Services 
     repositories.networkRepository,
     logger
   );
+  const cardanoServiceInstance = cardanoService(logger);
   return {
     ...accountService(repositories.networkRepository, blockServiceInstance, logger),
     ...blockServiceInstance,
-    ...constructionService,
-    ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger)
+    ...constructionService(cardanoServiceInstance, repositories.networkRepository, logger),
+    ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger),
+    ...cardanoServiceInstance
   };
 };

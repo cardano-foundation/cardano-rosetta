@@ -1,3 +1,11 @@
+import { Logger } from 'pino';
+import { CardanoService, NetworkIdentifier } from './cardano-services';
+import { NetworkRepository } from '../db/network-repository';
+import { withNetworkValidation } from './utils/services-helper';
+import { ErrorFactory } from '../utils/errors';
+import { MAINNET, TESTNET } from '../utils/constants';
+import { Network } from 'dockerode';
+
 export interface ConstructionService {
   constructionDerive(
     request: Components.Schemas.ConstructionDeriveRequest
@@ -32,14 +40,39 @@ export interface ConstructionService {
   ): Promise<Components.Schemas.TransactionIdentifierResponse | Components.Schemas.Error>;
 }
 
-const constructionService: ConstructionService = {
-  async constructionDerive(request): Promise<Components.Schemas.ConstructionDeriveResponse | Components.Schemas.Error> {
-    return {
-      code: 0,
-      message: 'string',
-      retriable: true
-    };
-  },
+const getNetworkIdentifierByRequestParameters = (
+  networkRequestParameters: Components.Schemas.NetworkIdentifier
+): NetworkIdentifier => {
+  if (networkRequestParameters.network === MAINNET) {
+    return NetworkIdentifier.CARDANO_MAINNET_NETWORK;
+  }
+  return NetworkIdentifier.CARDANO_TESTNET_NETWORK;
+};
+
+const configure = (
+  cardanoService: CardanoService,
+  networkRepository: NetworkRepository,
+  logger: Logger
+): ConstructionService => ({
+  constructionDerive: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () => {
+        const publicKey = request.public_key;
+        const networkIdentifier = getNetworkIdentifierByRequestParameters(request.network_identifier);
+        const address = cardanoService.generateAddress(networkIdentifier, publicKey);
+        if (!address) {
+          logger.error('[constructionDerive] There was an error generating address');
+          throw ErrorFactory.addressGenerationError();
+        }
+        return {
+          address
+        };
+      },
+      logger
+    ),
   async constructionPreprocess(request) {
     return {
       code: 1,
@@ -89,6 +122,6 @@ const constructionService: ConstructionService = {
       retriable: true
     };
   }
-};
+});
 
-export default constructionService;
+export default configure;
