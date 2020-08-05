@@ -31,7 +31,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     await database.end();
   });
 
-  test('Should return the address corresponding to public key when providing a valid public key', async () => {
+  test('Should return the address corresponding to the public key and mainnet network when providing a valid public key', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_DERIVE_ENDPOINT,

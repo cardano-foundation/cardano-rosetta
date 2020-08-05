@@ -5,11 +5,12 @@ import { ErrorFactory } from '../utils/errors';
 const PUBLIC_KEY_LENGTH = 32;
 
 export enum NetworkIdentifier {
-  CARDANO_MAINNET_NETWORK = 1
+  CARDANO_TESTNET_NETWORK = 0,
+  CARDANO_MAINNET_NETWORK
 }
 
 export interface CardanoService {
-  generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): EnterpriseAddress | null;
+  generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): string | null;
 }
 
 const isKeyValid = (key: Buffer, curveType: string): boolean =>
@@ -33,15 +34,17 @@ const configure = (logger: Logger): CardanoService => ({
     const pub = CardanoWasm.PublicKey.from_bytes(publicKeyBuffer);
 
     logger.info('[generateAddress] Deriving cardano address from valid public key');
-    const address = CardanoWasm.EnterpriseAddress.new(
+    const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(
       NetworkIdentifier.CARDANO_MAINNET_NETWORK,
       CardanoWasm.StakeCredential.from_keyhash(pub.hash())
     );
-    if (!address) {
+    if (!enterpriseAddress) {
       return null;
     }
+    const address = enterpriseAddress.to_address().to_bech32();
     logger.info(`[generateAddress] base address is ${address}`);
-    return address;
+    // FIXME https://github.com/Emurgo/cardano-serialization-lib/issues/32
+    return network === NetworkIdentifier.CARDANO_TESTNET_NETWORK ? address.replace('addr', 'addr_test') : address;
   }
 });
 

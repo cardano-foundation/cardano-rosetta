@@ -3,6 +3,8 @@ import { CardanoService, NetworkIdentifier } from './cardano-services';
 import { NetworkRepository } from '../db/network-repository';
 import { withNetworkValidation } from './utils/services-helper';
 import { ErrorFactory } from '../utils/errors';
+import { MAINNET, TESTNET } from '../utils/constants';
+import { Network } from 'dockerode';
 
 export interface ConstructionService {
   constructionDerive(
@@ -38,6 +40,15 @@ export interface ConstructionService {
   ): Promise<Components.Schemas.TransactionIdentifierResponse | Components.Schemas.Error>;
 }
 
+const getNetworkIdentifierByRequestParameters = (
+  networkRequestParameters: Components.Schemas.NetworkIdentifier
+): NetworkIdentifier => {
+  if (networkRequestParameters.network === MAINNET) {
+    return NetworkIdentifier.CARDANO_MAINNET_NETWORK;
+  }
+  return NetworkIdentifier.CARDANO_TESTNET_NETWORK;
+};
+
 const configure = (
   cardanoService: CardanoService,
   networkRepository: NetworkRepository,
@@ -50,13 +61,14 @@ const configure = (
       request,
       async () => {
         const publicKey = request.public_key;
-        const address = cardanoService.generateAddress(NetworkIdentifier.CARDANO_MAINNET_NETWORK, publicKey);
+        const networkIdentifier = getNetworkIdentifierByRequestParameters(request.network_identifier);
+        const address = cardanoService.generateAddress(networkIdentifier, publicKey);
         if (!address) {
           logger.error('[constructionDerive] There was an error generating address');
           throw ErrorFactory.addressGenerationError();
         }
         return {
-          address: address.to_address().to_bech32()
+          address
         };
       },
       logger
