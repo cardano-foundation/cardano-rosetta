@@ -48,6 +48,9 @@ WHERE
   ${blockHash ? 'block.hash = $2' : '$2 = $2'}
 `;
 
+// AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
+// This condition is made because genesis block has block_no = null
+// Also, genesis number is 0, thats why $2 = 0.
 const findTransactionByHashAndBlock = `
 SELECT 
   tx.*,
@@ -56,7 +59,7 @@ FROM tx
 JOIN block ON block.id = tx.block
 WHERE
   tx.hash = $1
-AND block.block_no = $2 
+AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
 AND block.hash = $3
 `;
 

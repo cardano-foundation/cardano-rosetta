@@ -355,3 +355,38 @@ export const block1 = {
     transactions: []
   }
 };
+
+export const transaction987aOnGenesis = {
+  transaction: {
+    operations: [
+      {
+        account: {
+          address: 'Ae2tdPwUPEZ9vtyppa1FdJzvqJZkEcXgdHxVYAzTWcPaoNycVq5rc36LC1S'
+        },
+        amount: {
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          },
+          value: '538861000000'
+        },
+        coin_change: {
+          coin_action: 'coin_created',
+          coin_identifier: {
+            identifier: '0x927edb96f3386ab91b5f5d85d84cb4253c65b1c2f65fa7df25f81fab1d62987a:0'
+          }
+        },
+        operation_identifier: {
+          index: 0,
+          network_index: 0
+        },
+        related_operations: [],
+        status: 'success',
+        type: 'transfer'
+      }
+    ],
+    transaction_identifier: {
+      hash: '0x927edb96f3386ab91b5f5d85d84cb4253c65b1c2f65fa7df25f81fab1d62987a'
+    }
+  }
+};
