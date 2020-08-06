@@ -151,7 +151,7 @@ describe('Construction API', () => {
     });
   });
 
-  // These function's parameters were created using `cardano-cli shelley transacion sign`
+  // These function's parameters were created using `cardano-cli shelley transacion build raw`
   test('Should return a valid hash when providing a valid signed transaction', async () => {
     const response = await server.inject({
       method: 'post',
