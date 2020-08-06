@@ -53,7 +53,6 @@ const configure = (
   cardanoService: CardanoService,
   networkRepository: NetworkRepository,
   blockService: BlockService,
-  ttlOffset: number,
   logger: Logger
 ): ConstructionService => ({
   constructionDerive: async request =>
@@ -103,8 +102,9 @@ const configure = (
       networkRepository,
       request,
       async () => {
+        const ttlOffset = request.options.relative_ttl;
         const latestBlock = await blockService.getLatestBlock();
-        const ttl = latestBlock.slotNo + ttlOffset;
+        const ttl = (BigInt(latestBlock.slotNo) + BigInt(ttlOffset)).toString();
         return { metadata: { ttl } };
       },
       logger

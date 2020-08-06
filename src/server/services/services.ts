@@ -36,16 +36,6 @@ const loadPageSize = (logger: Logger): number => {
   return Number(pageSize);
 };
 
-const loadTTLOffset = (logger: Logger): number => {
-  const ttlOffset = process.env.TTL_OFFSET;
-  logger.debug(`Loading ttl offset: ${ttlOffset}`);
-  if (ttlOffset === undefined) {
-    logger.error('TTL offset config not found');
-    throw ErrorFactory.ttlOffsetNotFound();
-  }
-  return Number(ttlOffset);
-};
-
 /**
  * Configures all the services required by the app
  *
@@ -62,13 +52,7 @@ export const configure = (repositories: Repositories, logger: Logger): Services 
   return {
     ...accountService(repositories.networkRepository, blockServiceInstance, logger),
     ...blockServiceInstance,
-    ...constructionService(
-      cardanoServiceInstance,
-      repositories.networkRepository,
-      blockServiceInstance,
-      loadTTLOffset(logger),
-      logger
-    ),
+    ...constructionService(cardanoServiceInstance, repositories.networkRepository, blockServiceInstance, logger),
     ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger),
     ...cardanoServiceInstance
   };

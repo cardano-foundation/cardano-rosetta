@@ -1,3 +1,4 @@
+/* eslint-disable no-magic-numbers */
 /* eslint-disable camelcase */
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
@@ -18,6 +19,15 @@ const generatePayload = (blockchain: string, network: string, key?: string, curv
 const generatePayloadWithSignedTransaction = (blockchain: string, network: string, signedTransaction: string) => ({
   network_identifier: { blockchain, network },
   signed_transaction: signedTransaction
+});
+const generateMetadataPayload = (blockchain: string, network: string, relativeTtl: number) => ({
+  network_identifier: {
+    blockchain,
+    network
+  },
+  options: {
+    relative_ttl: relativeTtl
+  }
 });
 
 const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
@@ -172,17 +182,17 @@ describe('Construction API', () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_METADATA_ENDPOINT,
-        payload: generatePayload('cardano', 'mainnet')
+        payload: generateMetadataPayload('cardano', 'mainnet', 100)
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
-      expect(response.json()).toEqual({ metadata: { ttl: 65294 } });
+      expect(response.json()).toEqual({ metadata: { ttl: '65294' } });
     });
 
     test('Should throw invalid blockchain error when the blockchain specified is invalid', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_METADATA_ENDPOINT,
-        payload: generatePayload('bitcoin', 'mainnet')
+        payload: generateMetadataPayload('bitcoin', 'mainnet', 100)
       });
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({
@@ -196,7 +206,7 @@ describe('Construction API', () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_METADATA_ENDPOINT,
-        payload: generatePayload('cardano', 'testnet')
+        payload: generateMetadataPayload('cardano', 'testnet', 100)
       });
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({

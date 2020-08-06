@@ -239,7 +239,9 @@ declare namespace Components {
       /**
        * Some blockchains require different metadata for different types of transaction construction (ex: delegation versus a transfer). Instead of requiring a blockchain node to return all possible types of metadata for construction (which may require multiple node fetches), the client can populate an options object to limit the metadata returned to only the subset required.
        */
-      options?: {};
+      options: {
+        relative_ttl: number;
+      };
     }
     /**
      * The ConstructionMetadataResponse returns network-specific metadata used for transaction construction.
@@ -253,7 +255,7 @@ declare namespace Components {
        * }
        */
       metadata: {
-        ttl?: number;
+        ttl?: string;
       };
     }
     /**
