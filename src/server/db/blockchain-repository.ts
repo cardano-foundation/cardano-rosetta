@@ -286,7 +286,10 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
       `[findTransactionsByBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
     );
     // Add paramter or short-circuit it
-    const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
+    const parameters = [
+      blockNumber || blockNumber === 0 ? blockNumber : true,
+      blockHash ? hashStringToBuffer(blockHash) : true
+    ];
     logger.debug({ parameters }, '[findTransactionsByBlock] About to run findTransactionsByBlock query with params');
     const result: QueryResult<FindTransaction> = await databaseInstance.query(query, parameters);
     logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
@@ -340,14 +343,10 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     logger.debug(
       `[findTransactionByHashAndBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
     );
-    const parameters = [
-      hashStringToBuffer(hash),
-      blockNumber ? blockNumber : true,
-      blockHash ? hashStringToBuffer(blockHash) : true
-    ];
+    const parameters = [hashStringToBuffer(hash), Number(blockNumber), hashStringToBuffer(blockHash)];
     logger.debug(
-      '[findTransactionByHashAndBlock] About to run findTransactionsByHashAndBlock query with parameters',
-      parameters
+      { parameters },
+      '[findTransactionByHashAndBlock] About to run findTransactionsByHashAndBlock query with parameters'
     );
     const result: QueryResult<FindTransaction> = await databaseInstance.query(
       Queries.findTransactionByHashAndBlock,

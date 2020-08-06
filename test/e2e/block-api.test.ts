@@ -9,7 +9,8 @@ import {
   block7134WithTxs,
   blockWith8Txs,
   GENESIS_HASH,
-  block1
+  block1,
+  transaction987aOnGenesis
 } from './fixture-data';
 import { setupDatabase, setupServer } from './utils/test-utils';
 
@@ -160,7 +161,7 @@ describe('Block API', () => {
   });
   describe('/block/transactions endpoint', () => {
     const BLOCK_TRANSACTION_ENDPOINT = '/block/transaction';
-    test('should the transaction if a valid hash is sent', async () => {
+    test('should return the transaction if a valid hash is sent', async () => {
       const { index, hash } = block23236WithTransactions.block.block_identifier;
       const [transaction] = block23236WithTransactions.block.transactions;
       const response = await server.inject({
@@ -178,6 +179,7 @@ describe('Block API', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({ transaction });
     });
+
     test('should return an error if the transaction doesnt exist', async () => {
       const { index, hash } = block23236WithTransactions.block.block_identifier;
       const response = await server.inject({
@@ -278,6 +280,24 @@ describe('Block API', () => {
 
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({ message: TRANSACTION_NOT_FOUND, code: 4006, retriable: false });
+    });
+    test('should return transaction for genesis block when requested', async () => {
+      const genesisIndex = 0;
+      const genesisHash = '0x5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb';
+      const transaction = '0x927edb96f3386ab91b5f5d85d84cb4253c65b1c2f65fa7df25f81fab1d62987a';
+      const response = await server.inject({
+        method: 'post',
+        url: BLOCK_TRANSACTION_ENDPOINT,
+        payload: {
+          ...generatePayload(genesisIndex, genesisHash),
+          // eslint-disable-next-line camelcase
+          transaction_identifier: {
+            hash: transaction
+          }
+        }
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual(transaction987aOnGenesis);
     });
   });
 });
