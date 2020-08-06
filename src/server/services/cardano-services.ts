@@ -13,7 +13,7 @@ export enum NetworkIdentifier {
 
 export interface CardanoService {
   generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): string | null;
-  getHashOfSignedTransaction(signedTransaction: string): string | null;
+  getHashOfSignedTransaction(signedTransaction: string): string;
 }
 
 const isKeyValid = (publicKeyBytes: string, key: Buffer, curveType: string): boolean =>
@@ -59,7 +59,7 @@ const configure = (logger: Logger): CardanoService => ({
         { error },
         '[getHashOfSignedTransaction] There was an error extracting hash from signed transaction'
       );
-      return null;
+      throw ErrorFactory.hashOfSignedTransactionNotValid();
     }
   }
 });

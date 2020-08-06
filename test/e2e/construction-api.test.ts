@@ -1,10 +1,8 @@
 /* eslint-disable camelcase */
 import { FastifyInstance } from 'fastify';
-import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { setupDatabase, setupServer } from './utils/test-utils';
-import { hashFormatter } from '../../src/server/utils/formatters';
 
 const generatePayload = (blockchain: string, network: string, key?: string, curveType?: string) => ({
   network_identifier: {
@@ -26,7 +24,7 @@ const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
 const CONSTRUCTION_HASH_ENDPOINT = '/construction/endpoint';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
 
-describe.only('Construction API', () => {
+describe('Construction API', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
@@ -104,6 +102,11 @@ describe.only('Construction API', () => {
   });
 
   describe(CONSTRUCTION_HASH_ENDPOINT, () => {
+    /**
+     * These tests parameters where extracted from emurgo serialization examples:
+     * https://github.com/Emurgo/cardano-serialization-lib/blob/master/example/index.spec.ts
+     */
+
     test('Should return a valid hash when providing a proper signed transaction', async () => {
       const response = await server.inject({
         method: 'post',
