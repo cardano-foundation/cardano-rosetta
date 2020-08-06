@@ -343,11 +343,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     logger.debug(
       `[findTransactionByHashAndBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
     );
-    const parameters = [
-      hashStringToBuffer(hash),
-      blockNumber || blockNumber === 0 ? blockNumber : true,
-      blockHash ? hashStringToBuffer(blockHash) : true
-    ];
+    const parameters = [hashStringToBuffer(hash), Number(blockNumber), hashStringToBuffer(blockHash)];
     logger.debug(
       { parameters },
       '[findTransactionByHashAndBlock] About to run findTransactionsByHashAndBlock query with parameters'
