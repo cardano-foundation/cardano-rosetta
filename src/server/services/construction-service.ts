@@ -3,8 +3,8 @@ import { CardanoService, NetworkIdentifier } from './cardano-services';
 import { NetworkRepository } from '../db/network-repository';
 import { withNetworkValidation } from './utils/services-helper';
 import { ErrorFactory } from '../utils/errors';
-import { MAINNET, TESTNET } from '../utils/constants';
 import { BlockService } from './block-service';
+import { MAINNET } from '../utils/constants';
 
 export interface ConstructionService {
   constructionDerive(
@@ -116,13 +116,26 @@ const configure = (
       retriable: true
     };
   },
-  async constructionCombine(request) {
-    return {
-      code: 4,
-      message: 'string',
-      retriable: true
-    };
-  },
+  constructionCombine: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () => {
+        logger.info('[constructionCombine] Request received to sign a transaction');
+        const signedTransaction = cardanoService.signTransaction(
+          request.unsigned_transaction,
+          request.signatures.map(signature => ({
+            signature: signature.hex_bytes,
+            publicKey: signature.public_key.hex_bytes
+          }))
+        );
+        logger.info({ signedTransaction }, '[constructionCombine] About to return signed transaction');
+        // eslint-disable-next-line camelcase
+        return { signed_transaction: signedTransaction };
+      },
+      logger
+    ),
   async constructionParse(request) {
     return {
       code: 5,

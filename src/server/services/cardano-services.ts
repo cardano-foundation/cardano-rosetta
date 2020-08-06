@@ -11,9 +11,15 @@ export enum NetworkIdentifier {
   CARDANO_MAINNET_NETWORK
 }
 
+export interface Signatures {
+  signature: string;
+  publicKey: string;
+}
+
 export interface CardanoService {
   generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): string | null;
   getHashOfSignedTransaction(signedTransaction: string): string;
+  signTransaction(unsignedTransaction: string, signatures: Signatures[]): string;
 }
 
 const isKeyValid = (publicKeyBytes: string, key: Buffer, curveType: string): boolean =>
@@ -57,6 +63,30 @@ const configure = (logger: Logger): CardanoService => ({
     } catch (error) {
       logger.error({ error }, '[getHashOfSignedTransaction] There was an error parsing signed transaction');
       throw ErrorFactory.parseSignedTransactionError();
+    }
+  },
+  signTransaction(unsignedTransaction, signatures) {
+    try {
+      logger.info(`[signTransaction] About to signed a transaction with ${signatures.length} signatures`);
+      const witnesses = CardanoWasm.TransactionWitnessSet.new();
+      const vkeyWitnesses = CardanoWasm.Vkeywitnesses.new();
+
+      logger.info('[signTransaction] Extracting witnesses from signatures');
+      signatures.forEach(signature => {
+        vkeyWitnesses.add(CardanoWasm.Vkeywitness.from_bytes(Buffer.from(signature.signature, 'hex')));
+      });
+
+      witnesses.set_vkeys(vkeyWitnesses);
+      logger.info(`[signTransaction] ${vkeyWitnesses.len} witnesses were extracted to sign transaction`);
+
+      logger.info('[signTransaction] Instantiating transaction body from unsigned transaction bytes');
+      const transactionBody = CardanoWasm.TransactionBody.from_bytes(Buffer.from(unsignedTransaction, 'hex'));
+
+      logger.info('[signTransaction] Creating transaction using transaction body and extracted witnesses');
+      return hashFormatter(Buffer.from(CardanoWasm.Transaction.new(transactionBody, witnesses).to_bytes()));
+    } catch (error) {
+      logger.error({ error }, '[signTransaction] There was an error signing transaction');
+      throw ErrorFactory.cantCreateSignTransaction();
     }
   }
 });
