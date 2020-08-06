@@ -286,10 +286,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
       `[findTransactionsByBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
     );
     // Add paramter or short-circuit it
-    const parameters = [
-      blockNumber || blockNumber === 0 ? blockNumber : true,
-      blockHash ? hashStringToBuffer(blockHash) : true
-    ];
+    const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
     logger.debug({ parameters }, '[findTransactionsByBlock] About to run findTransactionsByBlock query with params');
     const result: QueryResult<FindTransaction> = await databaseInstance.query(query, parameters);
     logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);

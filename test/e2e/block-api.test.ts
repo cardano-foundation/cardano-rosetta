@@ -145,6 +145,7 @@ describe('Block API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json().block.block_identifier.hash).toEqual(GENESIS_HASH);
+      expect(response.json().other_transactions.length).toEqual(14505);
     });
 
     // Block 1 parent should be genesis,
