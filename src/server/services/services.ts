@@ -30,6 +30,7 @@ const loadPageSize = (logger: Logger): number => {
   const pageSize = process.env.PAGE_SIZE;
   logger.debug(`Loading page size: ${pageSize}`);
   if (pageSize === undefined) {
+    logger.error('Page size config not found');
     throw ErrorFactory.pageSizeNotFund();
   }
   return Number(pageSize);
@@ -51,7 +52,7 @@ export const configure = (repositories: Repositories, logger: Logger): Services 
   return {
     ...accountService(repositories.networkRepository, blockServiceInstance, logger),
     ...blockServiceInstance,
-    ...constructionService(cardanoServiceInstance, repositories.networkRepository, logger),
+    ...constructionService(cardanoServiceInstance, repositories.networkRepository, blockServiceInstance, logger),
     ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger),
     ...cardanoServiceInstance
   };

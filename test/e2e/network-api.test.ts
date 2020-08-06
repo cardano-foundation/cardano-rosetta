@@ -88,7 +88,7 @@ const allow = {
     { code: 5003, message: 'Page size config not found', retriable: false },
     { code: 5004, message: 'Address generation error', retriable: false },
     { code: 4007, message: 'Invalid public key format', retriable: false },
-    { message: 'Parse signed transaction error', code: 5005, retriable: false }
+    { code: 5005, message: 'Parse signed transaction error', retriable: false }
   ],
   historical_balance_lookup: true
 };

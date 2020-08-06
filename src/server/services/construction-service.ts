@@ -4,6 +4,7 @@ import { NetworkRepository } from '../db/network-repository';
 import { withNetworkValidation } from './utils/services-helper';
 import { ErrorFactory } from '../utils/errors';
 import { MAINNET, TESTNET } from '../utils/constants';
+import { BlockService } from './block-service';
 
 export interface ConstructionService {
   constructionDerive(
@@ -16,7 +17,7 @@ export interface ConstructionService {
 
   constructionMetadata(
     request: Components.Schemas.ConstructionMetadataRequest
-  ): Promise<Components.Schemas.ConstructionCombineResponse | Components.Schemas.Error>;
+  ): Promise<Components.Schemas.ConstructionMetadataResponse | Components.Schemas.Error>;
 
   constructionPayloads(
     request: Components.Schemas.ConstructionPayloadsRequest
@@ -51,6 +52,7 @@ const getNetworkIdentifierByRequestParameters = (
 const configure = (
   cardanoService: CardanoService,
   networkRepository: NetworkRepository,
+  blockService: BlockService,
   logger: Logger
 ): ConstructionService => ({
   constructionDerive: async request =>
@@ -94,13 +96,19 @@ const configure = (
       retriable: true
     };
   },
-  async constructionMetadata(request) {
-    return {
-      code: 2,
-      message: 'string',
-      retriable: true
-    };
-  },
+  constructionMetadata: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () => {
+        const ttlOffset = request.options.relative_ttl;
+        const latestBlock = await blockService.getLatestBlock();
+        const ttl = (BigInt(latestBlock.slotNo) + BigInt(ttlOffset)).toString();
+        return { metadata: { ttl } };
+      },
+      logger
+    ),
   async constructionPayloads(request) {
     return {
       code: 3,

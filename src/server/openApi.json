@@ -1412,7 +1412,11 @@
           },
           "options": {
             "description": "Some blockchains require different metadata for different types of transaction construction (ex: delegation versus a transfer). Instead of requiring a blockchain node to return all possible types of metadata for construction (which may require multiple node fetches), the client can populate an options object to limit the metadata returned to only the subset required.",
-            "type": "object"
+            "type": "object",
+            "required": ["relative_ttl"],
+            "properties": {
+              "relative_ttl": { "type": "number" }
+            }
           }
         }
       },
@@ -1423,6 +1427,9 @@
         "properties": {
           "metadata": {
             "type": "object",
+            "properties": {
+              "ttl": { "type": "string" }
+            },
             "example": {
               "account_sequence": 23,
               "recent_block_hash": "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5"
