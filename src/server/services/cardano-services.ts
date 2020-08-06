@@ -55,11 +55,8 @@ const configure = (logger: Logger): CardanoService => ({
       const hashBuffer = parsed && parsed.body() && Buffer.from(CardanoWasm.hash_transaction(parsed.body()).to_bytes());
       return hashFormatter(hashBuffer);
     } catch (error) {
-      logger.error(
-        { error },
-        '[getHashOfSignedTransaction] There was an error extracting hash from signed transaction'
-      );
-      throw ErrorFactory.hashOfSignedTransactionNotValid();
+      logger.error({ error }, '[getHashOfSignedTransaction] There was an error parsing signed transaction');
+      throw ErrorFactory.parseSignedTransactionError();
     }
   }
 });

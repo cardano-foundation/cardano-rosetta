@@ -21,7 +21,7 @@ const generatePayloadWithSignedTransaction = (blockchain: string, network: strin
 });
 
 const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
-const CONSTRUCTION_HASH_ENDPOINT = '/construction/endpoint';
+const CONSTRUCTION_HASH_ENDPOINT = '/construction/hash';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
 
 describe('Construction API', () => {
@@ -99,6 +99,20 @@ describe('Construction API', () => {
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
     });
+
+    test('Should return an error when the address has an invalid format', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_DERIVE_ENDPOINT,
+        payload: generatePayload(
+          'cardano',
+          'mainnet',
+          '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F__.'
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
+    });
   });
 
   describe(CONSTRUCTION_HASH_ENDPOINT, () => {
@@ -110,7 +124,7 @@ describe('Construction API', () => {
     test('Should return a valid hash when providing a proper signed transaction', async () => {
       const response = await server.inject({
         method: 'post',
-        url: '/construction/hash',
+        url: CONSTRUCTION_HASH_ENDPOINT,
         payload: generatePayloadWithSignedTransaction(
           'cardano',
           'mainnet',
@@ -125,29 +139,32 @@ describe('Construction API', () => {
     test('Should return an error when providing an invalid transaction', async () => {
       const response = await server.inject({
         method: 'post',
-        url: '/construction/hash',
+        url: CONSTRUCTION_HASH_ENDPOINT,
         payload: generatePayloadWithSignedTransaction('cardano', 'mainnet', 'InvalidHashForTransaction')
       });
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({
-        code: 4008,
-        message: 'Hash of signed transaction not valid',
+        code: 5005,
+        message: 'Parse signed transaction error',
         retriable: false
       });
     });
   });
 
-  test('Should return an error when the address has an invalid format', async () => {
+  // These function's parameters were created using `cardano-cli shelley transacion sign`
+  test('Should return a valid hash when providing a valid signed transaction', async () => {
     const response = await server.inject({
       method: 'post',
-      url: CONSTRUCTION_DERIVE_ENDPOINT,
-      payload: generatePayload(
+      url: CONSTRUCTION_HASH_ENDPOINT,
+      payload: generatePayloadWithSignedTransaction(
         'cardano',
         'mainnet',
-        '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F__.'
+        '83a4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314a10081825820d4b26cfd7d51b0c03bb899d7b55a0268e67110393b9426e88c21bd58c7bf14395840ee00ceaafc90676c7c19172aefd02721fe1a4443b01e82d498216d1b4d6f9beec3f98866b8a0cfddc5a2a94edcbab2a2638e161a143a43c1ffb776a8908ccd0ff6'
       )
     });
-    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      transaction_identifier: { hash: '0x31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90' }
+    });
   });
 });
