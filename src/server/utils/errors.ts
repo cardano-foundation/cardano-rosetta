@@ -48,7 +48,6 @@ const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.A
 const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
 const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
-const ttlOffsetNotFound: CreateErrorFunction = () => buildApiError(Errors.TTL_OFFSET_NOT_FOUND, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -62,6 +61,5 @@ export const ErrorFactory = {
   pageSizeNotFund,
   addressGenerationError,
   invalidPublicKeyFormat,
-  parseSignedTransactionError,
-  ttlOffsetNotFound
+  parseSignedTransactionError
 };
