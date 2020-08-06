@@ -170,8 +170,9 @@ const configure = (
     return response;
   },
   async block(request) {
-    logger.info(`[block] Looking for block ${request.block_identifier}`);
-    const block = await this.findBlock(request.block_identifier);
+    const blockIdentifier = request.block_identifier;
+    logger.info({ blockIdentifier }, '[block] Looking for block');
+    const block = await this.findBlock(blockIdentifier);
     if (block !== null) {
       logger.info('[block] Block was found');
       // This condition is needed as genesis tx count for mainnet is zero
