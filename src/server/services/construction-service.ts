@@ -4,7 +4,6 @@ import { NetworkRepository } from '../db/network-repository';
 import { withNetworkValidation } from './utils/services-helper';
 import { ErrorFactory } from '../utils/errors';
 import { MAINNET, TESTNET } from '../utils/constants';
-import { Network } from 'dockerode';
 
 export interface ConstructionService {
   constructionDerive(
@@ -73,6 +72,21 @@ const configure = (
       },
       logger
     ),
+  constructionHash: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () => {
+        const signedTransaction = request.signed_transaction;
+        logger.info('[constructionHash] About to get hash of signed transaction');
+        const transactionHash = cardanoService.getHashOfSignedTransaction(signedTransaction);
+        logger.info('[constructionHash] About to return hash of signed transaction');
+        // eslint-disable-next-line camelcase
+        return { transaction_identifier: { hash: transactionHash } };
+      },
+      logger
+    ),
   async constructionPreprocess(request) {
     return {
       code: 1,
@@ -104,13 +118,6 @@ const configure = (
   async constructionParse(request) {
     return {
       code: 5,
-      message: 'string',
-      retriable: true
-    };
-  },
-  async constructionHash(request) {
-    return {
-      code: 6,
       message: 'string',
       retriable: true
     };
