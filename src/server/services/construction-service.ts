@@ -109,13 +109,20 @@ const configure = (
       },
       logger
     ),
-  async constructionPayloads(request) {
-    return {
-      code: 3,
-      message: 'string',
-      retriable: true
-    };
-  },
+  constructionPayloads: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () => {
+        const ttl = request.metadata.relative_ttl;
+        const operations = request.operations;
+        const unsignedTransaction = cardanoService.createUnsignedTransaction(operations, ttl);
+        // eslint-disable-next-line camelcase
+        return { unsigned_transaction: unsignedTransaction, payloads: [] };
+      },
+      logger
+    ),
   async constructionCombine(request) {
     return {
       code: 4,

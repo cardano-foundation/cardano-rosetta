@@ -1499,7 +1499,7 @@
       "ConstructionPayloadsRequest": {
         "description": "ConstructionPayloadsRequest is the request to `/construction/payloads`. It contains the network, a slice of operations, and arbitrary metadata that was returned by the call to `/construction/metadata`.",
         "type": "object",
-        "required": ["network_identifier", "operations"],
+        "required": ["network_identifier", "operations", "metadata"],
         "properties": {
           "network_identifier": {
             "$ref": "#/components/schemas/NetworkIdentifier"
@@ -1511,7 +1511,11 @@
             }
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "required": ["relative_ttl"],
+            "properties": {
+              "relative_ttl": { "type": "string" }
+            }
           }
         }
       },

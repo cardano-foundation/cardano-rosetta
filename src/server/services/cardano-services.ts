@@ -14,6 +14,15 @@ export enum NetworkIdentifier {
 export interface CardanoService {
   generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): string | null;
   getHashOfSignedTransaction(signedTransaction: string): string;
+  parseInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInput[];
+  parseOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutput[];
+  createTransactionBody(
+    inputs: CardanoWasm.TransactionInput[],
+    outputs: CardanoWasm.TransactionOutput[],
+    fee: string,
+    ttl: number
+  ): CardanoWasm.TransactionBody;
+  createUnsignedTransaction(operations: Components.Schemas.Operation[], ttl: string): string;
 }
 
 const isKeyValid = (publicKeyBytes: string, key: Buffer, curveType: string): boolean =>
@@ -59,6 +68,10 @@ const configure = (logger: Logger): CardanoService => ({
       throw ErrorFactory.parseSignedTransactionError();
     }
   }
+  // createUnsignedTransaction(operations, ttl) {},
+  // createTransactionBody(inputs, outputs, fee, ttl) {},
+  // parseInputs(inputs) {},
+  // parseOutputs(outputs) {}
 });
 
 export default configure;
