@@ -36,7 +36,7 @@ const COIN_CREATED_ACTION = 'coin_created';
  * @param value
  * @param relatedOperations
  */
-const createOperation = (
+export const createOperation = (
   index: number,
   type: string,
   status: string,

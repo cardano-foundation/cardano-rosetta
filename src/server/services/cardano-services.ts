@@ -2,6 +2,9 @@ import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hashFormatter } from '../utils/formatters';
+import { createOperation } from './block-service';
+import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
+import { create } from 'domain';
 
 const PUBLIC_KEY_LENGTH = 32;
 const PUBLIC_KEY_BYTES_LENGTH = 64;
@@ -11,13 +14,68 @@ export enum NetworkIdentifier {
   CARDANO_MAINNET_NETWORK
 }
 
+export interface TransactionParsed {
+  operations: Components.Schemas.Operation[];
+  signers: string[];
+}
+
 export interface CardanoService {
   generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): string | null;
   getHashOfSignedTransaction(signedTransaction: string): string;
+  parseTransaction(signed: boolean, transaction: string): TransactionParsed;
 }
+
+const getSignatures = (witnessesSet: CardanoWasm.TransactionWitnessSet): string[] => {
+  const signatures = [];
+  const vkeys = witnessesSet.vkeys();
+  if (!vkeys) {
+    // fixme
+    throw new Error('asdas');
+  }
+  const signersLength = vkeys.len();
+  for (let signersIndex = 0; signersIndex < signersLength; signersIndex++) {
+    signatures.push(vkeys.get(signersIndex));
+  }
+  return signatures.map(vkey =>
+    vkey
+      ?.vkey()
+      // eslint-disable-next-line camelcase
+      .public_key()
+      // eslint-disable-next-line camelcase
+      .to_bech32()
+      .toString()
+  );
+};
 
 const isKeyValid = (publicKeyBytes: string, key: Buffer, curveType: string): boolean =>
   publicKeyBytes.length === PUBLIC_KEY_BYTES_LENGTH && key.length === PUBLIC_KEY_LENGTH && curveType === 'edwards25519';
+
+const getOperationFromInput = (input: CardanoWasm.TransactionInput) => ({
+  // eslint-disable-next-line camelcase
+  operation_identifier: { index: input.index() },
+  type: TRANSFER_OPERATION_TYPE,
+  status: SUCCESS_STATUS
+});
+
+const parseOperationsFromTransactionBody = (body: CardanoWasm.TransactionBody): Components.Schemas.Operation[] => {
+  const operations = [];
+  const inputs = body.inputs();
+  const inputsLength = inputs.len();
+  for (let inputsIndex = 0; inputsIndex < inputsLength; inputsIndex++) {
+    const input = inputs.get(inputsIndex);
+    operations.push(getOperationFromInput(input));
+  }
+
+  const outputs = body.outputs();
+  const outputsLength = outputs.len();
+  for (let outputsIndex = 0; outputsIndex < outputsLength; outputsIndex++) {
+    const output = outputs.get(outputsIndex);
+    // FIXME where do i extract index?
+    // output.
+    // operations.push()
+  }
+  return operations;
+};
 
 const configure = (logger: Logger): CardanoService => ({
   generateAddress(network, publicKey) {
@@ -58,6 +116,18 @@ const configure = (logger: Logger): CardanoService => ({
       logger.error({ error }, '[getHashOfSignedTransaction] There was an error parsing signed transaction');
       throw ErrorFactory.parseSignedTransactionError();
     }
+  },
+  parseTransaction(signed, transaction) {
+    const transactionBuffer = Buffer.from(transaction, 'hex');
+    if (signed) {
+      const parsed = CardanoWasm.Transaction.from_bytes(transactionBuffer);
+      const operations = parseOperationsFromTransactionBody(parsed.body());
+      const signatures = getSignatures(parsed.witness_set());
+      return { operations, signers: signatures };
+    }
+    const parsed = CardanoWasm.TransactionBody.from_bytes(transactionBuffer);
+    const operations = parseOperationsFromTransactionBody(parsed);
+    return { operations, signers: [] };
   }
 });
 
