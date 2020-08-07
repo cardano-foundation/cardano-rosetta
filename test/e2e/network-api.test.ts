@@ -98,7 +98,10 @@ const allow = {
       code: 5007,
       message: 'Cant build witnesses set for transaction probably because of provided signatures',
       retriable: false
-    }
+    },
+    { code: 4008, message: 'Transaction inputs parameters errors in operations array', retriable: false },
+    { code: 4009, message: 'Transaction outputs parameters errors in operations array', retriable: false },
+    { code: 4010, message: 'The transaction you are trying to build has more outputs than inputs', retriable: false }
   ],
   historical_balance_lookup: true
 };

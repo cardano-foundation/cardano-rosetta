@@ -4,6 +4,11 @@ import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { setupDatabase, setupServer } from './utils/test-utils';
+import {
+  CONSTRUCTION_PAYLOADS_REQUEST,
+  CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
+  CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS
+} from './fixture-data';
 
 const generatePayload = (blockchain: string, network: string, key?: string, curveType?: string) => ({
   network_identifier: {
@@ -34,6 +39,7 @@ const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
 const CONSTRUCTION_HASH_ENDPOINT = '/construction/hash';
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 const CONSTRUCTION_COMBINE_ENDPOINT = '/construction/combine';
+const CONSTRUCTION_PAYLOADS_ENDPOINT = '/construction/payloads';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
 
 describe('Construction API', () => {
@@ -335,6 +341,73 @@ describe('Construction API', () => {
       expect(response.json()).toEqual({
         code: 5006,
         message: 'Cant create signed transaction probably because of unsigned transaction bytes',
+        retriable: false
+      });
+    });
+  });
+
+  describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
+    test('Should return a valid unsigned transaction hash whenever valid operations are sent as parameters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+        payload: CONSTRUCTION_PAYLOADS_REQUEST
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        unsigned_transaction:
+          'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
+        payloads: [
+          {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+            hex_bytes: '0x333a6ccaaa639f7b451ce93764f54f654ef499fdb7b8b24374ee9d99eab9d795',
+            signature_type: 'ecdsa'
+          }
+        ]
+      });
+    });
+    test('Should throw an erorr when invalid inputs are sent as parameters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+        payload: CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4008,
+        message: 'Transaction inputs parameters errors in operations array',
+        retriable: false
+      });
+    });
+
+    test('Should throw an erorr when invalid outputs are sent as parameters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+        payload: CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4009,
+        message: 'Transaction outputs parameters errors in operations array',
+        retriable: false
+      });
+    });
+
+    test('Should throw an erorr when more outputs sum is bigger than inputs sum', async () => {
+      // We are triplicating the last output of 40k amount
+      const bigOutput = CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS.operations[2];
+      CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS.operations.push(bigOutput);
+      CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS.operations.push(bigOutput);
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+        payload: CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4010,
+        message: 'The transaction you are trying to build has more outputs than inputs',
         retriable: false
       });
     });
