@@ -11,9 +11,16 @@ export enum NetworkIdentifier {
   CARDANO_MAINNET_NETWORK
 }
 
+export interface Signatures {
+  signature: string;
+  publicKey: string;
+}
+
 export interface CardanoService {
   generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): string | null;
   getHashOfSignedTransaction(signedTransaction: string): string;
+  buildTransaction(unsignedTransaction: string, signatures: Signatures[]): string;
+  getWitnessesForTransaction(signatures: Signatures[]): CardanoWasm.TransactionWitnessSet;
 }
 
 const isKeyValid = (publicKeyBytes: string, key: Buffer, curveType: string): boolean =>
@@ -57,6 +64,37 @@ const configure = (logger: Logger): CardanoService => ({
     } catch (error) {
       logger.error({ error }, '[getHashOfSignedTransaction] There was an error parsing signed transaction');
       throw ErrorFactory.parseSignedTransactionError();
+    }
+  },
+  getWitnessesForTransaction(signatures) {
+    try {
+      const witnesses = CardanoWasm.TransactionWitnessSet.new();
+      const vkeyWitnesses = CardanoWasm.Vkeywitnesses.new();
+
+      logger.info('[getWitnessesForTransaction] Extracting witnesses from signatures');
+      signatures.forEach(signature => {
+        vkeyWitnesses.add(CardanoWasm.Vkeywitness.from_bytes(Buffer.from(signature.signature, 'hex')));
+      });
+      logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len} witnesses were extracted to sign transaction`);
+      witnesses.set_vkeys(vkeyWitnesses);
+      return witnesses;
+    } catch (error) {
+      logger.error({ error }, '[getWitnessesForTransaction] There was an error building witnesses set for transaction');
+      throw ErrorFactory.cantBuildWitnessesSet();
+    }
+  },
+  buildTransaction(unsignedTransaction, signatures) {
+    logger.info(`[buildTransaction] About to signed a transaction with ${signatures.length} signatures`);
+    const witnesses = this.getWitnessesForTransaction(signatures);
+    try {
+      logger.info('[buildTransaction] Instantiating transaction body from unsigned transaction bytes');
+      const transactionBody = CardanoWasm.TransactionBody.from_bytes(Buffer.from(unsignedTransaction, 'hex'));
+
+      logger.info('[buildTransaction] Creating transaction using transaction body and extracted witnesses');
+      return hashFormatter(Buffer.from(CardanoWasm.Transaction.new(transactionBody, witnesses).to_bytes()));
+    } catch (error) {
+      logger.error({ error }, '[buildTransaction] There was an error building signed transaction');
+      throw ErrorFactory.cantBuildSignedTransaction();
     }
   }
 });

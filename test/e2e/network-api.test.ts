@@ -88,7 +88,17 @@ const allow = {
     { code: 5003, message: 'Page size config not found', retriable: false },
     { code: 5004, message: 'Address generation error', retriable: false },
     { code: 4007, message: 'Invalid public key format', retriable: false },
-    { code: 5005, message: 'Parse signed transaction error', retriable: false }
+    { code: 5005, message: 'Parse signed transaction error', retriable: false },
+    {
+      code: 5006,
+      message: 'Cant create signed transaction probably because of unsigned transaction bytes',
+      retriable: false
+    },
+    {
+      code: 5007,
+      message: 'Cant build witnesses set for transaction probably because of provided signatures',
+      retriable: false
+    }
   ],
   historical_balance_lookup: true
 };
