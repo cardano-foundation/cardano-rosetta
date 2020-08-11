@@ -219,6 +219,17 @@ describe('Construction API', () => {
   });
 
   describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
+    /**
+     * All test vectors built in /construction/combine tests were generated using these scripts:
+     * $> cardano-cli shelley transaction build-raw \
+     *    --tx-in 10c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e#0 \
+     *    --tx-out Ae2tdPwUPEYwvsWu2uaXGK8NQN2R97J9qDbYqqVnFnBotch3Sjvmzoop3eM+20 --ttl 20 \
+     *    --fee 177398 --out-file /tmp/unsigned.txt
+     * $> cardano-cli shelley transaction witness --tx-body-file /tmp/unsigned.txt \
+     *    --mainnet --out-file /tmp/witness --witness-signing-key-file ../sign.txt
+     * $> cardano-cli shelley transaction sign --tx-body-file /tmp/unsigned.txt \
+     *    --mainnet --out-file /tmp/signed --signing-key-file ../sign.txt
+     */
     test('Should return signed transaction when providing valide unsigned transaction and signatures', async () => {
       const payload = {
         network_identifier: {
@@ -265,7 +276,7 @@ describe('Construction API', () => {
         signatures: [
           {
             signing_payload: {
-              address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+              address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkx',
               hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
               signature_type: 'ecdsa'
             },
@@ -284,7 +295,48 @@ describe('Construction API', () => {
         payload
       });
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.json()).toEqual({ code: 5006, message: 'Cant create signed transaction', retriable: false });
+      expect(response.json()).toEqual({
+        code: 5007,
+        message: 'Cant build witnesses set for transaction probably because of provided signatures',
+        retriable: false
+      });
+    });
+
+    test('Should return error when providing valid signatures but invalid transactions', async () => {
+      const payload = {
+        network_identifier: {
+          blockchain: 'cardano',
+          network: 'mainnet'
+        },
+        unsigned_transaction: 'InvalidTransaction',
+        signatures: [
+          {
+            signing_payload: {
+              address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+              hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
+              signature_type: 'ecdsa'
+            },
+            public_key: {
+              hex_bytes: '58201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f',
+              curve_type: 'edwards25519'
+            },
+            signature_type: 'ecdsa',
+            hex_bytes:
+              '8258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206'
+          }
+        ]
+      };
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_COMBINE_ENDPOINT,
+        payload
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 5006,
+        message: 'Cant create signed transaction probably because of unsigned transaction bytes',
+        retriable: false
+      });
     });
   });
 });

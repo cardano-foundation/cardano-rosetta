@@ -123,7 +123,7 @@ const configure = (
       request,
       async () => {
         logger.info('[constructionCombine] Request received to sign a transaction');
-        const signedTransaction = cardanoService.signTransaction(
+        const signedTransaction = cardanoService.buildTransaction(
           request.unsigned_transaction,
           request.signatures.map(signature => ({
             signature: signature.hex_bytes,

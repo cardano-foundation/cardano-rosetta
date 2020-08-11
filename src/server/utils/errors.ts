@@ -28,7 +28,14 @@ export const Errors = {
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5004 },
   INVALID_PUBLIC_KEY_FORMAT: { message: 'Invalid public key format', code: 4007 },
   PARSE_SIGNED_TRANSACTION_ERROR: { message: 'Parse signed transaction error', code: 5005 },
-  CANT_CREATE_SIGN_TRANSACTION: { message: 'Cant create signed transaction', code: 5006 }
+  CANT_CREATE_SIGN_TRANSACTION: {
+    message: 'Cant create signed transaction probably because of unsigned transaction bytes',
+    code: 5006
+  },
+  CANT_BUILD_WITNESSES_SET: {
+    message: 'Cant build witnesses set for transaction probably because of provided signatures',
+    code: 5007
+  }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -48,7 +55,8 @@ const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.A
 const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
 const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
-const cantCreateSignTransaction: CreateErrorFunction = () => buildApiError(Errors.CANT_CREATE_SIGN_TRANSACTION, false);
+const cantBuildWitnessesSet: CreateErrorFunction = () => buildApiError(Errors.CANT_BUILD_WITNESSES_SET, false);
+const cantBuildSignedTransaction: CreateErrorFunction = () => buildApiError(Errors.CANT_CREATE_SIGN_TRANSACTION, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -63,5 +71,6 @@ export const ErrorFactory = {
   addressGenerationError,
   invalidPublicKeyFormat,
   parseSignedTransactionError,
-  cantCreateSignTransaction
+  cantBuildSignedTransaction,
+  cantBuildWitnessesSet
 };
