@@ -402,14 +402,6 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
         index: 1,
         network_index: 0
       },
-      related_operations: [
-        {
-          index: 0,
-          operation_identifier: {
-            index: 0
-          }
-        }
-      ],
       type: 'Transfer',
       status: 'Success',
       account: {
@@ -441,7 +433,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
       },
       related_operations: [
         {
-          index: 1,
+          index: 0,
           operation_identifier: {
             index: 0
           }
@@ -467,12 +459,12 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
     },
     {
       operation_identifier: {
-        index: 1,
+        index: 2,
         network_index: 0
       },
       related_operations: [
         {
-          index: 2,
+          index: 0,
           operation_identifier: {
             index: 0
           }
