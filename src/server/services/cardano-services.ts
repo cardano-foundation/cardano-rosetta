@@ -1,11 +1,10 @@
 import CardanoWasm, { TransactionOutputs, TransactionInputs, BigNum } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
-import { hashFormatter, hexFormatter } from '../utils/formatters';
+import { hexFormatter } from '../utils/formatters';
 
 const PUBLIC_KEY_LENGTH = 32;
 const PUBLIC_KEY_BYTES_LENGTH = 64;
-const TRANSACTION_HASH_LENGTH = 64;
 
 export enum NetworkIdentifier {
   CARDANO_TESTNET_NETWORK = 0,
@@ -27,10 +26,10 @@ export interface CardanoService {
   getHashOfSignedTransaction(signedTransaction: string): string;
   buildTransaction(unsignedTransaction: string, signatures: Signatures[]): string;
   getWitnessesForTransaction(signatures: Signatures[]): CardanoWasm.TransactionWitnessSet;
-  parseInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInputs;
-  validateAndParseInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInput[];
-  parseOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutputs;
-  validateOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutput[];
+  getTransactionInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInputs;
+  validateAndParseTransactionInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInput[];
+  getTransactionOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutputs;
+  validateAndParseTransactionOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutput[];
   createTransactionBody(
     inputs: CardanoWasm.TransactionInputs,
     outputs: CardanoWasm.TransactionOutputs,
@@ -86,7 +85,7 @@ const configure = (logger: Logger): CardanoService => ({
       const parsed = CardanoWasm.Transaction.from_bytes(signedTransactionBytes);
       logger.info('[getHashOfSignedTransaction] Returning transaction hash');
       const hashBuffer = parsed && parsed.body() && Buffer.from(CardanoWasm.hash_transaction(parsed.body()).to_bytes());
-      return hashFormatter(hashBuffer);
+      return hexFormatter(hashBuffer);
     } catch (error) {
       logger.error({ error }, '[getHashOfSignedTransaction] There was an error parsing signed transaction');
       throw ErrorFactory.parseSignedTransactionError();
@@ -117,43 +116,44 @@ const configure = (logger: Logger): CardanoService => ({
       const transactionBody = CardanoWasm.TransactionBody.from_bytes(Buffer.from(unsignedTransaction, 'hex'));
 
       logger.info('[buildTransaction] Creating transaction using transaction body and extracted witnesses');
-      return hashFormatter(Buffer.from(CardanoWasm.Transaction.new(transactionBody, witnesses).to_bytes()));
+      return hexFormatter(Buffer.from(CardanoWasm.Transaction.new(transactionBody, witnesses).to_bytes()));
     } catch (error) {
       logger.error({ error }, '[buildTransaction] There was an error building signed transaction');
       throw ErrorFactory.cantBuildSignedTransaction();
     }
   },
-  validateAndParseInputs(inputs) {
+  validateAndParseTransactionInputs(inputs) {
     return inputs.map(input => {
       // eslint-disable-next-line camelcase
-      const transactionId =
-        input.coin_change &&
-        CardanoWasm.TransactionHash.from_bytes(
-          Buffer.from(input.coin_change.coin_identifier.identifier.slice(0, TRANSACTION_HASH_LENGTH), 'hex')
-        );
-      const index = input.operation_identifier.index;
+      if (!input.coin_change) {
+        throw ErrorFactory.transactionInputsParametersMissingError();
+      }
+      const [transactionId, index] = input.coin_change && input.coin_change.coin_identifier.identifier.split(':');
       if (!(transactionId && index)) {
         throw ErrorFactory.transactionInputsParametersMissingError();
       }
-      return CardanoWasm.TransactionInput.new(transactionId, index);
+      return CardanoWasm.TransactionInput.new(
+        CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
+        Number(index)
+      );
     });
   },
-  parseInputs(inputs) {
+  getTransactionInputs(inputs) {
     try {
-      logger.info(`[parseInputs] About to parse ${inputs.length} inputs`);
+      logger.info(`[getTransactionInputs] About to parse ${inputs.length} inputs`);
       const transactionInputs = TransactionInputs.new();
-      logger.debug('[parseInputs] About to validate and parse inputs');
-      const inputsParsed = this.validateAndParseInputs(inputs);
-      logger.info('[parseInputs] Creating inputs for transactions body instance');
+      logger.debug('[getTransactionInputs] About to validate and parse inputs');
+      const inputsParsed = this.validateAndParseTransactionInputs(inputs);
+      logger.info('[getTransactionInputs] Creating inputs for transactions body instance');
       inputsParsed.forEach(inputParsed => transactionInputs.add(inputParsed));
-      logger.info('[parseInputs] Transaction inputs were created');
+      logger.info('[getTransactionInputs] Transaction inputs were created');
       return transactionInputs;
     } catch (error) {
-      logger.error('[parseInputs] There was an error parsing inputs, parameters are not valid');
+      logger.error('[getTransactionInputs] There was an error parsing inputs, parameters are not valid');
       throw ErrorFactory.transactionInputsParametersMissingError();
     }
   },
-  validateOutputs(outputs) {
+  validateAndParseTransactionOutputs(outputs) {
     return outputs.map(output => {
       // eslint-disable-next-line camelcase
       const address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
@@ -164,20 +164,20 @@ const configure = (logger: Logger): CardanoService => ({
       return CardanoWasm.TransactionOutput.new(address, value);
     });
   },
-  parseOutputs(outputs) {
+  getTransactionOutputs(outputs) {
     try {
-      logger.info(`[parseOutputs] About to parse ${outputs.length} outputs`);
+      logger.info(`[getTransactionOutputs] About to parse ${outputs.length} outputs`);
       const transactionOutputs = TransactionOutputs.new();
-      logger.debug('[parseOutputs] About to validate and parse outputs');
-      const outputsParsed = this.validateOutputs(outputs);
-      logger.info('[parseOutputs] Creating outputs for transactions body instance');
+      logger.debug('[getTransactionOutputs] About to validate and parse outputs');
+      const outputsParsed = this.validateAndParseTransactionOutputs(outputs);
+      logger.info('[getTransactionOutputs] Creating outputs for transactions body instance');
       outputsParsed.forEach(outputParsed => {
         transactionOutputs.add(outputParsed);
       });
-      logger.info('[parseOutputs] Transaction outputs were created');
+      logger.info('[getTransactionOutputs] Transaction outputs were created');
       return transactionOutputs;
     } catch (error) {
-      logger.error('[parseOutputs] There was an error parsing outputs, parameters are not valid');
+      logger.error('[getTransactionOutputs] There was an error parsing outputs, parameters are not valid');
       throw ErrorFactory.transactionOutputsParametersMissingError();
     }
   },
@@ -191,15 +191,15 @@ const configure = (logger: Logger): CardanoService => ({
     const fee = calculateFee(inputs, outputs);
     logger.info('[createUnsignedTransaction] About to create transaction body');
     const transactionBody = this.createTransactionBody(
-      this.parseInputs(inputs),
-      this.parseOutputs(outputs),
+      this.getTransactionInputs(inputs),
+      this.getTransactionOutputs(outputs),
       fee,
       Number(ttl)
     );
     logger.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
     const addresses = inputs.map(input => {
       if (input.account) return input.account?.address;
-      // This logic is not necessary (because it is made on this.parseInputs(..)) but ts expects me to do it again
+      // This logic is not necessary (because it is made on this.getTransactionInputs(..)) but ts expects me to do it again
       throw ErrorFactory.transactionInputsParametersMissingError();
     });
     const transactionBytes = hexFormatter(Buffer.from(transactionBody.to_bytes()));
@@ -210,7 +210,7 @@ const configure = (logger: Logger): CardanoService => ({
     );
     return {
       bytes: transactionBytes,
-      hash: hashFormatter(Buffer.from(bodyHash)),
+      hash: hexFormatter(Buffer.from(bodyHash)),
       addresses
     };
   },

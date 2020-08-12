@@ -1,5 +1,5 @@
 import { Pool, QueryResult } from 'pg';
-import { hashFormatter, hashStringToBuffer, replace0xOnHash } from '../utils/formatters';
+import { hexFormatter, hashStringToBuffer, replace0xOnHash } from '../utils/formatters';
 import Queries, {
   FindTransactionsInputs,
   FindTransactionsOutputs,
@@ -126,8 +126,8 @@ export interface BlockchainRepository {
  */
 const parseTransactionRows = (result: QueryResult<FindTransaction>): Transaction[] =>
   result.rows.map(row => ({
-    hash: hashFormatter(row.hash),
-    blockHash: row.blockHash && hashFormatter(row.blockHash),
+    hash: hexFormatter(row.hash),
+    blockHash: row.blockHash && hexFormatter(row.blockHash),
     fee: row.fee,
     size: row.size
   }));
@@ -164,7 +164,7 @@ const parseInputsRows = (
   inputs: FindTransactionsInputs[]
 ) =>
   inputs.reduce((updatedTransactionsMap, input) => {
-    const transaction = updatedTransactionsMap[hashFormatter(input.txHash)];
+    const transaction = updatedTransactionsMap[hexFormatter(input.txHash)];
     // This case is not supposed to happen but still this if is required
     if (transaction) {
       const transactionWithInputs: TransactionWithInputsAndOutputs = {
@@ -172,7 +172,7 @@ const parseInputsRows = (
         inputs: transaction.inputs.concat({
           address: input.address,
           value: input.value,
-          sourceTransactionHash: hashFormatter(input.sourceTxHash),
+          sourceTransactionHash: hexFormatter(input.sourceTxHash),
           sourceTransactionIndex: input.sourceTxIndex
         })
       };
@@ -195,7 +195,7 @@ const parseOutputRows = (
   outputs: FindTransactionsOutputs[]
 ) =>
   outputs.reduce((updatedTransactionsMap, output) => {
-    const transaction = updatedTransactionsMap[hashFormatter(output.txHash)];
+    const transaction = updatedTransactionsMap[hexFormatter(output.txHash)];
     if (transaction) {
       const transactionWithOutputs = {
         ...transaction,
@@ -265,9 +265,9 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
       } = result.rows[0];
       return {
         number,
-        hash: hashFormatter(hash),
+        hash: hexFormatter(hash),
         createdAt,
-        previousBlockHash: previousBlockHash && hashFormatter(previousBlockHash),
+        previousBlockHash: previousBlockHash && hexFormatter(previousBlockHash),
         previousBlockNumber,
         transactionsCount,
         createdBy,
@@ -370,7 +370,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     const result = await databaseInstance.query(Queries.findGenesisBlock);
     if (result.rows.length === 1) {
       logger.debug('[findGenesisBlock] Genesis block was found');
-      return { hash: hashFormatter(result.rows[0].hash), index: result.rows[0].index };
+      return { hash: hexFormatter(result.rows[0].hash), index: result.rows[0].index };
     }
     logger.debug('[findGenesisBlock] Genesis block was not found');
     return null;
@@ -385,7 +385,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     logger.debug(`[findUtxoByAddressAndBlock] Found ${result.rowCount} utxos`);
     return result.rows.map(utxo => ({
       value: utxo.value,
-      transactionHash: hashFormatter(utxo.txHash),
+      transactionHash: hexFormatter(utxo.txHash),
       index: utxo.index
     }));
   }
