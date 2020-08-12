@@ -27,9 +27,9 @@ export interface CardanoService {
   buildTransaction(unsignedTransaction: string, signatures: Signatures[]): string;
   getWitnessesForTransaction(signatures: Signatures[]): CardanoWasm.TransactionWitnessSet;
   getTransactionInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInputs;
-  validateAndParseTransactionInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInput[];
+  validateAndParseTransactionInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInputs;
   getTransactionOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutputs;
-  validateAndParseTransactionOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutput[];
+  validateAndParseTransactionOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutputs;
   createTransactionBody(
     inputs: CardanoWasm.TransactionInputs,
     outputs: CardanoWasm.TransactionOutputs,
@@ -123,29 +123,31 @@ const configure = (logger: Logger): CardanoService => ({
     }
   },
   validateAndParseTransactionInputs(inputs) {
-    return inputs.map(input => {
+    const transactionInputs = CardanoWasm.TransactionInputs.new();
+    inputs.forEach(input => {
       // eslint-disable-next-line camelcase
       if (!input.coin_change) {
+        logger.error('[validateAndParseTransactionInputs] Inputs have missing parameters');
         throw ErrorFactory.transactionInputsParametersMissingError();
       }
       const [transactionId, index] = input.coin_change && input.coin_change.coin_identifier.identifier.split(':');
       if (!(transactionId && index)) {
+        logger.error('[validateAndParseTransactionInputs] Inputs have missing parameters');
         throw ErrorFactory.transactionInputsParametersMissingError();
       }
-      return CardanoWasm.TransactionInput.new(
-        CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
-        Number(index)
+      transactionInputs.add(
+        CardanoWasm.TransactionInput.new(
+          CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
+          Number(index)
+        )
       );
     });
+    return transactionInputs;
   },
   getTransactionInputs(inputs) {
     try {
       logger.info(`[getTransactionInputs] About to parse ${inputs.length} inputs`);
-      const transactionInputs = TransactionInputs.new();
-      logger.debug('[getTransactionInputs] About to validate and parse inputs');
-      const inputsParsed = this.validateAndParseTransactionInputs(inputs);
-      logger.info('[getTransactionInputs] Creating inputs for transactions body instance');
-      inputsParsed.forEach(inputParsed => transactionInputs.add(inputParsed));
+      const transactionInputs = this.validateAndParseTransactionInputs(inputs);
       logger.info('[getTransactionInputs] Transaction inputs were created');
       return transactionInputs;
     } catch (error) {
@@ -154,30 +156,27 @@ const configure = (logger: Logger): CardanoService => ({
     }
   },
   validateAndParseTransactionOutputs(outputs) {
-    return outputs.map(output => {
+    const transactionOutputs = CardanoWasm.TransactionOutputs.new();
+    outputs.forEach(output => {
       // eslint-disable-next-line camelcase
       const address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
       const value = output.amount && BigNum.from_str(output.amount.value);
       if (!(address && value)) {
+        logger.error('[validateAndParseTransactionOutputs] Outputs have missing parameters');
         throw ErrorFactory.transactionOutputsParametersMissingError();
       }
-      return CardanoWasm.TransactionOutput.new(address, value);
+      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, value));
     });
+    return transactionOutputs;
   },
   getTransactionOutputs(outputs) {
     try {
       logger.info(`[getTransactionOutputs] About to parse ${outputs.length} outputs`);
-      const transactionOutputs = TransactionOutputs.new();
-      logger.debug('[getTransactionOutputs] About to validate and parse outputs');
-      const outputsParsed = this.validateAndParseTransactionOutputs(outputs);
-      logger.info('[getTransactionOutputs] Creating outputs for transactions body instance');
-      outputsParsed.forEach(outputParsed => {
-        transactionOutputs.add(outputParsed);
-      });
+      const transactionOutputs = this.validateAndParseTransactionOutputs(outputs);
       logger.info('[getTransactionOutputs] Transaction outputs were created');
       return transactionOutputs;
     } catch (error) {
-      logger.error('[getTransactionOutputs] There was an error parsing outputs, parameters are not valid');
+      logger.error('[getTransactionOutputs] There was an erryqor parsing outputs, parameters are not valid');
       throw ErrorFactory.transactionOutputsParametersMissingError();
     }
   },
