@@ -81,7 +81,16 @@ const getCoinChange = (index: number, hash: string): Components.Schemas.CoinChan
  */
 const mapToRosettaTransaction = (transaction: TransactionWithInputsAndOutputs): Components.Schemas.Transaction => {
   const inputsAsOperations = transaction.inputs.map((input, index) =>
-    createOperation(index, TRANSFER_OPERATION_TYPE, SUCCESS_STATUS, input.address, `-${input.value}`)
+    createOperation(
+      index,
+      TRANSFER_OPERATION_TYPE,
+      SUCCESS_STATUS,
+      input.address,
+      `-${input.value}`,
+      undefined,
+      undefined,
+      getCoinChange(input.sourceTransactionIndex, input.sourceTransactionHash)
+    )
   );
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
@@ -97,8 +106,7 @@ const mapToRosettaTransaction = (transaction: TransactionWithInputsAndOutputs): 
       output.address,
       output.value,
       relatedOperations,
-      output.index,
-      getCoinChange(output.index, transaction.hash)
+      output.index
     )
   );
 
