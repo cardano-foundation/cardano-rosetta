@@ -87,7 +87,7 @@ export const block23236WithTransactions = {
             coin_change: {
               coin_action: 'coin_created',
               coin_identifier: {
-                identifier: '0xabbeb108ebc3990c7f031113bcb8ce8f306a1eec8f313acffcdcd256379208f4:0'
+                identifier: '0x9c239b53d895038e702b7c63b7a9ca3a54385e04a4b8d69227119c2358150a77:0'
               }
             }
           },
@@ -141,7 +141,7 @@ export const block23236WithTransactions = {
             coin_change: {
               coin_action: 'coin_created',
               coin_identifier: {
-                identifier: '0xd864f781436f0122a21335b672fe7943ab1d123f6c2ed770541669d70a870d75:0'
+                identifier: '0xd967be1c496a5321e0c9424a8cc33e8c161c79f64dad465dd0bfbe0abcfde1ef:0'
               }
             }
           },
@@ -219,7 +219,7 @@ export const block7134WithTxs = {
             coin_change: {
               coin_action: 'coin_created',
               coin_identifier: {
-                identifier: '0xc950e0d7d898a392ccf458a75728aa35afd4bd3776f118cbf0e0abb315205bc4:0'
+                identifier: '0xa9e4413a5fb61a7a43c7df006ffcaaf3f2ffc9541f54757023968c5a8f8294fd:0'
               }
             }
           },

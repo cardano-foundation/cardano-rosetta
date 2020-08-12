@@ -89,7 +89,7 @@ const mapToRosettaTransaction = (transaction: TransactionWithInputsAndOutputs): 
       `-${input.value}`,
       undefined,
       undefined,
-      getCoinChange(index, transaction.hash)
+      getCoinChange(input.sourceTransactionIndex, input.sourceTransactionHash)
     )
   );
   // Output related operations are all the inputs.This will iterate over the collection again
