@@ -347,6 +347,19 @@ describe('Construction API', () => {
   });
 
   describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
+    // This test vector was generated using
+    // ./cardano-cli shelley transaction build-raw --tx-in 2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f#1 \
+    //  --tx-out addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx +10000 \
+    //  --tx-out addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx+40000  --ttl 1000 --fee 40000 --out-file /tmp/tx.txt
+    //     And the output was hashed using:
+    // import { createHash } from "blake2";
+    // const txBuffer = Buffer.from(
+    //   "a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8",
+    //   "hex"
+    // );
+    // var h = createHash("blake2b", { digestLength: 32 });
+    // h.update(txBuffer);
+    // console.log(h.digest("hex"))
     test('Should return a valid unsigned transaction hash whenever valid operations are sent as parameters', async () => {
       const response = await server.inject({
         method: 'post',
