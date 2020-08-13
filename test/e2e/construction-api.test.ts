@@ -7,9 +7,10 @@ import { setupDatabase, setupServer, testInvalidNetworkParameters } from './util
 import {
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
-  CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS
+  CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS,
+  transactionParsedOperations
 } from './fixture-data';
-import { SIGNATURE_TYPE } from '../../src/server/utils/constants';
+import { CARDANO, MAINNET, SIGNATURE_TYPE } from '../../src/server/utils/constants';
 
 const generatePayload = (blockchain: string, network: string, key?: string, curveType?: string) => ({
   network_identifier: {
@@ -53,6 +54,7 @@ const CONSTRUCTION_PREPROCESS_ENDPOINT = '/construction/preprocess';
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 const CONSTRUCTION_COMBINE_ENDPOINT = '/construction/combine';
 const CONSTRUCTION_PAYLOADS_ENDPOINT = '/construction/payloads';
+const CONSTRUCTION_PARSE_ENDPOINT = '/construction/parse';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
 
 describe('Construction API', () => {
@@ -467,6 +469,123 @@ describe('Construction API', () => {
         code: 4010,
         message: 'The transaction you are trying to build has more outputs than inputs',
         retriable: false
+      });
+    });
+  });
+
+  describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
+    describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
+      test('Should return all operations and signers if a valid signed transaction is set', async () => {
+        const signedTransaction =
+          '83a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6';
+        const response = await server.inject({
+          method: 'post',
+          url: CONSTRUCTION_PARSE_ENDPOINT,
+          payload: {
+            network_identifier: { blockchain: CARDANO, network: MAINNET },
+            signed: true,
+            transaction: signedTransaction
+          }
+        });
+        expect(response.statusCode).toEqual(StatusCodes.OK);
+        expect(response.json().operations).toEqual(transactionParsedOperations);
+        expect(response.json().signers).toEqual([
+          'ed25519_pk1rdqq6c927d827mwt4wdm53sqrg35j7yxeugsvmmcg6fn6v8945lsxg2h0c'
+        ]);
+      });
+
+      test('Should return all operations and empty signers if a valid unsigned transaction is set', async () => {
+        const unsignedTransaction =
+          'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8';
+        const response = await server.inject({
+          method: 'post',
+          url: CONSTRUCTION_PARSE_ENDPOINT,
+          payload: {
+            network_identifier: { blockchain: CARDANO, network: MAINNET },
+            signed: false,
+            transaction: unsignedTransaction
+          }
+        });
+
+        expect(response.statusCode).toEqual(StatusCodes.OK);
+        expect(response.json().operations).toEqual(transactionParsedOperations);
+        expect(response.json().signers).toEqual([]);
+      });
+
+      test('Should throw an error when invalid signed transaction bytes are provided', async () => {
+        const response = await server.inject({
+          method: 'post',
+          url: CONSTRUCTION_PARSE_ENDPOINT,
+          payload: {
+            network_identifier: { blockchain: CARDANO, network: MAINNET },
+            signed: true,
+            transaction: 'invalidSignedTransactionBytes'
+          }
+        });
+        expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.json()).toEqual({
+          code: 4011,
+          message: 'Cant create signed transaction from transaction bytes',
+          retriable: false
+        });
+      });
+
+      test('Should throw an error when invalid unsigned transaction bytes are provided', async () => {
+        const response = await server.inject({
+          method: 'post',
+          url: CONSTRUCTION_PARSE_ENDPOINT,
+          payload: {
+            network_identifier: { blockchain: CARDANO, network: MAINNET },
+            signed: false,
+            transaction: 'invalidUnsignedTransactionBytes'
+          }
+        });
+        expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.json()).toEqual({
+          code: 4012,
+          message: 'Cant create unsigned transaction from transaction bytes',
+          retriable: false
+        });
+      });
+
+      test('Should throw an error when valid unsigned transaction bytes but signed flag is true are provided', async () => {
+        const unsignedTransaction =
+          '0xa4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314';
+        const response = await server.inject({
+          method: 'post',
+          url: CONSTRUCTION_PARSE_ENDPOINT,
+          payload: {
+            network_identifier: { blockchain: CARDANO, network: MAINNET },
+            signed: true,
+            transaction: unsignedTransaction
+          }
+        });
+        expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.json()).toEqual({
+          code: 4011,
+          message: 'Cant create signed transaction from transaction bytes',
+          retriable: false
+        });
+      });
+
+      test('Should throw an error when valid signed transaction bytes but signed flag is false are provided', async () => {
+        const signedTransaction =
+          '0x83a4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6';
+        const response = await server.inject({
+          method: 'post',
+          url: CONSTRUCTION_PARSE_ENDPOINT,
+          payload: {
+            network_identifier: { blockchain: CARDANO, network: MAINNET },
+            signed: false,
+            transaction: signedTransaction
+          }
+        });
+        expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+        expect(response.json()).toEqual({
+          code: 4012,
+          message: 'Cant create unsigned transaction from transaction bytes',
+          retriable: false
+        });
       });
     });
   });

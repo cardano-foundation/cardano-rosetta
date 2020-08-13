@@ -154,13 +154,28 @@ const configure = (
       },
       logger
     ),
-  async constructionParse(request) {
-    return {
-      code: 5,
-      message: 'string',
-      retriable: true
-    };
-  },
+  constructionParse: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () => {
+        const signed = request.signed;
+        if (signed) {
+          return {
+            // eslint-disable-next-line camelcase
+            network_identifier: request.network_identifier,
+            ...cardanoService.parseSignedTransaction(request.transaction)
+          };
+        }
+        return {
+          // eslint-disable-next-line camelcase
+          network_identifier: request.network_identifier,
+          ...cardanoService.parseUnsignedTransaction(request.transaction)
+        };
+      },
+      logger
+    ),
   async constructionSubmit(request) {
     return {
       code: 7,

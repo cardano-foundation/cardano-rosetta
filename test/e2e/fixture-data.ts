@@ -727,3 +727,47 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
     ttl: 1000
   }
 };
+
+export const transactionParsedOperations = [
+  {
+    operation_identifier: { index: 0 },
+    type: 'transfer',
+    status: 'success',
+    coin_change: {
+      coin_identifier: {
+        identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+      },
+      coin_action: 'coin_created'
+    }
+  },
+  {
+    operation_identifier: { index: 1 },
+    type: 'transfer',
+    status: 'success',
+    account: {
+      address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+    },
+    amount: {
+      value: '40000',
+      currency: {
+        symbol: 'ADA',
+        decimals: 6
+      }
+    }
+  },
+  {
+    operation_identifier: { index: 2 },
+    type: 'transfer',
+    status: 'success',
+    account: {
+      address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+    },
+    amount: {
+      value: '10000',
+      currency: {
+        symbol: 'ADA',
+        decimals: 6
+      }
+    }
+  }
+];
