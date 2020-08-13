@@ -3,8 +3,8 @@ import { CardanoService, NetworkIdentifier } from './cardano-services';
 import { NetworkRepository } from '../db/network-repository';
 import { withNetworkValidation } from './utils/services-helper';
 import { ErrorFactory } from '../utils/errors';
+import { MAINNET, ECDSA } from '../utils/constants';
 import { BlockService } from './block-service';
-import { MAINNET } from '../utils/constants';
 
 export interface ConstructionService {
   constructionDerive(
@@ -48,6 +48,13 @@ const getNetworkIdentifierByRequestParameters = (
   }
   return NetworkIdentifier.CARDANO_TESTNET_NETWORK;
 };
+
+const constructPayloadsForTransactionBody = (
+  transactionBodyHash: string,
+  addresses: string[]
+): Components.Schemas.SigningPayload[] =>
+  // eslint-disable-next-line camelcase
+  addresses.map(address => ({ address, hex_bytes: transactionBodyHash, signature_type: ECDSA }));
 
 const configure = (
   cardanoService: CardanoService,
@@ -109,13 +116,21 @@ const configure = (
       },
       logger
     ),
-  async constructionPayloads(request) {
-    return {
-      code: 3,
-      message: 'string',
-      retriable: true
-    };
-  },
+  constructionPayloads: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () => {
+        const ttl = request.metadata.ttl;
+        const operations = request.operations;
+        const unsignedTransaction = cardanoService.createUnsignedTransaction(operations, ttl);
+        const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
+        // eslint-disable-next-line camelcase
+        return { unsigned_transaction: unsignedTransaction.bytes, payloads };
+      },
+      logger
+    ),
   constructionCombine: async request =>
     withNetworkValidation(
       request.network_identifier,

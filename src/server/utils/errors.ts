@@ -35,6 +35,18 @@ export const Errors = {
   CANT_BUILD_WITNESSES_SET: {
     message: 'Cant build witnesses set for transaction probably because of provided signatures',
     code: 5007
+  },
+  TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR: {
+    message: 'Transaction inputs parameters errors in operations array',
+    code: 4008
+  },
+  TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR: {
+    message: 'Transaction outputs parameters errors in operations array',
+    code: 4009
+  },
+  OUPUTS_BIGGER_THAN_INPUTS_ERROR: {
+    message: 'The transaction you are trying to build has more outputs than inputs',
+    code: 4010
   }
 };
 
@@ -57,6 +69,12 @@ const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
 const cantBuildWitnessesSet: CreateErrorFunction = () => buildApiError(Errors.CANT_BUILD_WITNESSES_SET, false);
 const cantBuildSignedTransaction: CreateErrorFunction = () => buildApiError(Errors.CANT_CREATE_SIGN_TRANSACTION, false);
+const transactionInputsParametersMissingError: CreateErrorFunction = () =>
+  buildApiError(Errors.TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR, false);
+const transactionOutputsParametersMissingError: CreateErrorFunction = () =>
+  buildApiError(Errors.TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR, false);
+const outputsAreBiggerThanInputsError: CreateErrorFunction = () =>
+  buildApiError(Errors.OUPUTS_BIGGER_THAN_INPUTS_ERROR, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -72,5 +90,8 @@ export const ErrorFactory = {
   invalidPublicKeyFormat,
   parseSignedTransactionError,
   cantBuildSignedTransaction,
-  cantBuildWitnessesSet
+  cantBuildWitnessesSet,
+  transactionInputsParametersMissingError,
+  transactionOutputsParametersMissingError,
+  outputsAreBiggerThanInputsError
 };
