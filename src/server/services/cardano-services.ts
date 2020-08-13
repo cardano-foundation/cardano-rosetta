@@ -73,7 +73,9 @@ const configure = (logger: Logger): CardanoService => ({
       network,
       CardanoWasm.StakeCredential.from_keyhash(pub.hash())
     );
-    const address = enterpriseAddress.to_address().to_bech32();
+    const address = enterpriseAddress
+      .to_address()
+      .to_bech32(network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'addr' : 'addr_test');
     logger.info(`[generateAddress] base address is ${address}`);
     return address;
   },
