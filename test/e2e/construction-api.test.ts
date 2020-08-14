@@ -9,6 +9,7 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS
 } from './fixture-data';
+import { SIGNATURE_TYPE } from '../../src/server/utils/constants';
 
 const generatePayload = (blockchain: string, network: string, key?: string, curveType?: string) => ({
   network_identifier: {
@@ -249,13 +250,13 @@ describe('Construction API', () => {
             signing_payload: {
               address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
               hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
-              signature_type: 'ecdsa'
+              signature_type: SIGNATURE_TYPE
             },
             public_key: {
               hex_bytes: '58201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f',
               curve_type: 'edwards25519'
             },
-            signature_type: 'ecdsa',
+            signature_type: SIGNATURE_TYPE,
             hex_bytes:
               '8258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206'
           }
@@ -284,13 +285,13 @@ describe('Construction API', () => {
             signing_payload: {
               address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkx',
               hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
-              signature_type: 'ecdsa'
+              signature_type: SIGNATURE_TYPE
             },
             public_key: {
               hex_bytes: '58201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f',
               curve_type: 'edwards25519'
             },
-            signature_type: 'ecdsa',
+            signature_type: SIGNATURE_TYPE,
             hex_bytes: 'signatureHexInvalidBytes'
           }
         ]
@@ -320,13 +321,13 @@ describe('Construction API', () => {
             signing_payload: {
               address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
               hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
-              signature_type: 'ecdsa'
+              signature_type: SIGNATURE_TYPE
             },
             public_key: {
               hex_bytes: '58201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f',
               curve_type: 'edwards25519'
             },
-            signature_type: 'ecdsa',
+            signature_type: SIGNATURE_TYPE,
             hex_bytes:
               '8258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206'
           }
@@ -374,7 +375,7 @@ describe('Construction API', () => {
           {
             address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
             hex_bytes: '0x333a6ccaaa639f7b451ce93764f54f654ef499fdb7b8b24374ee9d99eab9d795',
-            signature_type: 'ecdsa'
+            signature_type: SIGNATURE_TYPE
           }
         ]
       });

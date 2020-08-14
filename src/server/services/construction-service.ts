@@ -3,7 +3,7 @@ import { CardanoService, NetworkIdentifier } from './cardano-services';
 import { NetworkRepository } from '../db/network-repository';
 import { withNetworkValidation } from './utils/services-helper';
 import { ErrorFactory } from '../utils/errors';
-import { MAINNET, ECDSA } from '../utils/constants';
+import { MAINNET, SIGNATURE_TYPE } from '../utils/constants';
 import { BlockService } from './block-service';
 
 export interface ConstructionService {
@@ -54,7 +54,7 @@ const constructPayloadsForTransactionBody = (
   addresses: string[]
 ): Components.Schemas.SigningPayload[] =>
   // eslint-disable-next-line camelcase
-  addresses.map(address => ({ address, hex_bytes: transactionBodyHash, signature_type: ECDSA }));
+  addresses.map(address => ({ address, hex_bytes: transactionBodyHash, signature_type: SIGNATURE_TYPE }));
 
 const configure = (
   cardanoService: CardanoService,
