@@ -4,11 +4,11 @@ export const block1000WithoutTxs = {
   block: {
     block_identifier: {
       index: 1000,
-      hash: '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9'
+      hash: 'f84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9'
     },
     parent_block_identifier: {
       index: 999,
-      hash: '0x18c7525617b8747a721c3fb003776826fe60a55e64f6b4f5396d06b1ff88ce02'
+      hash: '18c7525617b8747a721c3fb003776826fe60a55e64f6b4f5396d06b1ff88ce02'
     },
     timestamp: 1506233871000,
     metadata: {
@@ -26,11 +26,11 @@ export const latestBlock = {
   block: {
     block_identifier: {
       index: 65168,
-      hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252'
+      hash: '94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252'
     },
     parent_block_identifier: {
       index: 65167,
-      hash: '0x1e783f0c84e0aa06e5b8dbc7965674e8856aebd87838f9466952b5b738381adf'
+      hash: '1e783f0c84e0aa06e5b8dbc7965674e8856aebd87838f9466952b5b738381adf'
     },
     timestamp: 1507517771000,
     transactions: [],
@@ -48,11 +48,11 @@ export const block23236WithTransactions = {
   block: {
     block_identifier: {
       index: 23236,
-      hash: '0xac04e4fcaa3057a044ea5be02cae03443fe52bb090f21a1ece81bc83c716b428'
+      hash: 'ac04e4fcaa3057a044ea5be02cae03443fe52bb090f21a1ece81bc83c716b428'
     },
     parent_block_identifier: {
       index: 23235,
-      hash: '0x4e1817789d9c78f6a28f98af73673a391794e53da5e9c1f113d446e0e9b574fd'
+      hash: '4e1817789d9c78f6a28f98af73673a391794e53da5e9c1f113d446e0e9b574fd'
     },
     timestamp: 1506678871000,
     metadata: {
@@ -65,7 +65,7 @@ export const block23236WithTransactions = {
     transactions: [
       {
         transaction_identifier: {
-          hash: '0xabbeb108ebc3990c7f031113bcb8ce8f306a1eec8f313acffcdcd256379208f4'
+          hash: 'abbeb108ebc3990c7f031113bcb8ce8f306a1eec8f313acffcdcd256379208f4'
         },
         operations: [
           {
@@ -87,7 +87,7 @@ export const block23236WithTransactions = {
             coin_change: {
               coin_action: 'coin_created',
               coin_identifier: {
-                identifier: '0x9c239b53d895038e702b7c63b7a9ca3a54385e04a4b8d69227119c2358150a77:0'
+                identifier: '9c239b53d895038e702b7c63b7a9ca3a54385e04a4b8d69227119c2358150a77:0'
               }
             }
           },
@@ -119,7 +119,7 @@ export const block23236WithTransactions = {
       },
       {
         transaction_identifier: {
-          hash: '0xd864f781436f0122a21335b672fe7943ab1d123f6c2ed770541669d70a870d75'
+          hash: 'd864f781436f0122a21335b672fe7943ab1d123f6c2ed770541669d70a870d75'
         },
         operations: [
           {
@@ -141,7 +141,7 @@ export const block23236WithTransactions = {
             coin_change: {
               coin_action: 'coin_created',
               coin_identifier: {
-                identifier: '0xd967be1c496a5321e0c9424a8cc33e8c161c79f64dad465dd0bfbe0abcfde1ef:0'
+                identifier: 'd967be1c496a5321e0c9424a8cc33e8c161c79f64dad465dd0bfbe0abcfde1ef:0'
               }
             }
           },
@@ -179,11 +179,11 @@ export const block7134WithTxs = {
   block: {
     block_identifier: {
       index: 7134,
-      hash: '0xaf3d6e553e7ef8552a40e4e8cdeaa7d8305e7439474c7e6e4e0477d5f9492e2d'
+      hash: 'af3d6e553e7ef8552a40e4e8cdeaa7d8305e7439474c7e6e4e0477d5f9492e2d'
     },
     parent_block_identifier: {
       index: 7133,
-      hash: '0x4314cd5fa8a645607b2f7668fd2bc53f40fb418c06de3db0a8e721761e458828'
+      hash: '4314cd5fa8a645607b2f7668fd2bc53f40fb418c06de3db0a8e721761e458828'
     },
     timestamp: 1506356551000,
     metadata: {
@@ -196,7 +196,7 @@ export const block7134WithTxs = {
     transactions: [
       {
         transaction_identifier: {
-          hash: '0xc950e0d7d898a392ccf458a75728aa35afd4bd3776f118cbf0e0abb315205bc4'
+          hash: 'c950e0d7d898a392ccf458a75728aa35afd4bd3776f118cbf0e0abb315205bc4'
         },
         operations: [
           {
@@ -219,7 +219,7 @@ export const block7134WithTxs = {
             coin_change: {
               coin_action: 'coin_created',
               coin_identifier: {
-                identifier: '0xa9e4413a5fb61a7a43c7df006ffcaaf3f2ffc9541f54757023968c5a8f8294fd:0'
+                identifier: 'a9e4413a5fb61a7a43c7df006ffcaaf3f2ffc9541f54757023968c5a8f8294fd:0'
               }
             }
           },
@@ -282,11 +282,11 @@ export const blockWith8Txs = {
   block: {
     block_identifier: {
       index: 23712,
-      hash: '0x7a8dbe66c6a1b41bdbf4f3865ea20aebbf93b9697bf39024d5d08ffad10ab1e8'
+      hash: '7a8dbe66c6a1b41bdbf4f3865ea20aebbf93b9697bf39024d5d08ffad10ab1e8'
     },
     parent_block_identifier: {
       index: 23711,
-      hash: '0xcf3d86d870defa1c90f8aeeb753985e0051fef638184f1c334179950b8cd901e'
+      hash: 'cf3d86d870defa1c90f8aeeb753985e0051fef638184f1c334179950b8cd901e'
     },
     timestamp: 1506688391000,
     transactions: [],
@@ -300,38 +300,38 @@ export const blockWith8Txs = {
   },
   other_transactions: [
     {
-      hash: '0xe1c3e53ff15df4b3f477284fcf971618ec30f2a70209ddb0bc2f0c6e0d90665d'
+      hash: 'e1c3e53ff15df4b3f477284fcf971618ec30f2a70209ddb0bc2f0c6e0d90665d'
     },
     {
-      hash: '0xa9c267305af2cabb9c54c929dad82afd8b61d5e49045efc80e2d664c98f3190d'
+      hash: 'a9c267305af2cabb9c54c929dad82afd8b61d5e49045efc80e2d664c98f3190d'
     },
     {
-      hash: '0xd2e1019b18f0f5fbb9a6f8868775fe482fe4aff9db818fb517fc673ea185f33c'
+      hash: 'd2e1019b18f0f5fbb9a6f8868775fe482fe4aff9db818fb517fc673ea185f33c'
     },
     {
-      hash: '0xb1ae3d1ba40535a87b300a81ba9bac26339ea14bdca2b8b689c3fc2d5f106fe7'
+      hash: 'b1ae3d1ba40535a87b300a81ba9bac26339ea14bdca2b8b689c3fc2d5f106fe7'
     },
     {
-      hash: '0x88df3562c7d741cec167538c08cb6a5116781e82c93d2efe8c44df087c6bbaf4'
+      hash: '88df3562c7d741cec167538c08cb6a5116781e82c93d2efe8c44df087c6bbaf4'
     },
     {
-      hash: '0x83f86f288c4128ad967431b17880098a352056ce3671932e07c87a4c8290ca68'
+      hash: '83f86f288c4128ad967431b17880098a352056ce3671932e07c87a4c8290ca68'
     },
     {
-      hash: '0xa52f6e01074711d6eae12a2bb3eeb2d9ccf2cdfcec2aac1ddb28248218be2797'
+      hash: 'a52f6e01074711d6eae12a2bb3eeb2d9ccf2cdfcec2aac1ddb28248218be2797'
     },
     {
-      hash: '0x4bbb5c30666c31c700d8dbfdf9811d1b5398a030796c3447e7d56285e9f49282'
+      hash: '4bbb5c30666c31c700d8dbfdf9811d1b5398a030796c3447e7d56285e9f49282'
     }
   ]
 };
 
-export const GENESIS_HASH = '0x5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb';
+export const GENESIS_HASH = '5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb';
 
 export const block1 = {
   block: {
     block_identifier: {
-      hash: '0xf0f7892b5c333cffc4b3c4344de48af4cc63f55e44936196f365a9ef2244134f',
+      hash: 'f0f7892b5c333cffc4b3c4344de48af4cc63f55e44936196f365a9ef2244134f',
       index: 1
     },
     metadata: {
@@ -374,7 +374,7 @@ export const transaction987aOnGenesis = {
       }
     ],
     transaction_identifier: {
-      hash: '0x927edb96f3386ab91b5f5d85d84cb4253c65b1c2f65fa7df25f81fab1d62987a'
+      hash: '927edb96f3386ab91b5f5d85d84cb4253c65b1c2f65fa7df25f81fab1d62987a'
     }
   }
 };

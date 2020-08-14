@@ -152,7 +152,7 @@ describe('Construction API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
-        transaction_identifier: { hash: '0x4827ce27820b2605e0314af4d52c8a2b697f2f7a37f08079bbc2f7102b0572d1' }
+        transaction_identifier: { hash: '4827ce27820b2605e0314af4d52c8a2b697f2f7a37f08079bbc2f7102b0572d1' }
       });
     });
     test('Should return an error when providing an invalid transaction', async () => {
@@ -181,7 +181,7 @@ describe('Construction API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
-        transaction_identifier: { hash: '0x31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90' }
+        transaction_identifier: { hash: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90' }
       });
     });
   });
@@ -269,7 +269,7 @@ describe('Construction API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json().signed_transaction).toEqual(
-        '0x83a4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6'
+        '83a4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6'
       );
     });
     test('Should return error when providing valid unsigned transaction but invalid signatures', async () => {
@@ -370,12 +370,12 @@ describe('Construction API', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         unsigned_transaction:
-          '0xa400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
+          'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
         payloads: [
           {
             address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-            hex_bytes: '0x333a6ccaaa639f7b451ce93764f54f654ef499fdb7b8b24374ee9d99eab9d795',
-            signature_type: SIGNATURE_TYPE
+            signature_type: SIGNATURE_TYPE,
+            hex_bytes: '333a6ccaaa639f7b451ce93764f54f654ef499fdb7b8b24374ee9d99eab9d795'
           }
         ]
       });
