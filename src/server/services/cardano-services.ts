@@ -1,4 +1,11 @@
-import CardanoWasm, { TransactionOutputs, TransactionInputs, BigNum } from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm, {
+  TransactionOutputs,
+  TransactionInputs,
+  BigNum,
+  Vkey,
+  PublicKey,
+  Ed25519Signature
+} from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
@@ -100,7 +107,9 @@ const configure = (logger: Logger): CardanoService => ({
 
       logger.info('[getWitnessesForTransaction] Extracting witnesses from signatures');
       signatures.forEach(signature => {
-        vkeyWitnesses.add(CardanoWasm.Vkeywitness.from_bytes(Buffer.from(signature.signature, 'hex')));
+        const vkey: Vkey = Vkey.new(PublicKey.from_bytes(Buffer.from(signature.publicKey, 'hex')));
+        const ed25519Signature: Ed25519Signature = Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'));
+        vkeyWitnesses.add(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature));
       });
       logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len} witnesses were extracted to sign transaction`);
       witnesses.set_vkeys(vkeyWitnesses);
