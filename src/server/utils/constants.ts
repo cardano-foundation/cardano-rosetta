@@ -9,7 +9,7 @@ export const ADA = 'ADA';
 export const ADA_DECIMALS = 6;
 export const VIN = 'Vin';
 export const VOUT = 'Vout';
-export const ECDSA = 'ecdsa';
+export const SIGNATURE_TYPE = 'ed25519';
 
 export enum operationType {
   TRANSFER = 'transfer'
