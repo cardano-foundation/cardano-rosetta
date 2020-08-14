@@ -46,7 +46,7 @@ describe('Block API', () => {
       const response = await server.inject({
         method: 'post',
         url: '/block',
-        payload: generatePayload(1000, '0xdeadbeefdeadbeef')
+        payload: generatePayload(1000, 'deadbeefdeadbeef')
       });
 
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
@@ -68,7 +68,7 @@ describe('Block API', () => {
       const response = await server.inject({
         method: 'post',
         url: '/block',
-        payload: generatePayload(undefined, '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9')
+        payload: generatePayload(undefined, 'f84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9')
       });
 
       expect(response.statusCode).toEqual(StatusCodes.OK);
@@ -79,7 +79,7 @@ describe('Block API', () => {
       const response = await server.inject({
         method: 'post',
         url: '/block',
-        payload: generatePayload(1000, '0xf84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9')
+        payload: generatePayload(1000, 'f84748ae7f413a7f73ddb599fd77e4ed488484c1353c6075a05f30e9c78c9de9')
       });
 
       expect(response.statusCode).toEqual(StatusCodes.OK);
@@ -121,7 +121,7 @@ describe('Block API', () => {
       const response = await server.inject({
         method: 'post',
         url: '/block',
-        payload: generatePayload(undefined, '0x7a8dbe66c6a1b41bdbf4f3865ea20aebbf93b9697bf39024d5d08ffad10ab1e8')
+        payload: generatePayload(undefined, '7a8dbe66c6a1b41bdbf4f3865ea20aebbf93b9697bf39024d5d08ffad10ab1e8')
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual(blockWith8Txs);
@@ -131,7 +131,7 @@ describe('Block API', () => {
       const response = await server.inject({
         method: 'post',
         url: '/block',
-        payload: generatePayload(0, '0x7a8dbe66c6a1b41bdbf4f3865ea20aebbf93b9697bf39024d5d08ffad10ab1e8')
+        payload: generatePayload(0, '7a8dbe66c6a1b41bdbf4f3865ea20aebbf93b9697bf39024d5d08ffad10ab1e8')
       });
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({ code: 4001, message: 'Block not found', retriable: false });
@@ -153,7 +153,7 @@ describe('Block API', () => {
       const response = await server.inject({
         method: 'post',
         url: '/block',
-        payload: generatePayload(undefined, '0xf0f7892b5c333cffc4b3c4344de48af4cc63f55e44936196f365a9ef2244134f')
+        payload: generatePayload(undefined, 'f0f7892b5c333cffc4b3c4344de48af4cc63f55e44936196f365a9ef2244134f')
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual(block1);
@@ -191,7 +191,7 @@ describe('Block API', () => {
           // eslint-disable-next-line camelcase
           transaction_identifier: {
             // Last digit was changed from 4 to 5
-            hash: '0xabbeb108ebc3990c7f031113bcb8ce8f306a1eec8f313acffcdcd256379208f5'
+            hash: 'abbeb108ebc3990c7f031113bcb8ce8f306a1eec8f313acffcdcd256379208f5'
           }
         }
       });
@@ -284,8 +284,8 @@ describe('Block API', () => {
     });
     test('should return transaction for genesis block when requested', async () => {
       const genesisIndex = 0;
-      const genesisHash = '0x5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb';
-      const transaction = '0x927edb96f3386ab91b5f5d85d84cb4253c65b1c2f65fa7df25f81fab1d62987a';
+      const genesisHash = '5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb';
+      const transaction = '927edb96f3386ab91b5f5d85d84cb4253c65b1c2f65fa7df25f81fab1d62987a';
       const response = await server.inject({
         method: 'post',
         url: BLOCK_TRANSACTION_ENDPOINT,

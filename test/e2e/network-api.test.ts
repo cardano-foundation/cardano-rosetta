@@ -21,11 +21,11 @@ const generatePayload = (blockchain: string, network: string) => ({
 const NETWORK_NOT_FOUND = 'Network not found';
 const INVALID_BLOCKCHAIN = 'Invalid blockchain';
 const genesis_block_identifier = {
-  hash: '0x5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb',
+  hash: '5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb',
   index: 0 // FIXME this is not ok
 };
 const last_block_identifier = {
-  hash: '0x94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
+  hash: '94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
   index: 65168
 };
 
