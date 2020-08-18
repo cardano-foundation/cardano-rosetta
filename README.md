@@ -88,13 +88,16 @@ To do so, the following steps are required:
 3. Introduce as many changes as you need (`metadata` fields need to be populated manually to allow Fastify to return the fields)
 4. Execute `yarn generate-rosetta-types`
 
-### Build base Docker images
+### Build Dev Docker images
 
-Build base images maintained in the release [Dockerfile](./Dockerfile) for [development](./dev.Dockerfile)
+Build network-specific images, suitable for [development](./dev.Dockerfile) 
 
 ```
-./scripts/build_base_docker_images.sh
+./scripts/build_dev_docker_images.sh
 ```
+Your local docker engine will now have the following loaded:
+- `cardano-rosetta:dev`
+- `cardano-rosetta:dev-testnet`
 
 ### Install packages from offline cache
 
