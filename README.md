@@ -1,36 +1,38 @@
 # Cardano Rosetta
 
-Caradano [Rosetta API specification v1.4.0](https://github.com/coinbase/rosetta-specifications) implementation.
-This web service allows you to query and interact with the Cardano network through a unified API.
-
-## TOC
+Caradano [Rosetta API specification v1.4.0](https://github.com/coinbase/rosetta-specifications) 
+implementation. This web service allows you to query and interact with the Cardano network through 
+a unified API.
 
 ## Deploy
 
-### Build :construction:
+### Build
 
 The Dockerfile can be [built anywhere](https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere)
 
 ```console
 wget --secure-protocol=TLSv1_2 https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/0.1.0/Dockerfile
-docker build -t cardano-rosetta:0.1.0 .
+docker build -t cardano-rosetta:0.0.1 .
 ```
 
-_Optionally_ override the managed dependencies using build arg flags in the `docker build` command. [See releases](docs/MAINTAINER.md#Internal-Software)
+**_Optionally_**  specify a test network, or override the managed dependencies using build args
+flags in the `docker build` command. [See releases](docs/MAINTAINER.md#Internal-Software)
 
 ```console
-  --build-arg=A_DEP_VERSION=2.0.1 \
+  --build-arg=CARDANO_NETWORK=testnet
+  --build-arg=A_DEP_VERSION=2.0.1
 ```
 
-### Run :construction:
+### Run
 
-Mount a single volume into the [standard storage location](https://www.rosetta-api.org/docs/standard_storage_location.html)
+Mount a single volume into the [standard storage location](https://www.rosetta-api.org/docs/standard_storage_location.html) 
+mapping the server port to the host.
 
 ```console
-docker run --init -v data:/data cardano-rosetta -P
+docker run -p 8080:8080 -v cardano-mainnet:/data cardano-rosetta:0.0.1 cardano-rosetta-mainnet
 ```
 
-### Check :construction:
+### Check
 
 ```console
 go get github.com/coinbase/rosetta-cli
@@ -46,6 +48,7 @@ In order to setup the repository you will need to have:
 - `node@v14.5.0`
 - `yarn@1.22.4`
 - `docker`
+- `docker-compose`
 
 There must be a `.env` file in the root directory with the following configs:
 
