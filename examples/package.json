@@ -1,0 +1,13 @@
+{
+  "name": "cardano-rosetta-examples",
+  "license": "Apache-2.0",
+  "scripts": {
+    "send-transactions-example": "ts-node ./send-transaction-example.ts"
+  },
+  "dependencies": {
+    "axios": "^0.19.2",
+    "delay": "^4.4.0",
+    "ts-node": "^8.10.2",
+    "tweetnacl": "^1.0.3"
+  }
+}
