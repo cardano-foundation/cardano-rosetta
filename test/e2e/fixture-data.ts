@@ -742,13 +742,14 @@ export const transactionParsedOperations = [
   },
   {
     operation_identifier: { index: 1 },
+    related_operations: [{ index: 0 }],
     type: 'transfer',
     status: 'success',
     account: {
       address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
     },
     amount: {
-      value: '40000',
+      value: '10000',
       currency: {
         symbol: 'ADA',
         decimals: 6
@@ -757,13 +758,14 @@ export const transactionParsedOperations = [
   },
   {
     operation_identifier: { index: 2 },
+    related_operations: [{ index: 0 }],
     type: 'transfer',
     status: 'success',
     account: {
       address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
     },
     amount: {
-      value: '10000',
+      value: '40000',
       currency: {
         symbol: 'ADA',
         decimals: 6
