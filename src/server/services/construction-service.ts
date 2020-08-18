@@ -12,8 +12,8 @@ export interface ConstructionService {
   ): Promise<Components.Schemas.ConstructionDeriveResponse | Components.Schemas.Error>;
 
   constructionPreprocess(
-    request: Components.Schemas.ConstructionDeriveRequest
-  ): Promise<Components.Schemas.ConstructionDeriveResponse | Components.Schemas.Error>;
+    request: Components.Schemas.ConstructionPreprocessRequest
+  ): Promise<Components.Schemas.ConstructionPreprocessResponse | Components.Schemas.Error>;
 
   constructionMetadata(
     request: Components.Schemas.ConstructionMetadataRequest
@@ -96,13 +96,16 @@ const configure = (
       },
       logger
     ),
-  async constructionPreprocess(request) {
-    return {
-      code: 1,
-      message: 'string',
-      retriable: true
-    };
-  },
+  constructionPreprocess: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () =>
+        // eslint-disable-next-line camelcase
+        ({ options: { relative_ttl: request.metadata.relative_ttl } }),
+      logger
+    ),
   constructionMetadata: async request =>
     withNetworkValidation(
       request.network_identifier,

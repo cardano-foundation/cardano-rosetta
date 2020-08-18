@@ -3,7 +3,7 @@
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { setupDatabase, setupServer } from './utils/test-utils';
+import { setupDatabase, setupServer, testInvalidNetworkParameters } from './utils/test-utils';
 import {
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
@@ -36,8 +36,20 @@ const generateMetadataPayload = (blockchain: string, network: string, relativeTt
   }
 });
 
+const generateProcessPayload = (blockchain: string, network: string, relativeTtl: number) => ({
+  network_identifier: {
+    blockchain,
+    network
+  },
+  operations: [],
+  metadata: {
+    relative_ttl: relativeTtl
+  }
+});
+
 const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
 const CONSTRUCTION_HASH_ENDPOINT = '/construction/hash';
+const CONSTRUCTION_PREPROCESS_ENDPOINT = '/construction/preprocess';
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 const CONSTRUCTION_COMBINE_ENDPOINT = '/construction/combine';
 const CONSTRUCTION_PAYLOADS_ENDPOINT = '/construction/payloads';
@@ -90,19 +102,11 @@ describe('Construction API', () => {
       expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
     });
 
-    test('Should return an error the network parameter is an invalid one', async () => {
-      const response = await server.inject({
-        method: 'post',
-        url: CONSTRUCTION_DERIVE_ENDPOINT,
-        payload: generatePayload(
-          'bitcoin',
-          'testnet',
-          'ThisIsABiggerPublicKeyForTestingPurposesThisIsABiggerPublicKeyForTestingPurposes'
-        )
-      });
-      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.json()).toEqual({ code: 4004, message: 'Invalid blockchain', retriable: false });
-    });
+    testInvalidNetworkParameters(
+      CONSTRUCTION_DERIVE_ENDPOINT,
+      (blockchain, network) => generatePayload(blockchain, network),
+      () => server
+    );
 
     test('Should return an error when the curve type is invalid', async () => {
       const response = await server.inject({
@@ -135,6 +139,12 @@ describe('Construction API', () => {
   });
 
   describe(CONSTRUCTION_HASH_ENDPOINT, () => {
+    testInvalidNetworkParameters(
+      CONSTRUCTION_HASH_ENDPOINT,
+      (blockchain, network) => generatePayloadWithSignedTransaction(blockchain, network, 'encodedTx'),
+      () => server
+    );
+
     /**
      * These tests parameters where extracted from emurgo serialization examples:
      * https://github.com/Emurgo/cardano-serialization-lib/blob/master/example/index.spec.ts
@@ -185,29 +195,22 @@ describe('Construction API', () => {
       });
     });
   });
-  describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
+
+  describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
+    testInvalidNetworkParameters(
+      CONSTRUCTION_PREPROCESS_ENDPOINT,
+      (blockchain, network) => generateProcessPayload(blockchain, network, 100),
+      () => server
+    );
+
     test('Should return a valid TTL when the parameters are valid', async () => {
       const response = await server.inject({
         method: 'post',
-        url: CONSTRUCTION_METADATA_ENDPOINT,
-        payload: generateMetadataPayload('cardano', 'mainnet', 100)
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        payload: generateProcessPayload('cardano', 'mainnet', 100)
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
-      expect(response.json()).toEqual({ metadata: { ttl: '65294' } });
-    });
-
-    test('Should throw invalid blockchain error when the blockchain specified is invalid', async () => {
-      const response = await server.inject({
-        method: 'post',
-        url: CONSTRUCTION_METADATA_ENDPOINT,
-        payload: generateMetadataPayload('bitcoin', 'mainnet', 100)
-      });
-      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.json()).toEqual({
-        code: 4004,
-        message: 'Invalid blockchain',
-        retriable: false
-      });
+      expect(response.json()).toEqual({ options: { relative_ttl: 100 } });
     });
 
     test('Should throw invalid network error when the network specified is invalid', async () => {
@@ -226,6 +229,34 @@ describe('Construction API', () => {
   });
 
   describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
+    testInvalidNetworkParameters(
+      CONSTRUCTION_COMBINE_ENDPOINT,
+      (blockchain, network) => ({
+        network_identifier: {
+          blockchain,
+          network
+        },
+        unsigned_transaction:
+          'a4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314',
+        signatures: [
+          {
+            signing_payload: {
+              address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkx',
+              hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
+              signature_type: SIGNATURE_TYPE
+            },
+            public_key: {
+              hex_bytes: '58201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f',
+              curve_type: 'edwards25519'
+            },
+            signature_type: SIGNATURE_TYPE,
+            hex_bytes: 'signatureHexInvalidBytes'
+          }
+        ]
+      }),
+      () => server
+    );
+
     /**
      * All test vectors built in /construction/combine tests were generated using these scripts:
      * $> cardano-cli shelley transaction build-raw \
@@ -272,6 +303,7 @@ describe('Construction API', () => {
         '83a4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6'
       );
     });
+
     test('Should return error when providing valid unsigned transaction but invalid signatures', async () => {
       const payload = {
         network_identifier: {
@@ -348,6 +380,18 @@ describe('Construction API', () => {
   });
 
   describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
+    testInvalidNetworkParameters(
+      CONSTRUCTION_PAYLOADS_ENDPOINT,
+      (blockchain, network) => ({
+        ...CONSTRUCTION_PAYLOADS_REQUEST,
+        network_identifier: {
+          blockchain,
+          network
+        }
+      }),
+      () => server
+    );
+
     // This test vector was generated using
     // ./cardano-cli shelley transaction build-raw --tx-in 2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f#1 \
     //  --tx-out addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx +10000 \
@@ -380,7 +424,7 @@ describe('Construction API', () => {
         ]
       });
     });
-    test('Should throw an erorr when invalid inputs are sent as parameters', async () => {
+    test('Should throw an error when invalid inputs are sent as parameters', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -394,7 +438,7 @@ describe('Construction API', () => {
       });
     });
 
-    test('Should throw an erorr when invalid outputs are sent as parameters', async () => {
+    test('Should throw an error when invalid outputs are sent as parameters', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -408,7 +452,7 @@ describe('Construction API', () => {
       });
     });
 
-    test('Should throw an erorr when more outputs sum is bigger than inputs sum', async () => {
+    test('Should throw an error when more outputs sum is bigger than inputs sum', async () => {
       // We are triplicating the last output of 40k amount
       const bigOutput = CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS.operations[2];
       CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS.operations.push(bigOutput);

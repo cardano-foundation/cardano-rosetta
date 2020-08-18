@@ -1470,7 +1470,7 @@
       "ConstructionPreprocessRequest": {
         "description": "ConstructionPreprocessRequest is passed to the `/construction/preprocess` endpoint so that a Rosetta implementation can determine which metadata it needs to request for construction.",
         "type": "object",
-        "required": ["network_identifier", "operations"],
+        "required": ["network_identifier", "operations", "metadata"],
         "properties": {
           "network_identifier": {
             "$ref": "#/components/schemas/NetworkIdentifier"
@@ -1482,7 +1482,11 @@
             }
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "required": ["relative_ttl"],
+            "properties": {
+              "relative_ttl": { "type": "number" }
+            }
           }
         }
       },
@@ -1492,7 +1496,11 @@
         "properties": {
           "options": {
             "type": "object",
-            "description": "The options that will be sent directly to `/construction/metadata` by the caller."
+            "description": "The options that will be sent directly to `/construction/metadata` by the caller.",
+            "required": ["relative_ttl"],
+            "properties": {
+              "relative_ttl": { "type": "number" }
+            }
           }
         }
       },

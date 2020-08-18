@@ -306,7 +306,9 @@ declare namespace Components {
     export interface ConstructionPreprocessRequest {
       network_identifier: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       operations: /* Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction. */ Operation[];
-      metadata?: {};
+      metadata: {
+        relative_ttl: number;
+      };
     }
     /**
      * ConstructionPreprocessResponse contains the request that will be sent directly to `/construction/metadata`. If it is not necessary to make a request to `/construction/metadata`, options should be null.
@@ -315,7 +317,9 @@ declare namespace Components {
       /**
        * The options that will be sent directly to `/construction/metadata` by the caller.
        */
-      options?: {};
+      options?: {
+        relative_ttl: number;
+      };
     }
     /**
      * The transaction submission request includes a signed transaction.
