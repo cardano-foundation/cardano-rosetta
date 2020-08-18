@@ -5,6 +5,7 @@
 import delay from 'delay';
 import * as NaCl from 'tweetnacl';
 import axios from 'axios';
+import { TransactionHash } from '@emurgo/cardano-serialization-lib-nodejs';
 
 const logger = console;
 
@@ -23,8 +24,6 @@ const network_identifier = {
   network: 'testnet'
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore https://github.com/nodejs/help/issues/2203#issuecomment-602552451
 const generateKeys = (secretKey?: string) =>
   secretKey ? NaCl.sign.keyPair.fromSecretKey(Buffer.from(secretKey, 'hex')) : NaCl.sign.keyPair();
 
@@ -43,7 +42,7 @@ const constructionDerive = async (publicKey: string): Promise<string> => {
   return address;
 };
 
-const accountBalance = async (address: string) => {
+const waitForBalanceToBe = async (address: string, cond: (param: any) => boolean) => {
   let fetchAccountBalance;
   do {
     const response = await httpClient.post('/account/balance', {
@@ -52,13 +51,13 @@ const accountBalance = async (address: string) => {
         address
       }
     });
-    if (response.data.coins.length === 0) {
-      logger.debug('No unspent found, retrying in a few seconds');
-      await delay(30 * 1000);
-    } else {
+    if (cond(response.data)) {
       const [balance] = response.data.balances;
-      logger.info(`[waitForFunds] Funds found! ${balance.value} ${balance.currency.symbol}`);
+      logger.info(`[waitForBalanceToBe] Funds found! ${balance.value} ${balance.currency.symbol}`);
       fetchAccountBalance = response.data;
+    } else {
+      logger.debug('[waitForBalanceToBe] Condition not met, waiting for a few seconds.');
+      await delay(30 * 1000);
     }
   } while (!fetchAccountBalance);
   return fetchAccountBalance;
@@ -152,31 +151,28 @@ const constructionCombine = async (unsigned_transaction: any, signatures: any) =
   return response.data;
 };
 
-// TODO: uncomment when submit is done
-// const constructionSubmit = async (signed_transaction: any) => {
-//  const response = await httpClient.post('/construction/submit', {
-//    network_identifier,
-//    signed_transaction
-//  });
-//  return response.data;
-// };
+const constructionSubmit = async (signed_transaction: any) => {
+  const response = await httpClient.post('/construction/submit', {
+    network_identifier,
+    signed_transaction
+  });
+  return response.data;
+};
 
 const doRun = async (): Promise<void> => {
   const keys = generateKeys(PRIVATE_KEY);
   logger.info(`[doRun] secretKey ${Buffer.from(keys.secretKey).toString('hex')}`);
   const address = await constructionDerive(Buffer.from(keys.publicKey).toString('hex'));
-  const unspents = await accountBalance(address);
+  const unspents = await waitForBalanceToBe(address, response => response.coins.length !== 0);
   const metadata = await constructionMetadata(1000);
   const operations = buildOperation(unspents, metadata, address, SEND_FUNDS_ADDRESS);
   const payloads = await constructionPayloads(operations);
-  // TODO: PARSE
   const signatures = signPayloads(payloads.payloads, keys);
   const combined = await constructionCombine(payloads.unsigned_transaction, signatures);
   logger.info(`[doRun] signed transaction is ${combined.signed_transaction}`);
-  // TODO: PARSE
-  // TODO: Uncomment on https://github.com/input-output-hk/cardano-rosetta/pull/106
-  // const hashResponse = await constructionSubmit(combined.signed_transaction);
-  // logger.info(`[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent`);
+  const hashResponse = await constructionSubmit(combined.signed_transaction);
+  logger.info(`[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent`);
+  await waitForBalanceToBe(address, response => response.coins.length === 0);
 };
 
 doRun()

@@ -8,7 +8,7 @@ In this repository some examples can be found.
 
 1. `yarn` installed on your system.
 1. Launch `cardano-rosetta` server at port `8080`.
-2. Install the dependencies:
+1. Install the dependencies:
 
 ```javascript
 yarn install
@@ -16,7 +16,7 @@ yarn install
 
 ## Transaction sending
 
-It generates an address based on a predefined private key, asks for funds and once found it sends them to a specified address.
+It generates an address based on a predefined private key, asks for funds and once found the address is drained and sent to a specific address.
 
 Important notes:
 

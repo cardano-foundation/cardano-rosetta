@@ -8,6 +8,7 @@ import blockService, { BlockService } from './block-service';
 import constructionService, { ConstructionService } from './construction-service';
 import networkService, { NetworkService } from './network-service';
 import cardanoService, { CardanoService } from './cardano-services';
+import { CardanoCli } from '../utils/cardanonode-cli';
 
 export interface Services
   extends AccountService,
@@ -41,7 +42,7 @@ const loadPageSize = (logger: Logger): number => {
  *
  * @param repositories repositories to be used by the services
  */
-export const configure = (repositories: Repositories, logger: Logger): Services => {
+export const configure = (repositories: Repositories, cardanoCli: CardanoCli, logger: Logger): Services => {
   const blockServiceInstance = blockService(
     repositories.blockchainRepository,
     loadPageSize(logger),
@@ -52,7 +53,13 @@ export const configure = (repositories: Repositories, logger: Logger): Services 
   return {
     ...accountService(repositories.networkRepository, blockServiceInstance, logger),
     ...blockServiceInstance,
-    ...constructionService(cardanoServiceInstance, repositories.networkRepository, blockServiceInstance, logger),
+    ...constructionService(
+      cardanoServiceInstance,
+      repositories.networkRepository,
+      blockServiceInstance,
+      cardanoCli,
+      logger
+    ),
     ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger),
     ...cardanoServiceInstance
   };

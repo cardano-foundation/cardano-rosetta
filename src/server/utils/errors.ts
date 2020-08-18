@@ -22,20 +22,7 @@ export const Errors = {
   INVALID_BLOCKCHAIN: { message: 'Invalid blockchain', code: 4004 },
   GENESIS_BLOCK_NOT_FOUND: { message: 'Genesis block not found', code: 4005 },
   TRANSACTION_NOT_FOUND: { message: 'Transaction not found', code: 4006 },
-  NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
-  TOPOLOGY_FILE_NOT_FOUND: { message: 'Topology file not found', code: 5002 },
-  PAGE_SIZE_NOT_FOUND: { message: 'Page size config not found', code: 5003 },
-  ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5004 },
   INVALID_PUBLIC_KEY_FORMAT: { message: 'Invalid public key format', code: 4007 },
-  PARSE_SIGNED_TRANSACTION_ERROR: { message: 'Parse signed transaction error', code: 5005 },
-  CANT_CREATE_SIGN_TRANSACTION: {
-    message: 'Cant create signed transaction probably because of unsigned transaction bytes',
-    code: 5006
-  },
-  CANT_BUILD_WITNESSES_SET: {
-    message: 'Cant build witnesses set for transaction probably because of provided signatures',
-    code: 5007
-  },
   TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR: {
     message: 'Transaction inputs parameters errors in operations array',
     code: 4008
@@ -55,13 +42,27 @@ export const Errors = {
   CANT_CREATE_UNSIGNED_TRANSACTION_ERROR: {
     message: 'Cant create unsigned transaction from transaction bytes',
     code: 4012
-  }
+  },
+  NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
+  TOPOLOGY_FILE_NOT_FOUND: { message: 'Topology file not found', code: 5002 },
+  PAGE_SIZE_NOT_FOUND: { message: 'Page size config not found', code: 5003 },
+  ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5004 },
+  PARSE_SIGNED_TRANSACTION_ERROR: { message: 'Parse signed transaction error', code: 5005 },
+  CANT_CREATE_SIGN_TRANSACTION: {
+    message: 'Cant create signed transaction probably because of unsigned transaction bytes',
+    code: 5006
+  },
+  CANT_BUILD_WITNESSES_SET: {
+    message: 'Cant build witnesses set for transaction probably because of provided signatures',
+    code: 5007
+  },
+  SEND_TRANSACTION_ERROR: { message: 'Error when sending the transaction', code: 5008 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
   new ApiError(error.code, error.message, retriable, details);
 
-type CreateErrorFunction = () => ApiError;
+type CreateErrorFunction = (error?: string) => ApiError;
 const blockNotFoundError: CreateErrorFunction = () => buildApiError(Errors.BLOCK_NOT_FOUND, false);
 const invalidBlockchainError: CreateErrorFunction = () => buildApiError(Errors.INVALID_BLOCKCHAIN, false);
 const networkNotFoundError: CreateErrorFunction = () => buildApiError(Errors.NETWORK_NOT_FOUND, false);
@@ -87,6 +88,8 @@ const cantCreateSignedTransactionFromBytes: CreateErrorFunction = () =>
   buildApiError(Errors.CANT_CREATE_SIGNED_TRANSACTION_ERROR, false);
 const cantCreateUnsignedTransactionFromBytes: CreateErrorFunction = () =>
   buildApiError(Errors.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR, false);
+const sendTransactionError: CreateErrorFunction = (message?: string) =>
+  buildApiError(Errors.SEND_TRANSACTION_ERROR, true, message);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -107,5 +110,6 @@ export const ErrorFactory = {
   transactionOutputsParametersMissingError,
   outputsAreBiggerThanInputsError,
   cantCreateSignedTransactionFromBytes,
-  cantCreateUnsignedTransactionFromBytes
+  cantCreateUnsignedTransactionFromBytes,
+  sendTransactionError
 };

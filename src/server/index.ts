@@ -1,11 +1,19 @@
 /* eslint-disable no-console */
 import { Pool } from 'pg';
 import pino from 'pino';
+import path from 'path';
+import fs from 'fs';
 import buildServer from './server';
 import createPool from './db/connection';
 import * as Repostories from './db/repositories';
 import * as Services from './services/services';
+import * as CardanoCli from './utils/cardanonode-cli';
 const { PORT, BIND_ADDRESS, DB_CONNECTION_STRING, LOGGER_ENABLED, LOGGER_LEVEL }: NodeJS.ProcessEnv = process.env;
+
+// FIXME: validate the following paraemeters when implementing (2)
+// https://github.com/input-output-hk/cardano-rosetta/issues/101
+const genesis = JSON.parse(fs.readFileSync(path.resolve(process.env.GENESIS_PATH)).toString());
+const networkMagic = genesis.protocolConsts.protocolMagic;
 
 const configLogger = () =>
   pino({
@@ -19,7 +27,10 @@ const start = async (databaseInstance: Pool) => {
   try {
     const logger = configLogger();
     const repository = Repostories.configure(databaseInstance, logger);
-    const services = Services.configure(repository, logger);
+    // FIXME: validate the following paraemeters when implementing (2)
+    // https://github.com/input-output-hk/cardano-rosetta/issues/101
+    const cardanoCli = CardanoCli.configure(process.env.CARDANOCLI_PATH, networkMagic, logger);
+    const services = Services.configure(repository, cardanoCli, logger);
     server = buildServer(services, LOGGER_ENABLED === 'true');
     server.addHook('onClose', (fastify, done) => databaseInstance.end(done));
     // eslint-disable-next-line no-magic-numbers

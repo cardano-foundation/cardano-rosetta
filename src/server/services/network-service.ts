@@ -121,7 +121,10 @@ const configure = (
           allow: {
             operation_statuses: [SUCCESS_OPERATION_STATE],
             operation_types: [operationType.TRANSFER],
-            errors: Object.values(ErrorFactory).map(fn => fn()),
+            errors: Object.values(ErrorFactory)
+              .map(fn => fn())
+              // Return them sorted by code
+              .sort((error1, error2) => error1.code - error2.code),
             historical_balance_lookup: true
           }
         };
