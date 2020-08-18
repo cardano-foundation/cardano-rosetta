@@ -1,11 +1,5 @@
-import CardanoWasm, {
-  TransactionOutputs,
-  TransactionInputs,
-  BigNum,
-  Vkey,
-  PublicKey,
-  Ed25519Signature
-} from '@emurgo/cardano-serialization-lib-nodejs';
+/* eslint-disable camelcase */
+import CardanoWasm, { BigNum, Vkey, PublicKey, Ed25519Signature } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
@@ -124,13 +118,14 @@ const getSignatures = (witnessesSet: CardanoWasm.TransactionWitnessSet): string[
   }
   const signatures = [];
   const witnessesKeys = witnessesSet.vkeys();
-  let witnessesLength = witnessesKeys ? witnessesKeys.len() : 0;
-  while (witnessesKeys && witnessesLength > 0) {
+  const witnessesLength = witnessesKeys ? witnessesKeys.len() : 0;
+  let currentWitnessLength = 0;
+  while (witnessesKeys && currentWitnessLength < witnessesLength) {
     signatures.push(
       hexFormatter(
         Buffer.from(
           witnessesKeys
-            .get(--witnessesLength)
+            .get(currentWitnessLength++)
             .vkey()
             .public_key()
             .hash()

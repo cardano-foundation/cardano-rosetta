@@ -409,6 +409,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
       },
       coin_change: {
         coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
           identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
         },
         coin_action: 'coin_created'
