@@ -103,7 +103,7 @@ const configure = (
       request,
       async () =>
         // eslint-disable-next-line camelcase
-        ({ options: { relative_ttl: request.metadata?.relative_ttl } }),
+        ({ options: { relative_ttl: request.metadata.relative_ttl } }),
       logger
     ),
   constructionMetadata: async request =>
