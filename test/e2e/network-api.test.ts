@@ -101,7 +101,9 @@ const allow = {
     },
     { code: 4008, message: 'Transaction inputs parameters errors in operations array', retriable: false },
     { code: 4009, message: 'Transaction outputs parameters errors in operations array', retriable: false },
-    { code: 4010, message: 'The transaction you are trying to build has more outputs than inputs', retriable: false }
+    { code: 4010, message: 'The transaction you are trying to build has more outputs than inputs', retriable: false },
+    { code: 4011, message: 'Cant create signed transaction from transaction bytes', retriable: false },
+    { code: 4012, message: 'Cant create unsigned transaction from transaction bytes', retriable: false }
   ],
   historical_balance_lookup: true
 };

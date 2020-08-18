@@ -47,6 +47,14 @@ export const Errors = {
   OUPUTS_BIGGER_THAN_INPUTS_ERROR: {
     message: 'The transaction you are trying to build has more outputs than inputs',
     code: 4010
+  },
+  CANT_CREATE_SIGNED_TRANSACTION_ERROR: {
+    message: 'Cant create signed transaction from transaction bytes',
+    code: 4011
+  },
+  CANT_CREATE_UNSIGNED_TRANSACTION_ERROR: {
+    message: 'Cant create unsigned transaction from transaction bytes',
+    code: 4012
   }
 };
 
@@ -75,6 +83,10 @@ const transactionOutputsParametersMissingError: CreateErrorFunction = () =>
   buildApiError(Errors.TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR, false);
 const outputsAreBiggerThanInputsError: CreateErrorFunction = () =>
   buildApiError(Errors.OUPUTS_BIGGER_THAN_INPUTS_ERROR, false);
+const cantCreateSignedTransactionFromBytes: CreateErrorFunction = () =>
+  buildApiError(Errors.CANT_CREATE_SIGNED_TRANSACTION_ERROR, false);
+const cantCreateUnsignedTransactionFromBytes: CreateErrorFunction = () =>
+  buildApiError(Errors.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -93,5 +105,7 @@ export const ErrorFactory = {
   cantBuildWitnessesSet,
   transactionInputsParametersMissingError,
   transactionOutputsParametersMissingError,
-  outputsAreBiggerThanInputsError
+  outputsAreBiggerThanInputsError,
+  cantCreateSignedTransactionFromBytes,
+  cantCreateUnsignedTransactionFromBytes
 };
