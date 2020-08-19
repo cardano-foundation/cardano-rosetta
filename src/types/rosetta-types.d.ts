@@ -385,7 +385,9 @@ declare namespace Components {
        *   "error": "not base64"
        * }
        */
-      details?: {};
+      details?: {
+        message: string;
+      };
     }
     /**
      * A MempoolResponse contains all transaction identifiers in the mempool for a particular network_identifier.

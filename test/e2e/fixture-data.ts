@@ -774,3 +774,105 @@ export const transactionParsedOperations = [
     }
   }
 ];
+export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 1,
+        network_index: 0
+      },
+      type: 'Transfer',
+      status: 'Success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+        metadata: {}
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6,
+          metadata: {
+            Issuer: 'Satoshi'
+          }
+        },
+        metadata: {}
+      },
+      coin_change: {
+        coin_identifier: {
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f'
+        },
+        coin_action: 'coin_created'
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1,
+        network_index: 0
+      },
+      related_operations: [
+        {
+          index: 0,
+          operation_identifier: {
+            index: 0
+          }
+        }
+      ],
+      type: 'Transfer',
+      status: 'Success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+        metadata: {}
+      },
+      amount: {
+        value: '10000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6,
+          metadata: {
+            Issuer: 'Satoshi'
+          }
+        },
+        metadata: {}
+      }
+    },
+    {
+      operation_identifier: {
+        index: 2,
+        network_index: 0
+      },
+      related_operations: [
+        {
+          index: 0,
+          operation_identifier: {
+            index: 0
+          }
+        }
+      ],
+      type: 'Transfer',
+      status: 'Success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+        metadata: {}
+      },
+      amount: {
+        value: '40000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6,
+          metadata: {
+            Issuer: 'Satoshi'
+          }
+        },
+        metadata: {}
+      }
+    }
+  ],
+  metadata: {
+    ttl: 1000
+  }
+};

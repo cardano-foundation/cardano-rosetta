@@ -43,6 +43,14 @@ export const Errors = {
     message: 'Cant create unsigned transaction from transaction bytes',
     code: 4012
   },
+  TRANSACTION_INPUT_DESERIALIZATION_ERROR: {
+    message: 'Cant deserialize transaction input from transaction body',
+    code: 4013
+  },
+  TRANSACTION_OUTPUT_DESERIALIZATION_ERROR: {
+    message: 'Cant deserialize transaction output from transaction body',
+    code: 4014
+  },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   TOPOLOGY_FILE_NOT_FOUND: { message: 'Topology file not found', code: 5002 },
   PAGE_SIZE_NOT_FOUND: { message: 'Page size config not found', code: 5003 },
@@ -62,7 +70,7 @@ export const Errors = {
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
   new ApiError(error.code, error.message, retriable, details);
 
-type CreateErrorFunction = (error?: string) => ApiError;
+type CreateErrorFunction = (details?: string) => ApiError;
 const blockNotFoundError: CreateErrorFunction = () => buildApiError(Errors.BLOCK_NOT_FOUND, false);
 const invalidBlockchainError: CreateErrorFunction = () => buildApiError(Errors.INVALID_BLOCKCHAIN, false);
 const networkNotFoundError: CreateErrorFunction = () => buildApiError(Errors.NETWORK_NOT_FOUND, false);
@@ -78,18 +86,22 @@ const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
 const cantBuildWitnessesSet: CreateErrorFunction = () => buildApiError(Errors.CANT_BUILD_WITNESSES_SET, false);
 const cantBuildSignedTransaction: CreateErrorFunction = () => buildApiError(Errors.CANT_CREATE_SIGN_TRANSACTION, false);
-const transactionInputsParametersMissingError: CreateErrorFunction = () =>
-  buildApiError(Errors.TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR, false);
-const transactionOutputsParametersMissingError: CreateErrorFunction = () =>
-  buildApiError(Errors.TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR, false);
+const transactionInputsParametersMissingError: CreateErrorFunction = (details?: string) =>
+  buildApiError(Errors.TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR, false, details);
+const transactionOutputsParametersMissingError: CreateErrorFunction = (details?: string) =>
+  buildApiError(Errors.TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR, false, details);
 const outputsAreBiggerThanInputsError: CreateErrorFunction = () =>
   buildApiError(Errors.OUPUTS_BIGGER_THAN_INPUTS_ERROR, false);
 const cantCreateSignedTransactionFromBytes: CreateErrorFunction = () =>
   buildApiError(Errors.CANT_CREATE_SIGNED_TRANSACTION_ERROR, false);
 const cantCreateUnsignedTransactionFromBytes: CreateErrorFunction = () =>
   buildApiError(Errors.CANT_CREATE_UNSIGNED_TRANSACTION_ERROR, false);
-const sendTransactionError: CreateErrorFunction = (message?: string) =>
-  buildApiError(Errors.SEND_TRANSACTION_ERROR, true, message);
+const sendTransactionError: CreateErrorFunction = (details?: string) =>
+  buildApiError(Errors.SEND_TRANSACTION_ERROR, true, details);
+const transactionInputDeserializationError: CreateErrorFunction = (details?: string) =>
+  buildApiError(Errors.TRANSACTION_INPUT_DESERIALIZATION_ERROR, false, details);
+const transactionOutputDeserializationError: CreateErrorFunction = (details?: string) =>
+  buildApiError(Errors.TRANSACTION_OUTPUT_DESERIALIZATION_ERROR, false, details);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -111,5 +123,7 @@ export const ErrorFactory = {
   outputsAreBiggerThanInputsError,
   cantCreateSignedTransactionFromBytes,
   cantCreateUnsignedTransactionFromBytes,
-  sendTransactionError
+  sendTransactionError,
+  transactionInputDeserializationError,
+  transactionOutputDeserializationError
 };

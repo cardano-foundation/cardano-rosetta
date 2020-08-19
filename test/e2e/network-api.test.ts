@@ -90,6 +90,16 @@ const allow = {
       retriable: false
     },
     {
+      code: 4013,
+      message: 'Cant deserialize transaction input from transaction body',
+      retriable: false
+    },
+    {
+      code: 4014,
+      message: 'Cant deserialize transaction output from transaction body',
+      retriable: false
+    },
+    {
       code: 5001,
       message: 'Not implemented',
       retriable: false
