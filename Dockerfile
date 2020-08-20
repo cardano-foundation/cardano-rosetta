@@ -64,7 +64,7 @@ RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   git checkout ${CARDANO_DB_SYNC_VERSION}
 WORKDIR /app/src/cardano-db-sync
 RUN echo 'package cardano-crypto-praos\n   flags: -external-libsodium-vrf' > cabal.project.local
-# https://github.com/input-output-hk/cardano-db-sync/issues/253
+# https://github.com/input-output-hk/iohk-monitoring-framework/issues/579
 #RUN cabal install cardano-db-sync \
 #  --install-method=copy \
 #  --installdir=/usr/local/bin
