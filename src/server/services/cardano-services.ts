@@ -68,7 +68,7 @@ const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: numbe
     },
     coin_action: 'coin_created'
   },
-  status: SUCCESS_STATUS,
+  status: '',
   type: TRANSFER_OPERATION_TYPE
 });
 
@@ -81,7 +81,7 @@ const parseOutputToOperation = (
   related_operations: relatedOperations,
   account: { address: output.address().to_bech32() },
   amount: { value: output.amount().to_str(), currency: { symbol: ADA, decimals: ADA_DECIMALS } },
-  status: SUCCESS_STATUS,
+  status: '',
   type: TRANSFER_OPERATION_TYPE
 });
 
@@ -303,14 +303,16 @@ const configure = (logger: Logger): CardanoService => ({
     const transactionBytes = hexFormatter(Buffer.from(transactionBody.to_bytes()));
     logger.info('[createUnsignedTransaction] Hashing transaction body');
     const bodyHash = CardanoWasm.hash_transaction(transactionBody).to_bytes();
-    logger.info(
-      '[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash'
-    );
-    return {
+    const toReturn = {
       bytes: transactionBytes,
       hash: hexFormatter(Buffer.from(bodyHash)),
       addresses
     };
+    logger.info(
+      toReturn,
+      '[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash'
+    );
+    return toReturn;
   },
   createTransactionBody(inputs, outputs, fee, ttl) {
     return CardanoWasm.TransactionBody.new(inputs, outputs, BigNum.new(fee), ttl);
@@ -340,7 +342,7 @@ const configure = (logger: Logger): CardanoService => ({
       const parsed = CardanoWasm.TransactionBody.from_bytes(transactionBuffer);
       logger.info('[parseUnsignedTransaction] About to parse operations from transaction body');
       const operations = parseOperationsFromTransactionBody(parsed);
-      logger.info(`[parseUnsignedTransaction] Returning ${operations.length} operations`);
+      logger.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
       return { operations, signers: [] };
     } catch (error) {
       logger.error(

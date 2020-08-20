@@ -763,7 +763,7 @@ export const transactionParsedOperations = [
   {
     operation_identifier: { index: 0 },
     type: 'transfer',
-    status: 'success',
+    status: '',
     coin_change: {
       coin_identifier: {
         identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
@@ -775,7 +775,7 @@ export const transactionParsedOperations = [
     operation_identifier: { index: 1 },
     related_operations: [{ index: 0 }],
     type: 'transfer',
-    status: 'success',
+    status: '',
     account: {
       address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
     },
@@ -791,7 +791,7 @@ export const transactionParsedOperations = [
     operation_identifier: { index: 2 },
     related_operations: [{ index: 0 }],
     type: 'transfer',
-    status: 'success',
+    status: '',
     account: {
       address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
     },
