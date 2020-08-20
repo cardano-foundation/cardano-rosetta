@@ -39,15 +39,17 @@ const generateMetadataPayload = (blockchain: string, network: string, relativeTt
   }
 });
 
-const generateProcessPayload = (blockchain: string, network: string, relativeTtl: number) => ({
+const generateProcessPayload = (blockchain: string, network: string, relativeTtl?: number) => ({
   network_identifier: {
     blockchain,
     network
   },
   operations: [],
-  metadata: {
-    relative_ttl: relativeTtl
-  }
+  metadata: relativeTtl
+    ? {
+        relative_ttl: relativeTtl
+      }
+    : undefined
 });
 
 const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
@@ -216,6 +218,16 @@ describe('Construction API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({ options: { relative_ttl: 100 } });
+    });
+
+    test('Should return a TTL when using default relateive ttl', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        payload: generateProcessPayload('cardano', 'mainnet', undefined)
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({ options: { relative_ttl: 1000 } });
     });
   });
 

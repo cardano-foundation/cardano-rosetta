@@ -6,5 +6,6 @@ declare namespace NodeJS {
     LOGGER_ENABLED?: string;
     CARDANOCLI_PATH: string;
     GENESIS_PATH: string;
+    DEFAULT_RELATIVE_TTL: number;
   }
 }

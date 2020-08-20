@@ -59,7 +59,14 @@ export const configure = (
   return {
     ...accountService(repositories.networkRepository, blockServiceInstance, logger, networkId),
     ...blockServiceInstance,
-    ...constructionService(cardanoServiceInstance, blockServiceInstance, cardanoCli, logger, networkId),
+    ...constructionService(
+      cardanoServiceInstance,
+      blockServiceInstance,
+      cardanoCli,
+      networkId,
+      process.env.DEFAULT_RELATIVE_TTL,
+      logger
+    ),
     ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger, networkId),
     ...cardanoServiceInstance
   };

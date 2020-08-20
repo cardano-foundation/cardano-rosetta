@@ -61,8 +61,11 @@ const configure = (
   cardanoService: CardanoService,
   blockService: BlockService,
   cardanoCli: CardanoCli,
-  logger: Logger,
-  networkId: string
+  networkId: string,
+  defaultRelativeTTL: number,
+  logger: Logger
+  // FIXME: This parameters might probably change on https://github.com/input-output-hk/cardano-rosetta/issues/117 so it's better fix it there
+  // eslint-disable-next-line max-params
 ): ConstructionService => ({
   constructionDerive: async request =>
     withNetworkValidation(
@@ -104,7 +107,7 @@ const configure = (
       request,
       async () =>
         // eslint-disable-next-line camelcase
-        ({ options: { relative_ttl: request.metadata.relative_ttl } }),
+        ({ options: { relative_ttl: request.metadata ? request.metadata.relative_ttl : defaultRelativeTTL } }),
       logger,
       networkId
     ),
