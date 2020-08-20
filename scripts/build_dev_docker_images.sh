@@ -8,4 +8,4 @@ docker build --target=nodejs-builder -t nodejs-builder $REPO_ROOT
 docker build --target=haskell-builder -t haskell-builder $REPO_ROOT
 docker build --target=runtime-base -t runtime-base $REPO_ROOT
 docker build -f dev.Dockerfile -t cardano-rosetta:dev $REPO_ROOT
-docker build --build-arg=CARDANO_NETWORK=testnet -f dev.Dockerfile -t cardano-rosetta:dev-testnet $REPO_ROOT
+docker build --build-arg=NETWORK=testnet -f dev.Dockerfile -t cardano-rosetta:dev-testnet $REPO_ROOT

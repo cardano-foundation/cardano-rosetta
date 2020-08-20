@@ -74,7 +74,7 @@ services:
         max-size: "200k"
         max-file: "10"
     volumes:
-      - ./config/network/${CARDANO_NETWORK:-mainnet}:/config
+      - ./config/network/${NETWORK:-mainnet}:/config
 secrets:
   postgres_db:
     file: ./config/secrets/postgres_db

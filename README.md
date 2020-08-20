@@ -15,11 +15,12 @@ wget --secure-protocol=TLSv1_2 https://raw.githubusercontent.com/input-output-hk
 docker build -t cardano-rosetta:0.0.1 .
 ```
 
-**_Optionally_**  specify a test network, or override the managed dependencies using build args
-flags in the `docker build` command. [See releases](docs/MAINTAINER.md#Internal-Software)
+**_Optionally_**  specify a network name, or override the managed dependencies using build args
+flags in the `docker build` command. [See releases](docs/MAINTAINER.md#Internal-Software), and 
+[networks](config/network). `NETWORK` defaults to `mainnet`
 
 ```console
-  --build-arg=CARDANO_NETWORK=testnet
+  --build-arg=NETWORK=testnet
   --build-arg=A_DEP_VERSION=2.0.1
 ```
 

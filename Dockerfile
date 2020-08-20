@@ -141,10 +141,10 @@ WORKDIR /app/src
 RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM runtime-base
-ARG CARDANO_NETWORK=mainnet
+ARG NETWORK=mainnet
 COPY --from=rosetta-server-builder /cardano-rosetta/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /cardano-rosetta/node_modules /cardano-rosetta-server/node_modules
 COPY --from=rosetta-server-builder /cardano-rosetta/config/ecosystem.config.js .
 COPY --from=rosetta-server-builder /cardano-rosetta/config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
-COPY --from=rosetta-server-builder /cardano-rosetta/config/network/${CARDANO_NETWORK} /config/
+COPY --from=rosetta-server-builder /cardano-rosetta/config/network/${NETWORK} /config/
 COPY --from=rosetta-server-builder /cardano-rosetta/scripts/entrypoint.sh .

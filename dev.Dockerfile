@@ -22,10 +22,10 @@ EXPOSE 8080
 CMD ["node", "/cardano-rosetta-server/dist/src/server/index.js"]
 
 FROM runtime-base
-ARG CARDANO_NETWORK=mainnet
+ARG NETWORK=mainnet
 COPY --from=rosetta-server-builder-dev /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps-dev /app/node_modules /cardano-rosetta-server/node_modules
 COPY config/ecosystem.config.js .
 COPY config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
-COPY config/network/${CARDANO_NETWORK} /config/
+COPY config/network/${NETWORK} /config/
 COPY scripts/entrypoint.sh .
