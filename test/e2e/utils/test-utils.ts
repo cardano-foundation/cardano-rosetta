@@ -8,7 +8,14 @@ import buildServer from '../../../src/server/server';
 import { Pool } from 'pg';
 import { CardanoCli } from '../../../src/server/utils/cardanonode-cli';
 
-export const setupDatabase = (): Pool => createPool(process.env.DB_CONNECTION_STRING);
+export const setupDatabase = (offline: boolean): Pool => {
+  if (offline) {
+    const poolMock = new Pool();
+    poolMock.query = jest.fn();
+    return poolMock;
+  }
+  return createPool(process.env.DB_CONNECTION_STRING);
+};
 
 const configLogger = (): Logger =>
   pino({
@@ -21,8 +28,9 @@ export const cardanoCliMock: CardanoCli = {
 
 export const setupServer = (database: Pool): FastifyInstance => {
   const logger = configLogger();
+  // let repositories;
   const repositories = Repositories.configure(database, logger);
-  const services = Services.configure(repositories, cardanoCliMock, logger);
+  const services = Services.configure(repositories, cardanoCliMock, logger, 'mainnet');
   return buildServer(services, process.env.LOGGER_ENABLED === 'true');
 };
 

@@ -127,7 +127,7 @@ describe('/network/list endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
-    database = setupDatabase();
+    database = setupDatabase(false);
     server = setupServer(database);
   });
 
@@ -151,7 +151,7 @@ describe('/network/options endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
-    database = setupDatabase();
+    database = setupDatabase(false);
     server = setupServer(database);
   });
 
@@ -209,7 +209,7 @@ describe('/network/status endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
-    database = setupDatabase();
+    database = setupDatabase(false);
     server = setupServer(database);
   });
 

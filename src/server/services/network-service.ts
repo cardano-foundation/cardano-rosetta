@@ -51,7 +51,8 @@ const configure = (
   networkRepository: NetworkRepository,
   blockchainService: BlockService,
   topologyFile: TopologyConfig,
-  logger: Logger
+  logger: Logger,
+  networkId: string
 ): NetworkService => ({
   async networkList() {
     logger.info('[networkList] Looking for all supported networks');
@@ -73,7 +74,6 @@ const configure = (
   networkStatus: async networkStatusRequest =>
     withNetworkValidation(
       networkStatusRequest.network_identifier,
-      networkRepository,
       networkStatusRequest,
       async () => {
         logger.debug({ networkStatusRequest }, '[networkStatus] Request received:');
@@ -101,12 +101,12 @@ const configure = (
         logger.debug({ response }, '[networkStatus] Returning response:');
         return response;
       },
-      logger
+      logger,
+      networkId
     ),
   networkOptions: async networkOptionsRequest =>
     withNetworkValidation(
       networkOptionsRequest.network_identifier,
-      networkRepository,
       networkOptionsRequest,
       async () => {
         logger.info('[networkOptions] Looking for networkOptions');
@@ -132,7 +132,8 @@ const configure = (
         logger.debug({ response }, '[networkOptions] Returning response:');
         return response;
       },
-      logger
+      logger,
+      networkId
     )
 });
 

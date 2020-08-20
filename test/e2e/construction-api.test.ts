@@ -63,7 +63,7 @@ describe('Construction API', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
-    database = setupDatabase();
+    database = setupDatabase(true);
     server = setupServer(database);
   });
 
@@ -219,6 +219,11 @@ describe('Construction API', () => {
   });
 
   describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
+    beforeAll(async () => {
+      database = setupDatabase(false);
+      server = setupServer(database);
+    });
+
     test('Should return a valid TTL when the parameters are valid', async () => {
       const response = await server.inject({
         method: 'post',
@@ -234,6 +239,7 @@ describe('Construction API', () => {
       (blockchain, network) => generateMetadataPayload(blockchain, network, 100),
       () => server
     );
+
   });
 
   describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {

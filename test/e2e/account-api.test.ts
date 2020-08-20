@@ -59,7 +59,7 @@ describe('/account/balance endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
   beforeAll(async () => {
-    database = setupDatabase();
+    database = setupDatabase(false);
     server = setupServer(database);
   });
 

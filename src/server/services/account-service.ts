@@ -24,12 +24,12 @@ const parseUtxoDetails = (utxoDetails: Utxo[], logger: Logger): Components.Schem
 const configure = (
   networkRepository: NetworkRepository,
   blockService: BlockService,
-  logger: Logger
+  logger: Logger,
+  networkId: string
 ): AccountService => ({
   accountBalance: async accountBalanceRequest =>
     withNetworkValidation(
       accountBalanceRequest.network_identifier,
-      networkRepository,
       accountBalanceRequest,
       async () => {
         logger.debug({ accountBalanceRequest }, '[accountBalance] Request received');
@@ -67,7 +67,8 @@ const configure = (
           coins: parseUtxoDetails(utxoDetails, logger)
         };
       },
-      logger
+      logger,
+      networkId
     )
 });
 
