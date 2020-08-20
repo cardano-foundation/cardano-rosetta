@@ -2,10 +2,12 @@ ARG UBUNTU_VERSION=20.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
 ARG CARDANO_NODE_VERSION=1.18.0
 ARG CARDANO_DB_SYNC_VERSION=3.1.0
+ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
 ENV DEBIAN_FRONTEND=nonintercative
 RUN mkdir -p /app/src
 WORKDIR /app
 RUN apt-get update -y && apt-get install -y \
+  automake \
   build-essential \
   g++ \
   git \
@@ -15,10 +17,10 @@ RUN apt-get update -y && apt-get install -y \
   libgmp-dev \
   libncursesw5 \
   libpq-dev \
-  libsodium-dev \
   libssl-dev \
   libsystemd-dev \
   libtinfo-dev \
+  libtool \
   libz-dev \
   make \
   pkg-config \
@@ -40,36 +42,44 @@ WORKDIR /app/ghc/ghc-8.6.5
 RUN ./configure
 RUN make install
 WORKDIR /app/src
+RUN git clone https://github.com/input-output-hk/libsodium.git &&\
+  cd libsodium &&\
+  git fetch --all --tags &&\
+  git checkout ${IOHK_LIBSODIUM_GIT_REV}
+WORKDIR /app/src/libsodium
+RUN ./autogen.sh && ./configure && make && make install
+ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+ENV PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+WORKDIR /app/src
 RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
   git checkout ${CARDANO_NODE_VERSION}
 WORKDIR /app/src/cardano-node
-RUN echo 'package cardano-crypto-praos\n   flags: -external-libsodium-vrf' > cabal.project.local
-RUN cabal update
 RUN cabal install cardano-node \
   --install-method=copy \
   --installdir=/usr/local/bin \
-  -f -systemd  \
-  -f -external-libsodium-vrf &&\
-cabal install cardano-cli \
-  -f -external-libsodium-vrf \
-  -f -systemd \
+  -f +external-libsodium-vrf \
+  -f -systemd
+RUN cabal install cardano-cli \
   --install-method=copy \
-  --installdir=/usr/local/bin
+  --installdir=/usr/local/bin \
+  -f +external-libsodium-vrf \
+  -f -systemd
 WORKDIR /app/src
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
   git checkout ${CARDANO_DB_SYNC_VERSION}
 WORKDIR /app/src/cardano-db-sync
-RUN echo 'package cardano-crypto-praos\n   flags: -external-libsodium-vrf' > cabal.project.local
 # https://github.com/input-output-hk/iohk-monitoring-framework/issues/579
 #RUN cabal install cardano-db-sync \
 #  --install-method=copy \
 #  --installdir=/usr/local/bin
 RUN cabal build cardano-db-sync && \
   mv ./dist-newstyle/build/x86_64-linux/ghc-8.6.5/cardano-db-sync-${CARDANO_DB_SYNC_VERSION}/x/cardano-db-sync/build/cardano-db-sync/cardano-db-sync /usr/local/bin/
+# Cleanup for runtiume-base copy of /usr/local/lib
+RUN rm -rf /usr/local/lib/ghc-8.6.5 /usr/local/lib/pkgconfig
 
 FROM ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
 ARG NODEJS_MAJOR_VERSION=14
@@ -89,10 +99,10 @@ RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg ma
 RUN apt-get update && apt-get install -y --no-install-recommends \
   ca-certificates \
   jq \
-  libsodium-dev \
   postgresql-12 \
   postgresql-client-12
 RUN npm install pm2 -g
+COPY --from=haskell-builder /usr/local/lib /usr/local/lib
 COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-db-sync /usr/local/bin/
