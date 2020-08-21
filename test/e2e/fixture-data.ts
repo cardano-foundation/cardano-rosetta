@@ -1,3 +1,6 @@
+import cbor from 'cbor';
+import { SIGNATURE_TYPE } from '../../src/server/utils/constants';
+
 /* eslint-disable camelcase */
 const slotLeader2b1 = 'SlotLeader-52df0f2c5539b2b1';
 export const block1000WithoutTxs = {
@@ -409,6 +412,20 @@ export const transaction987aOnGenesis = {
   }
 };
 
+// The following test vectors
+// ./cardano-cli shelley transaction build-raw --tx-in 2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f#1 \
+//  --tx-out addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx +10000 \
+//  --tx-out addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx+40000  --ttl 1000 --fee 40000 --out-file /tmp/tx.txt
+//     And the output was hashed using:
+// import { createHash } from "blake2";
+// const txBuffer = Buffer.from(
+//   "a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8",
+//   "hex"
+// );
+// var h = createHash("blake2b", { digestLength: 32 });
+// h.update(txBuffer);
+// console.log(h.digest("hex"))
+
 export const CONSTRUCTION_PAYLOADS_REQUEST = {
   network_identifier: {
     blockchain: 'cardano',
@@ -417,25 +434,20 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
   operations: [
     {
       operation_identifier: {
-        index: 1,
+        index: 0,
         network_index: 0
       },
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-        metadata: {}
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
       },
       amount: {
         value: '-90000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
-        },
-        metadata: {}
+          decimals: 6
+        }
       },
       coin_change: {
         coin_identifier: {
@@ -447,64 +459,46 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
     },
     {
       operation_identifier: {
-        index: 1,
-        network_index: 0
+        index: 1
       },
       related_operations: [
         {
-          index: 0,
-          operation_identifier: {
-            index: 0
-          }
+          index: 0
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-        metadata: {}
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
       },
       amount: {
         value: '10000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
-        },
-        metadata: {}
+          decimals: 6
+        }
       }
     },
     {
       operation_identifier: {
-        index: 2,
-        network_index: 0
+        index: 2
       },
       related_operations: [
         {
-          index: 0,
-          operation_identifier: {
-            index: 0
-          }
+          index: 0
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-        metadata: {}
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
       },
       amount: {
         value: '40000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
-        },
-        metadata: {}
+          decimals: 6
+        }
       }
     }
   ],
@@ -512,6 +506,17 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
     ttl: 1000
   }
 };
+
+const CONSTRUCTION_EXTRADADATA = CONSTRUCTION_PAYLOADS_REQUEST.operations.filter(
+  op => op.coin_change?.coin_action === 'coin_spent'
+);
+
+export const CONSTRUCTION_PAYLOADS_RESPONSE = cbor
+  .encode([
+    'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
+    CONSTRUCTION_EXTRADADATA
+  ])
+  .toString('hex');
 
 export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
   network_identifier: {
@@ -532,22 +537,17 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
           }
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-        metadata: {}
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
       },
       amount: {
         value: '-90000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
-        },
-        metadata: {}
+          decimals: 6
+        }
       },
       coin_change: {
         coin_identifier: {
@@ -569,20 +569,16 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
           }
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
-        address: 'ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-        metadata: {}
+        address: 'ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
       },
       amount: {
         value: '10000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
+          decimals: 6
         },
         metadata: {}
       },
@@ -606,20 +602,16 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
           }
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-        metadata: {}
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
       },
       amount: {
         value: '40000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
+          decimals: 6
         },
         metadata: {}
       },
@@ -655,8 +647,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
           }
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
         metadata: {}
@@ -665,10 +657,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
         value: '-90000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
+          decimals: 6
         },
         metadata: {}
       },
@@ -692,8 +681,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
           }
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
         metadata: {}
@@ -702,10 +691,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
         value: '10000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
+          decimals: 6
         },
         metadata: {}
       },
@@ -729,8 +715,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
           }
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
         metadata: {}
@@ -739,10 +725,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
         value: '40000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
+          decimals: 6
         },
         metadata: {}
       },
@@ -759,51 +742,12 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
   }
 };
 
-export const transactionParsedOperations = [
-  {
-    operation_identifier: { index: 0 },
-    type: 'transfer',
-    status: '',
-    coin_change: {
-      coin_identifier: {
-        identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
-      },
-      coin_action: 'coin_spent'
-    }
-  },
-  {
-    operation_identifier: { index: 1 },
-    related_operations: [{ index: 0 }],
-    type: 'transfer',
-    status: '',
-    account: {
-      address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
-    },
-    amount: {
-      value: '10000',
-      currency: {
-        symbol: 'ADA',
-        decimals: 6
-      }
-    }
-  },
-  {
-    operation_identifier: { index: 2 },
-    related_operations: [{ index: 0 }],
-    type: 'transfer',
-    status: '',
-    account: {
-      address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
-    },
-    amount: {
-      value: '40000',
-      currency: {
-        symbol: 'ADA',
-        decimals: 6
-      }
-    }
-  }
-];
+// Parse operations as the same as the ones sent before but status should be enpty
+export const CONSTRUCTION_PARSE_OPERATIONS = CONSTRUCTION_PAYLOADS_REQUEST.operations.map(operation => ({
+  ...operation,
+  status: ''
+}));
+
 export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
   network_identifier: {
     blockchain: 'cardano',
@@ -812,11 +756,11 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
   operations: [
     {
       operation_identifier: {
-        index: 1,
+        index: 0,
         network_index: 0
       },
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
         metadata: {}
@@ -825,10 +769,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
         value: '-90000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
+          decimals: 6
         },
         metadata: {}
       },
@@ -846,26 +787,19 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
       },
       related_operations: [
         {
-          index: 0,
-          operation_identifier: {
-            index: 0
-          }
+          index: 0
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-        metadata: {}
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
       },
       amount: {
         value: '10000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
+          decimals: 6
         },
         metadata: {}
       }
@@ -877,14 +811,11 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
       },
       related_operations: [
         {
-          index: 0,
-          operation_identifier: {
-            index: 0
-          }
+          index: 0
         }
       ],
-      type: 'Transfer',
-      status: 'Success',
+      type: 'transfer',
+      status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
         metadata: {}
@@ -893,10 +824,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
         value: '40000',
         currency: {
           symbol: 'ADA',
-          decimals: 6,
-          metadata: {
-            Issuer: 'Satoshi'
-          }
+          decimals: 6
         },
         metadata: {}
       }
@@ -905,4 +833,44 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
   metadata: {
     ttl: 1000
   }
+};
+
+export const CONSTRUCTION_SIGNED_TRANSACTION = cbor
+  .encode([
+    '83a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6',
+    CONSTRUCTION_EXTRADADATA
+  ])
+  .toString('hex');
+
+export const CONSTRUCTION_UNSIGNED_TRANSACTION = cbor
+  .encode([
+    'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
+    CONSTRUCTION_EXTRADADATA
+  ])
+  .toString('hex');
+
+export const CONSTRUCTION_INVALID_TRANSACTION = cbor.encode(['invalid_tx', CONSTRUCTION_EXTRADADATA]).toString('hex');
+
+export const CONSTRUCTION_COMBINE_PAYLOAD = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  unsigned_transaction: CONSTRUCTION_UNSIGNED_TRANSACTION,
+  signatures: [
+    {
+      signing_payload: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+        hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
+        signature_type: SIGNATURE_TYPE
+      },
+      public_key: {
+        hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
+        curve_type: 'edwards25519'
+      },
+      signature_type: SIGNATURE_TYPE,
+      hex_bytes:
+        '6C92508135CB060187A2706ADE8154782867B1526E9615D06742BE5C56F037AB85894C098C2AB07971133C0477BAEE92ADF3527AD7CC816F13E1E4C361041206'
+    }
+  ]
 };

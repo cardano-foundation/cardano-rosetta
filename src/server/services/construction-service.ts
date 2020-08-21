@@ -1,4 +1,5 @@
 import { Logger } from 'pino';
+import cbor from 'cbor';
 import { CardanoService, NetworkIdentifier } from './cardano-services';
 import { NetworkRepository } from '../db/network-repository';
 import { withNetworkValidation } from './utils/services-helper';
@@ -57,6 +58,26 @@ const constructPayloadsForTransactionBody = (
   // eslint-disable-next-line camelcase
   addresses.map(address => ({ address, hex_bytes: transactionBodyHash, signature_type: SIGNATURE_TYPE }));
 
+/**
+ * Rosetta Api requires some information during the workflow that's not available in an UTXO based blockchain,
+ * for example input amounts. Because of that we need to encode some extra data to be able to recover it, for example,
+ * when parsing the transaction. For further explanation see:
+ * https://community.rosetta-api.org/t/implementing-the-construction-api-for-utxo-model-coins/100/3
+ *
+ * CBOR is being used to follow standard Cardano serialization library
+ *
+ * @param transaction
+ * @param extraData
+ */
+// TODO: this function is going to be moved when implementing https://github.com/input-output-hk/cardano-rosetta/issues/56
+const encodeExtraData = async (transaction: string, extraData: Components.Schemas.Operation[]): Promise<string> =>
+  (await cbor.encodeAsync([transaction, extraData])).toString('hex');
+
+const decodeExtraData = async (encoded: string): Promise<[string, Components.Schemas.Operation[]]> => {
+  const [decoded] = await cbor.decodeAll(encoded);
+  return decoded;
+};
+
 const configure = (
   cardanoService: CardanoService,
   blockService: BlockService,
@@ -91,7 +112,7 @@ const configure = (
       request.network_identifier,
       request,
       async () => {
-        const signedTransaction = request.signed_transaction;
+        const [signedTransaction] = await decodeExtraData(request.signed_transaction);
         logger.info('[constructionHash] About to get hash of signed transaction');
         const transactionHash = cardanoService.getHashOfSignedTransaction(signedTransaction);
         logger.info('[constructionHash] About to return hash of signed transaction');
@@ -134,8 +155,19 @@ const configure = (
         logger.info(operations, '[constuctionPayloads] Operations about to be processed');
         const unsignedTransaction = cardanoService.createUnsignedTransaction(operations, ttl);
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
+        // FIXME: we have this as a constant in `block-service`. We should move to a conversion module.
         // eslint-disable-next-line camelcase
-        return { unsigned_transaction: unsignedTransaction.bytes, payloads };
+        const extraData: Components.Schemas.Operation[] = operations
+          // eslint-disable-next-line camelcase
+          .filter(operation => operation.coin_change?.coin_action === 'coin_spent');
+        // .map(operation => ({ account: operation.account, amount: operation.amount }));
+        logger.info({ unsignedTransaction, extraData }, '[createUnsignedTransaction] About to return');
+
+        return {
+          // eslint-disable-next-line camelcase
+          unsigned_transaction: await encodeExtraData(unsignedTransaction.bytes, extraData),
+          payloads
+        };
       },
       logger,
       networkId
@@ -146,8 +178,9 @@ const configure = (
       request,
       async () => {
         logger.info('[constructionCombine] Request received to sign a transaction');
+        const [transaction, extraData] = await decodeExtraData(request.unsigned_transaction);
         const signedTransaction = cardanoService.buildTransaction(
-          request.unsigned_transaction,
+          transaction,
           request.signatures.map(signature => ({
             signature: signature.hex_bytes,
             publicKey: signature.public_key.hex_bytes
@@ -155,7 +188,7 @@ const configure = (
         );
         logger.info({ signedTransaction }, '[constructionCombine] About to return signed transaction');
         // eslint-disable-next-line camelcase
-        return { signed_transaction: signedTransaction };
+        return { signed_transaction: await encodeExtraData(signedTransaction, extraData) };
       },
       logger,
       networkId
@@ -167,17 +200,20 @@ const configure = (
       async () => {
         const signed = request.signed;
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.network_identifier);
+        logger.info(request.transaction, '[constructionParse] Processing');
+        const [transaction, extraData] = await decodeExtraData(request.transaction);
+        logger.info({ transaction, extraData }, '[constructionParse] Decoded');
         if (signed) {
           return {
             // eslint-disable-next-line camelcase
             network_identifier: request.network_identifier,
-            ...cardanoService.parseSignedTransaction(networkIdentifier, request.transaction)
+            ...cardanoService.parseSignedTransaction(networkIdentifier, transaction, extraData)
           };
         }
         return {
           // eslint-disable-next-line camelcase
           network_identifier: request.network_identifier,
-          ...cardanoService.parseUnsignedTransaction(networkIdentifier, request.transaction)
+          ...cardanoService.parseUnsignedTransaction(networkIdentifier, transaction, extraData)
         };
       },
       logger,
@@ -189,7 +225,7 @@ const configure = (
       request,
       async () => {
         try {
-          const signedTransaction = request.signed_transaction;
+          const [signedTransaction] = await decodeExtraData(request.signed_transaction);
           logger.info(`[constructionSubmit] About to submit ${signedTransaction}`);
           await cardanoCli.submitTransaction(signedTransaction, request.network_identifier.network === 'mainnet');
           logger.info('[constructionHash] About to get hash of signed transaction');

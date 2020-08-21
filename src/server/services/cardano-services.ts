@@ -3,7 +3,7 @@ import CardanoWasm, { BigNum, Vkey, PublicKey, Ed25519Signature } from '@emurgo/
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
-import { SUCCESS_STATUS, TRANSFER_OPERATION_TYPE, ADA, ADA_DECIMALS } from '../utils/constants';
+import { TRANSFER_OPERATION_TYPE, ADA, ADA_DECIMALS } from '../utils/constants';
 
 const PUBLIC_KEY_LENGTH = 32;
 const PUBLIC_KEY_BYTES_LENGTH = 64;
@@ -44,8 +44,16 @@ export interface CardanoService {
     ttl: number
   ): CardanoWasm.TransactionBody;
   createUnsignedTransaction(operations: Components.Schemas.Operation[], ttl: string): UnsignedTransaction;
-  parseSignedTransaction(networkId: NetworkIdentifier, transaction: string): TransactionParsed;
-  parseUnsignedTransaction(networkId: NetworkIdentifier, transaction: string): TransactionParsed;
+  parseSignedTransaction(
+    networkId: NetworkIdentifier,
+    transaction: string,
+    extraData: Components.Schemas.Operation[]
+  ): TransactionParsed;
+  parseUnsignedTransaction(
+    networkId: NetworkIdentifier,
+    transaction: string,
+    extraData: Components.Schemas.Operation[]
+  ): TransactionParsed;
 }
 
 const calculateFee = (inputs: Components.Schemas.Operation[], outputs: Components.Schemas.Operation[]): BigInt => {
@@ -96,6 +104,7 @@ const getRelatedOperationsFromInputs = (
 
 const parseOperationsFromTransactionBody = (
   transactionBody: CardanoWasm.TransactionBody,
+  extraData: Components.Schemas.Operation[],
   network: number
 ): Components.Schemas.Operation[] => {
   const operations = [];
@@ -103,9 +112,10 @@ const parseOperationsFromTransactionBody = (
   const outputsCount = transactionBody.outputs().len();
   let currentIndex = 0;
   while (currentIndex < inputsCount) {
-    const input = transactionBody.inputs().get(currentIndex++);
+    const input = transactionBody.inputs().get(currentIndex);
     const inputParsed = parseInputToOperation(input, operations.length);
-    operations.push(inputParsed);
+    operations.push({ ...inputParsed, ...extraData[currentIndex], status: '' });
+    currentIndex++;
   }
   currentIndex = 0;
   // till this line operations only contains inputs
@@ -121,31 +131,6 @@ const parseOperationsFromTransactionBody = (
     operations.push(outputParsed);
   }
   return operations;
-};
-
-const getSignatures = (witnessesSet: CardanoWasm.TransactionWitnessSet): string[] => {
-  if (!witnessesSet.vkeys()) {
-    return [];
-  }
-  const signatures = [];
-  const witnessesKeys = witnessesSet.vkeys();
-  const witnessesLength = witnessesKeys ? witnessesKeys.len() : 0;
-  let currentWitnessLength = 0;
-  while (witnessesKeys && currentWitnessLength < witnessesLength) {
-    signatures.push(
-      hexFormatter(
-        Buffer.from(
-          witnessesKeys
-            .get(currentWitnessLength++)
-            .vkey()
-            .public_key()
-            .hash()
-            .to_bytes()
-        )
-      )
-    );
-  }
-  return signatures;
 };
 
 const configure = (logger: Logger): CardanoService => ({
@@ -326,31 +311,29 @@ const configure = (logger: Logger): CardanoService => ({
   createTransactionBody(inputs, outputs, fee, ttl) {
     return CardanoWasm.TransactionBody.new(inputs, outputs, BigNum.new(fee), ttl);
   },
-  parseSignedTransaction(networkId, transaction) {
+  parseSignedTransaction(networkId, transaction, extraData) {
     try {
       const transactionBuffer = Buffer.from(transaction, 'hex');
       logger.info('[parseSignedTransaction] About to create signed transaction from bytes');
       const parsed = CardanoWasm.Transaction.from_bytes(transactionBuffer);
       logger.info('[parseSignedTransaction] About to parse operations from transaction body');
-      const operations = parseOperationsFromTransactionBody(parsed.body(), networkId);
+      const operations = parseOperationsFromTransactionBody(parsed.body(), extraData, networkId);
       logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
-      const signatures = getSignatures(parsed.witness_set());
-      logger.info(
-        `[parseSignedTransaction] Returning ${operations.length} operations and ${signatures.length} signers`
-      );
-      return { operations, signers: signatures };
+      logger.info(operations, '[parseSignedTransaction] Returning operations');
+      const signers = extraData.map(data => data.account?.address || '');
+      return { operations, signers };
     } catch (error) {
-      logger.error({ error }, '[parseUnsignedTransaction] Cant instantiate signed transaction from transaction bytes');
+      logger.error({ error }, '[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes');
       throw ErrorFactory.cantCreateSignedTransactionFromBytes();
     }
   },
-  parseUnsignedTransaction(networkId, transaction) {
+  parseUnsignedTransaction(networkId, transaction, extraData) {
     try {
+      logger.info(transaction, '[parseUnsignedTransaction] About to create unsigned transaction from bytes');
       const transactionBuffer = Buffer.from(transaction, 'hex');
-      logger.info('[parseUnsignedTransaction] About to create unsigned transaction from bytes');
       const parsed = CardanoWasm.TransactionBody.from_bytes(transactionBuffer);
-      logger.info('[parseUnsignedTransaction] About to parse operations from transaction body');
-      const operations = parseOperationsFromTransactionBody(parsed, networkId);
+      logger.info(extraData, '[parseUnsignedTransaction] About to parse operations from transaction body');
+      const operations = parseOperationsFromTransactionBody(parsed, extraData, networkId);
       logger.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
       return { operations, signers: [] };
     } catch (error) {
