@@ -216,58 +216,67 @@ const configure = (logger: Logger): CardanoService => ({
     const transactionInputs = CardanoWasm.TransactionInputs.new();
     inputs.forEach(input => {
       if (!input.coin_change) {
-        logger.error('[validateAndParseTransactionInputs] Inputs have missing parameters');
-        throw ErrorFactory.transactionInputsParametersMissingError();
+        logger.error('[validateAndParseTransactionInputs] Input has missing coin_change');
+        throw ErrorFactory.transactionInputsParametersMissingError('Input has missing coin_change field');
       }
       const [transactionId, index] = input.coin_change && input.coin_change.coin_identifier.identifier.split(':');
       if (!(transactionId && index)) {
-        logger.error('[validateAndParseTransactionInputs] Inputs have missing parameters');
-        throw ErrorFactory.transactionInputsParametersMissingError();
+        logger.error('[validateAndParseTransactionInputs] Input has missing transactionId and index');
+        throw ErrorFactory.transactionInputsParametersMissingError('Input has invalid coin_identifier field');
       }
-      transactionInputs.add(
-        CardanoWasm.TransactionInput.new(
-          CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
-          Number(index)
-        )
-      );
+      try {
+        transactionInputs.add(
+          CardanoWasm.TransactionInput.new(
+            CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
+            Number(index)
+          )
+        );
+      } catch (error) {
+        throw ErrorFactory.transactionInputDeserializationError(
+          'There was an error deserializating transaction input: '.concat(error)
+        );
+      }
     });
     return transactionInputs;
   },
   getTransactionInputs(inputs) {
-    try {
-      logger.info(`[getTransactionInputs] About to parse ${inputs.length} inputs`);
-      const transactionInputs = this.validateAndParseTransactionInputs(inputs);
-      logger.info('[getTransactionInputs] Transaction inputs were created');
-      return transactionInputs;
-    } catch (error) {
-      logger.error('[getTransactionInputs] There was an error parsing inputs, parameters are not valid');
-      throw ErrorFactory.transactionInputsParametersMissingError();
-    }
+    logger.info(`[getTransactionInputs] About to parse ${inputs.length} inputs`);
+    const transactionInputs = this.validateAndParseTransactionInputs(inputs);
+    logger.info('[getTransactionInputs] Transaction inputs were created');
+    return transactionInputs;
   },
   validateAndParseTransactionOutputs(outputs) {
     const transactionOutputs = CardanoWasm.TransactionOutputs.new();
     outputs.forEach(output => {
       // eslint-disable-next-line camelcase
-      const address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
-      const value = output.amount && BigNum.from_str(output.amount.value);
-      if (!(address && value)) {
-        logger.error('[validateAndParseTransactionOutputs] Outputs have missing parameters');
-        throw ErrorFactory.transactionOutputsParametersMissingError();
+      let address;
+      try {
+        address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
+      } catch (error) {
+        throw ErrorFactory.transactionOutputDeserializationError(error.toString());
       }
-      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, value));
+      if (!address) {
+        logger.error('[validateAndParseTransactionOutputs] Output has missing address field');
+        throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
+      }
+      const value = output.amount && BigNum.from_str(output.amount.value);
+      if (!value) {
+        logger.error('[validateAndParseTransactionOutputs] Output has missing amount value field');
+        throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
+      }
+      try {
+        transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, value));
+      } catch (error) {
+        throw ErrorFactory.transactionOutputDeserializationError(error.toString());
+      }
     });
     return transactionOutputs;
   },
   getTransactionOutputs(outputs) {
-    try {
-      logger.info(`[getTransactionOutputs] About to parse ${outputs.length} outputs`);
-      const transactionOutputs = this.validateAndParseTransactionOutputs(outputs);
-      logger.info('[getTransactionOutputs] Transaction outputs were created');
-      return transactionOutputs;
-    } catch (error) {
-      logger.error('[getTransactionOutputs] There was an erryqor parsing outputs, parameters are not valid');
-      throw ErrorFactory.transactionOutputsParametersMissingError();
-    }
+    logger.info(`[getTransactionOutputs] About to parse ${outputs.length} outputs`);
+    const transactionOutputs = this.validateAndParseTransactionOutputs(outputs);
+    logger.info('[getTransactionOutputs] Transaction outputs were created');
+    return transactionOutputs;
   },
   createUnsignedTransaction(operations, ttl) {
     logger.info(
@@ -288,7 +297,7 @@ const configure = (logger: Logger): CardanoService => ({
     const addresses = inputs.map(input => {
       if (input.account) return input.account?.address;
       // This logic is not necessary (because it is made on this.getTransactionInputs(..)) but ts expects me to do it again
-      throw ErrorFactory.transactionInputsParametersMissingError();
+      throw ErrorFactory.transactionInputsParametersMissingError('Input has missing account address field');
     });
 
     const transactionBytes = hexFormatter(Buffer.from(transactionBody.to_bytes()));

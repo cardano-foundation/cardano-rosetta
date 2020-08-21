@@ -8,7 +8,8 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS,
-  transactionParsedOperations
+  transactionParsedOperations,
+  CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID
 } from './fixture-data';
 import { CARDANO, MAINNET, SIGNATURE_TYPE } from '../../src/server/utils/constants';
 import { Errors } from '../../src/server/utils/errors';
@@ -239,7 +240,6 @@ describe('Construction API', () => {
       (blockchain, network) => generateMetadataPayload(blockchain, network, 100),
       () => server
     );
-
   });
 
   describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
@@ -417,9 +417,14 @@ describe('Construction API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({
-        code: 4008,
-        message: 'Transaction inputs parameters errors in operations array',
-        retriable: false
+        code: 4013,
+        message: 'Cant deserialize transaction input from transaction body',
+        retriable: false,
+        details: {
+          message:
+            // eslint-disable-next-line quotes
+            "There was an error deserializating transaction input: Deserialization failed in TransactionHash because: Invalid cbor: expected tuple 'hash length' of length 32 but got length Len(0)."
+        }
       });
     });
 
@@ -431,9 +436,25 @@ describe('Construction API', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({
-        code: 4009,
-        message: 'Transaction outputs parameters errors in operations array',
-        retriable: false
+        code: 4014,
+        message: 'Cant deserialize transaction output from transaction body',
+        retriable: false,
+        details: { message: 'mixed-case strings not allowed' }
+      });
+    });
+
+    test('Should throw an error when invalid transactionId is sent as input parameters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+        payload: CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4008,
+        message: 'Transaction inputs parameters errors in operations array',
+        retriable: false,
+        details: { message: 'Input has invalid coin_identifier field' }
       });
     });
 
@@ -637,7 +658,9 @@ describe('Construction API', () => {
       expect((cardanoCliMock.submitTransaction as jest.Mock).mock.calls.length).toBe(1);
       expect(response.json()).toEqual({
         code: 5008,
-        details: {},
+        details: {
+          message: 'Error when calling cardano-cli'
+        },
         message: 'Error when sending the transaction',
         retriable: true
       });
