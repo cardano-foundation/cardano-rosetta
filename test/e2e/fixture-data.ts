@@ -768,7 +768,7 @@ export const transactionParsedOperations = [
       coin_identifier: {
         identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
       },
-      coin_action: 'coin_created'
+      coin_action: 'coin_spent'
     }
   },
   {

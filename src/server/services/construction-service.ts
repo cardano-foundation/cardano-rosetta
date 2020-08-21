@@ -131,6 +131,7 @@ const configure = (
       async () => {
         const ttl = request.metadata.ttl;
         const operations = request.operations;
+        logger.info(operations, '[constuctionPayloads] Operations about to be processed');
         const unsignedTransaction = cardanoService.createUnsignedTransaction(operations, ttl);
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         // eslint-disable-next-line camelcase
@@ -165,17 +166,18 @@ const configure = (
       request,
       async () => {
         const signed = request.signed;
+        const networkIdentifier = getNetworkIdentifierByRequestParameters(request.network_identifier);
         if (signed) {
           return {
             // eslint-disable-next-line camelcase
             network_identifier: request.network_identifier,
-            ...cardanoService.parseSignedTransaction(request.transaction)
+            ...cardanoService.parseSignedTransaction(networkIdentifier, request.transaction)
           };
         }
         return {
           // eslint-disable-next-line camelcase
           network_identifier: request.network_identifier,
-          ...cardanoService.parseUnsignedTransaction(request.transaction)
+          ...cardanoService.parseUnsignedTransaction(networkIdentifier, request.transaction)
         };
       },
       logger,
