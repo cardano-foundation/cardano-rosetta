@@ -52,10 +52,23 @@ There must be a `.env` file in the root directory with the following configs:
 ```
 # App port
 PORT=8080
+# Application log level {off, fatal, error, warn, info, debug, trace, all}
+LOGGER_LEVEL="debug"
+LOGGER_ENABLED="true"
 # App address to bind to
-BIND_ADDRESS=127.0.0.1
+BIND_ADDRESS=0.0.0.0
 # PostgresDB connection string
-DB_CONNECTION_STRING="postgresql://postgres:password@127.0.0.1:5432/db"
+DB_CONNECTION_STRING="postgresql://postgres:mysecretpassword@127.0.0.1:5432/cardano-test"
+# cardano-node topology absolute file path
+TOPOLOGY_FILE_PATH="/etc/node/topology-test.json"
+# Absolute path to the cardano-cli binary https://github.com/input-output-hk/cardano-node/tree/master/cardano-cli
+CARDANOCLI_PATH="/etc/node/cardano-cli"
+# cardano-node genesis absolute file pat
+GENESIS_PATH="/etc/node/testnet-genesis.json"
+# cardano-node socket
+CARDANO_NODE_SOCKET_PATH=/tmp/node.socket
+# max amount of transactions to be returned in `/block` endpoint. Otherwise only hashes will be sent
+PAGE_SIZE=25
 ```
 
 ### Configure Rosetta Spec types

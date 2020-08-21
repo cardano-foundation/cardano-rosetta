@@ -3,7 +3,7 @@
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { setupDatabase, setupServer, testInvalidNetworkParameters } from './utils/test-utils';
+import { setupDatabase, setupServer, cardanoCliMock, testInvalidNetworkParameters } from './utils/test-utils';
 import {
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
@@ -11,6 +11,7 @@ import {
   transactionParsedOperations
 } from './fixture-data';
 import { CARDANO, MAINNET, SIGNATURE_TYPE } from '../../src/server/utils/constants';
+import { Errors } from '../../src/server/utils/errors';
 
 const generatePayload = (blockchain: string, network: string, key?: string, curveType?: string) => ({
   network_identifier: {
@@ -55,6 +56,7 @@ const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 const CONSTRUCTION_COMBINE_ENDPOINT = '/construction/combine';
 const CONSTRUCTION_PAYLOADS_ENDPOINT = '/construction/payloads';
 const CONSTRUCTION_PARSE_ENDPOINT = '/construction/parse';
+const CONSTRUCTION_SUBMIT_ENDPOINT = '/construction/submit';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
 
 describe('Construction API', () => {
@@ -214,51 +216,27 @@ describe('Construction API', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({ options: { relative_ttl: 100 } });
     });
+  });
 
-    test('Should throw invalid network error when the network specified is invalid', async () => {
+  describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
+    test('Should return a valid TTL when the parameters are valid', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_METADATA_ENDPOINT,
-        payload: generateMetadataPayload('cardano', 'testnet', 100)
+        payload: generateMetadataPayload('cardano', 'mainnet', 100)
       });
-      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-      expect(response.json()).toEqual({
-        code: 4002,
-        message: 'Network not found',
-        retriable: false
-      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({ metadata: { ttl: '65294' } });
     });
+
+    testInvalidNetworkParameters(
+      CONSTRUCTION_METADATA_ENDPOINT,
+      (blockchain, network) => generateMetadataPayload(blockchain, network, 100),
+      () => server
+    );
   });
 
   describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
-    testInvalidNetworkParameters(
-      CONSTRUCTION_COMBINE_ENDPOINT,
-      (blockchain, network) => ({
-        network_identifier: {
-          blockchain,
-          network
-        },
-        unsigned_transaction:
-          'a4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314',
-        signatures: [
-          {
-            signing_payload: {
-              address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkx',
-              hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
-              signature_type: SIGNATURE_TYPE
-            },
-            public_key: {
-              hex_bytes: '58201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f',
-              curve_type: 'edwards25519'
-            },
-            signature_type: SIGNATURE_TYPE,
-            hex_bytes: 'signatureHexInvalidBytes'
-          }
-        ]
-      }),
-      () => server
-    );
-
     /**
      * All test vectors built in /construction/combine tests were generated using these scripts:
      * $> cardano-cli shelley transaction build-raw \
@@ -305,7 +283,6 @@ describe('Construction API', () => {
         '83a4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6'
       );
     });
-
     test('Should return error when providing valid unsigned transaction but invalid signatures', async () => {
       const payload = {
         network_identifier: {
@@ -583,6 +560,80 @@ describe('Construction API', () => {
         code: 4012,
         message: 'Cant create unsigned transaction from transaction bytes',
         retriable: false
+      });
+    });
+  });
+
+  describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
+    it('Should return an error if an invalid network is sent', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_SUBMIT_ENDPOINT,
+        payload: generatePayloadWithSignedTransaction(
+          'cardano',
+          'testnet',
+          '83a400818258203b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b700018182581d61a6274badf4c9ca583df893a73139625ff4dc73aaa3082e67d6d5d08e0102182a030aa10081825820e7d33eeb6f1df124f9f4c226428bc46b4c93ac4bc89dacc85748d1a2b47ded135840f39ee9a72d5de64b5a8ccffb7830cd7af4438944ffb16698f7e3b3a11ae684e14f213c5ac38a50852bf1d531f13f02fc0510610f7b549bec10d01dfe81ee080ef6'
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({ ...Errors.NETWORK_NOT_FOUND, retriable: false });
+    });
+
+    it('Should return an error if an invalid network is sent', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_SUBMIT_ENDPOINT,
+        payload: generatePayloadWithSignedTransaction(
+          'bitcoin',
+          'mainnet',
+          '83a400818258203b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b700018182581d61a6274badf4c9ca583df893a73139625ff4dc73aaa3082e67d6d5d08e0102182a030aa10081825820e7d33eeb6f1df124f9f4c226428bc46b4c93ac4bc89dacc85748d1a2b47ded135840f39ee9a72d5de64b5a8ccffb7830cd7af4438944ffb16698f7e3b3a11ae684e14f213c5ac38a50852bf1d531f13f02fc0510610f7b549bec10d01dfe81ee080ef6'
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({ ...Errors.INVALID_BLOCKCHAIN, retriable: false });
+    });
+
+    it('Should return the transaction identifier is request is valid', async () => {
+      const mock = cardanoCliMock.submitTransaction as jest.Mock;
+      mock.mockClear();
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_SUBMIT_ENDPOINT,
+        payload: generatePayloadWithSignedTransaction(
+          'cardano',
+          'mainnet',
+          '83a400818258203b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b700018182581d61a6274badf4c9ca583df893a73139625ff4dc73aaa3082e67d6d5d08e0102182a030aa10081825820e7d33eeb6f1df124f9f4c226428bc46b4c93ac4bc89dacc85748d1a2b47ded135840f39ee9a72d5de64b5a8ccffb7830cd7af4438944ffb16698f7e3b3a11ae684e14f213c5ac38a50852bf1d531f13f02fc0510610f7b549bec10d01dfe81ee080ef6'
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(mock.mock.calls.length).toBe(1);
+      expect(response.json()).toEqual({
+        transaction_identifier: { hash: '4827ce27820b2605e0314af4d52c8a2b697f2f7a37f08079bbc2f7102b0572d1' }
+      });
+    });
+
+    it('Should return an error if there is a problem when sending the transaction', async () => {
+      const mock = cardanoCliMock.submitTransaction as jest.Mock;
+      mock.mockClear();
+      mock.mockImplementation(() => {
+        throw new Error('Error when calling cardano-cli');
+      });
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_SUBMIT_ENDPOINT,
+        payload: generatePayloadWithSignedTransaction(
+          'cardano',
+          'mainnet',
+          '83a400818258203b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b700018182581d61a6274badf4c9ca583df893a73139625ff4dc73aaa3082e67d6d5d08e0102182a030aa10081825820e7d33eeb6f1df124f9f4c226428bc46b4c93ac4bc89dacc85748d1a2b47ded135840f39ee9a72d5de64b5a8ccffb7830cd7af4438944ffb16698f7e3b3a11ae684e14f213c5ac38a50852bf1d531f13f02fc0510610f7b549bec10d01dfe81ee080ef6'
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect((cardanoCliMock.submitTransaction as jest.Mock).mock.calls.length).toBe(1);
+      expect(response.json()).toEqual({
+        code: 5008,
+        details: {},
+        message: 'Error when sending the transaction',
+        retriable: true
       });
     });
   });

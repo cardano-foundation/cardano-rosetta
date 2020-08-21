@@ -56,23 +56,13 @@ const allow = {
       retriable: false
     },
     {
-      code: 4004,
-      message: INVALID_BLOCKCHAIN,
-      retriable: false
-    },
-    {
       code: 4003,
       message: 'Networks not found',
       retriable: false
     },
     {
-      code: 5001,
-      message: 'Not implemented',
-      retriable: false
-    },
-    {
-      code: 5002,
-      message: 'Topology file not found',
+      code: 4004,
+      message: INVALID_BLOCKCHAIN,
       retriable: false
     },
     {
@@ -85,9 +75,32 @@ const allow = {
       message: 'Transaction not found',
       retriable: false
     },
+    { code: 4007, message: 'Invalid public key format', retriable: false },
+    { code: 4008, message: 'Transaction inputs parameters errors in operations array', retriable: false },
+    { code: 4009, message: 'Transaction outputs parameters errors in operations array', retriable: false },
+    { code: 4010, message: 'The transaction you are trying to build has more outputs than inputs', retriable: false },
+    {
+      message: 'Cant create signed transaction from transaction bytes',
+      code: 4011,
+      retriable: false
+    },
+    {
+      message: 'Cant create unsigned transaction from transaction bytes',
+      code: 4012,
+      retriable: false
+    },
+    {
+      code: 5001,
+      message: 'Not implemented',
+      retriable: false
+    },
+    {
+      code: 5002,
+      message: 'Topology file not found',
+      retriable: false
+    },
     { code: 5003, message: 'Page size config not found', retriable: false },
     { code: 5004, message: 'Address generation error', retriable: false },
-    { code: 4007, message: 'Invalid public key format', retriable: false },
     { code: 5005, message: 'Parse signed transaction error', retriable: false },
     {
       code: 5006,
@@ -99,11 +112,11 @@ const allow = {
       message: 'Cant build witnesses set for transaction probably because of provided signatures',
       retriable: false
     },
-    { code: 4008, message: 'Transaction inputs parameters errors in operations array', retriable: false },
-    { code: 4009, message: 'Transaction outputs parameters errors in operations array', retriable: false },
-    { code: 4010, message: 'The transaction you are trying to build has more outputs than inputs', retriable: false },
-    { code: 4011, message: 'Cant create signed transaction from transaction bytes', retriable: false },
-    { code: 4012, message: 'Cant create unsigned transaction from transaction bytes', retriable: false }
+    {
+      code: 5008,
+      message: 'Error when sending the transaction',
+      retriable: true
+    }
   ],
   historical_balance_lookup: true
 };

@@ -5,6 +5,7 @@ import { withNetworkValidation } from './utils/services-helper';
 import { ErrorFactory } from '../utils/errors';
 import { MAINNET, SIGNATURE_TYPE } from '../utils/constants';
 import { BlockService } from './block-service';
+import { CardanoCli } from '../utils/cardanonode-cli';
 
 export interface ConstructionService {
   constructionDerive(
@@ -60,6 +61,7 @@ const configure = (
   cardanoService: CardanoService,
   networkRepository: NetworkRepository,
   blockService: BlockService,
+  cardanoCli: CardanoCli,
   logger: Logger
 ): ConstructionService => ({
   constructionDerive: async request =>
@@ -176,13 +178,27 @@ const configure = (
       },
       logger
     ),
-  async constructionSubmit(request) {
-    return {
-      code: 7,
-      message: 'string',
-      retriable: true
-    };
-  }
+  constructionSubmit: async request =>
+    withNetworkValidation(
+      request.network_identifier,
+      networkRepository,
+      request,
+      async () => {
+        try {
+          const signedTransaction = request.signed_transaction;
+          logger.info(`[constructionSubmit] About to submit ${signedTransaction}`);
+          await cardanoCli.submitTransaction(signedTransaction, request.network_identifier.network === 'mainnet');
+          logger.info('[constructionHash] About to get hash of signed transaction');
+          const transactionHash = cardanoService.getHashOfSignedTransaction(signedTransaction);
+          // eslint-disable-next-line camelcase
+          return { transaction_identifier: { hash: transactionHash } };
+        } catch (error) {
+          logger.error(error);
+          return ErrorFactory.sendTransactionError(error.message);
+        }
+      },
+      logger
+    )
 });
 
 export default configure;
