@@ -59,15 +59,14 @@ const constructPayloadsForTransactionBody = (
 
 const configure = (
   cardanoService: CardanoService,
-  networkRepository: NetworkRepository,
   blockService: BlockService,
   cardanoCli: CardanoCli,
-  logger: Logger
+  logger: Logger,
+  networkId: string
 ): ConstructionService => ({
   constructionDerive: async request =>
     withNetworkValidation(
       request.network_identifier,
-      networkRepository,
       request,
       async () => {
         const publicKey = request.public_key;
@@ -81,12 +80,12 @@ const configure = (
           address
         };
       },
-      logger
+      logger,
+      networkId
     ),
   constructionHash: async request =>
     withNetworkValidation(
       request.network_identifier,
-      networkRepository,
       request,
       async () => {
         const signedTransaction = request.signed_transaction;
@@ -96,22 +95,22 @@ const configure = (
         // eslint-disable-next-line camelcase
         return { transaction_identifier: { hash: transactionHash } };
       },
-      logger
+      logger,
+      networkId
     ),
   constructionPreprocess: async request =>
     withNetworkValidation(
       request.network_identifier,
-      networkRepository,
       request,
       async () =>
         // eslint-disable-next-line camelcase
         ({ options: { relative_ttl: request.metadata.relative_ttl } }),
-      logger
+      logger,
+      networkId
     ),
   constructionMetadata: async request =>
     withNetworkValidation(
       request.network_identifier,
-      networkRepository,
       request,
       async () => {
         const ttlOffset = request.options.relative_ttl;
@@ -119,12 +118,12 @@ const configure = (
         const ttl = (BigInt(latestBlock.slotNo) + BigInt(ttlOffset)).toString();
         return { metadata: { ttl } };
       },
-      logger
+      logger,
+      networkId
     ),
   constructionPayloads: async request =>
     withNetworkValidation(
       request.network_identifier,
-      networkRepository,
       request,
       async () => {
         const ttl = request.metadata.ttl;
@@ -134,12 +133,12 @@ const configure = (
         // eslint-disable-next-line camelcase
         return { unsigned_transaction: unsignedTransaction.bytes, payloads };
       },
-      logger
+      logger,
+      networkId
     ),
   constructionCombine: async request =>
     withNetworkValidation(
       request.network_identifier,
-      networkRepository,
       request,
       async () => {
         logger.info('[constructionCombine] Request received to sign a transaction');
@@ -154,12 +153,12 @@ const configure = (
         // eslint-disable-next-line camelcase
         return { signed_transaction: signedTransaction };
       },
-      logger
+      logger,
+      networkId
     ),
   constructionParse: async request =>
     withNetworkValidation(
       request.network_identifier,
-      networkRepository,
       request,
       async () => {
         const signed = request.signed;
@@ -176,12 +175,12 @@ const configure = (
           ...cardanoService.parseUnsignedTransaction(request.transaction)
         };
       },
-      logger
+      logger,
+      networkId
     ),
   constructionSubmit: async request =>
     withNetworkValidation(
       request.network_identifier,
-      networkRepository,
       request,
       async () => {
         try {
@@ -197,7 +196,8 @@ const configure = (
           return ErrorFactory.sendTransactionError(error.message);
         }
       },
-      logger
+      logger,
+      networkId
     )
 });
 

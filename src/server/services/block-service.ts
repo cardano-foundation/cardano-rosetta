@@ -151,7 +151,8 @@ const configure = (
   repository: BlockchainRepository,
   PAGE_SIZE: number,
   networkRepository: NetworkRepository,
-  logger: Logger
+  logger: Logger,
+  networkId: string
 ): BlockService => ({
   async findBlock(blockIdentifier) {
     logger.info({ blockIdentifier }, '[findBlock] Looking for block:');
@@ -238,7 +239,6 @@ const configure = (
   blockTransaction: async blockTransactionRequest =>
     withNetworkValidation(
       blockTransactionRequest.network_identifier,
-      networkRepository,
       blockTransactionRequest,
       async () => {
         const transactionHash = blockTransactionRequest.transaction_identifier.hash;
@@ -259,7 +259,8 @@ const configure = (
           transaction: response
         };
       },
-      logger
+      logger,
+      networkId
     )
 });
 

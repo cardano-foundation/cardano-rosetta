@@ -42,25 +42,25 @@ const loadPageSize = (logger: Logger): number => {
  *
  * @param repositories repositories to be used by the services
  */
-export const configure = (repositories: Repositories, cardanoCli: CardanoCli, logger: Logger): Services => {
+export const configure = (
+  repositories: Repositories,
+  cardanoCli: CardanoCli,
+  logger: Logger,
+  networkId: string
+): Services => {
   const blockServiceInstance = blockService(
     repositories.blockchainRepository,
     loadPageSize(logger),
     repositories.networkRepository,
-    logger
+    logger,
+    networkId
   );
   const cardanoServiceInstance = cardanoService(logger);
   return {
-    ...accountService(repositories.networkRepository, blockServiceInstance, logger),
+    ...accountService(repositories.networkRepository, blockServiceInstance, logger, networkId),
     ...blockServiceInstance,
-    ...constructionService(
-      cardanoServiceInstance,
-      repositories.networkRepository,
-      blockServiceInstance,
-      cardanoCli,
-      logger
-    ),
-    ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger),
+    ...constructionService(cardanoServiceInstance, blockServiceInstance, cardanoCli, logger, networkId),
+    ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger, networkId),
     ...cardanoServiceInstance
   };
 };

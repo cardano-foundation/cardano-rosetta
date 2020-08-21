@@ -14,6 +14,7 @@ const { PORT, BIND_ADDRESS, DB_CONNECTION_STRING, LOGGER_ENABLED, LOGGER_LEVEL }
 // https://github.com/input-output-hk/cardano-rosetta/issues/101
 const genesis = JSON.parse(fs.readFileSync(path.resolve(process.env.GENESIS_PATH)).toString());
 const networkMagic = genesis.networkMagic;
+const networkId = genesis.networkId.toLowerCase();
 
 const configLogger = () =>
   pino({
@@ -30,7 +31,7 @@ const start = async (databaseInstance: Pool) => {
     // FIXME: validate the following paraemeters when implementing (2)
     // https://github.com/input-output-hk/cardano-rosetta/issues/101
     const cardanoCli = CardanoCli.configure(process.env.CARDANOCLI_PATH, networkMagic, logger);
-    const services = Services.configure(repository, cardanoCli, logger);
+    const services = Services.configure(repository, cardanoCli, logger, networkId);
     server = buildServer(services, LOGGER_ENABLED === 'true');
     server.addHook('onClose', (fastify, done) => databaseInstance.end(done));
     // eslint-disable-next-line no-magic-numbers
