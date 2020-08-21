@@ -13,7 +13,7 @@ const { PORT, BIND_ADDRESS, DB_CONNECTION_STRING, LOGGER_ENABLED, LOGGER_LEVEL }
 // FIXME: validate the following paraemeters when implementing (2)
 // https://github.com/input-output-hk/cardano-rosetta/issues/101
 const genesis = JSON.parse(fs.readFileSync(path.resolve(process.env.GENESIS_PATH)).toString());
-const networkMagic = genesis.protocolConsts.protocolMagic;
+const networkMagic = genesis.networkMagic;
 
 const configLogger = () =>
   pino({
