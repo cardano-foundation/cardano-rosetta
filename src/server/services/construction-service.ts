@@ -1,4 +1,5 @@
 import { BlockService } from './block-service';
+import { Logger } from 'fastify';
 
 export interface ConstructionService {
   /**
@@ -13,14 +14,14 @@ export interface ConstructionService {
    *
    * @param ttlOffset
    */
-  calculateTtl(ttlOffset: number): Promise<BigInt>;
+  calculateTtl(logger: Logger, ttlOffset: number): Promise<BigInt>;
 }
 
 const configure = (blockService: BlockService, defaultRelativeTTL: number): ConstructionService => ({
   calculateRelativeTtl: relativeTtl => (relativeTtl ? relativeTtl : defaultRelativeTTL),
 
-  calculateTtl: async ttlOffset => {
-    const latestBlock = await blockService.getLatestBlock();
+  calculateTtl: async (logger, ttlOffset) => {
+    const latestBlock = await blockService.getLatestBlock(logger);
     return BigInt(latestBlock.slotNo) + BigInt(ttlOffset);
   }
 });

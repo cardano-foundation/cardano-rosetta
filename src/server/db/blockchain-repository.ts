@@ -2,13 +2,12 @@ import { Pool, QueryResult } from 'pg';
 import moment from 'moment';
 import { hexFormatter, hashStringToBuffer, replace0xOnHash } from '../utils/formatters';
 import Queries, {
+  FindTransaction,
   FindTransactionsInputs,
   FindTransactionsOutputs,
-  FindBalance,
-  FindUtxo,
-  FindTransaction
+  FindUtxo
 } from './queries/blockchain-queries';
-import { Logger } from 'pino';
+import { Logger } from 'fastify';
 
 export interface Block {
   hash: string;
@@ -72,14 +71,14 @@ export interface BlockchainRepository {
    * @param blockNumber
    * @param blockHash
    */
-  findBlock(number?: number, blockHash?: string): Promise<Block | null>;
+  findBlock(logger: Logger, number?: number, blockHash?: string): Promise<Block | null>;
 
   /**
    * Looks for transactions given the hashes
    *
    * @param hashes
    */
-  fillTransaction(transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]>;
+  fillTransaction(logger: Logger, transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]>;
 
   /**
    * Returns, if any, the transactions a block contains
@@ -87,7 +86,7 @@ export interface BlockchainRepository {
    * @param number block number to look transactions for
    * @param blockHash block hash to look transactions for
    */
-  findTransactionsByBlock(number?: number, blockHash?: string): Promise<Transaction[]>;
+  findTransactionsByBlock(logger: Logger, number?: number, blockHash?: string): Promise<Transaction[]>;
 
   /**
    * Returns the transaction for the given hash if any
@@ -95,6 +94,7 @@ export interface BlockchainRepository {
    * @param hash hex formatted transaction hash
    */
   findTransactionByHashAndBlock(
+    logger: Logger,
     hash: string,
     blockNumber: number,
     blockHash: string
@@ -103,19 +103,19 @@ export interface BlockchainRepository {
   /**
    * Returns the tip of the chain block number
    */
-  findLatestBlockNumber(): Promise<number>;
+  findLatestBlockNumber(logger: Logger): Promise<number>;
 
   /**
    * Returns the genesis block
    */
-  findGenesisBlock(): Promise<GenesisBlock | null>;
+  findGenesisBlock(logger: Logger): Promise<GenesisBlock | null>;
 
   /**
    * Returns an array containing all utxo for address till block identified by blockIdentifier if present, else the last
    * @param address account's address to count balance
    * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
    */
-  findUtxoByAddressAndBlock(address: string, blockHash: string): Promise<Utxo[]>;
+  findUtxoByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<Utxo[]>;
 }
 
 /**
@@ -238,8 +238,8 @@ const processTransactionsQueryResult = async (
   return Object.values(transactionsMap);
 };
 
-export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRepository => ({
-  async findBlock(blockNumber?: number, blockHash?: string): Promise<Block | null> {
+export const configure = (databaseInstance: Pool): BlockchainRepository => ({
+  async findBlock(logger: Logger, blockNumber?: number, blockHash?: string): Promise<Block | null> {
     const query = Queries.findBlock(blockNumber, blockHash);
     logger.debug(`[findBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`);
     // Add paramter or short-circuit it
@@ -279,7 +279,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     return null;
   },
 
-  async findTransactionsByBlock(blockNumber?: number, blockHash?: string): Promise<Transaction[]> {
+  async findTransactionsByBlock(logger: Logger, blockNumber?: number, blockHash?: string): Promise<Transaction[]> {
     const query = Queries.findTransactionsByBlock(blockNumber, blockHash);
     logger.debug(
       `[findTransactionsByBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
@@ -295,7 +295,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     return [];
   },
 
-  async fillTransaction(transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]> {
+  async fillTransaction(logger: Logger, transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]> {
     if (transactions.length > 0) {
       // Fetch the transactions first
       let transactionsMap = mapTransactionsToDict(transactions);
@@ -331,6 +331,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     return [];
   },
   async findTransactionByHashAndBlock(
+    logger: Logger,
     hash: string,
     blockNumber: number,
     blockHash: string
@@ -355,7 +356,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     return null;
   },
 
-  async findLatestBlockNumber(): Promise<number> {
+  async findLatestBlockNumber(logger: Logger): Promise<number> {
     logger.debug('[findLatestBlockNumber] About to run findLatestBlockNumber query');
     const result = await databaseInstance.query(Queries.findLatestBlockNumber);
     const latestBlockNumber = result.rows[0].blockHeight;
@@ -363,7 +364,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     return latestBlockNumber;
   },
 
-  async findGenesisBlock(): Promise<GenesisBlock | null> {
+  async findGenesisBlock(logger: Logger): Promise<GenesisBlock | null> {
     logger.debug('[findGenesisBlock] About to run findGenesisBlock query');
     const result = await databaseInstance.query(Queries.findGenesisBlock);
     if (result.rows.length === 1) {
@@ -373,7 +374,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     logger.debug('[findGenesisBlock] Genesis block was not found');
     return null;
   },
-  async findUtxoByAddressAndBlock(address, blockHash): Promise<Utxo[]> {
+  async findUtxoByAddressAndBlock(logger: Logger, address, blockHash): Promise<Utxo[]> {
     const parameters = [replace0xOnHash(address), hashStringToBuffer(blockHash)];
     logger.debug(
       { address, blockHash },

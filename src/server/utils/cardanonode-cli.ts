@@ -1,7 +1,7 @@
 import execa from 'execa';
 import fs from 'fs';
-import { Logger } from 'pino';
 import tempWrite from 'temp-write';
+import { Logger } from 'fastify';
 
 export interface CardanoCli {
   /**
@@ -10,11 +10,11 @@ export interface CardanoCli {
    * @param signedTransaction cbor hex encoded signed transaction
    * @param isMainnet true if the server is running mainnet, false otherwise
    */
-  submitTransaction(signedTransaction: string, isMainnet: boolean): Promise<void>;
+  submitTransaction(logger: Logger, signedTransaction: string, isMainnet: boolean): Promise<void>;
 }
 
-export const configure = (cardanoCliPath: string, networkMagic: number, logger: Logger): CardanoCli => ({
-  async submitTransaction(signedTransaction, isMainnet): Promise<void> {
+export const configure = (cardanoCliPath: string, networkMagic: number): CardanoCli => ({
+  async submitTransaction(logger, signedTransaction, isMainnet): Promise<void> {
     logger.info(`[submitTransaction] About to create temp file for transaction ${signedTransaction}`);
     const file = await tempWrite(`{
       "type": "TxSignedShelley",

@@ -10,8 +10,8 @@ export interface NetworkStatus {
 }
 
 export interface NetworkService {
-  findAllNetworksSupported(): Promise<Network[] | null>;
-  getNetworkStatus(log: Logger): Promise<NetworkStatus>;
+  findAllNetworksSupported(logger: Logger): Promise<Network[] | null>;
+  getNetworkStatus(logger: Logger): Promise<NetworkStatus>;
 }
 
 interface Producer {
@@ -38,21 +38,21 @@ const configure = (
   blockchainService: BlockService,
   topologyFile: TopologyConfig
 ): NetworkService => ({
-  async findAllNetworksSupported() {
-    return networkRepository.findAllNetworksSupported();
+  async findAllNetworksSupported(logger: Logger) {
+    return networkRepository.findAllSupportedNetworks(logger);
   },
-  getNetworkStatus: async log => {
-    log.info('[networkStatus] Looking for latest block');
-    const latestBlock = await blockchainService.getLatestBlock();
-    log.debug({ latestBlock }, '[networkStatus] Latest block found');
-    log.info('[networkStatus] Looking for genesis block');
-    const genesisBlock = await blockchainService.getGenesisBlock();
-    log.debug({ genesisBlock }, '[networkStatus] Genesis block found');
+  getNetworkStatus: async logger => {
+    logger.info('[networkStatus] Looking for latest block');
+    const latestBlock = await blockchainService.getLatestBlock(logger);
+    logger.debug({ latestBlock }, '[networkStatus] Latest block found');
+    logger.info('[networkStatus] Looking for genesis block');
+    const genesisBlock = await blockchainService.getGenesisBlock(logger);
+    logger.debug({ genesisBlock }, '[networkStatus] Genesis block found');
 
     return {
       latestBlock,
       genesisBlock,
-      peers: getPeersFromConfig(log, topologyFile)
+      peers: getPeersFromConfig(logger, topologyFile)
     };
   }
 });

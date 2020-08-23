@@ -24,7 +24,7 @@ const configure = (networkService: NetworkService, networkId: string): NetworkCo
   async networkList(request) {
     const log = request.log;
     log.info('[networkList] Looking for all supported networks');
-    const networkIdentifiers = await networkService.findAllNetworksSupported();
+    const networkIdentifiers = await networkService.findAllNetworksSupported(log);
     if (networkIdentifiers !== null) {
       log.info(`[networkList] Found ${networkIdentifiers.length} networks supported`);
       const response = mapToNetworkList(networkIdentifiers);

@@ -16,18 +16,18 @@ export interface BlockUtxos {
 
 /* eslint-disable camelcase */
 export interface BlockService {
-  findBlock(log: Logger, number?: number, hash?: string): Promise<Block | null>;
-  findTransactionsByBlock(log: Logger, block: Block): Promise<Transaction[]>;
-  fillTransactions(log: Logger, transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]>;
+  findBlock(logger: Logger, number?: number, hash?: string): Promise<Block | null>;
+  findTransactionsByBlock(logger: Logger, block: Block): Promise<Transaction[]>;
+  fillTransactions(logger: Logger, transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]>;
   findTransaction(
-    log: Logger,
+    logger: Logger,
     transactionHash: string,
     blockNumber: number,
     blockHash: string
   ): Promise<TransactionWithInputsAndOutputs | null>;
-  getGenesisBlock(): Promise<GenesisBlock>;
-  getLatestBlock(): Promise<Block>;
-  findUtxoByAddressAndBlock(log: Logger, address: string, number?: number, hash?: string): Promise<BlockUtxos>;
+  getGenesisBlock(logger: Logger): Promise<GenesisBlock>;
+  getLatestBlock(logger: Logger): Promise<Block>;
+  findUtxoByAddressAndBlock(logger: Logger, address: string, number?: number, hash?: string): Promise<BlockUtxos>;
 }
 
 export interface BlockFindResult {
@@ -36,49 +36,51 @@ export interface BlockFindResult {
   transactionHashes: string[];
 }
 
-const configure = (repository: BlockchainRepository, logger: Logger): BlockService => ({
-  async findBlock(log, number, hash) {
-    log.info({ number, hash }, '[findBlock] Looking for block:');
+const configure = (repository: BlockchainRepository): BlockService => ({
+  async findBlock(logger, number, hash) {
+    logger.info({ number, hash }, '[findBlock] Looking for block:');
     // cardano doesn't have block zero but we need to map it to genesis
     const searchBlockZero = number === 0; // We need to manually check for the block hash if sent to server
-    log.info(`[findBlock] Do we have to look for genesisBlock? ${searchBlockZero}`);
+    logger.info(`[findBlock] Do we have to look for genesisBlock? ${searchBlockZero}`);
     if (searchBlockZero) {
-      log.info('[findBlock] Looking for genesis block');
-      const genesis = await repository.findGenesisBlock();
+      logger.info('[findBlock] Looking for genesis block');
+      const genesis = await repository.findGenesisBlock(logger);
       const isHashInvalidIfGiven = hash && genesis?.hash !== hash;
       if (isHashInvalidIfGiven) {
-        log.error('[findBlock] The requested block has an invalid block hash parameter');
+        logger.error('[findBlock] The requested block has an invalid block hash parameter');
         throw ErrorFactory.blockNotFoundError();
       }
-      return repository.findBlock(undefined, genesis?.hash);
+      return repository.findBlock(logger, undefined, genesis?.hash);
     }
     const searchLatestBlock = hash === undefined && number === undefined;
-    log.info(`[findBlock] Do we have to look for latestBlock? ${searchLatestBlock}`);
-    const blockNumber = searchLatestBlock ? await repository.findLatestBlockNumber() : number;
-    log.info(`[findBlock] Looking for block with blockNumber ${blockNumber}`);
-    const response = await repository.findBlock(blockNumber, hash);
-    log.info('[findBlock] Block was found');
-    log.debug({ response }, '[findBlock] Returning response:');
+    logger.info(`[findBlock] Do we have to look for latestBlock? ${searchLatestBlock}`);
+    const blockNumber = searchLatestBlock ? await repository.findLatestBlockNumber(logger) : number;
+    logger.info(`[findBlock] Looking for block with blockNumber ${blockNumber}`);
+    const response = await repository.findBlock(logger, blockNumber, hash);
+    logger.info('[findBlock] Block was found');
+    logger.debug({ response }, '[findBlock] Returning response:');
     return response;
   },
-  findTransactionsByBlock(log, block): Promise<Transaction[]> {
+  findTransactionsByBlock(logger, block): Promise<Transaction[]> {
     // This condition is needed as genesis tx count for mainnet is zero
     const blockMightContainTransactions = block.transactionsCount !== 0 || block.previousBlockHash === block.hash;
-    log.debug(`[findTransactionsByBlock] Does requested block contains transactions? ${blockMightContainTransactions}`);
+    logger.debug(
+      `[findTransactionsByBlock] Does requested block contains transactions? ${blockMightContainTransactions}`
+    );
     if (blockMightContainTransactions) {
-      return repository.findTransactionsByBlock(block.number, block.hash);
+      return repository.findTransactionsByBlock(logger, block.number, block.hash);
     }
     return Promise.resolve([]);
   },
-  fillTransactions(log: Logger, transactions): Promise<TransactionWithInputsAndOutputs[]> {
+  fillTransactions(logger: Logger, transactions): Promise<TransactionWithInputsAndOutputs[]> {
     if (transactions.length === 0) return Promise.resolve([]);
-    return repository.fillTransaction(transactions);
+    return repository.fillTransaction(logger, transactions);
   },
-  async getLatestBlock() {
+  async getLatestBlock(logger: Logger) {
     logger.info('[getLatestBlock] About to look for latest block');
-    const latestBlockNumber = await repository.findLatestBlockNumber();
+    const latestBlockNumber = await repository.findLatestBlockNumber(logger);
     logger.info(`[getLatestBlock] Latest block number is ${latestBlockNumber}`);
-    const latestBlock = await repository.findBlock(latestBlockNumber);
+    const latestBlock = await repository.findBlock(logger, latestBlockNumber);
     if (!latestBlock) {
       logger.error('[getLatestBlock] Latest block not found');
       throw ErrorFactory.blockNotFoundError();
@@ -86,9 +88,9 @@ const configure = (repository: BlockchainRepository, logger: Logger): BlockServi
     logger.debug({ latestBlock }, '[getLatestBlock] Returning latest block');
     return latestBlock;
   },
-  async getGenesisBlock() {
+  async getGenesisBlock(logger: Logger) {
     logger.info('[getGenesisBlock] About to look for genesis block');
-    const genesisBlock = await repository.findGenesisBlock();
+    const genesisBlock = await repository.findGenesisBlock(logger);
     if (!genesisBlock) {
       logger.error('[getGenesisBlock] Genesis block not found');
       throw ErrorFactory.genesisBlockNotFound();
@@ -96,15 +98,15 @@ const configure = (repository: BlockchainRepository, logger: Logger): BlockServi
     logger.debug({ genesisBlock }, '[getGenesisBlock] Returning genesis block');
     return genesisBlock;
   },
-  async findUtxoByAddressAndBlock(log, address, number, hash) {
-    const block = await this.findBlock(log, number, hash);
+  async findUtxoByAddressAndBlock(logger, address, number, hash) {
+    const block = await this.findBlock(logger, number, hash);
     if (block === null) {
-      log.error('[findUtxoByAddressAndBlock] Block not found');
+      logger.error('[findUtxoByAddressAndBlock] Block not found');
       throw ErrorFactory.blockNotFoundError();
     }
-    log.info(`[findUtxoByAddressAndBlock] Looking for utxos for address ${address} and block ${block.hash}`);
-    const utxoDetails = await repository.findUtxoByAddressAndBlock(address, block.hash);
-    log.debug(
+    logger.info(`[findUtxoByAddressAndBlock] Looking for utxos for address ${address} and block ${block.hash}`);
+    const utxoDetails = await repository.findUtxoByAddressAndBlock(logger, address, block.hash);
+    logger.debug(
       utxoDetails,
       `[findUtxoByAddressAndBlock] Found ${utxoDetails.length} utxo details for address ${address}`
     );
@@ -113,8 +115,8 @@ const configure = (repository: BlockchainRepository, logger: Logger): BlockServi
       utxos: utxoDetails
     };
   },
-  findTransaction(log, transactionHash, blockNumber, blockHash) {
-    return repository.findTransactionByHashAndBlock(transactionHash, blockNumber, blockHash);
+  findTransaction(logger, transactionHash, blockNumber, blockHash) {
+    return repository.findTransactionByHashAndBlock(logger, transactionHash, blockNumber, blockHash);
   }
 });
 

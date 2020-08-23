@@ -94,7 +94,7 @@ const configure = (
         const log = request.log;
         const [signedTransaction] = await decodeExtraData(request.body.signed_transaction);
         log.info('[constructionHash] About to get hash of signed transaction');
-        const transactionHash = cardanoService.getHashOfSignedTransaction(signedTransaction);
+        const transactionHash = cardanoService.getHashOfSignedTransaction(log, signedTransaction);
         log.info('[constructionHash] About to return hash of signed transaction');
         // eslint-disable-next-line camelcase
         return mapToConstructionHashResponse(transactionHash);
@@ -121,7 +121,7 @@ const configure = (
       request,
       async () => {
         const ttlOffset = request.body.options.relative_ttl;
-        const ttl = await (await constructionService.calculateTtl(ttlOffset)).toString();
+        const ttl = await (await constructionService.calculateTtl(request.log, ttlOffset)).toString();
         return { metadata: { ttl } };
       },
       request.log,
@@ -206,9 +206,13 @@ const configure = (
           const log = request.log;
           const [signedTransaction] = await decodeExtraData(request.body.signed_transaction);
           log.info(`[constructionSubmit] About to submit ${signedTransaction}`);
-          await cardanoCli.submitTransaction(signedTransaction, request.body.network_identifier.network === 'mainnet');
+          await cardanoCli.submitTransaction(
+            log,
+            signedTransaction,
+            request.body.network_identifier.network === 'mainnet'
+          );
           log.info('[constructionHash] About to get hash of signed transaction');
-          const transactionHash = cardanoService.getHashOfSignedTransaction(signedTransaction);
+          const transactionHash = cardanoService.getHashOfSignedTransaction(log, signedTransaction);
           // eslint-disable-next-line camelcase
           return { transaction_identifier: { hash: transactionHash } };
         } catch (error) {

@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { Logger } from 'pino';
 import { Repositories } from '../db/repositories';
 import { ErrorFactory } from '../utils/errors';
 import blockService, { BlockService } from './block-service';
@@ -27,9 +26,9 @@ const loadTopologyFile = () => {
  *
  * @param repositories repositories to be used by the services
  */
-export const configure = (repositories: Repositories, logger: Logger): Services => {
-  const blockServiceInstance = blockService(repositories.blockchainRepository, logger);
-  const cardanoServiceInstance = cardanoService(logger);
+export const configure = (repositories: Repositories): Services => {
+  const blockServiceInstance = blockService(repositories.blockchainRepository);
+  const cardanoServiceInstance = cardanoService();
   return {
     blockService: blockServiceInstance,
     constructionService: constructionService(blockServiceInstance, process.env.DEFAULT_RELATIVE_TTL),
