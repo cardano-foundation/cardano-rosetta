@@ -61,6 +61,7 @@ services:
       target: cardano-rosetta-server
     environment:
       - DB_CONNECTION_STRING=postgresql://postgres:notForProduction!@postgres:5432/cexplorer
+      - GENESIS_PATH=/config/genesis/shelley.json
       - LOGGER_LEVEL=debug
       - PAGE_SIZE=30
       - TOPOLOGY_FILE_PATH=/config/cardano-node/topology.json

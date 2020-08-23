@@ -49,6 +49,7 @@ module.exports = {
       autorestart: true,
       env: {
         DB_CONNECTION_STRING: 'socket://postgres:*@/var/run/postgresql?db=cexplorer',
+        GENESIS_PATH: '/config/genesis/shelley.json',
         LOGGER_LEVEL: 'debug',
         NODE_ENV: 'development',
         PAGE_SIZE: 30,
