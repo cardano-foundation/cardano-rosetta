@@ -1,7 +1,7 @@
 import { Logger } from 'fastify';
-import { Block, GenesisBlock } from '../db/blockchain-repository';
-import { Network, NetworkRepository } from '../db/network-repository';
+import { Block, GenesisBlock, Network } from '../models';
 import { BlockService } from './block-service';
+import { NetworkRepository } from '../db/network-repository';
 
 export interface NetworkStatus {
   latestBlock: Block;

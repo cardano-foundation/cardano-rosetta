@@ -1,9 +1,6 @@
 /* eslint-disable camelcase */
 
 import cbor from 'cbor';
-import { Block, TransactionWithInputsAndOutputs, Utxo } from '../db/blockchain-repository';
-import { Network } from '../db/network-repository';
-import { BlockUtxos } from '../services/block-service';
 import { NetworkIdentifier, UnsignedTransaction } from '../services/cardano-services';
 import { NetworkStatus } from '../services/network-service';
 import {
@@ -15,6 +12,7 @@ import {
   TRANSFER_OPERATION_TYPE,
   SIGNATURE_TYPE
 } from './constants';
+import { TransactionWithInputsAndOutputs, Block, Network, BlockUtxos, Utxo } from '../models';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';

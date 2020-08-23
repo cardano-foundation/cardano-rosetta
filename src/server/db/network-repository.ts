@@ -1,10 +1,7 @@
 import { Pool } from 'pg';
 import { findNetworkByNetworkName, findAllNetworksQuery } from './queries/network-queries';
 import { Logger } from 'fastify';
-
-export interface Network {
-  networkName: string;
-}
+import { Network } from '../models';
 
 export interface NetworkRepository {
   findAllSupportedNetworks(logger: Logger): Promise<Network[] | null>;

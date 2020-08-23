@@ -1,18 +1,7 @@
 import { Logger } from 'fastify';
-import {
-  Block,
-  BlockchainRepository,
-  GenesisBlock,
-  Transaction,
-  TransactionWithInputsAndOutputs,
-  Utxo
-} from '../db/blockchain-repository';
+import { Block, GenesisBlock, Transaction, TransactionWithInputsAndOutputs, BlockUtxos } from '../models';
 import { ErrorFactory } from '../utils/errors';
-
-export interface BlockUtxos {
-  block: Block;
-  utxos: Utxo[];
-}
+import { BlockchainRepository } from '../db/blockchain-repository';
 
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -28,12 +17,6 @@ export interface BlockService {
   getGenesisBlock(logger: Logger): Promise<GenesisBlock>;
   getLatestBlock(logger: Logger): Promise<Block>;
   findUtxoByAddressAndBlock(logger: Logger, address: string, number?: number, hash?: string): Promise<BlockUtxos>;
-}
-
-export interface BlockFindResult {
-  block: Block;
-  transactions: TransactionWithInputsAndOutputs[];
-  transactionHashes: string[];
 }
 
 const configure = (repository: BlockchainRepository): BlockService => ({
