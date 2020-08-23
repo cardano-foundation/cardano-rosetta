@@ -1,12 +1,20 @@
 /* eslint-disable camelcase */
 
-import { TransactionWithInputsAndOutputs, Block, Utxo } from '../db/blockchain-repository';
-import { TRANSFER_OPERATION_TYPE, SUCCESS_STATUS, ADA, ADA_DECIMALS, CARDANO } from './constants';
-import { BlockUtxos } from '../services/block-service';
-import { Logger } from 'fastify';
+import cbor from 'cbor';
+import { Block, TransactionWithInputsAndOutputs, Utxo } from '../db/blockchain-repository';
 import { Network } from '../db/network-repository';
-import { Peer, NetworkStatus } from '../services/network-service';
-import { NetworkStats } from 'dockerode';
+import { BlockUtxos } from '../services/block-service';
+import { NetworkIdentifier, UnsignedTransaction } from '../services/cardano-services';
+import { NetworkStatus } from '../services/network-service';
+import {
+  ADA,
+  ADA_DECIMALS,
+  CARDANO,
+  MAINNET,
+  SUCCESS_STATUS,
+  TRANSFER_OPERATION_TYPE,
+  SIGNATURE_TYPE
+} from './constants';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
@@ -203,5 +211,116 @@ export const mapToNetworkStatusResponse = (networkStatus: NetworkStatus): Compon
     peers: peers.map(peer => ({
       peer_id: peer.addr
     }))
+  };
+};
+
+/**
+ * Returns the CardanoNetoworkIdentifier based on the Rosetta API one
+ *
+ * @param networkRequestParameters
+ */
+export const getNetworkIdentifierByRequestParameters = (
+  networkRequestParameters: Components.Schemas.NetworkIdentifier
+): NetworkIdentifier => {
+  if (networkRequestParameters.network === MAINNET) {
+    return NetworkIdentifier.CARDANO_MAINNET_NETWORK;
+  }
+  return NetworkIdentifier.CARDANO_TESTNET_NETWORK;
+};
+
+/**
+ * Rosetta Api requires some information during the workflow that's not available in an UTXO based blockchain,
+ * like input amounts. Because of that we need to encode some extra data to be able to recover it, for example,
+ * when parsing the transaction. For further explanation see:
+ * https://community.rosetta-api.org/t/implementing-the-construction-api-for-utxo-model-coins/100/3
+ *
+ * CBOR is being used to follow standard Cardano serialization library
+ *
+ * @param transaction
+ * @param extraData
+ */
+export const encodeExtraData = async (
+  transaction: string,
+  operations: Components.Schemas.Operation[]
+): Promise<string> => {
+  const extraData: Components.Schemas.Operation[] = operations
+    // eslint-disable-next-line camelcase
+    .filter(operation => operation.coin_change?.coin_action === COIN_SPENT_ACTION);
+
+  return (await cbor.encodeAsync([transaction, extraData])).toString('hex');
+};
+
+export const decodeExtraData = async (encoded: string): Promise<[string, Components.Schemas.Operation[]]> => {
+  const [decoded] = await cbor.decodeAll(encoded);
+  return decoded;
+};
+
+export const mapToConstructionHashResponse = (
+  transactionHash: string
+): Components.Schemas.TransactionIdentifierResponse => ({
+  transaction_identifier: { hash: transactionHash }
+});
+
+interface TransactionExtraData {
+  account: Components.Schemas.AccountIdentifier | undefined;
+  amount: Components.Schemas.Amount | undefined;
+}
+
+/**
+ * It maps the transaction body and the addresses to the Rosetta's SigningPayload
+ * @param transactionBodyHash
+ * @param addresses
+ */
+export const constructPayloadsForTransactionBody = (
+  transactionBodyHash: string,
+  addresses: string[]
+): Components.Schemas.SigningPayload[] =>
+  addresses.map(address => ({ address, hex_bytes: transactionBodyHash, signature_type: SIGNATURE_TYPE }));
+
+/**
+ * Encodes a standard Cardano unsigned transction alongisde with rosetta-required extra data.
+ * CBOR is used as it's the Cardano default encoding
+ *
+ * @param unsignedTransaction
+ * @param extraData
+ * @returns hex encoded unsigned transaction
+ */
+export const encodeUnsignedTransaction = async (
+  unsignedTransaction: UnsignedTransaction,
+  extraData: TransactionExtraData[]
+): Promise<string> => {
+  const encoded = await cbor.encodeAsync([unsignedTransaction.bytes, extraData]);
+  return encoded.toString('hex');
+};
+
+/**
+ * Maps an unsigned transaction to transaction payloads.
+ *
+ * As Cardano is a UTXO based blockchain, some information is being lost
+ * when transaction is encoded. More precisely, input's account and amount
+ * are not encoded (as it only requires a txid and the output number to be spent).
+ *
+ * It might not be a problem although `rosetta-cli` requires this information to
+ * be present when invoking `/construction/parse` so it needs to be added to our
+ * responses.
+ *
+ * See https://community.rosetta-api.org/t/implementing-the-construction-api-for-utxo-model-coins/100/3
+ *
+ * @param unsignedTransaction
+ * @param operations to be encoded alongside with the transaction
+ */
+export const mapToPayloads = async (
+  unsignedTransaction: UnsignedTransaction,
+  operations: Components.Schemas.Operation[]
+): Promise<Components.Schemas.ConstructionPayloadsResponse> => {
+  const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
+  // extra data to be encoded
+  const extraData: TransactionExtraData[] = operations
+    .filter(operation => operation.coin_change?.coin_action === COIN_SPENT_ACTION)
+    .map(operation => ({ account: operation.account, amount: operation.amount }));
+
+  return {
+    unsigned_transaction: await encodeUnsignedTransaction(unsignedTransaction, extraData),
+    payloads
   };
 };

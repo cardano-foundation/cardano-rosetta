@@ -2,7 +2,6 @@ import fs from 'fs';
 import path from 'path';
 import { Logger } from 'pino';
 import { Repositories } from '../db/repositories';
-import { CardanoCli } from '../utils/cardanonode-cli';
 import { ErrorFactory } from '../utils/errors';
 import blockService, { BlockService } from './block-service';
 import cardanoService, { CardanoService } from './cardano-services';
@@ -28,24 +27,12 @@ const loadTopologyFile = () => {
  *
  * @param repositories repositories to be used by the services
  */
-export const configure = (
-  repositories: Repositories,
-  cardanoCli: CardanoCli,
-  logger: Logger,
-  networkId: string
-): Services => {
+export const configure = (repositories: Repositories, logger: Logger): Services => {
   const blockServiceInstance = blockService(repositories.blockchainRepository, logger);
   const cardanoServiceInstance = cardanoService(logger);
   return {
     blockService: blockServiceInstance,
-    constructionService: constructionService(
-      cardanoServiceInstance,
-      blockServiceInstance,
-      cardanoCli,
-      networkId,
-      process.env.DEFAULT_RELATIVE_TTL,
-      logger
-    ),
+    constructionService: constructionService(blockServiceInstance, process.env.DEFAULT_RELATIVE_TTL),
     networkService: networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile()),
     cardanoService: cardanoServiceInstance
   };

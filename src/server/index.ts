@@ -31,8 +31,8 @@ const start = async (databaseInstance: Pool) => {
     // FIXME: validate the following paraemeters when implementing (2)
     // https://github.com/input-output-hk/cardano-rosetta/issues/101
     const cardanoCli = CardanoCli.configure(process.env.CARDANOCLI_PATH, networkMagic, log);
-    const services = Services.configure(repository, cardanoCli, log, networkId);
-    server = buildServer(services, networkId, LOGGER_LEVEL);
+    const services = Services.configure(repository, log);
+    server = buildServer(services, cardanoCli, networkId, LOGGER_LEVEL);
     server.addHook('onClose', (fastify, done) => databaseInstance.end(done));
     // eslint-disable-next-line no-magic-numbers
     await server.listen(PORT || 8080, BIND_ADDRESS || '0.0.0.0');

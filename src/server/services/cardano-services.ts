@@ -5,8 +5,8 @@ import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
 import { TRANSFER_OPERATION_TYPE, ADA, ADA_DECIMALS } from '../utils/constants';
 
-const PUBLIC_KEY_LENGTH = 32;
-const PUBLIC_KEY_BYTES_LENGTH = 64;
+export const PUBLIC_KEY_LENGTH = 32;
+export const PUBLIC_KEY_BYTES_LENGTH = 64;
 
 export enum NetworkIdentifier {
   CARDANO_TESTNET_NETWORK = 0,
@@ -29,27 +29,60 @@ export interface TransactionParsed {
 }
 
 export interface CardanoService {
-  generateAddress(networkId: NetworkIdentifier, publicKey: Components.Schemas.PublicKey): string | null;
+  /**
+   * Derives a Shelley bech32 Enterprise address for the given public key
+   *
+   * @param networkId cardano network
+   * @param publicKey public key hex string representation
+   */
+  generateAddress(log: Logger, networkId: NetworkIdentifier, publicKey: string): string | null;
+
+  /**
+   * Returns the transaction hash for the given signed transaction.
+   *
+   * @param signedTransaction
+   */
   getHashOfSignedTransaction(signedTransaction: string): string;
-  buildTransaction(unsignedTransaction: string, signatures: Signatures[]): string;
-  getWitnessesForTransaction(signatures: Signatures[]): CardanoWasm.TransactionWitnessSet;
-  getTransactionInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInputs;
-  validateAndParseTransactionInputs(inputs: Components.Schemas.Operation[]): CardanoWasm.TransactionInputs;
-  getTransactionOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutputs;
-  validateAndParseTransactionOutputs(outputs: Components.Schemas.Operation[]): CardanoWasm.TransactionOutputs;
-  createTransactionBody(
-    inputs: CardanoWasm.TransactionInputs,
-    outputs: CardanoWasm.TransactionOutputs,
-    fee: BigInt,
-    ttl: number
-  ): CardanoWasm.TransactionBody;
-  createUnsignedTransaction(operations: Components.Schemas.Operation[], ttl: string): UnsignedTransaction;
+
+  /**
+   * Creates an unsigned transaction for the given operation.
+   *
+   * @param operations
+   * @param ttl
+   */
+  createUnsignedTransaction(log: Logger, operations: Components.Schemas.Operation[], ttl: string): UnsignedTransaction;
+
+  /**
+   * Generates an hex encoded signed transaction
+   *
+   * @param unsignedTransaction
+   * @param signatures
+   */
+  buildTransaction(log: Logger, unsignedTransaction: string, signatures: Signatures[]): string;
+
+  /**
+   * Parses a signed transaction using COmpontens.Schemas.Operation
+   *
+   * @param networkId
+   * @param transaction
+   * @param extraData
+   */
   parseSignedTransaction(
+    log: Logger,
     networkId: NetworkIdentifier,
     transaction: string,
     extraData: Components.Schemas.Operation[]
   ): TransactionParsed;
+
+  /**
+   * Parses an usigned transaction using COmpontens.Schemas.Operation
+   *
+   * @param networkId
+   * @param transaction
+   * @param extraData
+   */
   parseUnsignedTransaction(
+    log: Logger,
     networkId: NetworkIdentifier,
     transaction: string,
     extraData: Components.Schemas.Operation[]
@@ -67,9 +100,6 @@ const calculateFee = (inputs: Components.Schemas.Operation[], outputs: Component
 
 const getAddressPrefix = (network: number) =>
   network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'addr' : 'addr_test';
-
-const isKeyValid = (publicKeyBytes: string, key: Buffer, curveType: string): boolean =>
-  publicKeyBytes.length === PUBLIC_KEY_BYTES_LENGTH && key.length === PUBLIC_KEY_LENGTH && curveType === 'edwards25519';
 
 const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: number): Components.Schemas.Operation => ({
   operation_identifier: { index },
@@ -133,30 +163,112 @@ const parseOperationsFromTransactionBody = (
   return operations;
 };
 
+const createTransactionBody = (
+  inputs: CardanoWasm.TransactionInputs,
+  outputs: CardanoWasm.TransactionOutputs,
+  fee: BigInt,
+  ttl: number
+): CardanoWasm.TransactionBody => CardanoWasm.TransactionBody.new(inputs, outputs, BigNum.new(fee), ttl);
+
+const validateAndParseTransactionOutputs = (
+  log: Logger,
+  outputs: Components.Schemas.Operation[]
+): CardanoWasm.TransactionOutputs => {
+  const transactionOutputs = CardanoWasm.TransactionOutputs.new();
+  outputs.forEach(output => {
+    // eslint-disable-next-line camelcase
+    let address;
+    try {
+      address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
+    } catch (error) {
+      throw ErrorFactory.transactionOutputDeserializationError(error.toString());
+    }
+    if (!address) {
+      log.error('[validateAndParseTransactionOutputs] Output has missing address field');
+      throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
+    }
+    const value = output.amount && BigNum.from_str(output.amount.value);
+    if (!value) {
+      log.error('[validateAndParseTransactionOutputs] Output has missing amount value field');
+      throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
+    }
+    try {
+      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, value));
+    } catch (error) {
+      throw ErrorFactory.transactionOutputDeserializationError(error.toString());
+    }
+  });
+  return transactionOutputs;
+};
+
+const validateAndParseTransactionInputs = (
+  log: Logger,
+  inputs: Components.Schemas.Operation[]
+): CardanoWasm.TransactionInputs => {
+  const transactionInputs = CardanoWasm.TransactionInputs.new();
+  inputs.forEach(input => {
+    if (!input.coin_change) {
+      log.error('[validateAndParseTransactionInputs] Input has missing coin_change');
+      throw ErrorFactory.transactionInputsParametersMissingError('Input has missing coin_change field');
+    }
+    const [transactionId, index] = input.coin_change && input.coin_change.coin_identifier.identifier.split(':');
+    if (!(transactionId && index)) {
+      log.error('[validateAndParseTransactionInputs] Input has missing transactionId and index');
+      throw ErrorFactory.transactionInputsParametersMissingError('Input has invalid coin_identifier field');
+    }
+    try {
+      transactionInputs.add(
+        CardanoWasm.TransactionInput.new(
+          CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
+          Number(index)
+        )
+      );
+    } catch (error) {
+      throw ErrorFactory.transactionInputDeserializationError(
+        'There was an error deserializating transaction input: '.concat(error)
+      );
+    }
+  });
+  return transactionInputs;
+};
+
+const getWitnessesForTransaction = (log: Logger, signatures: Signatures[]): CardanoWasm.TransactionWitnessSet => {
+  try {
+    const witnesses = CardanoWasm.TransactionWitnessSet.new();
+    const vkeyWitnesses = CardanoWasm.Vkeywitnesses.new();
+
+    log.info('[getWitnessesForTransaction] Extracting witnesses from signatures');
+    signatures.forEach(signature => {
+      const vkey: Vkey = Vkey.new(PublicKey.from_bytes(Buffer.from(signature.publicKey, 'hex')));
+      const ed25519Signature: Ed25519Signature = Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'));
+      vkeyWitnesses.add(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature));
+    });
+    log.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len} witnesses were extracted to sign transaction`);
+    witnesses.set_vkeys(vkeyWitnesses);
+    return witnesses;
+  } catch (error) {
+    log.error({ error }, '[getWitnessesForTransaction] There was an error building witnesses set for transaction');
+    throw ErrorFactory.cantBuildWitnessesSet();
+  }
+};
+
 const configure = (logger: Logger): CardanoService => ({
-  generateAddress(network, publicKey) {
-    logger.info(
+  generateAddress(log, network, publicKey) {
+    log.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
     );
 
-    const publicKeyBuffer = Buffer.from(publicKey.hex_bytes, 'hex');
-
-    logger.info('[generateAddress] About to check if public key has valid length and curve type');
-    if (!isKeyValid(publicKey.hex_bytes, publicKeyBuffer, publicKey.curve_type)) {
-      logger.info('[generateAddress] Public key has an invalid format');
-      throw ErrorFactory.invalidPublicKeyFormat();
-    }
-    logger.info('[generateAddress] Public key has a valid format');
+    const publicKeyBuffer = Buffer.from(publicKey, 'hex');
 
     const pub = CardanoWasm.PublicKey.from_bytes(publicKeyBuffer);
 
-    logger.info('[generateAddress] Deriving cardano address from valid public key');
+    log.info('[generateAddress] Deriving cardano address from valid public key');
     const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(
       network,
       CardanoWasm.StakeCredential.from_keyhash(pub.hash())
     );
     const address = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
-    logger.info(`[generateAddress] base address is ${address}`);
+    log.info(`[generateAddress] base address is ${address}`);
     return address;
   },
   getHashOfSignedTransaction(signedTransaction) {
@@ -173,28 +285,9 @@ const configure = (logger: Logger): CardanoService => ({
       throw ErrorFactory.parseSignedTransactionError();
     }
   },
-  getWitnessesForTransaction(signatures) {
-    try {
-      const witnesses = CardanoWasm.TransactionWitnessSet.new();
-      const vkeyWitnesses = CardanoWasm.Vkeywitnesses.new();
-
-      logger.info('[getWitnessesForTransaction] Extracting witnesses from signatures');
-      signatures.forEach(signature => {
-        const vkey: Vkey = Vkey.new(PublicKey.from_bytes(Buffer.from(signature.publicKey, 'hex')));
-        const ed25519Signature: Ed25519Signature = Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'));
-        vkeyWitnesses.add(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature));
-      });
-      logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len} witnesses were extracted to sign transaction`);
-      witnesses.set_vkeys(vkeyWitnesses);
-      return witnesses;
-    } catch (error) {
-      logger.error({ error }, '[getWitnessesForTransaction] There was an error building witnesses set for transaction');
-      throw ErrorFactory.cantBuildWitnessesSet();
-    }
-  },
-  buildTransaction(unsignedTransaction, signatures) {
+  buildTransaction(log, unsignedTransaction, signatures) {
     logger.info(`[buildTransaction] About to signed a transaction with ${signatures.length} signatures`);
-    const witnesses = this.getWitnessesForTransaction(signatures);
+    const witnesses = getWitnessesForTransaction(log, signatures);
     try {
       logger.info('[buildTransaction] Instantiating transaction body from unsigned transaction bytes');
       const transactionBody = CardanoWasm.TransactionBody.from_bytes(Buffer.from(unsignedTransaction, 'hex'));
@@ -206,88 +299,23 @@ const configure = (logger: Logger): CardanoService => ({
       throw ErrorFactory.cantBuildSignedTransaction();
     }
   },
-  validateAndParseTransactionInputs(inputs) {
-    const transactionInputs = CardanoWasm.TransactionInputs.new();
-    inputs.forEach(input => {
-      if (!input.coin_change) {
-        logger.error('[validateAndParseTransactionInputs] Input has missing coin_change');
-        throw ErrorFactory.transactionInputsParametersMissingError('Input has missing coin_change field');
-      }
-      const [transactionId, index] = input.coin_change && input.coin_change.coin_identifier.identifier.split(':');
-      if (!(transactionId && index)) {
-        logger.error('[validateAndParseTransactionInputs] Input has missing transactionId and index');
-        throw ErrorFactory.transactionInputsParametersMissingError('Input has invalid coin_identifier field');
-      }
-      try {
-        transactionInputs.add(
-          CardanoWasm.TransactionInput.new(
-            CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
-            Number(index)
-          )
-        );
-      } catch (error) {
-        throw ErrorFactory.transactionInputDeserializationError(
-          'There was an error deserializating transaction input: '.concat(error)
-        );
-      }
-    });
-    return transactionInputs;
-  },
-  getTransactionInputs(inputs) {
-    logger.info(`[getTransactionInputs] About to parse ${inputs.length} inputs`);
-    const transactionInputs = this.validateAndParseTransactionInputs(inputs);
-    logger.info('[getTransactionInputs] Transaction inputs were created');
-    return transactionInputs;
-  },
-  validateAndParseTransactionOutputs(outputs) {
-    const transactionOutputs = CardanoWasm.TransactionOutputs.new();
-    outputs.forEach(output => {
-      // eslint-disable-next-line camelcase
-      let address;
-      try {
-        address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
-      } catch (error) {
-        throw ErrorFactory.transactionOutputDeserializationError(error.toString());
-      }
-      if (!address) {
-        logger.error('[validateAndParseTransactionOutputs] Output has missing address field');
-        throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
-      }
-      const value = output.amount && BigNum.from_str(output.amount.value);
-      if (!value) {
-        logger.error('[validateAndParseTransactionOutputs] Output has missing amount value field');
-        throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
-      }
-      try {
-        transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, value));
-      } catch (error) {
-        throw ErrorFactory.transactionOutputDeserializationError(error.toString());
-      }
-    });
-    return transactionOutputs;
-  },
-  getTransactionOutputs(outputs) {
-    logger.info(`[getTransactionOutputs] About to parse ${outputs.length} outputs`);
-    const transactionOutputs = this.validateAndParseTransactionOutputs(outputs);
-    logger.info('[getTransactionOutputs] Transaction outputs were created');
-    return transactionOutputs;
-  },
-  createUnsignedTransaction(operations, ttl) {
-    logger.info(
+
+  createUnsignedTransaction(log, operations, ttl) {
+    log.info(
       `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
     );
     const inputs = operations.filter(operation => Number(operation.amount?.value) < 0);
     const outputs = operations.filter(operation => Number(operation.amount?.value) > 0);
-    logger.info('[createUnsignedTransaction] About to calculate fee');
+    log.info('[createUnsignedTransaction] About to calculate fee');
     const fee = calculateFee(inputs, outputs);
-    logger.info('[createUnsignedTransaction] About to create transaction body');
-    const transactionBody = this.createTransactionBody(
-      this.getTransactionInputs(inputs),
-      this.getTransactionOutputs(outputs),
+    log.info('[createUnsignedTransaction] About to create transaction body');
+    const transactionBody = createTransactionBody(
+      validateAndParseTransactionInputs(log, inputs),
+      validateAndParseTransactionOutputs(log, outputs),
       fee,
       Number(ttl)
     );
-    logger.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
+    log.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
     const addresses = inputs.map(input => {
       if (input.account) return input.account?.address;
       // This logic is not necessary (because it is made on this.getTransactionInputs(..)) but ts expects me to do it again
@@ -308,39 +336,34 @@ const configure = (logger: Logger): CardanoService => ({
     );
     return toReturn;
   },
-  createTransactionBody(inputs, outputs, fee, ttl) {
-    return CardanoWasm.TransactionBody.new(inputs, outputs, BigNum.new(fee), ttl);
-  },
-  parseSignedTransaction(networkId, transaction, extraData) {
+
+  parseSignedTransaction(log, networkId, transaction, extraData) {
     try {
       const transactionBuffer = Buffer.from(transaction, 'hex');
-      logger.info('[parseSignedTransaction] About to create signed transaction from bytes');
+      log.info('[parseSignedTransaction] About to create signed transaction from bytes');
       const parsed = CardanoWasm.Transaction.from_bytes(transactionBuffer);
-      logger.info('[parseSignedTransaction] About to parse operations from transaction body');
+      log.info('[parseSignedTransaction] About to parse operations from transaction body');
       const operations = parseOperationsFromTransactionBody(parsed.body(), extraData, networkId);
-      logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
-      logger.info(operations, '[parseSignedTransaction] Returning operations');
+      log.info('[parseSignedTransaction] About to get signatures from parsed transaction');
+      log.info(operations, '[parseSignedTransaction] Returning operations');
       const signers = extraData.map(data => data.account?.address || '');
       return { operations, signers };
     } catch (error) {
-      logger.error({ error }, '[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes');
+      log.error({ error }, '[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes');
       throw ErrorFactory.cantCreateSignedTransactionFromBytes();
     }
   },
-  parseUnsignedTransaction(networkId, transaction, extraData) {
+  parseUnsignedTransaction(log, networkId, transaction, extraData) {
     try {
-      logger.info(transaction, '[parseUnsignedTransaction] About to create unsigned transaction from bytes');
+      log.info(transaction, '[parseUnsignedTransaction] About to create unsigned transaction from bytes');
       const transactionBuffer = Buffer.from(transaction, 'hex');
       const parsed = CardanoWasm.TransactionBody.from_bytes(transactionBuffer);
-      logger.info(extraData, '[parseUnsignedTransaction] About to parse operations from transaction body');
+      log.info(extraData, '[parseUnsignedTransaction] About to parse operations from transaction body');
       const operations = parseOperationsFromTransactionBody(parsed, extraData, networkId);
-      logger.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
+      log.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
       return { operations, signers: [] };
     } catch (error) {
-      logger.error(
-        { error },
-        '[parseUnsignedTransaction] Cant instantiate unsigned transaction from transaction bytes'
-      );
+      log.error({ error }, '[parseUnsignedTransaction] Cant instantiate unsigned transaction from transaction bytes');
       throw ErrorFactory.cantCreateUnsignedTransactionFromBytes();
     }
   }
