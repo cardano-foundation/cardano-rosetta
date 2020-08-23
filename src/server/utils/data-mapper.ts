@@ -1,9 +1,12 @@
 /* eslint-disable camelcase */
 
 import { TransactionWithInputsAndOutputs, Block, Utxo } from '../db/blockchain-repository';
-import { TRANSFER_OPERATION_TYPE, SUCCESS_STATUS, ADA, ADA_DECIMALS } from './constants';
+import { TRANSFER_OPERATION_TYPE, SUCCESS_STATUS, ADA, ADA_DECIMALS, CARDANO } from './constants';
 import { BlockUtxos } from '../services/block-service';
 import { Logger } from 'fastify';
+import { Network } from '../db/network-repository';
+import { Peer, NetworkStatus } from '../services/network-service';
+import { NetworkStats } from 'dockerode';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
@@ -175,5 +178,30 @@ export const mapToAccountBalanceResponse = (
       }
     ],
     coins: parseUtxoDetails(blockUtxos.utxos)
+  };
+};
+
+export const mapToNetworkList = (networkIdentifiers: Network[]): Components.Schemas.NetworkListResponse => ({
+  network_identifiers: networkIdentifiers.map(({ networkName }: Network) => ({
+    network: networkName,
+    blockchain: CARDANO
+  }))
+});
+
+export const mapToNetworkStatusResponse = (networkStatus: NetworkStatus): Components.Schemas.NetworkStatusResponse => {
+  const { latestBlock, genesisBlock, peers } = networkStatus;
+  return {
+    current_block_identifier: {
+      index: latestBlock.number,
+      hash: latestBlock.hash
+    },
+    current_block_timestamp: latestBlock.createdAt,
+    genesis_block_identifier: {
+      index: genesisBlock.number,
+      hash: genesisBlock.hash
+    },
+    peers: peers.map(peer => ({
+      peer_id: peer.addr
+    }))
   };
 };

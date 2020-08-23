@@ -25,7 +25,7 @@ export interface Block {
 
 export interface GenesisBlock {
   hash: string;
-  index: number;
+  number: number;
 }
 
 export interface BlockIdentifier {
@@ -368,7 +368,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
     const result = await databaseInstance.query(Queries.findGenesisBlock);
     if (result.rows.length === 1) {
       logger.debug('[findGenesisBlock] Genesis block was found');
-      return { hash: hexFormatter(result.rows[0].hash), index: result.rows[0].index };
+      return { hash: hexFormatter(result.rows[0].hash), number: result.rows[0].index };
     }
     logger.debug('[findGenesisBlock] Genesis block was not found');
     return null;

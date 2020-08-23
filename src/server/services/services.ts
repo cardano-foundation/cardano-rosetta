@@ -46,13 +46,7 @@ export const configure = (
       process.env.DEFAULT_RELATIVE_TTL,
       logger
     ),
-    networkService: networkService(
-      repositories.networkRepository,
-      blockServiceInstance,
-      loadTopologyFile(),
-      logger,
-      networkId
-    ),
+    networkService: networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile()),
     cardanoService: cardanoServiceInstance
   };
 };
