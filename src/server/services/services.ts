@@ -4,14 +4,12 @@ import { Logger } from 'pino';
 import { Repositories } from '../db/repositories';
 import { CardanoCli } from '../utils/cardanonode-cli';
 import { ErrorFactory } from '../utils/errors';
-import accountService, { AccountService } from './account-service';
 import blockService, { BlockService } from './block-service';
 import cardanoService, { CardanoService } from './cardano-services';
 import constructionService, { ConstructionService } from './construction-service';
 import networkService, { NetworkService } from './network-service';
 
 export interface Services {
-  accountService: AccountService;
   blockService: BlockService;
   constructionService: ConstructionService;
   networkService: NetworkService;
@@ -39,7 +37,6 @@ export const configure = (
   const blockServiceInstance = blockService(repositories.blockchainRepository, logger);
   const cardanoServiceInstance = cardanoService(logger);
   return {
-    accountService: accountService(repositories.networkRepository, blockServiceInstance, logger, networkId),
     blockService: blockServiceInstance,
     constructionService: constructionService(
       cardanoServiceInstance,

@@ -1,7 +1,9 @@
 /* eslint-disable camelcase */
 
-import { TransactionWithInputsAndOutputs, Block } from '../db/blockchain-repository';
-import { TRANSFER_OPERATION_TYPE, SUCCESS_STATUS } from './constants';
+import { TransactionWithInputsAndOutputs, Block, Utxo } from '../db/blockchain-repository';
+import { TRANSFER_OPERATION_TYPE, SUCCESS_STATUS, ADA, ADA_DECIMALS } from './constants';
+import { BlockUtxos } from '../services/block-service';
+import { Logger } from 'fastify';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
@@ -133,3 +135,45 @@ export const mapToRosettaBlock = (
   },
   transactions: transactions.map(mapToRosettaTransaction)
 });
+
+/**
+ * Processes AccountBalance response utxo section
+ * @param utxoDetails
+ */
+const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] =>
+  utxoDetails.map(utxoDetail => ({
+    amount: { value: utxoDetail.value, currency: { symbol: ADA, decimals: ADA_DECIMALS } },
+    coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
+  }));
+
+/**
+ * Generates an AccountBalance response object
+ * @param blockUtxos
+ * @param accountAddress
+ */
+export const mapToAccountBalanceResponse = (
+  blockUtxos: BlockUtxos,
+  accountAddress: string
+): Components.Schemas.AccountBalanceResponse => {
+  const balanceForAddress = blockUtxos.utxos.reduce((acum, current) => acum + Number(current.value), 0).toString();
+  return {
+    block_identifier: {
+      index: blockUtxos.block.number,
+      hash: blockUtxos.block.hash
+    },
+    balances: [
+      {
+        value: balanceForAddress,
+        currency: {
+          symbol: ADA,
+          decimals: ADA_DECIMALS,
+          metadata: {
+            issuer: accountAddress
+          }
+        },
+        metadata: {}
+      }
+    ],
+    coins: parseUtxoDetails(blockUtxos.utxos)
+  };
+};

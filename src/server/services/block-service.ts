@@ -9,6 +9,11 @@ import {
 } from '../db/blockchain-repository';
 import { ErrorFactory } from '../utils/errors';
 
+export interface BlockUtxos {
+  block: Block;
+  utxos: Utxo[];
+}
+
 /* eslint-disable camelcase */
 export interface BlockService {
   findBlock(log: Logger, number?: number, hash?: string): Promise<Block | null>;
@@ -22,7 +27,7 @@ export interface BlockService {
   ): Promise<TransactionWithInputsAndOutputs | null>;
   getGenesisBlock(): Promise<GenesisBlock>;
   getLatestBlock(): Promise<Block>;
-  findUtxoByAddressAndBlock(address: string, blockHash: string): Promise<Utxo[]>;
+  findUtxoByAddressAndBlock(log: Logger, address: string, number?: number, hash?: string): Promise<BlockUtxos>;
 }
 
 export interface BlockFindResult {
@@ -59,7 +64,7 @@ const configure = (repository: BlockchainRepository, logger: Logger): BlockServi
   findTransactionsByBlock(log, block): Promise<Transaction[]> {
     // This condition is needed as genesis tx count for mainnet is zero
     const blockMightContainTransactions = block.transactionsCount !== 0 || block.previousBlockHash === block.hash;
-    log.debug(`[block] Does requested block contains transactions? ${blockMightContainTransactions}`);
+    log.debug(`[findTransactionsByBlock] Does requested block contains transactions? ${blockMightContainTransactions}`);
     if (blockMightContainTransactions) {
       return repository.findTransactionsByBlock(block.number, block.hash);
     }
@@ -91,9 +96,22 @@ const configure = (repository: BlockchainRepository, logger: Logger): BlockServi
     logger.debug({ genesisBlock }, '[getGenesisBlock] Returning genesis block');
     return genesisBlock;
   },
-  async findUtxoByAddressAndBlock(address, blockHash) {
-    logger.info(`[findUtxoByAddressAndBlock] Looking for utxos for address ${address} and block ${blockHash}`);
-    return await repository.findUtxoByAddressAndBlock(address, blockHash);
+  async findUtxoByAddressAndBlock(log, address, number, hash) {
+    const block = await this.findBlock(log, number, hash);
+    if (block === null) {
+      log.error('[findUtxoByAddressAndBlock] Block not found');
+      throw ErrorFactory.blockNotFoundError();
+    }
+    log.info(`[findUtxoByAddressAndBlock] Looking for utxos for address ${address} and block ${block.hash}`);
+    const utxoDetails = await repository.findUtxoByAddressAndBlock(address, block.hash);
+    log.debug(
+      utxoDetails,
+      `[findUtxoByAddressAndBlock] Found ${utxoDetails.length} utxo details for address ${address}`
+    );
+    return {
+      block,
+      utxos: utxoDetails
+    };
   },
   findTransaction(log, transactionHash, blockNumber, blockHash) {
     return repository.findTransactionByHashAndBlock(transactionHash, blockNumber, blockHash);

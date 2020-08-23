@@ -1,8 +1,9 @@
-import blockController, { BlockController } from './block-controller';
 import { Services } from '../services/services';
 import { ErrorFactory } from '../utils/errors';
+import blockController, { BlockController } from './block-controller';
+import accountController, { AccountController } from './account-controller';
 
-export type Controllers = BlockController;
+export interface Controllers extends BlockController, AccountController {}
 
 const loadPageSize = (): number => {
   const pageSize = process.env.PAGE_SIZE;
@@ -18,5 +19,6 @@ const loadPageSize = (): number => {
  * @param services App services
  */
 export const configure = (services: Services, networkId: string): Controllers => ({
-  ...blockController(services.blockService, loadPageSize(), networkId)
+  ...blockController(services.blockService, loadPageSize(), networkId),
+  ...accountController(services.blockService, networkId)
 });
