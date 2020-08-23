@@ -2,39 +2,27 @@ import fs from 'fs';
 import path from 'path';
 import { Logger } from 'pino';
 import { Repositories } from '../db/repositories';
+import { CardanoCli } from '../utils/cardanonode-cli';
 import { ErrorFactory } from '../utils/errors';
 import accountService, { AccountService } from './account-service';
 import blockService, { BlockService } from './block-service';
+import cardanoService, { CardanoService } from './cardano-services';
 import constructionService, { ConstructionService } from './construction-service';
 import networkService, { NetworkService } from './network-service';
-import cardanoService, { CardanoService } from './cardano-services';
-import { CardanoCli } from '../utils/cardanonode-cli';
 
-export interface Services
-  extends AccountService,
-    BlockService,
-    ConstructionService,
-    NetworkService,
-    CardanoService,
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    NodeJS.Dict<Function> {}
-
+export interface Services {
+  accountService: AccountService;
+  blockService: BlockService;
+  constructionService: ConstructionService;
+  networkService: NetworkService;
+  cardanoService: CardanoService;
+}
 const loadTopologyFile = () => {
   const topologyPath = process.env.TOPOLOGY_FILE_PATH;
   if (topologyPath === undefined) {
     throw ErrorFactory.topoloyFileNotFound();
   }
   return JSON.parse(fs.readFileSync(path.resolve(topologyPath)).toString());
-};
-
-const loadPageSize = (logger: Logger): number => {
-  const pageSize = process.env.PAGE_SIZE;
-  logger.debug(`Loading page size: ${pageSize}`);
-  if (pageSize === undefined) {
-    logger.error('Page size config not found');
-    throw ErrorFactory.pageSizeNotFund();
-  }
-  return Number(pageSize);
 };
 
 /**
@@ -48,18 +36,12 @@ export const configure = (
   logger: Logger,
   networkId: string
 ): Services => {
-  const blockServiceInstance = blockService(
-    repositories.blockchainRepository,
-    loadPageSize(logger),
-    repositories.networkRepository,
-    logger,
-    networkId
-  );
+  const blockServiceInstance = blockService(repositories.blockchainRepository, logger);
   const cardanoServiceInstance = cardanoService(logger);
   return {
-    ...accountService(repositories.networkRepository, blockServiceInstance, logger, networkId),
-    ...blockServiceInstance,
-    ...constructionService(
+    accountService: accountService(repositories.networkRepository, blockServiceInstance, logger, networkId),
+    blockService: blockServiceInstance,
+    constructionService: constructionService(
       cardanoServiceInstance,
       blockServiceInstance,
       cardanoCli,
@@ -67,7 +49,13 @@ export const configure = (
       process.env.DEFAULT_RELATIVE_TTL,
       logger
     ),
-    ...networkService(repositories.networkRepository, blockServiceInstance, loadTopologyFile(), logger, networkId),
-    ...cardanoServiceInstance
+    networkService: networkService(
+      repositories.networkRepository,
+      blockServiceInstance,
+      loadTopologyFile(),
+      logger,
+      networkId
+    ),
+    cardanoService: cardanoServiceInstance
   };
 };

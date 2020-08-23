@@ -31,7 +31,7 @@ export const setupServer = (database: Pool): FastifyInstance => {
   // let repositories;
   const repositories = Repositories.configure(database, logger);
   const services = Services.configure(repositories, cardanoCliMock, logger, 'mainnet');
-  return buildServer(services, process.env.LOGGER_ENABLED === 'true');
+  return buildServer(services, 'mainnet', process.env.LOGGER_LEVEL);
 };
 
 export const testInvalidNetworkParameters = (

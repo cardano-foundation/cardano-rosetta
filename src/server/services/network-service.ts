@@ -9,7 +9,7 @@ import {
 } from '../utils/constants';
 import { ErrorFactory } from '../utils/errors';
 import { BlockService } from './block-service';
-import { withNetworkValidation } from './utils/services-helper';
+import { withNetworkValidation } from '../controllers/controllers-helper';
 
 /* eslint-disable camelcase */
 export interface NetworkService {

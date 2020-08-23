@@ -2,9 +2,9 @@ import fastify from 'fastify';
 import fastifyBlipp from 'fastify-blipp';
 import openapiGlue from 'fastify-openapi-glue';
 import StatusCodes from 'http-status-codes';
-import { wrap } from './controllers/generic-controller';
 import ApiError from './api-error';
 import { Services } from './services/services';
+import * as Controllers from './controllers/controllers';
 import { Server, IncomingMessage, ServerResponse } from 'http';
 
 /**
@@ -16,14 +16,15 @@ import { Server, IncomingMessage, ServerResponse } from 'http';
  */
 const buildServer = (
   services: Services,
-  logger = true
+  networkId: string,
+  logLevel: string
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
-  const server = fastify({ logger });
+  const server = fastify({ logger: { level: logLevel } });
 
   server.register(fastifyBlipp);
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,
-    service: wrap(services),
+    service: Controllers.configure(services, networkId),
     noAdditional: true
   });
 

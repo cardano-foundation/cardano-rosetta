@@ -1,5 +1,5 @@
-import { CARDANO } from '../../utils/constants';
-import { ErrorFactory } from '../../utils/errors';
+import { CARDANO } from '../utils/constants';
+import { ErrorFactory } from '../utils/errors';
 import { Logger } from 'fastify';
 
 export const withNetworkValidation = async <T, R>(

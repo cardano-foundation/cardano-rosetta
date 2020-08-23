@@ -3,7 +3,7 @@ import { NetworkRepository } from '../db/network-repository';
 import { ADA, ADA_DECIMALS } from '../utils/constants';
 import { ErrorFactory } from '../utils/errors';
 import { BlockService } from './block-service';
-import { withNetworkValidation } from './utils/services-helper';
+import { withNetworkValidation } from '../controllers/controllers-helper';
 import { Utxo } from '../db/blockchain-repository';
 
 /* eslint-disable camelcase */
@@ -34,7 +34,11 @@ const configure = (
       async () => {
         logger.debug({ accountBalanceRequest }, '[accountBalance] Request received');
         logger.info(`[accountBalance] Looking for block: ${accountBalanceRequest.block_identifier || 'latest'}`);
-        const block = await blockService.findBlock(accountBalanceRequest.block_identifier || {});
+        const block = await blockService.findBlock(
+          logger,
+          accountBalanceRequest.block_identifier?.index,
+          accountBalanceRequest.block_identifier?.hash
+        );
         if (block === null) {
           logger.error('[accountBalance] Block not found');
           throw ErrorFactory.blockNotFoundError();

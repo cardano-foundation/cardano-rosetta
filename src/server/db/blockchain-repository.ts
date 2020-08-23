@@ -33,11 +33,6 @@ export interface BlockIdentifier {
   hash: string;
 }
 
-export interface PartialBlockIdentifier {
-  index?: number;
-  hash?: string;
-}
-
 export interface Utxo {
   value: string;
   transactionHash: string;
@@ -101,7 +96,8 @@ export interface BlockchainRepository {
    */
   findTransactionByHashAndBlock(
     hash: string,
-    blockIdentifier: Components.Schemas.BlockIdentifier
+    blockNumber: number,
+    blockHash: string
   ): Promise<TransactionWithInputsAndOutputs | null>;
 
   /**
@@ -336,10 +332,9 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
   },
   async findTransactionByHashAndBlock(
     hash: string,
-    blockIdentifier: Components.Schemas.BlockIdentifier
+    blockNumber: number,
+    blockHash: string
   ): Promise<TransactionWithInputsAndOutputs | null> {
-    const blockNumber = blockIdentifier.index;
-    const blockHash = blockIdentifier.hash;
     logger.debug(
       `[findTransactionByHashAndBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
     );

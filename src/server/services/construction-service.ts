@@ -2,7 +2,7 @@ import { Logger } from 'pino';
 import cbor from 'cbor';
 import { CardanoService, NetworkIdentifier } from './cardano-services';
 import { NetworkRepository } from '../db/network-repository';
-import { withNetworkValidation } from './utils/services-helper';
+import { withNetworkValidation } from '../controllers/controllers-helper';
 import { ErrorFactory } from '../utils/errors';
 import { MAINNET, SIGNATURE_TYPE } from '../utils/constants';
 import { BlockService } from './block-service';
