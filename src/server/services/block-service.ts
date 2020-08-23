@@ -5,17 +5,69 @@ import { BlockchainRepository } from '../db/blockchain-repository';
 
 /* eslint-disable camelcase */
 export interface BlockService {
+  /**
+   * Finds a block for the given number or hash. If non of them are sent, it will
+   * return the latest block
+   *
+   * @param logger
+   * @param number
+   * @param hash
+   */
   findBlock(logger: Logger, number?: number, hash?: string): Promise<Block | null>;
+
+  /**
+   * Returns teh transactions for the given Block. It doesn't return the transactions
+   * input and outputs, to do so please see {fillTransactions}
+   *
+   * @param logger
+   * @param block
+   */
   findTransactionsByBlock(logger: Logger, block: Block): Promise<Transaction[]>;
+
+  /**
+   * Returns transactions alongside with it's inputs and outputs
+   * @param logger
+   * @param transactions
+   */
   fillTransactions(logger: Logger, transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]>;
+
+  /**
+   * Looks for a transaction based on it's hash but also on the block it's supposed to
+   * be contained. It will return an error if not found.
+   *
+   * @param logger
+   * @param transactionHash
+   * @param blockNumber
+   * @param blockHash
+   */
   findTransaction(
     logger: Logger,
     transactionHash: string,
     blockNumber: number,
     blockHash: string
   ): Promise<TransactionWithInputsAndOutputs | null>;
+
+  /**
+   * Returns the genesis block.
+   *
+   * @param logger
+   */
   getGenesisBlock(logger: Logger): Promise<GenesisBlock>;
+
+  /**
+   * Returns the best block (tip of the chain)
+   * @param logger
+   */
   getLatestBlock(logger: Logger): Promise<Block>;
+
+  /**
+   * Returns the unspents for a given address at a certain block.
+   *
+   * @param logger
+   * @param address
+   * @param number
+   * @param hash
+   */
   findUtxoByAddressAndBlock(logger: Logger, address: string, number?: number, hash?: string): Promise<BlockUtxos>;
 }
 
