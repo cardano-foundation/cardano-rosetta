@@ -17,15 +17,15 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkId: str
   async block(request) {
     const { hash, index } = request.body.block_identifier;
 
-    const log = request.log;
+    const logger = request.log;
 
-    log.info({ hash, index }, '[block] Looking for block');
-    const block = await blockService.findBlock(log, index, hash);
+    logger.info({ hash, index }, '[block] Looking for block');
+    const block = await blockService.findBlock(logger, index, hash);
     if (block !== null) {
-      log.info('[block] Block was found');
-      const transactionsFound = await blockService.findTransactionsByBlock(log, block);
+      logger.info('[block] Block was found');
+      const transactionsFound = await blockService.findTransactionsByBlock(logger, block);
       if (transactionsFound.length > PAGE_SIZE) {
-        log.info('[block] Returning only transactions hashes since the number of them is bigger than PAGE_SIZE');
+        logger.info('[block] Returning only transactions hashes since the number of them is bigger than PAGE_SIZE');
         return {
           block: mapToRosettaBlock(block, []),
           // eslint-disable-next-line camelcase
@@ -34,13 +34,13 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkId: str
           }))
         };
       }
-      log.info('[block] Looking for blocks transactions full data');
-      const transactions = await blockService.fillTransactions(log, transactionsFound);
+      logger.info('[block] Looking for blocks transactions full data');
+      const transactions = await blockService.fillTransactions(logger, transactionsFound);
       return {
         block: mapToRosettaBlock(block, transactions)
       };
     }
-    log.error('[block] Block was not found');
+    logger.error('[block] Block was not found');
     throw ErrorFactory.blockNotFoundError();
   },
 
@@ -50,9 +50,9 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkId: str
       request.body,
       async () => {
         const blockTransactionRequest = request.body;
-        const log = request.log;
+        const logger = request.log;
         const transactionHash = blockTransactionRequest.transaction_identifier.hash;
-        log.info(
+        logger.info(
           `[blockTransaction] Looking for transaction for hash ${transactionHash} and block ${blockTransactionRequest.block_identifier}`
         );
         const transaction = await blockService.findTransaction(
@@ -62,11 +62,11 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkId: str
           blockTransactionRequest.block_identifier.hash
         );
         if (transaction === null) {
-          log.error('[blockTransaction] No transaction found');
+          logger.error('[blockTransaction] No transaction found');
           throw ErrorFactory.transactionNotFound();
         }
         const response = mapToRosettaTransaction(transaction);
-        log.debug({ response }, '[blockTransaction] Returning response ');
+        logger.debug({ response }, '[blockTransaction] Returning response ');
         return {
           transaction: response
         };

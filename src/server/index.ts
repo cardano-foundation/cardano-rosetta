@@ -29,7 +29,6 @@ const start = async (databaseInstance: Pool) => {
     await server.listen(PORT || 8080, BIND_ADDRESS || '0.0.0.0');
     server.blipp();
   } catch (error) {
-    console.log(error);
     server?.log.error(error);
     await databaseInstance?.end();
     // eslint-disable-next-line unicorn/no-process-exit

@@ -26,10 +26,10 @@ export interface Peer {
   addr: string;
 }
 
-const getPeersFromConfig = (log: Logger, topologyFile: TopologyConfig): Peer[] => {
-  log.info('[getPeersFromConfig] Looking for peers from topologyFile');
+const getPeersFromConfig = (logger: Logger, topologyFile: TopologyConfig): Peer[] => {
+  logger.info('[getPeersFromConfig] Looking for peers from topologyFile');
   const { Producers } = topologyFile;
-  log.debug(`[getPeersFromConfig] Found ${Producers.length} peers`);
+  logger.debug(`[getPeersFromConfig] Found ${Producers.length} peers`);
   return Producers;
 };
 

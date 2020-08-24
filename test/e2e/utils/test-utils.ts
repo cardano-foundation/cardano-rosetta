@@ -17,11 +17,6 @@ export const setupDatabase = (offline: boolean): Pool => {
   return createPool(process.env.DB_CONNECTION_STRING);
 };
 
-const configLogger = (): Logger =>
-  pino({
-    enabled: false
-  });
-
 export const cardanoCliMock: CardanoCli = {
   submitTransaction: jest.fn()
 };

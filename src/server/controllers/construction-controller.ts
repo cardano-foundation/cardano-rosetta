@@ -60,24 +60,24 @@ const configure = (
       request.body.network_identifier,
       request,
       async () => {
-        const log = request.log;
+        const logger = request.log;
         const publicKey = request.body.public_key;
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
 
-        log.info('[constructionDerive] About to check if public key has valid length and curve type');
+        logger.info('[constructionDerive] About to check if public key has valid length and curve type');
         if (!isKeyValid(publicKey.hex_bytes, publicKey.curve_type)) {
-          log.info('[constructionDerive] Public key has an invalid format');
+          logger.info('[constructionDerive] Public key has an invalid format');
           throw ErrorFactory.invalidPublicKeyFormat();
         }
-        log.info('[constructionDerive] Public key has a valid format');
+        logger.info('[constructionDerive] Public key has a valid format');
 
-        log.info(request.body, '[constructionDerive] About to generate address');
-        const address = cardanoService.generateAddress(log, networkIdentifier, publicKey.hex_bytes);
+        logger.info(request.body, '[constructionDerive] About to generate address');
+        const address = cardanoService.generateAddress(logger, networkIdentifier, publicKey.hex_bytes);
         if (!address) {
-          log.error('[constructionDerive] There was an error generating address');
+          logger.error('[constructionDerive] There was an error generating address');
           throw ErrorFactory.addressGenerationError();
         }
-        log.info(`[constructionDerive] new address is ${address}`);
+        logger.info(`[constructionDerive] new address is ${address}`);
 
         return {
           address
@@ -91,11 +91,11 @@ const configure = (
       request.body.network_identifier,
       request,
       async () => {
-        const log = request.log;
+        const logger = request.log;
         const [signedTransaction] = await decodeExtraData(request.body.signed_transaction);
-        log.info('[constructionHash] About to get hash of signed transaction');
-        const transactionHash = cardanoService.getHashOfSignedTransaction(log, signedTransaction);
-        log.info('[constructionHash] About to return hash of signed transaction');
+        logger.info('[constructionHash] About to get hash of signed transaction');
+        const transactionHash = cardanoService.getHashOfSignedTransaction(logger, signedTransaction);
+        logger.info('[constructionHash] About to return hash of signed transaction');
         // eslint-disable-next-line camelcase
         return mapToConstructionHashResponse(transactionHash);
       },
@@ -132,11 +132,11 @@ const configure = (
       request.body.network_identifier,
       request,
       async () => {
-        const log = request.log;
+        const logger = request.log;
         const ttl = request.body.metadata.ttl;
         const operations = request.body.operations;
-        log.info(operations, '[constuctionPayloads] Operations about to be processed');
-        const unsignedTransaction = cardanoService.createUnsignedTransaction(log, operations, ttl);
+        logger.info(operations, '[constuctionPayloads] Operations about to be processed');
+        const unsignedTransaction = cardanoService.createUnsignedTransaction(logger, operations, ttl);
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         return {
           // eslint-disable-next-line camelcase
@@ -152,18 +152,18 @@ const configure = (
       request.body.network_identifier,
       request,
       async () => {
-        const log = request.log;
-        log.info('[constructionCombine] Request received to sign a transaction');
+        const logger = request.log;
+        logger.info('[constructionCombine] Request received to sign a transaction');
         const [transaction, extraData] = await decodeExtraData(request.body.unsigned_transaction);
         const signedTransaction = cardanoService.buildTransaction(
-          log,
+          logger,
           transaction,
           request.body.signatures.map(signature => ({
             signature: signature.hex_bytes,
             publicKey: signature.public_key.hex_bytes
           }))
         );
-        log.info({ signedTransaction }, '[constructionCombine] About to return signed transaction');
+        logger.info({ signedTransaction }, '[constructionCombine] About to return signed transaction');
         // eslint-disable-next-line camelcase
         return { signed_transaction: await encodeExtraData(signedTransaction, extraData) };
       },
@@ -175,23 +175,23 @@ const configure = (
       request.body.network_identifier,
       request,
       async () => {
-        const log = request.log;
+        const logger = request.log;
         const signed = request.body.signed;
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
-        log.info(request.body.transaction, '[constructionParse] Processing');
+        logger.info(request.body.transaction, '[constructionParse] Processing');
         const [transaction, extraData] = await decodeExtraData(request.body.transaction);
-        log.info({ transaction, extraData }, '[constructionParse] Decoded');
+        logger.info({ transaction, extraData }, '[constructionParse] Decoded');
         if (signed) {
           return {
             // eslint-disable-next-line camelcase
             network_identifier: request.body.network_identifier,
-            ...cardanoService.parseSignedTransaction(log, networkIdentifier, transaction, extraData)
+            ...cardanoService.parseSignedTransaction(logger, networkIdentifier, transaction, extraData)
           };
         }
         return {
           // eslint-disable-next-line camelcase
           network_identifier: request.body.network_identifier,
-          ...cardanoService.parseUnsignedTransaction(log, networkIdentifier, transaction, extraData)
+          ...cardanoService.parseUnsignedTransaction(logger, networkIdentifier, transaction, extraData)
         };
       },
       request.log,
@@ -203,16 +203,16 @@ const configure = (
       request,
       async () => {
         try {
-          const log = request.log;
+          const logger = request.log;
           const [signedTransaction] = await decodeExtraData(request.body.signed_transaction);
-          log.info(`[constructionSubmit] About to submit ${signedTransaction}`);
+          logger.info(`[constructionSubmit] About to submit ${signedTransaction}`);
           await cardanoCli.submitTransaction(
-            log,
+            logger,
             signedTransaction,
             request.body.network_identifier.network === 'mainnet'
           );
-          log.info('[constructionHash] About to get hash of signed transaction');
-          const transactionHash = cardanoService.getHashOfSignedTransaction(log, signedTransaction);
+          logger.info('[constructionHash] About to get hash of signed transaction');
+          const transactionHash = cardanoService.getHashOfSignedTransaction(logger, signedTransaction);
           // eslint-disable-next-line camelcase
           return { transaction_identifier: { hash: transactionHash } };
         } catch (error) {

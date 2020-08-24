@@ -22,16 +22,16 @@ export interface NetworkController {
 
 const configure = (networkService: NetworkService, networkId: string): NetworkController => ({
   async networkList(request) {
-    const log = request.log;
-    log.info('[networkList] Looking for all supported networks');
-    const networkIdentifiers = await networkService.findAllNetworksSupported(log);
+    const logger = request.log;
+    logger.info('[networkList] Looking for all supported networks');
+    const networkIdentifiers = await networkService.findAllNetworksSupported(logger);
     if (networkIdentifiers !== null) {
-      log.info(`[networkList] Found ${networkIdentifiers.length} networks supported`);
+      logger.info(`[networkList] Found ${networkIdentifiers.length} networks supported`);
       const response = mapToNetworkList(networkIdentifiers);
-      log.debug({ response }, '[networkList] Returning response:');
+      logger.debug({ response }, '[networkList] Returning response:');
       return response;
     }
-    log.error('[networkList] There are no networks supported to list');
+    logger.error('[networkList] There are no networks supported to list');
     throw ErrorFactory.networkNotFoundError();
   },
   networkStatus: async request =>
@@ -39,15 +39,15 @@ const configure = (networkService: NetworkService, networkId: string): NetworkCo
       request.body.network_identifier,
       request,
       async () => {
-        const log = request.log;
-        log.debug(request, '[networkStatus] Request received:');
+        const logger = request.log;
+        logger.debug(request, '[networkStatus] Request received:');
 
-        log.info('[networkStatus] Looking for latest block');
-        const networkStatus = await networkService.getNetworkStatus(log);
+        logger.info('[networkStatus] Looking for latest block');
+        const networkStatus = await networkService.getNetworkStatus(logger);
 
         // peer must be queried from some node file, filePath should be place on .env
         const response = mapToNetworkStatusResponse(networkStatus);
-        log.debug({ response }, '[networkStatus] Returning response:');
+        logger.debug({ response }, '[networkStatus] Returning response:');
         return response;
       },
       request.log,
@@ -58,8 +58,8 @@ const configure = (networkService: NetworkService, networkId: string): NetworkCo
       request.body.network_identifier,
       request,
       async () => {
-        const log = request.log;
-        log.info('[networkOptions] Looking for networkOptions');
+        const logger = request.log;
+        logger.info('[networkOptions] Looking for networkOptions');
         const response = {
           version: {
             // FIXME unhardcode node_version. It'll be done in issue #28
@@ -78,8 +78,8 @@ const configure = (networkService: NetworkService, networkId: string): NetworkCo
             historical_balance_lookup: true
           }
         };
-        log.info('[networkOptions] All network options has been successfully fetched.');
-        log.debug({ response }, '[networkOptions] Returning response:');
+        logger.info('[networkOptions] All network options has been successfully fetched.');
+        logger.debug({ response }, '[networkOptions] Returning response:');
         return response;
       },
       request.log,
