@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: 14
       - run: yarn install --offline --frozen-lockfile --logevel=error
+      - run: yarn lint
       - run: yarn test
         env:
           PORT: 8080
