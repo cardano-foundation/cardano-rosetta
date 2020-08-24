@@ -2,7 +2,7 @@ const findBlock = (blockNumber?: number, blockHash?: string): string => `
 SELECT 
   b.hash as hash,
   b.block_no as number,
-  b.time as "createdAt",
+  (b.time at time zone 'utc') as "createdAt",
   CASE
     WHEN b2.block_no IS NOT NULL THEN b2.block_no
     WHEN b3.block_no IS NOT NULL THEN b3.block_no
