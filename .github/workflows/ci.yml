@@ -32,4 +32,4 @@ jobs:
           CARDANOCLI_PATH: cardano-cli
           GENESIS_PATH: test/e2e/utils/mainnet-genesis.json
           CARDANO_NODE_SOCKET_PATH: /tmp/ipc/node.socket
-          PAGE_SIZE: 25
+          PAGE_SIZE: 5
