@@ -1,0 +1,35 @@
+
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - run: yarn install --offline --frozen-lockfile --logevel=error
+      - run: yarn lint
+      - run: yarn test
+        env:
+          PORT: 8080
+          LOGGER_LEVEL: debug
+          LOGGER_ENABLED: true
+          BIND_ADDRESS: 127.0.0.1
+          DB_CONNECTION_STRING: postgresql://postgres:notForProduction!@127.0.0.1:5432/cexplorer
+          TOPOLOGY_FILE_PATH: test/e2e/utils/topology-test.json
+          CARDANOCLI_PATH: cardano-cli
+          GENESIS_PATH: test/e2e/utils/mainnet-genesis.json
+          CARDANO_NODE_SOCKET_PATH: /tmp/ipc/node.socket
+          PAGE_SIZE: 5

@@ -10,7 +10,7 @@ export const block1000WithoutTxs = {
       index: 999,
       hash: '18c7525617b8747a721c3fb003776826fe60a55e64f6b4f5396d06b1ff88ce02'
     },
-    timestamp: 1506233871000,
+    timestamp: 1506223071,
     metadata: {
       transactionsCount: 0,
       createdBy: 'SlotLeader-8e8a7b0f4a23f07a',
@@ -32,7 +32,7 @@ export const latestBlock = {
       index: 65167,
       hash: '1e783f0c84e0aa06e5b8dbc7965674e8856aebd87838f9466952b5b738381adf'
     },
-    timestamp: 1507517771000,
+    timestamp: 1507506971,
     transactions: [],
     metadata: {
       transactionsCount: 0,
@@ -54,7 +54,7 @@ export const block23236WithTransactions = {
       index: 23235,
       hash: '4e1817789d9c78f6a28f98af73673a391794e53da5e9c1f113d446e0e9b574fd'
     },
-    timestamp: 1506678871000,
+    timestamp: 1506668071,
     metadata: {
       transactionsCount: 2,
       createdBy: 'SlotLeader-64c61078e9577d3b',
@@ -185,7 +185,7 @@ export const block7134WithTxs = {
       index: 7133,
       hash: '4314cd5fa8a645607b2f7668fd2bc53f40fb418c06de3db0a8e721761e458828'
     },
-    timestamp: 1506356551000,
+    timestamp: 1506345751,
     metadata: {
       transactionsCount: 1,
       createdBy: slotLeader2b1,
@@ -288,7 +288,7 @@ export const blockWith8Txs = {
       index: 23711,
       hash: 'cf3d86d870defa1c90f8aeeb753985e0051fef638184f1c334179950b8cd901e'
     },
-    timestamp: 1506688391000,
+    timestamp: 1506677591,
     transactions: [],
     metadata: {
       transactionsCount: 8,
@@ -345,7 +345,7 @@ export const block1 = {
       hash: GENESIS_HASH,
       index: 0
     },
-    timestamp: 1506213891000,
+    timestamp: 1506203091,
     transactions: []
   }
 };
