@@ -1,6 +1,6 @@
 ARG UBUNTU_VERSION=20.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
-ARG CARDANO_NODE_VERSION=1.18.0
+ARG CARDANO_NODE_VERSION=1.19.0
 ARG CARDANO_DB_SYNC_VERSION=3.1.0
 ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
 ENV DEBIAN_FRONTEND=nonintercative
@@ -56,16 +56,20 @@ RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   git fetch --all --tags &&\
   git checkout ${CARDANO_NODE_VERSION}
 WORKDIR /app/src/cardano-node
-RUN cabal install cardano-node \
-  --install-method=copy \
-  --installdir=/usr/local/bin \
-  -f +external-libsodium-vrf \
-  -f -systemd
-RUN cabal install cardano-cli \
-  --install-method=copy \
-  --installdir=/usr/local/bin \
-  -f +external-libsodium-vrf \
-  -f -systemd
+# https://github.com/input-output-hk/cardano-node/issues/1675
+#RUN cabal install cardano-node \
+#  --install-method=copy \
+#  --installdir=/usr/local/bin \
+#  -f +external-libsodium-vrf \
+#  -f -systemd
+#RUN cabal install cardano-cli \
+#  --install-method=copy \
+#  --installdir=/usr/local/bin \
+#  -f +external-libsodium-vrf \
+#  -f -systemd
+RUN cabal build cardano-node cardano-cli &&\
+  mv ./dist-newstyle/build/x86_64-linux/ghc-8.6.5/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/ &&\
+  mv ./dist-newstyle/build/x86_64-linux/ghc-8.6.5/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
 WORKDIR /app/src
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
