@@ -14,10 +14,12 @@ COPY --from=rosetta-server-builder-dev /app/.yarnrc /app/yarn.lock /app/package.
 WORKDIR /app
 RUN yarn --offline --frozen-lockfile --non-interactive --production
 
-FROM ubuntu-nodejs as cardano-rosetta-server
+FROM ubuntu-nodejs as cardano-rosetta-server-dev
+ARG NETWORK=mainnet
+COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
 COPY --from=rosetta-server-builder-dev /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps-dev /app/node_modules /cardano-rosetta-server/node_modules
-COPY config/network /config/network
+COPY config/network/${NETWORK} /config/
 EXPOSE 8080
 CMD ["node", "/cardano-rosetta-server/dist/src/server/index.js"]
 

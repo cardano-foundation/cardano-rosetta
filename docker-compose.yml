@@ -58,7 +58,7 @@ services:
     build:
       context: .
       dockerfile: dev.Dockerfile
-      target: cardano-rosetta-server
+      target: cardano-rosetta-server-dev
     environment:
       - DB_CONNECTION_STRING=postgresql://postgres:notForProduction!@postgres:5432/cexplorer
       - GENESIS_PATH=/config/genesis/shelley.json
