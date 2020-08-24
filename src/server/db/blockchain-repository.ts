@@ -1,4 +1,5 @@
 import { Pool, QueryResult } from 'pg';
+import moment from 'moment';
 import { hexFormatter, hashStringToBuffer, replace0xOnHash } from '../utils/formatters';
 import Queries, {
   FindTransactionsInputs,
@@ -266,7 +267,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
       return {
         number,
         hash: hexFormatter(hash),
-        createdAt,
+        createdAt: moment.utc(createdAt).unix(),
         previousBlockHash: previousBlockHash && hexFormatter(previousBlockHash),
         previousBlockNumber,
         transactionsCount,
