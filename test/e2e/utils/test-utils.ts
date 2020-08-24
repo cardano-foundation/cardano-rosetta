@@ -27,7 +27,6 @@ export const cardanoCliMock: CardanoCli = {
 };
 
 export const setupServer = (database: Pool): FastifyInstance => {
-  const logger = configLogger();
   // let repositories;
   const repositories = Repositories.configure(database);
   const services = Services.configure(repositories);

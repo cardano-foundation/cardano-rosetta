@@ -121,7 +121,7 @@ const configure = (
       request,
       async () => {
         const ttlOffset = request.body.options.relative_ttl;
-        const ttl = await (await constructionService.calculateTtl(request.log, ttlOffset)).toString();
+        const ttl = (await constructionService.calculateTtl(request.log, ttlOffset)).toString();
         return { metadata: { ttl } };
       },
       request.log,

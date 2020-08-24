@@ -3,7 +3,6 @@ import { withNetworkValidation } from '../controllers/controllers-helper';
 import { BlockService } from '../services/block-service';
 import { mapToAccountBalanceResponse } from '../utils/data-mapper';
 
-/* eslint-disable camelcase */
 export interface AccountController {
   accountBalance(
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.AccountBalanceRequest>
