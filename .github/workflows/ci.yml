@@ -34,7 +34,8 @@ jobs:
           GENESIS_PATH: test/e2e/utils/mainnet-genesis.json
           CARDANO_NODE_SOCKET_PATH: /tmp/ipc/node.socket
           PAGE_SIZE: 5
-      - run: ./scripts/build_dev_docker_images.sh
+#      - name: Build Dev Docker images
+#        run: ./scripts/build_dev_docker_images.sh
 #  docker-build:
 #    runs-on: ubuntu-latest
 #    steps:
@@ -48,4 +49,5 @@ jobs:
 #          password: ${{ secrets.DOCKER_PASSWORD }}
 #          repository: inputoutput/cardano-rosetta
 #          tag_with_ref: true
+#          tag_with_sha: true
 #          push: false
