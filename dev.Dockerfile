@@ -1,10 +1,15 @@
 FROM nodejs-builder as rosetta-server-builder-dev
 RUN mkdir /app
-COPY package.json yarn.lock .yarnrc tsconfig-dist.json tsconfig.json /app/
-COPY packages-cache /app/packages-cache
+COPY cardano-rosetta-server/package.json \
+  cardano-rosetta-server/yarn.lock \
+  cardano-rosetta-server/.yarnrc \
+  cardano-rosetta-server/tsconfig-dist.json \
+  cardano-rosetta-server/tsconfig.json \
+  /app/
+COPY cardano-rosetta-server/packages-cache /app/packages-cache
 WORKDIR /app
 RUN yarn --offline --frozen-lockfile --non-interactive
-COPY src /app/src
+COPY cardano-rosetta-server/src /app/src
 RUN yarn build
 
 FROM nodejs-builder as rosetta-server-production-deps-dev

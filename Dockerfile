@@ -142,30 +142,33 @@ FROM nodejs-builder as rosetta-server-builder
 ARG CARDANO_ROSETTA_SERVER_VERSION=1.0.0
 RUN apt-get update && apt-get install git -y
 RUN git clone -b ${CARDANO_ROSETTA_SERVER_VERSION} https://github.com/input-output-hk/cardano-rosetta
-WORKDIR /cardano-rosetta
+WORKDIR /cardano-rosetta/cardano-rosetta-server
 RUN yarn --offline --frozen-lockfile --non-interactive
 RUN yarn build
 
 FROM nodejs-builder as rosetta-server-production-deps
 RUN mkdir -p /app/src
-COPY --from=rosetta-server-builder /app/src/packages-cache /app/src/
-COPY --from=rosetta-server-builder /app/src/cardano-rosetta/.yarnrc /app/src/yarn.lock cardano-rosetta/package.json /app/src/
+COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/packages-cache /app/packages-cache
+COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/.yarnrc \
+  /cardano-rosetta/cardano-rosetta-server/yarn.lock \
+  /cardano-rosetta/cardano-rosetta-server/package.json \
+  /app/src/
 WORKDIR /app/src
 RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
 ARG NETWORK=mainnet
 COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
-COPY --from=rosetta-server-builder /cardano-rosetta/dist /cardano-rosetta-server/dist
-COPY --from=rosetta-server-production-deps /cardano-rosetta/node_modules /cardano-rosetta-server/node_modules
+COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/dist /cardano-rosetta-server/dist
+COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
 COPY --from=rosetta-server-builder /cardano-rosetta/config/network/${NETWORK} /config/
 EXPOSE 8080
 CMD ["node", "/cardano-rosetta-server/dist/src/server/index.js"]
 
 FROM runtime-base
 ARG NETWORK=mainnet
-COPY --from=rosetta-server-builder /cardano-rosetta/dist /cardano-rosetta-server/dist
-COPY --from=rosetta-server-production-deps /cardano-rosetta/node_modules /cardano-rosetta-server/node_modules
+COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/dist /cardano-rosetta-server/dist
+COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
 COPY --from=rosetta-server-builder /cardano-rosetta/config/ecosystem.config.js .
 COPY --from=rosetta-server-builder /cardano-rosetta/config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
 COPY --from=rosetta-server-builder /cardano-rosetta/config/network/${NETWORK} /config/
