@@ -52,7 +52,7 @@ describe(CONSTRUCTION_HASH_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      code: 5005,
+      code: 5003,
       message: 'Parse signed transaction error',
       retriable: false
     });

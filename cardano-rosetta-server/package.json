@@ -76,6 +76,7 @@
     "@emurgo/cardano-serialization-lib-nodejs": "2.0.0",
     "cbor": "5.1.0",
     "dotenv": "8.2.0",
+    "envalid": "6.0.2",
     "execa": "4.0.3",
     "fastify": "2.15.1",
     "fastify-blipp": "2.3.1",

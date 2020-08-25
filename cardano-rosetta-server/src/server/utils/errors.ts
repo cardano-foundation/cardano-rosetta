@@ -1,4 +1,5 @@
 import ApiError from '../api-error';
+import ServerError from '../server-error';
 
 export interface Error {
   message: string;
@@ -52,34 +53,31 @@ export const Errors = {
     code: 4014
   },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
-  TOPOLOGY_FILE_NOT_FOUND: { message: 'Topology file not found', code: 5002 },
-  PAGE_SIZE_NOT_FOUND: { message: 'Page size config not found', code: 5003 },
-  ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5004 },
-  PARSE_SIGNED_TRANSACTION_ERROR: { message: 'Parse signed transaction error', code: 5005 },
+  ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
+  PARSE_SIGNED_TRANSACTION_ERROR: { message: 'Parse signed transaction error', code: 5003 },
   CANT_CREATE_SIGN_TRANSACTION: {
     message: 'Cant create signed transaction probably because of unsigned transaction bytes',
-    code: 5006
+    code: 5004
   },
   CANT_BUILD_WITNESSES_SET: {
     message: 'Cant build witnesses set for transaction probably because of provided signatures',
-    code: 5007
+    code: 5005
   },
-  SEND_TRANSACTION_ERROR: { message: 'Error when sending the transaction', code: 5008 }
+  SEND_TRANSACTION_ERROR: { message: 'Error when sending the transaction', code: 5006 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
   new ApiError(error.code, error.message, retriable, details);
 
 type CreateErrorFunction = (details?: string) => ApiError;
+type CreateServerErrorFcuntion = () => ServerError;
 const blockNotFoundError: CreateErrorFunction = () => buildApiError(Errors.BLOCK_NOT_FOUND, false);
 const invalidBlockchainError: CreateErrorFunction = () => buildApiError(Errors.INVALID_BLOCKCHAIN, false);
 const networkNotFoundError: CreateErrorFunction = () => buildApiError(Errors.NETWORK_NOT_FOUND, false);
 const networksNotFoundError: CreateErrorFunction = () => buildApiError(Errors.NETWORKS_NOT_FOUND, false);
-const topoloyFileNotFound: CreateErrorFunction = () => buildApiError(Errors.TOPOLOGY_FILE_NOT_FOUND, false);
 const notImplentedError: CreateErrorFunction = () => buildApiError(Errors.NOT_IMPLEMENTED, false);
 const genesisBlockNotFound: CreateErrorFunction = () => buildApiError(Errors.GENESIS_BLOCK_NOT_FOUND, false);
 const transactionNotFound: CreateErrorFunction = () => buildApiError(Errors.TRANSACTION_NOT_FOUND, false);
-const pageSizeNotFund: CreateErrorFunction = () => buildApiError(Errors.PAGE_SIZE_NOT_FOUND, false);
 const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.ADDRESS_GENERATION_ERROR, false);
 const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
 const parseSignedTransactionError: CreateErrorFunction = () =>
@@ -109,10 +107,8 @@ export const ErrorFactory = {
   invalidBlockchainError,
   networksNotFoundError,
   notImplentedError,
-  topoloyFileNotFound,
   genesisBlockNotFound,
   transactionNotFound,
-  pageSizeNotFund,
   addressGenerationError,
   invalidPublicKeyFormat,
   parseSignedTransactionError,
@@ -127,3 +123,6 @@ export const ErrorFactory = {
   transactionInputDeserializationError,
   transactionOutputDeserializationError
 };
+
+export const configNotFoundError: CreateServerErrorFcuntion = () =>
+  new ServerError('Environment configurations needed to run server were not found');

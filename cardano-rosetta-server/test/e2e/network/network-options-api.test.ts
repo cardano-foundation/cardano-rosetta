@@ -77,26 +77,20 @@ const allow = {
       message: 'Not implemented',
       retriable: false
     },
+    { code: 5002, message: 'Address generation error', retriable: false },
+    { code: 5003, message: 'Parse signed transaction error', retriable: false },
     {
-      code: 5002,
-      message: 'Topology file not found',
-      retriable: false
-    },
-    { code: 5003, message: 'Page size config not found', retriable: false },
-    { code: 5004, message: 'Address generation error', retriable: false },
-    { code: 5005, message: 'Parse signed transaction error', retriable: false },
-    {
-      code: 5006,
+      code: 5004,
       message: 'Cant create signed transaction probably because of unsigned transaction bytes',
       retriable: false
     },
     {
-      code: 5007,
+      code: 5005,
       message: 'Cant build witnesses set for transaction probably because of provided signatures',
       retriable: false
     },
     {
-      code: 5008,
+      code: 5006,
       message: 'Error when sending the transaction',
       retriable: true
     }

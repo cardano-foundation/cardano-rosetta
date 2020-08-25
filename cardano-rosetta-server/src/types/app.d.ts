@@ -9,5 +9,6 @@ declare namespace NodeJS {
     GENESIS_PATH: string;
     DEFAULT_RELATIVE_TTL: number;
     CARDANO_NODE_PATH: string;
+    TOPOLOGY_FILE_PATH: string;
   }
 }

@@ -84,7 +84,7 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect((cardanoCliMock.submitTransaction as jest.Mock).mock.calls.length).toBe(1);
     expect(response.json()).toEqual({
-      code: 5008,
+      code: 5006,
       details: {
         message: 'Error when calling cardano-cli'
       },

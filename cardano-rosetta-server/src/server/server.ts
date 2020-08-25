@@ -21,14 +21,15 @@ const buildServer = (
   cardanoCli: CardanoCli,
   cardanoNode: CardanoNode,
   networkId: string,
-  logLevel: string
+  logLevel: string,
+  pageSize: number
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
   const server = fastify({ logger: { level: logLevel } });
 
   server.register(fastifyBlipp);
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,
-    service: Controllers.configure(services, cardanoCli, cardanoNode, networkId),
+    service: Controllers.configure(services, cardanoCli, cardanoNode, networkId, pageSize),
     noAdditional: true
   });
 
@@ -42,7 +43,11 @@ const buildServer = (
         ...error,
         message: error.message
       });
-    } else reply.send(error);
+    } else
+      reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
+        message: `An error occurred for request ${request.id}`,
+        details: error.message
+      });
   });
 
   return server;
