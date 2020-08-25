@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [0.1.0](https://github.com/input-output-hk/cardano-rosetta/compare/v0.0.1...v0.1.0) (2020-08-25)
+
+
+### Features
+
+* `/construction/preprocess` ([#110](https://github.com/input-output-hk/cardano-rosetta/issues/110)) ([8989aa8](https://github.com/input-output-hk/cardano-rosetta/commit/8989aa89f717e5a6b2ea3e4a7a6072dea11b78cd))
+* `/construction/submit` endpoint implementation ([#106](https://github.com/input-output-hk/cardano-rosetta/issues/106)) ([2585e57](https://github.com/input-output-hk/cardano-rosetta/commit/2585e57963dfe7aa22893517eaf72a607aea0aca)), closes [#114](https://github.com/input-output-hk/cardano-rosetta/issues/114)
+* `/construction/submit` implementation ([64d467a](https://github.com/input-output-hk/cardano-rosetta/commit/64d467af148f9289ca24ea0e1b9e1f6005ca9075))
+* Add MODE ENV to limit services running in offline operation ([013024a](https://github.com/input-output-hk/cardano-rosetta/commit/013024ad37fe897d0c7878d1131c2a4b31fd1f37))
+* added bech32 tesnet prefix support ([#93](https://github.com/input-output-hk/cardano-rosetta/issues/93)) ([01698ee](https://github.com/input-output-hk/cardano-rosetta/commit/01698ee71f8d15464517b3a1b128961ca293379c))
+* added cardano service implementation to generate address.  ([72c62c2](https://github.com/input-output-hk/cardano-rosetta/commit/72c62c2241f0a90565972b9ca9d0f612d0749541))
+* added coin change to blockService response objects ([#79](https://github.com/input-output-hk/cardano-rosetta/issues/79)) ([5a3ba1a](https://github.com/input-output-hk/cardano-rosetta/commit/5a3ba1a8e38cdc5335233b5d6749dd26e8aac97b))
+* added construction combine ([7e8bcda](https://github.com/input-output-hk/cardano-rosetta/commit/7e8bcda06a33c25572c565a5d2633dd7c52e28ae)), closes [#90](https://github.com/input-output-hk/cardano-rosetta/issues/90)
+* added details when some parsing errors are thrown. Also change some logic on error handling ([#116](https://github.com/input-output-hk/cardano-rosetta/issues/116)) ([a8fcdaf](https://github.com/input-output-hk/cardano-rosetta/commit/a8fcdafcc4f5a233e317f5dce876b24217f923c5))
+* adds service dependencies and process management to Dockerfile ([920488f](https://github.com/input-output-hk/cardano-rosetta/commit/920488fa9f9f22b6bfc40e15a26a43ace47abb04))
+
+
+### Bug Fixes
+
+* add offline check for networkWalidation in all enpdoints. Refactor to tests so if any endpoint could work offline, a mock db is used ([#118](https://github.com/input-output-hk/cardano-rosetta/issues/118)) ([9c091a4](https://github.com/input-output-hk/cardano-rosetta/commit/9c091a46226aeb3fde14cf1b9a0b75d1ae714970))
+* added query fix to query a single transaction by genesis block ([75f66d8](https://github.com/input-output-hk/cardano-rosetta/commit/75f66d831ae0d13d36576f5f19d4204bc63c3537))
+* build iohk libsodium fork ([f77bd0b](https://github.com/input-output-hk/cardano-rosetta/commit/f77bd0bde9bca01e5901b7725725f5d6d40dc79e))
+* convert block time (timestamp) to milliseconds. Tests were also fixed ([#133](https://github.com/input-output-hk/cardano-rosetta/issues/133)) ([60333ef](https://github.com/input-output-hk/cardano-rosetta/commit/60333ef3f532849167350153cfd5a3f2b503a719))
+* error when parsing transaction errors: coin_action and address prefix ([5ba3dab](https://github.com/input-output-hk/cardano-rosetta/commit/5ba3dab853d01c891185ec74f8616016e2ab8eb0))
+* fill parse with missing information so it can be processed by check tool ([dd3dbb0](https://github.com/input-output-hk/cardano-rosetta/commit/dd3dbb0490fb77aa1e68c79d3b644616317c7d27))
+* fix signature type. ECDSA must be used ([#99](https://github.com/input-output-hk/cardano-rosetta/issues/99)) ([ff6f89f](https://github.com/input-output-hk/cardano-rosetta/commit/ff6f89f900cbbe1f0f53ac832d96d026834c622e))
+* fixed signature processing (it's not expected as CBOR anymore) ([#102](https://github.com/input-output-hk/cardano-rosetta/issues/102)) ([3da8103](https://github.com/input-output-hk/cardano-rosetta/commit/3da81035c49377f6836798276643615f10534d7f))
+* inpust must have coin_identifier field, not outputs. ([7cd84cd](https://github.com/input-output-hk/cardano-rosetta/commit/7cd84cd533291a3f7b638be77fd8e7a0c039a23e))
+* metadata should be optional on preprocess so default will be defined ([cb44c31](https://github.com/input-output-hk/cardano-rosetta/commit/cb44c317a8745528c2c47f14ad92e66e600ea96f))
+* parse operation status should be empty ([a15efd0](https://github.com/input-output-hk/cardano-rosetta/commit/a15efd0f6c65c8d83b500b71f43435146e25f61e)), closes [/github.com/coinbase/rosetta-sdk-go/blob/823626058e01ab96e4bd6f6a27648b096f02d9b1/asserter/block.go#L189](https://github.com/input-output-hk//github.com/coinbase/rosetta-sdk-go/blob/823626058e01ab96e4bd6f6a27648b096f02d9b1/asserter/block.go/issues/L189)
+* remove timestamp with timezone in /block and findBlock query. Fix tests. Added momentjs to ensure UTC time conversion ([#125](https://github.com/input-output-hk/cardano-rosetta/issues/125)) ([444ea58](https://github.com/input-output-hk/cardano-rosetta/commit/444ea58567d2fd757fef996ebe3de9dcb57c9cff))
+* remove use of 0x as prefix from whole project ([711cb99](https://github.com/input-output-hk/cardano-rosetta/commit/711cb99891f353a89f6f92d44ea1d116049e7f25))
+* removed some unused code and fixed linter errors in tests ([eb3941e](https://github.com/input-output-hk/cardano-rosetta/commit/eb3941e0a17dc7f9ee1cf3d388c3e0244c60eb3d))
+* transaction operatios were not properly built. wrong coin_change ([65b8e67](https://github.com/input-output-hk/cardano-rosetta/commit/65b8e67fc989ed951219ac09db6237f6df1d89a9))
+* Use standard default port ([d50096d](https://github.com/input-output-hk/cardano-rosetta/commit/d50096de02038e3af8aba8e829624e8c6378bb18)), closes [#113](https://github.com/input-output-hk/cardano-rosetta/issues/113)
+
 ### 0.0.1 (2020-07-31)
 
 
