@@ -34,6 +34,7 @@ jobs:
           GENESIS_PATH: test/e2e/utils/mainnet-genesis.json
           CARDANO_NODE_SOCKET_PATH: /tmp/ipc/node.socket
           PAGE_SIZE: 5
+          DEFAULT_RELATIVE_TTL: 1000
 #      - name: Build Dev Docker images
 #        run: ./scripts/build_dev_docker_images.sh
 #  docker-build:
