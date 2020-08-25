@@ -267,7 +267,7 @@ export const configure = (databaseInstance: Pool, logger: Logger): BlockchainRep
       return {
         number,
         hash: hexFormatter(hash),
-        createdAt: moment.utc(createdAt).unix(),
+        createdAt: moment.utc(createdAt).unix() * 1000,
         previousBlockHash: previousBlockHash && hexFormatter(previousBlockHash),
         previousBlockNumber,
         transactionsCount,
