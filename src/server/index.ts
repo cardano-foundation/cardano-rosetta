@@ -35,7 +35,7 @@ const start = async (databaseInstance: Pool) => {
     server = buildServer(services, LOGGER_ENABLED === 'true');
     server.addHook('onClose', (fastify, done) => databaseInstance.end(done));
     // eslint-disable-next-line no-magic-numbers
-    await server.listen(PORT || 3000, BIND_ADDRESS || '0.0.0.0');
+    await server.listen(PORT || 8080, BIND_ADDRESS || '0.0.0.0');
     server.blipp();
   } catch (error) {
     console.log(error);
