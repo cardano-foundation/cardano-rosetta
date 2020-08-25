@@ -1,44 +1,45 @@
 ARG UBUNTU_VERSION=20.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
+ARG CABAL_VERSION=3.2.0.0
 ARG CARDANO_NODE_VERSION=1.19.0
 ARG CARDANO_DB_SYNC_VERSION=3.1.0
+ARG GHC_VERSION=8.6.5
 ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
 ENV DEBIAN_FRONTEND=nonintercative
 RUN mkdir -p /app/src
 WORKDIR /app
 RUN apt-get update -y && apt-get install -y \
-  automake \
+  automake=1:1.16.1-4ubuntu6 \
   build-essential \
-  g++ \
+  g++=4:9.3.0-1ubuntu2 \
   git \
   jq \
-  libffi-dev \
-  libghc-postgresql-libpq-dev \
-  libgmp-dev \
-  libncursesw5 \
-  libpq-dev \
-  libssl-dev \
-  libsystemd-dev \
-  libtinfo-dev \
-  libtool \
-  libz-dev \
+  libffi-dev=3.3-4 \
+  libghc-postgresql-libpq-dev=0.9.4.2-1build1 \
+  libgmp-dev=2:6.2.0+dfsg-4 \
+  libncursesw5=6.2-0ubuntu2 \
+  libpq-dev=12.2-4 \
+  libssl-dev=1.1.1f-1ubuntu2 \
+  libsystemd-dev=245.4-4ubuntu3.2 \
+  libtinfo-dev=6.2-0ubuntu2 \
+  libtool=2.4.6-14 \
   make \
   pkg-config \
   tmux \
   wget \
-  zlib1g-dev
+  zlib1g-dev=1:1.2.11.dfsg-2ubuntu1
 RUN wget --secure-protocol=TLSv1_2 \
-  https://downloads.haskell.org/~cabal/cabal-install-3.2.0.0/cabal-install-3.2.0.0-x86_64-unknown-linux.tar.xz &&\
-  tar -xf cabal-install-3.2.0.0-x86_64-unknown-linux.tar.xz &&\
-  rm cabal-install-3.2.0.0-x86_64-unknown-linux.tar.xz cabal.sig &&\
+  https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
+  tar -xf cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
+  rm cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz cabal.sig &&\
   mv cabal /usr/local/bin/
 RUN cabal update
 WORKDIR /app/ghc
 RUN wget --secure-protocol=TLSv1_2 \
-  https://downloads.haskell.org/~ghc/8.6.5/ghc-8.6.5-x86_64-deb9-linux.tar.xz &&\
-  tar -xf ghc-8.6.5-x86_64-deb9-linux.tar.xz &&\
-  rm ghc-8.6.5-x86_64-deb9-linux.tar.xz
-WORKDIR /app/ghc/ghc-8.6.5
+  https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz &&\
+  tar -xf ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz &&\
+  rm ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz
+WORKDIR /app/ghc/ghc-${GHC_VERSION}
 RUN ./configure
 RUN make install
 WORKDIR /app/src
@@ -60,16 +61,14 @@ WORKDIR /app/src/cardano-node
 #RUN cabal install cardano-node \
 #  --install-method=copy \
 #  --installdir=/usr/local/bin \
-#  -f +external-libsodium-vrf \
 #  -f -systemd
 #RUN cabal install cardano-cli \
 #  --install-method=copy \
 #  --installdir=/usr/local/bin \
-#  -f +external-libsodium-vrf \
 #  -f -systemd
 RUN cabal build cardano-node cardano-cli &&\
-  mv ./dist-newstyle/build/x86_64-linux/ghc-8.6.5/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/ &&\
-  mv ./dist-newstyle/build/x86_64-linux/ghc-8.6.5/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
+  mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/ &&\
+  mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
 WORKDIR /app/src
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
@@ -81,9 +80,9 @@ WORKDIR /app/src/cardano-db-sync
 #  --install-method=copy \
 #  --installdir=/usr/local/bin
 RUN cabal build cardano-db-sync && \
-  mv ./dist-newstyle/build/x86_64-linux/ghc-8.6.5/cardano-db-sync-${CARDANO_DB_SYNC_VERSION}/x/cardano-db-sync/build/cardano-db-sync/cardano-db-sync /usr/local/bin/
+  mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-db-sync-${CARDANO_DB_SYNC_VERSION}/x/cardano-db-sync/build/cardano-db-sync/cardano-db-sync /usr/local/bin/
 # Cleanup for runtiume-base copy of /usr/local/lib
-RUN rm -rf /usr/local/lib/ghc-8.6.5 /usr/local/lib/pkgconfig
+RUN rm -rf /usr/local/lib/ghc-${GHC_VERSION} /usr/local/lib/pkgconfig
 
 FROM ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
 ARG NODEJS_MAJOR_VERSION=14
@@ -140,9 +139,9 @@ EXPOSE 8080
 ENTRYPOINT ["./entrypoint.sh"]
 
 FROM nodejs-builder as rosetta-server-builder
-ARG CARDANO_ROSETTA_SERVER_TAG=1.0.0
+ARG CARDANO_ROSETTA_SERVER_VERSION=1.0.0
 RUN apt-get update && apt-get install git -y
-RUN git clone -b ${CARDANO_ROSETTA_SERVER_TAG} https://github.com/input-output-hk/cardano-rosetta
+RUN git clone -b ${CARDANO_ROSETTA_SERVER_VERSION} https://github.com/input-output-hk/cardano-rosetta
 WORKDIR /cardano-rosetta
 RUN yarn --offline --frozen-lockfile --non-interactive
 RUN yarn build
