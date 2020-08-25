@@ -306,7 +306,7 @@ declare namespace Components {
     export interface ConstructionPreprocessRequest {
       network_identifier: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       operations: /* Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction. */ Operation[];
-      metadata: {
+      metadata?: {
         relative_ttl: number;
       };
     }

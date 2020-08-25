@@ -24,6 +24,7 @@ export interface BlockService {
   findBlock(blockIdentifier: PartialBlockIdentifier): Promise<Block | null>;
 }
 
+const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
 
 /**
@@ -67,11 +68,15 @@ const createOperation = (
   related_operations: relatedOperations
 });
 
-const getCoinChange = (index: number, hash: string): Components.Schemas.CoinChange => ({
+const getCoinChange = (
+  index: number,
+  hash: string,
+  coinAction: Components.Schemas.CoinAction
+): Components.Schemas.CoinChange => ({
   coin_identifier: {
     identifier: `${hash}:${index}`
   },
-  coin_action: COIN_CREATED_ACTION
+  coin_action: coinAction
 });
 
 /**
@@ -89,7 +94,7 @@ const mapToRosettaTransaction = (transaction: TransactionWithInputsAndOutputs): 
       `-${input.value}`,
       undefined,
       undefined,
-      getCoinChange(input.sourceTransactionIndex, input.sourceTransactionHash)
+      getCoinChange(input.sourceTransactionIndex, input.sourceTransactionHash, COIN_SPENT_ACTION)
     )
   );
   // Output related operations are all the inputs.This will iterate over the collection again
@@ -106,7 +111,8 @@ const mapToRosettaTransaction = (transaction: TransactionWithInputsAndOutputs): 
       output.address,
       output.value,
       relatedOperations,
-      output.index
+      output.index,
+      getCoinChange(output.index, transaction.hash, COIN_CREATED_ACTION)
     )
   );
 
