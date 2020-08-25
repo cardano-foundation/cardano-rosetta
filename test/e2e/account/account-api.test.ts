@@ -3,8 +3,8 @@
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { setupDatabase, setupServer } from './utils/test-utils';
-import { CARDANO } from '../../src/server/utils/constants';
+import { setupDatabase, setupServer } from '../utils/test-utils';
+import { CARDANO } from '../../../src/server/utils/constants';
 
 const generatePayload = (
   blockchain: string,

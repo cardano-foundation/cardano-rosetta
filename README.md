@@ -56,9 +56,8 @@ There must be a `.env` file in the root directory with the following configs:
 ```
 # App port
 PORT=8080
-# Application log level {off, fatal, error, warn, info, debug, trace, all}
+# Application log level {silent, fatal, error, warn, info, debug, trace, all}
 LOGGER_LEVEL="debug"
-LOGGER_ENABLED="true"
 # App address to bind to
 BIND_ADDRESS=0.0.0.0
 # PostgresDB connection string

@@ -17,21 +17,15 @@ export const setupDatabase = (offline: boolean): Pool => {
   return createPool(process.env.DB_CONNECTION_STRING);
 };
 
-const configLogger = (): Logger =>
-  pino({
-    enabled: false
-  });
-
 export const cardanoCliMock: CardanoCli = {
   submitTransaction: jest.fn()
 };
 
 export const setupServer = (database: Pool): FastifyInstance => {
-  const logger = configLogger();
   // let repositories;
-  const repositories = Repositories.configure(database, logger);
-  const services = Services.configure(repositories, cardanoCliMock, logger, 'mainnet');
-  return buildServer(services, process.env.LOGGER_ENABLED === 'true');
+  const repositories = Repositories.configure(database);
+  const services = Services.configure(repositories);
+  return buildServer(services, cardanoCliMock, 'mainnet', process.env.LOGGER_LEVEL);
 };
 
 export const testInvalidNetworkParameters = (
