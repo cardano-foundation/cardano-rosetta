@@ -64,7 +64,7 @@ const configure = (networkService: NetworkService, networkId: string): NetworkCo
           version: {
             // FIXME unhardcode node_version. It'll be done in issue #28
             rosetta_version: ROSETTA_VERSION,
-            node_version: '1.0.2',
+            node_version: '1.19.0',
             middleware_version: MIDDLEWARE_VERSION,
             metadata: {}
           },
