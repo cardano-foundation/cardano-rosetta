@@ -5,6 +5,7 @@ import StatusCodes from 'http-status-codes';
 import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 import { CARDANO, MAINNET } from '../../../src/server/utils/constants';
 import { generateNetworkPayload } from './common';
+import packageJson from '../../../package.json';
 
 const NETWORK_OPTIONS_ENDPOINT = '/network/options';
 
@@ -106,7 +107,7 @@ const allow = {
 const version = {
   rosetta_version: '1.4.1',
   node_version: '1.0.2',
-  middleware_version: '0.0.1',
+  middleware_version: packageJson.version,
   metadata: {}
 };
 
