@@ -1,0 +1,91 @@
+{
+  "name": "cardano-rosetta-server",
+  "version": "0.1.0",
+  "description": "Rosetta API server specification implementation",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc -p tsconfig-dist.json",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "generate-rosetta-types": "dtsgen --out ./src/types/rosetta-types.d.ts ./src/server/openApi.json && prettier --write ./src/types/rosetta-types.d.ts",
+    "dev": "ts-node-dev --respawn --transpileOnly -r dotenv/config --watch ./src ./src/server/index.ts",
+    "lint": "eslint \"./test/**/*.ts\" \"./src/**/*.ts\"",
+    "service-dependencies": "docker-compose config --services | grep -v \"cardano-rosetta-server\" | xargs docker-compose",
+    "mainnet:services:up": "yarn service-dependencies -p mainnet up --build",
+    "mainnet:services:down": "docker-compose -p mainnet down",
+    "testnet:services:up": "yarn service-dependencies -p testnet up --build",
+    "testnet:services:down": "docker-compose -p testnet down"
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts}": [
+      "npm run lint"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/input-output-hk/cardano-rosetta.git"
+  },
+  "keywords": [
+    "cardano",
+    "rosetta",
+    "blockchain",
+    "proof-of-stake"
+  ],
+  "author": "IOHK",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/input-output-hk/cardano-rosetta/issues"
+  },
+  "homepage": "https://github.com/input-output-hk/cardano-rosetta#readme",
+  "devDependencies": {
+    "@atixlabs/eslint-config": "1.2.3",
+    "@types/cbor": "5.0.1",
+    "@types/dockerode": "2.5.34",
+    "@types/jest": "26.0.3",
+    "@types/node": "14.0.14",
+    "@types/pg": "7.14.4",
+    "@types/pino": "6.3.0",
+    "@typescript-eslint/eslint-plugin": "3.5.0",
+    "@typescript-eslint/parser": "3.5.0",
+    "dockerode": "3.2.0",
+    "dockerode-utils": "0.0.7",
+    "dtsgenerator": "3.1.1",
+    "eslint": "6.7.2",
+    "eslint-import-resolver-typescript": "2.0.0",
+    "eslint-plugin-filenames": "1.3.2",
+    "eslint-plugin-import": "2.19.1",
+    "eslint-plugin-prettier": "3.1.1",
+    "eslint-plugin-promise": "4.2.1",
+    "eslint-plugin-sonarjs": "0.5.0",
+    "eslint-plugin-unicorn": "14.0.1",
+    "husky": "4.2.5",
+    "jest": "26.1.0",
+    "lint-staged": "10.2.11",
+    "pg-connection-string": "2.3.0",
+    "prettier": "1.19.1",
+    "ts-jest": "26.1.1",
+    "ts-node-dev": "1.0.0-pre.50",
+    "typescript": "3.9.5"
+  },
+  "dependencies": {
+    "@emurgo/cardano-serialization-lib-nodejs": "2.0.0",
+    "cbor": "5.1.0",
+    "dotenv": "8.2.0",
+    "execa": "4.0.3",
+    "fastify": "2.15.1",
+    "fastify-blipp": "2.3.1",
+    "fastify-openapi-glue": "1.6.0",
+    "http-status-codes": "1.4.0",
+    "moment": "2.27.0",
+    "pg": "8.3.0",
+    "temp-write": "4.0.0"
+  },
+  "resolutions": {
+    "typescript": "3.9.5"
+  }
+}

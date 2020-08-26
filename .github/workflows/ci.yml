@@ -20,9 +20,9 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 14
-      - run: yarn install --offline --frozen-lockfile --logevel=error
-      - run: yarn lint
-      - run: yarn test
+      - run: yarn --cwd ./cardano-rosetta-server install --offline --frozen-lockfile --logevel=error
+      - run: yarn --cwd ./cardano-rosetta-server lint
+      - run: yarn --cwd ./cardano-rosetta-server test
         env:
           PORT: 8080
           LOGGER_LEVEL: debug
