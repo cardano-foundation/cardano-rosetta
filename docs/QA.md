@@ -7,6 +7,7 @@ The [rosetta-cli](https://github.com/coinbase/rosetta-cli) validates the correct
 
 ```console
 go get github.com/coinbase/rosetta-cli
+rosetta-cli check:construction
 rosetta-cli check:data
-rosetta-cli check:constructon
+rosetta-cli configuration:validate
 ```

@@ -27,7 +27,7 @@ Mount a single volume into the [standard storage location](https://www.rosetta-a
 mapping the server port to the host.
 
 ```console
-docker run -p 8080:8080 -v cardano-mainnet:/data cardano-rosetta:0.0.1 cardano-rosetta-mainnet
+docker run -p 8080:8080 -v cardano-mainnet:/data cardano-rosetta:0.1.0 cardano-rosetta-mainnet
 ```
 ## Documentation
 
