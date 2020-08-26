@@ -18,7 +18,7 @@ RUN apt-get update -y && apt-get install -y \
   libghc-postgresql-libpq-dev=0.9.4.2-1build1 \
   libgmp-dev=2:6.2.0+dfsg-4 \
   libncursesw5=6.2-0ubuntu2 \
-  libpq-dev=12.2-4 \
+  libpq-dev=12.4-0ubuntu0.20.04.1 \
   libssl-dev=1.1.1f-1ubuntu2 \
   libsystemd-dev=245.4-4ubuntu3.2 \
   libtinfo-dev=6.2-0ubuntu2 \
