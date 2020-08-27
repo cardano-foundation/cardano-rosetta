@@ -6,7 +6,7 @@ import createPool from '../../../src/server/db/connection';
 import buildServer from '../../../src/server/server';
 import { Pool } from 'pg';
 import { CardanoCli } from '../../../src/server/utils/cardanonode-cli';
-import * as CardanoNode from '../../../src/server/utils/cardano-node';
+import { CardanoNode } from '../../../src/server/utils/cardano-node';
 
 export const setupDatabase = (offline: boolean): Pool => {
   if (offline) {
@@ -21,17 +21,16 @@ export const cardanoCliMock: CardanoCli = {
   submitTransaction: jest.fn()
 };
 
+export const cardanoNodeMock: CardanoNode = {
+  getCardanoNodeVersion: async (): Promise<string> =>
+    'cardano-node 1.18.0 - linux-x86_64 - ghc-8.6\ngit rev 36ad7b90bfbde8afd41b68ed9b928df3fcab0dbc'
+};
+
 export const setupServer = (database: Pool): FastifyInstance => {
   // let repositories;
   const repositories = Repositories.configure(database);
   const services = Services.configure(repositories);
-  return buildServer(
-    services,
-    cardanoCliMock,
-    CardanoNode.configure(process.env.CARDANO_NODE_PATH),
-    'mainnet',
-    process.env.LOGGER_LEVEL
-  );
+  return buildServer(services, cardanoCliMock, cardanoNodeMock, 'mainnet', process.env.LOGGER_LEVEL);
 };
 
 export const testInvalidNetworkParameters = (
