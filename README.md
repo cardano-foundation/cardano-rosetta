@@ -8,7 +8,7 @@ for [Cardano](https://cardano.org/).
 The Dockerfile can be [built anywhere](https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere)
 
 ```console
-wget --secure-protocol=TLSv1_2 https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/0.1.0/Dockerfile
+wget --secure-protocol=TLSv1_2 https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/master/Dockerfile
 docker build -t cardano-rosetta:0.1.0 .
 ```
 
@@ -27,7 +27,7 @@ Mount a single volume into the [standard storage location](https://www.rosetta-a
 mapping the server port to the host.
 
 ```console
-docker run -p 8080:8080 -v cardano-mainnet:/data cardano-rosetta:0.0.1 cardano-rosetta-mainnet
+docker run -p 8080:8080 -v cardano:/data cardano-rosetta:0.1.0 cardano-rosetta
 ```
 ## Documentation
 
