@@ -48,6 +48,7 @@ module.exports = {
       autorestart: true,
       env: {
         CARDANOCLI_PATH: '/usr/local/bin/cardano-cli',
+        CARDANO_NODE_PATH: '/usr/local/bin/cardano-node',
         CARDANO_NODE_SOCKET_PATH: '/ipc/node.socket',
         DB_CONNECTION_STRING: 'socket://postgres:*@/var/run/postgresql?db=cexplorer',
         DEFAULT_RELATIVE_TTL: 1000,
