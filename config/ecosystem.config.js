@@ -41,13 +41,14 @@ module.exports = {
       },
       exec_mode: 'fork_mode',
       kill_timeout : 15000
-
     },
     {
       name: 'cardano-rosetta-server',
       script: '/cardano-rosetta-server/dist/src/server/index.js',
       autorestart: true,
       env: {
+        CARDANOCLI_PATH: '/usr/local/bin/cardano-cli',
+        CARDANO_NODE_SOCKET_PATH: '/ipc/node.socket',
         DB_CONNECTION_STRING: 'socket://postgres:*@/var/run/postgresql?db=cexplorer',
         DEFAULT_RELATIVE_TTL: 1000,
         GENESIS_PATH: '/config/genesis/shelley.json',
