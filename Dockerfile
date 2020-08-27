@@ -158,7 +158,9 @@ RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
 ARG NETWORK=mainnet
-COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
+COPY --from=haskell-builder /usr/local/bin/cardano-cli \
+  /usr/local/bin/cardano-node \
+  /usr/local/bin/
 COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
 COPY --from=rosetta-server-builder /cardano-rosetta/config/network/${NETWORK} /config/

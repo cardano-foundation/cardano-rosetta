@@ -15,13 +15,18 @@ RUN yarn build
 FROM nodejs-builder as rosetta-server-production-deps-dev
 RUN mkdir -p /app/src
 COPY --from=rosetta-server-builder-dev /app/packages-cache /app/packages-cache
-COPY --from=rosetta-server-builder-dev /app/.yarnrc /app/yarn.lock /app/package.json /app/
+COPY --from=rosetta-server-builder-dev /app/.yarnrc \
+  /app/yarn.lock \
+  /app/package.json \
+  /app/
 WORKDIR /app
 RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server-dev
 ARG NETWORK=mainnet
-COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
+COPY --from=haskell-builder /usr/local/bin/cardano-cli \
+  /usr/local/bin/cardano-node \
+  /usr/local/bin/
 COPY --from=rosetta-server-builder-dev /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps-dev /app/node_modules /cardano-rosetta-server/node_modules
 COPY config/network/${NETWORK} /config/
