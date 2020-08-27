@@ -1,6 +1,6 @@
 import { Pool, QueryResult } from 'pg';
 import moment from 'moment';
-import { hashStringToBuffer, hexFormatter, replace0xOnHash } from '../utils/formatters';
+import { hashStringToBuffer, hexFormatter } from '../utils/formatters';
 import Queries, {
   FindTransaction,
   FindTransactionsInputs,
@@ -322,7 +322,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     return null;
   },
   async findUtxoByAddressAndBlock(logger: Logger, address, blockHash): Promise<Utxo[]> {
-    const parameters = [replace0xOnHash(address), hashStringToBuffer(blockHash)];
+    const parameters = [address, hashStringToBuffer(blockHash)];
     logger.debug(
       { address, blockHash },
       '[findUtxoByAddressAndBlock] About to run findUtxoByAddressAndBlock query with parameters:'
