@@ -8,5 +8,6 @@ declare namespace NodeJS {
     CARDANOCLI_PATH: string;
     GENESIS_PATH: string;
     DEFAULT_RELATIVE_TTL: number;
+    CARDANO_NODE_PATH: string;
   }
 }
