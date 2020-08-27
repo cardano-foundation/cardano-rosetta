@@ -4,6 +4,7 @@ import { MIDDLEWARE_VERSION, operationType, ROSETTA_VERSION, SUCCESS_OPERATION_S
 import { mapToNetworkList, mapToNetworkStatusResponse } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
+import { CardanoNode } from '../utils/cardano-node';
 
 /* eslint-disable camelcase */
 export interface NetworkController {
@@ -20,7 +21,7 @@ export interface NetworkController {
   ): Promise<Components.Schemas.NetworkOptionsResponse | Components.Schemas.Error>;
 }
 
-const configure = (networkService: NetworkService, networkId: string): NetworkController => ({
+const configure = (networkService: NetworkService, networkId: string, cardanoNode: CardanoNode): NetworkController => ({
   async networkList(request) {
     const logger = request.log;
     logger.info('[networkList] Looking for all supported networks');
@@ -64,7 +65,7 @@ const configure = (networkService: NetworkService, networkId: string): NetworkCo
           version: {
             // FIXME unhardcode node_version. It'll be done in issue #28
             rosetta_version: ROSETTA_VERSION,
-            node_version: '1.19.0',
+            node_version: await cardanoNode.getCardanoNodeVersion(logger),
             middleware_version: MIDDLEWARE_VERSION,
             metadata: {}
           },

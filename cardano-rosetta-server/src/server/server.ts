@@ -7,6 +7,7 @@ import { Services } from './services/services';
 import * as Controllers from './controllers/controllers';
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { CardanoCli } from './utils/cardanonode-cli';
+import { CardanoNode } from './utils/cardano-node';
 
 /**
  * This function builds a Fastify instance connecting the services with the
@@ -18,6 +19,7 @@ import { CardanoCli } from './utils/cardanonode-cli';
 const buildServer = (
   services: Services,
   cardanoCli: CardanoCli,
+  cardanoNode: CardanoNode,
   networkId: string,
   logLevel: string
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
@@ -26,7 +28,7 @@ const buildServer = (
   server.register(fastifyBlipp);
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,
-    service: Controllers.configure(services, cardanoCli, networkId),
+    service: Controllers.configure(services, cardanoCli, cardanoNode, networkId),
     noAdditional: true
   });
 
