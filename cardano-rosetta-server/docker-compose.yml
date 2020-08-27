@@ -61,6 +61,7 @@ services:
       target: cardano-rosetta-server-dev
     environment:
       - DB_CONNECTION_STRING=postgresql://postgres:notForProduction!@postgres:5432/cexplorer
+      - DEFAULT_RELATIVE_TTL=1000
       - GENESIS_PATH=/config/genesis/shelley.json
       - LOGGER_LEVEL=debug
       - PAGE_SIZE=30

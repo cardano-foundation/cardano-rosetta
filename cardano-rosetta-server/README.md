@@ -33,6 +33,7 @@ GENESIS_PATH="/etc/node/testnet-genesis.json"
 CARDANO_NODE_SOCKET_PATH=/tmp/node.socket
 # max amount of transactions to be returned in `/block` endpoint. Otherwise only hashes will be sent
 PAGE_SIZE=25
+DEFAULT_RELATIVE_TTL=1000
 ```
 
 ### Install packages from offline cache
