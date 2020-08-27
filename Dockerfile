@@ -139,21 +139,21 @@ EXPOSE 8080
 ENTRYPOINT ["./entrypoint.sh"]
 
 FROM nodejs-builder as rosetta-server-builder
-ARG CARDANO_ROSETTA_SERVER_VERSION=1.0.0
+ARG CARDANO_ROSETTA_VERSION=master
 RUN apt-get update && apt-get install git -y
-RUN git clone -b ${CARDANO_ROSETTA_SERVER_VERSION} https://github.com/input-output-hk/cardano-rosetta
+RUN git clone -b ${CARDANO_ROSETTA_VERSION} https://github.com/input-output-hk/cardano-rosetta
 WORKDIR /cardano-rosetta/cardano-rosetta-server
 RUN yarn --offline --frozen-lockfile --non-interactive
 RUN yarn build
 
 FROM nodejs-builder as rosetta-server-production-deps
-RUN mkdir -p /app/src
+RUN mkdir -p /app
 COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/packages-cache /app/packages-cache
 COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/.yarnrc \
   /cardano-rosetta/cardano-rosetta-server/yarn.lock \
   /cardano-rosetta/cardano-rosetta-server/package.json \
-  /app/src/
-WORKDIR /app/src
+  /app/
+WORKDIR /app
 RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
