@@ -106,7 +106,7 @@ const allow = {
 
 const version = {
   rosetta_version: '1.4.1',
-  node_version: '1.0.2',
+  node_version: '1.19.0',
   middleware_version: packageJson.version,
   metadata: {}
 };
