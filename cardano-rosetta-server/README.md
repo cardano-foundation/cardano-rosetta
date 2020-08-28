@@ -27,7 +27,9 @@ DB_CONNECTION_STRING="postgresql://postgres:mysecretpassword@127.0.0.1:5432/card
 TOPOLOGY_FILE_PATH="/etc/node/topology-test.json"
 # Absolute path to the cardano-cli binary https://github.com/input-output-hk/cardano-node/tree/master/cardano-cli
 CARDANOCLI_PATH="/etc/node/cardano-cli"
-# cardano-node genesis absolute file pat
+# Absolute path to the cardano-node binary https://github.com/input-output-hk/cardano-node/tree/master/cardano-node
+CARDANO_NODE_PATH="/etc/node/cardano-node"
+# cardano-node genesis absolute file path
 GENESIS_PATH="/etc/node/testnet-genesis.json"
 # cardano-node socket
 CARDANO_NODE_SOCKET_PATH=/tmp/node.socket
