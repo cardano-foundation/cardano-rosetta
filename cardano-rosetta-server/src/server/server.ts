@@ -49,8 +49,7 @@ const buildServer = (
       });
     } else
       reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        message: `An error occurred for request ${request.id}`,
-        details: error.message
+        message: `An error occurred for request ${request.id}`
       });
   });
 
