@@ -9,6 +9,11 @@ import { IncomingMessage, Server, ServerResponse } from 'http';
 import { CardanoCli } from './utils/cardanonode-cli';
 import { CardanoNode } from './utils/cardano-node';
 
+interface ExtraParams {
+  networkId: string;
+  pageSize: number;
+}
+
 /**
  * This function builds a Fastify instance connecting the services with the
  * corresponding fastify route handlers.
@@ -20,12 +25,11 @@ const buildServer = (
   services: Services,
   cardanoCli: CardanoCli,
   cardanoNode: CardanoNode,
-  networkId: string,
   logLevel: string,
-  pageSize: number
+  extraParameters: ExtraParams
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
   const server = fastify({ logger: { level: logLevel } });
-
+  const { networkId, pageSize } = extraParameters;
   server.register(fastifyBlipp);
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,

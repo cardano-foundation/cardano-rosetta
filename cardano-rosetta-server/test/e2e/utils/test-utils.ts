@@ -38,14 +38,10 @@ export const setupServer = (database: Pool): FastifyInstance => {
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
     Number(process.env.DEFAULT_RELATIVE_TTL)
   );
-  return buildServer(
-    services,
-    cardanoCliMock,
-    cardanoNodeMock,
-    'mainnet',
-    process.env.LOGGER_LEVEL,
-    Number(process.env.PAGE_SIZE) || DEFAULT_PAGE_SIZE
-  );
+  return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
+    networkId: 'mainnet',
+    pageSize: Number(process.env.PAGE_SIZE) || DEFAULT_PAGE_SIZE
+  });
 };
 
 export const testInvalidNetworkParameters = (
