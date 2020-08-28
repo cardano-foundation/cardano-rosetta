@@ -66,7 +66,7 @@ describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      code: 5007,
+      code: 5005,
       message: 'Cant build witnesses set for transaction probably because of provided signatures',
       retriable: false
     });
@@ -80,7 +80,7 @@ describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      code: 5006,
+      code: 5004,
       message: 'Cant create signed transaction probably because of unsigned transaction bytes',
       retriable: false
     });

@@ -18,7 +18,7 @@ interface Producer {
   addr: string;
 }
 
-interface TopologyConfig {
+export interface TopologyConfig {
   Producers: Producer[];
 }
 

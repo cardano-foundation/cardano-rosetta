@@ -1,4 +1,6 @@
 import { FastifyInstance } from 'fastify';
+import fs from 'fs';
+import path from 'path';
 import StatusCodes from 'http-status-codes';
 import * as Repositories from '../../../src/server/db/repositories';
 import * as Services from '../../../src/server/services/services';
@@ -7,6 +9,8 @@ import buildServer from '../../../src/server/server';
 import { Pool } from 'pg';
 import { CardanoCli } from '../../../src/server/utils/cardanonode-cli';
 import { CardanoNode } from '../../../src/server/utils/cardano-node';
+
+const DEFAULT_PAGE_SIZE = 5;
 
 export const setupDatabase = (offline: boolean): Pool => {
   if (offline) {
@@ -29,8 +33,15 @@ export const cardanoNodeMock: CardanoNode = {
 export const setupServer = (database: Pool): FastifyInstance => {
   // let repositories;
   const repositories = Repositories.configure(database);
-  const services = Services.configure(repositories);
-  return buildServer(services, cardanoCliMock, cardanoNodeMock, 'mainnet', process.env.LOGGER_LEVEL);
+  const services = Services.configure(
+    repositories,
+    JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
+    Number(process.env.DEFAULT_RELATIVE_TTL)
+  );
+  return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
+    networkId: 'mainnet',
+    pageSize: Number(process.env.PAGE_SIZE) || DEFAULT_PAGE_SIZE
+  });
 };
 
 export const testInvalidNetworkParameters = (

@@ -9,14 +9,6 @@ import { CardanoNode } from '../utils/cardano-node';
 
 export interface Controllers extends BlockController, AccountController, NetworkController, ConstructionController {}
 
-const loadPageSize = (): number => {
-  const pageSize = process.env.PAGE_SIZE;
-  if (pageSize === undefined) {
-    throw ErrorFactory.pageSizeNotFund();
-  }
-  return Number(pageSize);
-};
-
 /**
  * Configures all the controllers required by the app
  *
@@ -26,9 +18,10 @@ export const configure = (
   services: Services,
   cardanoCli: CardanoCli,
   cardanoNode: CardanoNode,
-  networkId: string
+  networkId: string,
+  pageSize: number
 ): Controllers => ({
-  ...blockController(services.blockService, loadPageSize(), networkId),
+  ...blockController(services.blockService, pageSize, networkId),
   ...accountController(services.blockService, networkId),
   ...networkController(services.networkService, networkId, cardanoNode),
   ...constructionController(services.constructionService, services.cardanoService, cardanoCli, networkId)

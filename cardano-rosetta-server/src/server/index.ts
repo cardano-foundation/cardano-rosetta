@@ -8,8 +8,7 @@ import buildServer from './server';
 import * as Services from './services/services';
 import * as CardanoCli from './utils/cardanonode-cli';
 import * as CardanoNode from './utils/cardano-node';
-
-const { PORT, BIND_ADDRESS, DB_CONNECTION_STRING, LOGGER_LEVEL }: NodeJS.ProcessEnv = process.env;
+import { Environment, parseEnvironment } from './utils/environment-parser';
 
 // FIXME: validate the following paraemeters when implementing (2)
 // https://github.com/input-output-hk/cardano-rosetta/issues/101
@@ -20,16 +19,21 @@ const networkId = genesis.networkId.toLowerCase();
 const start = async (databaseInstance: Pool) => {
   let server;
   try {
+    const environment: Environment = parseEnvironment();
     const repository = Repostories.configure(databaseInstance);
     // FIXME: validate the following paraemeters when implementing (2)
     // https://github.com/input-output-hk/cardano-rosetta/issues/101
-    const cardanoCli = CardanoCli.configure(process.env.CARDANOCLI_PATH, networkMagic);
-    const cardanoNode = CardanoNode.configure(process.env.CARDANO_NODE_PATH);
-    const services = Services.configure(repository);
-    server = buildServer(services, cardanoCli, cardanoNode, networkId, LOGGER_LEVEL);
+    const cardanoNode = CardanoNode.configure(environment.CARDANO_NODE_PATH);
+    const cardanoCli = CardanoCli.configure(environment.CARDANOCLI_PATH, networkMagic);
+    const services = Services.configure(repository, environment.TOPOLOGY_FILE, environment.DEFAULT_RELATIVE_TTL);
+    server = buildServer(services, cardanoCli, cardanoNode, environment.LOGGER_LEVEL, {
+      networkId,
+      pageSize: environment.PAGE_SIZE
+    });
+
     server.addHook('onClose', (_, done) => databaseInstance.end(done));
     // eslint-disable-next-line no-magic-numbers
-    await server.listen(PORT || 8080, BIND_ADDRESS || '0.0.0.0');
+    await server.listen(environment.PORT, environment.BIND_ADDRESS);
     server.blipp();
   } catch (error) {
     server?.log.error(error);
@@ -46,7 +50,9 @@ process.on('unhandledRejection', error => {
   console.error(error);
 });
 
-const connectDB = async () => await createPool(DB_CONNECTION_STRING);
+// FIXME this function call should be inside start() function, so process.env.DB_CONNECTION_STRING
+// is validated through environment-parser, and for a better error handling too.
+const connectDB = async () => await createPool(process.env.DB_CONNECTION_STRING);
 
 connectDB()
   .then(databaseInstance => start(databaseInstance))
