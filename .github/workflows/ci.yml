@@ -9,17 +9,21 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout source code
+      - name: Checkout cardano-rosetta source code
         uses: actions/checkout@v2
-      - name: Use Node.js
+        with:
+          path: cardano-rosetta
+      - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 14
-      - run: yarn --cwd ./cardano-rosetta-server install --offline --frozen-lockfile --logevel=error
-      - run: yarn --cwd ./cardano-rosetta-server lint
-      - run: yarn --cwd ./cardano-rosetta-server test
+      - name: Lint and test
+        working-directory: ./cardano-rosetta/cardano-rosetta-server
+        run: |
+          yarn install --offline --frozen-lockfile --logevel=error
+          yarn lint
+          yarn test
         env:
           PORT: 8080
           LOGGER_LEVEL: debug
