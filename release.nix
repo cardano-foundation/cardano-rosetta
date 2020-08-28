@@ -23,7 +23,6 @@ pkgs.lib.fix (self: {
     name = "required";
     constituents = with self; [
       build-version
-      cardano-rosetta-server
     ];
   };
 })
