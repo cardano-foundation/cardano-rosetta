@@ -50,7 +50,8 @@ process.on('unhandledRejection', error => {
   console.error(error);
 });
 
-// FIXME
+// FIXME this function call should be inside start() function, so process.env.DB_CONNECTION_STRING
+// is validated through environment-parser, and for a better error handling too.
 const connectDB = async () => await createPool(process.env.DB_CONNECTION_STRING);
 
 connectDB()
