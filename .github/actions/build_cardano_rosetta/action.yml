@@ -17,7 +17,7 @@ runs:
         -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/${{ inputs.cardano-rosetta-version }}/Dockerfile
         | docker build --build-arg BUILDKIT_INLINE_CACHE=1
           --cache-from ${{ inputs.build-cache-image }}
-          -t cardano-rosetta:master
+          -t cardano-rosetta:${{ inputs.cardano-rosetta-version }}
           -
       shell: bash
       env:

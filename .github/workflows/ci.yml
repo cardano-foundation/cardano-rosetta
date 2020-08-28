@@ -10,7 +10,7 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout cardano-rosetta source code
+      - name: Checkout source code
         uses: actions/checkout@v2
         with:
           path: cardano-rosetta
@@ -37,20 +37,3 @@ jobs:
           CARDANO_NODE_SOCKET_PATH: /tmp/ipc/node.socket
           PAGE_SIZE: 5
           DEFAULT_RELATIVE_TTL: 1000
-#      - name: Build Dev Docker images
-#        run: ./scripts/build_dev_docker_images.sh
-#  docker-build:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout source code
-#        uses: actions/checkout@v2
-#
-#      - name: Build Docker images
-#        uses: docker/build-push-action@v1
-#        with:
-#          username: ${{ secrets.DOCKER_USERNAME }}
-#          password: ${{ secrets.DOCKER_PASSWORD }}
-#          repository: inputoutput/cardano-rosetta
-#          tag_with_ref: true
-#          tag_with_sha: true
-#          push: false
