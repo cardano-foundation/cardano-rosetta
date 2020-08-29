@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  push-docker-image:
+  push-docker-build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source code
@@ -14,11 +14,12 @@ jobs:
       - name: Build Cardano Rosetta
         uses: ./.github/actions/build_cardano_rosetta
         with:
-          cardano-rosetta-version: ${{ github.sha }}
+          build-context: ${{ github.workspace }}
+          tag: ${{ github.sha }}
       - name: Smoke test Cardano Rosetta image
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
-          cardano-rosetta-version: ${{ github.sha }}
+          tag: ${{ github.sha }}
       - name: Apply master tag
         run: |
           docker tag cardano-rosetta:${{ github.sha }} inputoutput/cardano-rosetta:${{ github.sha }}

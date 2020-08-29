@@ -138,22 +138,24 @@ VOLUME /data
 EXPOSE 8080
 ENTRYPOINT ["./entrypoint.sh"]
 
-FROM nodejs-builder as rosetta-server-builder
-ARG CARDANO_ROSETTA_VERSION=master
-RUN apt-get update && apt-get install git -y
-RUN git clone -b ${CARDANO_ROSETTA_VERSION} https://github.com/input-output-hk/cardano-rosetta
-WORKDIR /cardano-rosetta/cardano-rosetta-server
+FROM nodejs-builder as rosetta-server-base
+RUN mkdir -p /app/src
+WORKDIR /app
+COPY cardano-rosetta-server/packages-cache /app/packages-cache
+COPY cardano-rosetta-server/package.json \
+  cardano-rosetta-server/yarn.lock \
+  cardano-rosetta-server/.yarnrc \
+  /app/
+
+FROM rosetta-server-base as rosetta-server-builder
+COPY cardano-rosetta-server/tsconfig-dist.json \
+  cardano-rosetta-server/tsconfig.json \
+  /app/
 RUN yarn --offline --frozen-lockfile --non-interactive
+COPY cardano-rosetta-server/src /app/src
 RUN yarn build
 
-FROM nodejs-builder as rosetta-server-production-deps
-RUN mkdir -p /app
-COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/packages-cache /app/packages-cache
-COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/.yarnrc \
-  /cardano-rosetta/cardano-rosetta-server/yarn.lock \
-  /cardano-rosetta/cardano-rosetta-server/package.json \
-  /app/
-WORKDIR /app
+FROM rosetta-server-base as rosetta-server-production-deps
 RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
@@ -161,17 +163,17 @@ ARG NETWORK=mainnet
 COPY --from=haskell-builder /usr/local/bin/cardano-cli \
   /usr/local/bin/cardano-node \
   /usr/local/bin/
-COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/dist /cardano-rosetta-server/dist
+COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
-COPY --from=rosetta-server-builder /cardano-rosetta/config/network/${NETWORK} /config/
+COPY config/network/${NETWORK} /config/
 EXPOSE 8080
 CMD ["node", "/cardano-rosetta-server/dist/src/server/index.js"]
 
 FROM runtime-base
 ARG NETWORK=mainnet
-COPY --from=rosetta-server-builder /cardano-rosetta/cardano-rosetta-server/dist /cardano-rosetta-server/dist
+COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
-COPY --from=rosetta-server-builder /cardano-rosetta/config/ecosystem.config.js .
-COPY --from=rosetta-server-builder /cardano-rosetta/config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
-COPY --from=rosetta-server-builder /cardano-rosetta/config/network/${NETWORK} /config/
-COPY --from=rosetta-server-builder /cardano-rosetta/scripts/entrypoint.sh .
+COPY config/ecosystem.config.js .
+COPY config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
+COPY config/network/${NETWORK} /config/
+COPY scripts/entrypoint.sh .

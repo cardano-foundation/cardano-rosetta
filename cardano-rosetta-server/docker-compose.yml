@@ -56,9 +56,10 @@ services:
         max-file: "10"
   cardano-rosetta-server:
     build:
-      context: .
-      dockerfile: dev.Dockerfile
-      target: cardano-rosetta-server-dev
+      cache_from:
+        - inputoutput/cardano-rosetta:master
+      context: ..
+      target: cardano-rosetta-server
     environment:
       - CARDANOCLI_PATH=/usr/local/bin/cardano-cli
       - CARDANO_NODE_PATH=/usr/local/bin/cardano-node

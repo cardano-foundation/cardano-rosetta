@@ -39,8 +39,9 @@ jobs:
       - name: Build Cardano Rosetta
         uses: ./cardano-rosetta/.github/actions/build_cardano_rosetta
         with:
-          cardano-rosetta-version: ${{ github.sha }}
+          build-context: ${{ github.workspace }}/cardano-rosetta
+          tag: ${{ github.sha }}
       - name: Smoke test Cardano Rosetta image
         uses: ./cardano-rosetta/.github/actions/smoke_test_cardano_rosetta
         with:
-          cardano-rosetta-version: ${{ github.sha }}
+          tag: ${{ github.sha }}

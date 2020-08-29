@@ -1,10 +1,10 @@
 name: Smoke Test Cardano Rosetta
 description: Runs the image, waits, then performs a basic smoke test
 inputs:
-  cardano-rosetta-version:
-    description: Software version
+  tag:
+    description: Docker tag
     required: false
-    default: master
+    default: latest
   network-identifier:
     description: Supported Cardano network
     required: false
@@ -13,7 +13,7 @@ runs:
   using: composite
   steps:
     - name: Run
-      run: docker run -d -p 8080:8080 --name cardano-rosetta cardano-rosetta:${{ inputs.cardano-rosetta-version }}
+      run: docker run -d -p 8080:8080 --name cardano-rosetta cardano-rosetta:${{ inputs.tag }}
       shell: bash
     - name: Test
       run: |
