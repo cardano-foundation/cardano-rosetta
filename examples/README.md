@@ -16,10 +16,15 @@ yarn install
 
 ## Transaction sending
 
-It generates an address based on a predefined private key, asks for funds and once found the address is drained and sent to a specific address.
+It generates an address based on a predefined private key, asks for funds and once found the address is drained and sent to a specific address. This example resembles how a Cardano based payment processing system could be implemented:
+
+- An address is generated for each user willing to pay for something. Each public key to be used could be derived using any BIP32 compliant wallet.
+- The script constantly monitors the blockchain for transactions.
+- Once funds are received they can be moved somewhere else.
 
 Important notes:
 
+- **This example doesn't follow `rosetta-cli` workflow.**
 - `PRIVATE_KEY` will be used to derive the address.
 - You can request for testnet funds using the following [faucet](https://testnets.cardano.org/en/cardano/tools/faucet/).
 - Funds will be sent to `SEND_FUNDS_ADDRESS` by default as it's the address where testnet funds should be returned.
