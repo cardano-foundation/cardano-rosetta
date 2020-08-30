@@ -1,0 +1,42 @@
+name: Update Data Cache
+
+on:
+  schedule:
+    - cron: '*/60 * * * *'
+
+jobs:
+  run-cardano-rosetta-for-five-minutes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Build Cardano Rosetta
+        uses: ./.github/actions/build_cardano_rosetta
+        with:
+          build-cache-image: rhyslbw/cardano-rosetta:master
+      - name: Sync data cache
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --follow-symlinks
+        env:
+          AWS_S3_BUCKET: 'cardano-rosetta-data-cache'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SOURCE_DIR: 'data'
+      - name: Run Cardano Rosetta
+        run: docker run -d -v ${{ github.workspace }}/data:/data --name cardano-rosetta cardano-rosetta:master
+      - name: Wait one minute
+        run: sleep 60
+      - name: Stop Cardano Rosetta
+        run: |
+          docker stop cardano-rosetta
+          docker rm cardano-rosetta
+      - name: Upload new state
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl public-read --follow-symlinks
+        env:
+          AWS_S3_BUCKET: 'cardano-rosetta-data-cache'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          SOURCE_DIR: 'data'
