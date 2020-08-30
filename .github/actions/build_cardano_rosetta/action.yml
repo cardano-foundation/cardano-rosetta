@@ -22,6 +22,3 @@ runs:
       shell: bash
       env:
         DOCKER_BUILDKIT: 1
-    - name: Setup sync directory
-      run: mkdir data
-      shell: bash
