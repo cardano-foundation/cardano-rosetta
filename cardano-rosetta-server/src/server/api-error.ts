@@ -7,7 +7,6 @@ interface Details {
  */
 export default class ApiError extends Error implements Components.Schemas.Error {
   code: number;
-  message: string;
   retriable: boolean;
   details?: Details;
 

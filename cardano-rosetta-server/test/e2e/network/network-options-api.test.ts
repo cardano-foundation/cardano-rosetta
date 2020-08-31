@@ -73,6 +73,11 @@ const allow = {
       retriable: false
     },
     {
+      code: 5000,
+      message: 'An error occurred',
+      retriable: true
+    },
+    {
       code: 5001,
       message: 'Not implemented',
       retriable: false
