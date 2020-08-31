@@ -1,4 +1,5 @@
 # Cardano Rosetta
+![CI](https://github.com/input-output-hk/cardano-rosetta/workflows/CI/badge.svg) ![Nightly](https://github.com/input-output-hk/cardano-rosetta/workflows/Nightly/badge.svg)
 
 An implementation of [Rosetta 1.4.1] for [Cardano].
 
