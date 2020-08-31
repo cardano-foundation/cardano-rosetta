@@ -1,15 +1,15 @@
 # Cardano Rosetta
 
-An implementation of the [Rosetta API v1.4.0](https://github.com/coinbase/rosetta-specifications) 
-for [Cardano](https://cardano.org/).
+An implementation of the [Rosetta API v1.4.0] for [Cardano].
 
 ## Build
 
-The Dockerfile can be [built anywhere](https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere)
+The Dockerfile can be [built anywhere], initially taking around 30 minutes. 
 
 ```console
-wget --secure-protocol=TLSv1_2 https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/master/Dockerfile
-docker build -t cardano-rosetta:0.1.0 .
+wget --secure-protocol=TLSv1_2 \
+  -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/master/Dockerfile \
+  | docker build -t cardano-rosetta:0.1.0 -
 ```
 
 **_Optionally_**  specify a network name, or override the managed dependencies using build args
@@ -27,7 +27,7 @@ Mount a single volume into the [standard storage location](https://www.rosetta-a
 mapping the server port to the host.
 
 ```console
-docker run -p 8080:8080 -v cardano:/data cardano-rosetta:0.1.0 cardano-rosetta
+docker run -p 8080:8080 -v cardano-rosetta:/data --name cardano-rosetta cardano-rosetta:0.1.0 
 ```
 ## Documentation
 
@@ -39,6 +39,9 @@ docker run -p 8080:8080 -v cardano:/data cardano-rosetta:0.1.0 cardano-rosetta
 | [Maintainer]                                                                                       | Solution maintainer                                          |
 | [QA]                                                                                               | Quality Assurance Engineers                                  |
 
+[Rosetta API v1.4.0]: https://github.com/coinbase/rosetta-specifications
+[Cardano]: https://cardano.org/
+[built anywhere]: https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere
 [Construction API Documentation]: https://www.rosetta-api.org/docs/construction_api_introduction.html
 [Data API Documentation]: https://www.rosetta-api.org/docs/data_api_introduction.html
 [Developer]: cardano-rosetta-server/README.md
