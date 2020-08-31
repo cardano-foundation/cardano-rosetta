@@ -8,6 +8,7 @@ import * as Controllers from './controllers/controllers';
 import { IncomingMessage, Server, ServerResponse } from 'http';
 import { CardanoCli } from './utils/cardanonode-cli';
 import { CardanoNode } from './utils/cardano-node';
+import { ErrorFactory } from './utils/errors';
 
 interface ExtraParams {
   networkId: string;
@@ -40,17 +41,12 @@ const buildServer = (
   // Custom error handling is needed as the specified by Rosetta API doesn't match
   // the fastify default one
   server.setErrorHandler((error: Error, request, reply) => {
-    request.log.error(error);
-    if (error instanceof ApiError) {
-      // rosseta-go-sdk always returns 500
-      reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        ...error,
-        message: error.message
-      });
-    } else
-      reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
-        message: `An error occurred for request ${request.id}`
-      });
+    let toSend = error;
+    if (error instanceof ApiError === false) {
+      toSend = ErrorFactory.unspecifiedError(`An error occurred for request ${request.id}`);
+    }
+    // rosseta-go-sdk always returns 500
+    reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ ...toSend, message: toSend.message });
   });
 
   return server;

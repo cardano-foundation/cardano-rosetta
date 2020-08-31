@@ -32,7 +32,7 @@ export const Errors = {
     message: 'Transaction outputs parameters errors in operations array',
     code: 4009
   },
-  OUPUTS_BIGGER_THAN_INPUTS_ERROR: {
+  OUTPUTS_BIGGER_THAN_INPUTS_ERROR: {
     message: 'The transaction you are trying to build has more outputs than inputs',
     code: 4010
   },
@@ -52,6 +52,7 @@ export const Errors = {
     message: 'Cant deserialize transaction output from transaction body',
     code: 4014
   },
+  UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
   PARSE_SIGNED_TRANSACTION_ERROR: { message: 'Parse signed transaction error', code: 5003 },
@@ -70,12 +71,13 @@ export const buildApiError = (error: Error, retriable: boolean, details?: string
   new ApiError(error.code, error.message, retriable, details);
 
 type CreateErrorFunction = (details?: string) => ApiError;
-type CreateServerErrorFcuntion = () => ServerError;
+type CreateServerErrorFunction = () => ServerError;
 const blockNotFoundError: CreateErrorFunction = () => buildApiError(Errors.BLOCK_NOT_FOUND, false);
 const invalidBlockchainError: CreateErrorFunction = () => buildApiError(Errors.INVALID_BLOCKCHAIN, false);
 const networkNotFoundError: CreateErrorFunction = () => buildApiError(Errors.NETWORK_NOT_FOUND, false);
 const networksNotFoundError: CreateErrorFunction = () => buildApiError(Errors.NETWORKS_NOT_FOUND, false);
-const notImplentedError: CreateErrorFunction = () => buildApiError(Errors.NOT_IMPLEMENTED, false);
+const unspecifiedError: CreateErrorFunction = details => buildApiError(Errors.UNSPECIFIED_ERROR, true, details);
+const notImplementedError: CreateErrorFunction = () => buildApiError(Errors.NOT_IMPLEMENTED, false);
 const genesisBlockNotFound: CreateErrorFunction = () => buildApiError(Errors.GENESIS_BLOCK_NOT_FOUND, false);
 const transactionNotFound: CreateErrorFunction = () => buildApiError(Errors.TRANSACTION_NOT_FOUND, false);
 const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.ADDRESS_GENERATION_ERROR, false);
@@ -89,7 +91,7 @@ const transactionInputsParametersMissingError: CreateErrorFunction = (details?: 
 const transactionOutputsParametersMissingError: CreateErrorFunction = (details?: string) =>
   buildApiError(Errors.TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR, false, details);
 const outputsAreBiggerThanInputsError: CreateErrorFunction = () =>
-  buildApiError(Errors.OUPUTS_BIGGER_THAN_INPUTS_ERROR, false);
+  buildApiError(Errors.OUTPUTS_BIGGER_THAN_INPUTS_ERROR, false);
 const cantCreateSignedTransactionFromBytes: CreateErrorFunction = () =>
   buildApiError(Errors.CANT_CREATE_SIGNED_TRANSACTION_ERROR, false);
 const cantCreateUnsignedTransactionFromBytes: CreateErrorFunction = () =>
@@ -106,7 +108,8 @@ export const ErrorFactory = {
   networkNotFoundError,
   invalidBlockchainError,
   networksNotFoundError,
-  notImplentedError,
+  unspecifiedError,
+  notImplementedError,
   genesisBlockNotFound,
   transactionNotFound,
   addressGenerationError,
@@ -124,5 +127,5 @@ export const ErrorFactory = {
   transactionOutputDeserializationError
 };
 
-export const configNotFoundError: CreateServerErrorFcuntion = () =>
+export const configNotFoundError: CreateServerErrorFunction = () =>
   new ServerError('Environment configurations needed to run server were not found');
