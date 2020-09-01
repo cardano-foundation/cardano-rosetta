@@ -40,7 +40,6 @@ jobs:
       - name: Build Cardano Rosetta
         uses: ./cardano-rosetta/.github/actions/build_cardano_rosetta
         with:
-          build-cache-image: rhyslbw/cardano-rosetta:master
           cardano-rosetta-version: ${{ github.sha }}
       - name: Smoke test Cardano Rosetta image
         run: |
