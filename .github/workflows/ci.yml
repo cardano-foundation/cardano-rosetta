@@ -37,3 +37,14 @@ jobs:
           CARDANO_NODE_SOCKET_PATH: /tmp/ipc/node.socket
           PAGE_SIZE: 5
           DEFAULT_RELATIVE_TTL: 1000
+      - name: Build Cardano Rosetta
+        uses: ./cardano-rosetta/.github/actions/build_cardano_rosetta
+        with:
+          build-cache-image: rhyslbw/cardano-rosetta:master
+          cardano-rosetta-version: ${{ github.sha }}
+      - name: Smoke test Cardano Rosetta image
+        run: |
+          docker run -d -p 8080:8080 --name cardano-rosetta cardano-rosetta:${{ github.sha }}
+          sleep 10
+          curl -X POST -H "Content-Type: application/json" -d '{"network_identifier":{"blockchain": "cardano", "network":"mainnet"}}' http://localhost:8080/network/status
+          docker stop cardano-rosetta
