@@ -11,7 +11,7 @@ The Dockerfile can be [built anywhere], initially taking around 30 minutes.
 wget --secure-protocol=TLSv1_2 \
   -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/master/Dockerfile \
   | docker build \
-    -t cardano-rosetta:0.1.0 -
+    -t cardano-rosetta:0.2.0 -
 ```
 With cached build layers, useful for non-production use-cases:
 ```console
@@ -21,7 +21,7 @@ wget --secure-protocol=TLSv1_2 \
   docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --cache-from=inputoutput/cardano-rosetta:master \
-    -t cardano-rosetta:0.1.0 -
+    -t cardano-rosetta:0.2.0 -
 ```
 
 **_Optionally_**  specify a network name, or override the managed dependencies using build args
@@ -39,7 +39,7 @@ Mount a single volume into the [standard storage location](https://www.rosetta-a
 mapping the server port to the host.
 
 ```console
-docker run -p 8080:8080 -v cardano-rosetta:/data --name cardano-rosetta cardano-rosetta:0.1.0 
+docker run -p 8080:8080 -v cardano-rosetta:/data --name cardano-rosetta cardano-rosetta:0.2.0 
 ```
 ## Documentation
 
