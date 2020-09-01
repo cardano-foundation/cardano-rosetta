@@ -9,19 +9,21 @@
 
 let
   packageJSON = builtins.fromJSON (builtins.readFile ../cardano-rosetta-server/package.json);
+  srcDir = ( "/" + packageJSON.name );
 
   src = stdenv.mkDerivation {
     pname = "${packageJSON.name}-src";
     version = packageJSON.version;
     buildInputs = [ yarn nodejs ];
-    src = nix-inclusive ./../cardano-rosetta-server [
-      ../cardano-rosetta-server/yarn.lock
-      ../cardano-rosetta-server/.yarnrc
-      ../cardano-rosetta-server/package.json
-      ../cardano-rosetta-server/packages-cache
-      ../cardano-rosetta-server/tsconfig.json
-      ../cardano-rosetta-server/tsconfig-dist.json
-    ];
+    src = ( ./.. + srcDir);
+    #src = nix-inclusive ( ./.. + srcDir ) [
+    #  ( ../. + srcDir + "/yarn.lock" )
+    #  ( ../. + srcDir + "/.yarnrc" )
+    #  ( ../. + srcDir + "/package.json" )
+    #  ( ../. + srcDir + "/packages-cache" )
+    #  ( ../. + srcDir + "/tsconfig.json" )
+    #  ( ../. + srcDir + "/tsconfig-dist.json" )
+    #];
     buildCommand = ''
       mkdir -p $out
       cp -r $src/. $out/
