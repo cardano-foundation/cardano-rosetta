@@ -1,4 +1,5 @@
 # Cardano Rosetta
+![CI](https://github.com/input-output-hk/cardano-rosetta/workflows/CI/badge.svg) ![Nightly](https://github.com/input-output-hk/cardano-rosetta/workflows/Nightly/badge.svg)
 
 An implementation of [Rosetta 1.4.1] for [Cardano].
 
@@ -9,7 +10,18 @@ The Dockerfile can be [built anywhere], initially taking around 30 minutes.
 ```console
 wget --secure-protocol=TLSv1_2 \
   -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/master/Dockerfile \
-  | docker build -t cardano-rosetta:0.1.0 -
+  | docker build \
+    -t cardano-rosetta:0.1.0 -
+```
+With cached build layers, useful for non-production use-cases:
+```console
+wget --secure-protocol=TLSv1_2 \
+  -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/master/Dockerfile \
+  | DOCKER_BUILDKIT=1 \
+  docker build \
+    --build-arg BUILDKIT_INLINE_CACHE=1 \
+    --cache-from=inputoutput/cardano-rosetta:master \
+    -t cardano-rosetta:0.1.0 -
 ```
 
 **_Optionally_**  specify a network name, or override the managed dependencies using build args
@@ -38,6 +50,12 @@ docker run -p 8080:8080 -v cardano-rosetta:/data --name cardano-rosetta cardano-
 | [Developer]                                                                                        | Core or external developers of cardano-rosetta-server        |
 | [Maintainer]                                                                                       | Solution maintainer                                          |
 | [QA]                                                                                               | Quality Assurance Engineers                                  |
+
+<hr/>
+
+<p align="center">
+  <a href="https://github.com/input-output-hk/cardano-rosetta/blob/master/LICENSE"><img src="https://img.shields.io/github/license/input-output-hk/cardano-rosetta.svg?style=for-the-badge" /></a>
+</p>
 
 [Rosetta 1.4.1]: https://www.rosetta-api.org/docs/1.4.1/welcome.html
 [Cardano]: https://cardano.org/

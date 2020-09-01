@@ -1,0 +1,70 @@
+name: Nightly
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  check-and-snapshot-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+        with:
+          path: 'cardano-rosetta'
+      - name: Build Cardano Rosetta
+        uses: ./cardano-rosetta/.github/actions/build_cardano_rosetta
+        with:
+          cardano-rosetta-version: ${{ github.sha }}
+      - name: Restore data snapshot
+        env:
+          AWS_S3_BUCKET: 'cardano-data-cache'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          aws s3 cp s3://cardano-data-cache/rosetta/data.tar data.tar
+          tar xvf data.tar data
+          rm data.tar
+      - name: Run Cardano Rosetta
+        run: docker run --rm -d -p 8080:8080 -v ${{ github.workspace }}/data:/data --name cardano-rosetta cardano-rosetta:${{ github.sha }}
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.15.0
+      - name: Checkout rosetta-cli source code
+        uses: actions/checkout@v2
+        with:
+          repository: coinbase/rosetta-cli
+          ref: f4943c21f095400fb0dd6780964c02cdc505dce0
+          path: rosetta-cli
+      - name: Install rosetta-cli
+        working-directory: rosetta-cli
+        run: go install
+      - name: Prepare rosetta-cli configuration
+        working-directory: cardano-rosetta/test/check/configuration/src
+        run: |
+          mkdir ../out
+          jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json host/localhost.json data/byron_sample.json > ../out/data_byron.json
+          rosetta-cli configuration:validate ../out/data_byron.json
+          jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json host/localhost.json data/shelley_transition_sample.json > ../out/data_shelley_transition.json
+          rosetta-cli configuration:validate ../out/data_shelley_transition.json
+#          jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json host/localhost.json data/shelley_sample.json > ../out/data_shelley.json
+#          rosetta-cli configuration:validate ../out/data_shelley.json
+      - name: check:data byron
+        working-directory: cardano-rosetta/test/check/configuration/out
+        run: rosetta-cli check:data --configuration-file=data_byron.json
+      - name: check:data shelley transition
+        working-directory: cardano-rosetta/test/check/configuration/out
+        run: rosetta-cli check:data --configuration-file=data_shelley_transition.json
+#      - name: check:data shelley
+#        working-directory: cardano-rosetta/test/check/configuration/out
+#        run: rosetta-cli check:data --configuration-file=data_shelley.json
+      - name: Make data snapshot
+        env:
+          AWS_S3_BUCKET: 'cardano-data-cache'
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          docker stop cardano-rosetta
+          sudo tar cvf data.tar data
+          aws s3 cp data.tar s3://cardano-data-cache/rosetta/data.tar
