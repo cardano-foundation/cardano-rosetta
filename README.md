@@ -1,6 +1,6 @@
 # Cardano Rosetta
 
-An implementation of the [Rosetta API v1.4.0] for [Cardano].
+An implementation of [Rosetta 1.4.1] for [Cardano].
 
 ## Build
 
@@ -39,7 +39,7 @@ docker run -p 8080:8080 -v cardano-rosetta:/data --name cardano-rosetta cardano-
 | [Maintainer]                                                                                       | Solution maintainer                                          |
 | [QA]                                                                                               | Quality Assurance Engineers                                  |
 
-[Rosetta API v1.4.0]: https://github.com/coinbase/rosetta-specifications
+[Rosetta 1.4.1]: https://www.rosetta-api.org/docs/1.4.1/welcome.html
 [Cardano]: https://cardano.org/
 [built anywhere]: https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere
 [Construction API Documentation]: https://www.rosetta-api.org/docs/construction_api_introduction.html
