@@ -51,6 +51,12 @@ docker run -p 8080:8080 -v cardano-rosetta:/data --name cardano-rosetta cardano-
 | [Maintainer]                                                                                       | Solution maintainer                                          |
 | [QA]                                                                                               | Quality Assurance Engineers                                  |
 
+<hr/>
+
+<p align="center">
+  <a href="https://github.com/input-output-hk/cardano-rosetta/blob/master/LICENSE"><img src="https://img.shields.io/github/license/input-output-hk/cardano-rosetta.svg?style=for-the-badge" /></a>
+</p>
+
 [Rosetta 1.4.1]: https://www.rosetta-api.org/docs/1.4.1/welcome.html
 [Cardano]: https://cardano.org/
 [built anywhere]: https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere
