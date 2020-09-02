@@ -1,0 +1,32 @@
+name: Pre-release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-builds:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Build remote Dockerile without cache
+        run: wget --secure-protocol=TLSv1_2
+          -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/${{ github.ref }}/Dockerfile
+          | docker build
+            -t cardano-rosetta:${{ github.ref }}
+            -
+      - name: Smoke test remote build
+        uses: .github/actions/smoke_test_cardano_rosetta
+        with:
+          cardano-rosetta-version: ${{ github.sha }}
+      - name: Testnet build with local cache
+        run: wget --secure-protocol=TLSv1_2
+          -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/${{ github.ref }}/Dockerfile
+          | docker build --build-arg NETWORK=testnet
+            -t cardano-rosetta:${{ github.ref }}
+            -
+      - name: Smoke test remote testnet build with local cache
+        uses: .github/actions/smoke_test_cardano_rosetta
+        with:
+          cardano-rosetta-version: ${{ github.sha }}
+          network-identifier: testnet
