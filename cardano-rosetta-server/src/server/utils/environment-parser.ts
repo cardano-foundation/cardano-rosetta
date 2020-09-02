@@ -18,9 +18,6 @@ export interface Environment {
   CARDANO_NODE_PATH: string;
 }
 
-const validateTopologyFields = (topologyFile: TopologyConfig) =>
-  topologyFile.Producers.reduce((acum, current) => !!current.addr && acum, true);
-
 const existingFileValidator = makeValidator((filePath: string) => {
   if (fs.existsSync(filePath)) {
     return filePath;
@@ -40,13 +37,10 @@ export const parseEnvironment = (): Environment => {
     PAGE_SIZE: num(),
     CARDANO_NODE_PATH: existingFileValidator()
   });
-  if (!environment) {
-    throw configNotFoundError();
-  }
-  const topologyFile: TopologyConfig = JSON.parse(
-    fs.readFileSync(path.resolve(environment.TOPOLOGY_FILE_PATH)).toString()
-  );
-  if (!validateTopologyFields(topologyFile)) {
+  let topologyFile: TopologyConfig;
+  try {
+    topologyFile = JSON.parse(fs.readFileSync(path.resolve(environment.TOPOLOGY_FILE_PATH)).toString());
+  } catch (error) {
     throw configNotFoundError();
   }
   return { ...environment, TOPOLOGY_FILE: topologyFile };

@@ -4,7 +4,7 @@ const fakePath = 'fakePath';
 const fakeHost = '129.this.412.is-a-super-fake-host12*312/40120|¿';
 const fakeNumber = 'thisIsNotANumber';
 
-const environmentParer = () => parseEnvironment();
+const environmentParser = () => parseEnvironment();
 
 describe('Environment parser test', () => {
   test('Should throw an error if a field is expected to be a number but its not', () => {
@@ -13,7 +13,7 @@ describe('Environment parser test', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
-    expect(environmentParer).toThrowError();
+    expect(environmentParser).toThrowError();
     expect(mockExit).toHaveBeenCalledWith(1);
     process.env.PORT = previousPort;
   });
@@ -23,7 +23,7 @@ describe('Environment parser test', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
-    expect(environmentParer).toThrowError();
+    expect(environmentParser).toThrowError();
     expect(mockExit).toHaveBeenCalledWith(1);
     process.env.CARDANOCLI_PATH = previousPath;
   });
@@ -33,19 +33,44 @@ describe('Environment parser test', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
-    expect(environmentParer).toThrowError();
-    expect(mockExit).toHaveBeenCalledWith(1);
+    expect(environmentParser).toThrowError(Error);
     process.env.TOPOLOGY_FILE_PATH = previousPath;
   });
-
   test('Should throw an error if a field is expected to be a valid host but its not', () => {
     const previousAddress = process.env.BIND_ADDRESS;
     process.env.BIND_ADDRESS = fakeHost;
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
-    expect(environmentParer).toThrowError();
+    expect(environmentParser).toThrowError();
     expect(mockExit).toHaveBeenCalledWith(1);
     process.env.BIND_ADDRESS = previousAddress;
+  });
+  test('Should return all environment variables and topology file parsed', () => {
+    const environment = environmentParser();
+    expect(environment).toEqual(
+      expect.objectContaining({
+        PORT: 8080,
+        LOGGER_LEVEL: 'debug',
+        BIND_ADDRESS: '127.0.0.1',
+        DB_CONNECTION_STRING: 'postgresql://postgres:mysecretpassword@127.0.0.1:5432/cardano-test',
+        TOPOLOGY_FILE_PATH: 'test/e2e/utils/topology-test.json',
+        CARDANOCLI_PATH: '/home/tomas/cardano-node/cardano-cli',
+        CARDANO_NODE_PATH: '/home/tomas/cardano-node/cardano-node',
+        GENESIS_PATH: 'test/e2e/utils/testnet-genesis.json',
+        CARDANO_NODE_SOCKET_PATH: '/tmp/node.socket',
+        PAGE_SIZE: 5,
+        DEFAULT_RELATIVE_TTL: 1000,
+        TOPOLOGY_FILE: {
+          Producers: [
+            {
+              addr: 'relays-new.cardano-mainnet.iohk.io',
+              port: 3001,
+              valency: 1
+            }
+          ]
+        }
+      })
+    );
   });
 });
