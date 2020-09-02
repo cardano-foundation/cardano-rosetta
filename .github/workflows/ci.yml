@@ -1,10 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [master]
   pull_request:
-    branches: [master]
+    branches:
+      - master
 
 jobs:
   tests:
@@ -42,8 +41,6 @@ jobs:
         with:
           cardano-rosetta-version: ${{ github.sha }}
       - name: Smoke test Cardano Rosetta image
-        run: |
-          docker run -d -p 8080:8080 --name cardano-rosetta cardano-rosetta:${{ github.sha }}
-          sleep 10
-          curl -X POST -H "Content-Type: application/json" -d '{"network_identifier":{"blockchain": "cardano", "network":"mainnet"}}' http://localhost:8080/network/status
-          docker stop cardano-rosetta
+        uses: ./cardano-rosetta/.github/actions/smoke_test_cardano_rosetta
+        with:
+          cardano-rosetta-version: ${{ github.sha }}

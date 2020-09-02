@@ -11,14 +11,14 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
-          path: 'cardano-rosetta'
+          path: cardano-rosetta
       - name: Build Cardano Rosetta
         uses: ./cardano-rosetta/.github/actions/build_cardano_rosetta
         with:
           cardano-rosetta-version: ${{ github.sha }}
       - name: Restore data snapshot
         env:
-          AWS_S3_BUCKET: 'cardano-data-cache'
+          AWS_S3_BUCKET: cardano-data-cache
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
@@ -63,7 +63,7 @@ jobs:
 #        run: rosetta-cli check:data --configuration-file=data_shelley.json
       - name: Make data snapshot
         env:
-          AWS_S3_BUCKET: 'cardano-data-cache'
+          AWS_S3_BUCKET: cardano-data-cache
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
