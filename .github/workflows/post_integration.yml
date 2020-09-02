@@ -20,7 +20,9 @@ jobs:
         with:
           cardano-rosetta-version: ${{ github.sha }}
       - name: Apply master tag
-        run: docker tag inputoutput/cardano-rosetta:${{ github.sha }} inputoutput/cardano-rosetta:master
+        run: |
+          docker tag cardano-rosetta:${{ github.sha }} inputoutput/cardano-rosetta:${{ github.sha }}
+          docker tag cardano-rosetta:${{ github.sha }} inputoutput/cardano-rosetta:master
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
