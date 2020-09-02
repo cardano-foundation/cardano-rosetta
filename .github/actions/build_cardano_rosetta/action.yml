@@ -1,16 +1,16 @@
-name: 'Build Cardano Rosetta'
-description: 'Builds the Dockerfile using a remote cache'
+name: Build Cardano Rosetta
+description: Builds the Dockerfile using a remote cache
 inputs:
   cardano-rosetta-version:
-    description: 'Software version'
+    description: Software version
     required: false
-    default: 'master'
+    default: master
   build-cache-image:
-    description: 'From the Docker registry, including tag'
+    description: From the Docker registry, including tag
     required: false
-    default: 'inputoutput/cardano-rosetta:master'
+    default: inputoutput/cardano-rosetta:master
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Build remote Dockerile using cache
       run: wget --secure-protocol=TLSv1_2
