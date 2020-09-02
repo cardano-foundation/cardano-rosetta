@@ -1,0 +1,23 @@
+name: Smoke Test Cardano Rosetta
+description: Runs the image, waits, then performs a basic smoke test
+inputs:
+  cardano-rosetta-version:
+    description: Software version
+    required: false
+    default: master
+  network-identifier:
+    description: Name of the network to query
+    required: false
+    default: master
+runs:
+  using: composite
+  steps:
+    - name: Run
+      run: docker run -d -p 8080:8080 --name cardano-rosetta cardano-rosetta:${{ inputs.cardano-rosetta-version }}
+      shell: bash
+    - name: Test
+      run: |
+        sleep 10
+        curl -X POST -H "Content-Type: application/json" -d '{"network_identifier":{"blockchain": "cardano", "network":"${{ inputs.network-identifier }}"}}' http://localhost:8080/network/status
+        docker rm -f cardano-rosetta
+      shell: bash
