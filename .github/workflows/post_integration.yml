@@ -12,11 +12,11 @@ jobs:
       - name: Checkout source code
         uses: actions/checkout@v2
       - name: Build Cardano Rosetta
-        uses: .github/actions/build_cardano_rosetta
+        uses: ./.github/actions/build_cardano_rosetta
         with:
           cardano-rosetta-version: ${{ github.sha }}
       - name: Smoke test Cardano Rosetta image
-        uses: .github/actions/smoke_test_cardano_rosetta
+        uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
           cardano-rosetta-version: ${{ github.sha }}
       - name: Apply master tag

@@ -16,7 +16,7 @@ jobs:
             -t cardano-rosetta:${{ github.ref }}
             -
       - name: Smoke test remote build
-        uses: .github/actions/smoke_test_cardano_rosetta
+        uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
           cardano-rosetta-version: ${{ github.sha }}
       - name: Testnet build with local cache
@@ -26,7 +26,7 @@ jobs:
             -t cardano-rosetta:${{ github.ref }}
             -
       - name: Smoke test remote testnet build with local cache
-        uses: .github/actions/smoke_test_cardano_rosetta
+        uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
           cardano-rosetta-version: ${{ github.sha }}
           network-identifier: testnet
