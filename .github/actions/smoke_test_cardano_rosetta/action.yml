@@ -6,9 +6,9 @@ inputs:
     required: false
     default: master
   network-identifier:
-    description: Name of the network to query
+    description: Supported Cardano network
     required: false
-    default: master
+    default: mainnet
 runs:
   using: composite
   steps:
