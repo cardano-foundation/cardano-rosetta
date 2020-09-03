@@ -13,11 +13,11 @@ runs:
   using: composite
   steps:
     - name: Run
-      run: docker run -d -p 8080:8080 --name cardano-rosetta cardano-rosetta:${{ inputs.tag }}
+      run: docker run --rm -d -p 8080:8080 --name cardano-rosetta cardano-rosetta:${{ inputs.tag }}
       shell: bash
     - name: Test
       run: |
         sleep 10
         curl -X POST -H "Content-Type: application/json" -d '{"network_identifier":{"blockchain": "cardano", "network":"${{ inputs.network-identifier }}"}}' http://localhost:8080/network/status
-        docker rm -f cardano-rosetta
+        docker stop cardano-rosetta
       shell: bash
