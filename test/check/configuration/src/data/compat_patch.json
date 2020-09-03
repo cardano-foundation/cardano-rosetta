@@ -1,0 +1,17 @@
+{
+  "construction": {
+    "end_conditions": {
+      "create_account": 0
+    },
+    "workflows": [
+      {
+        "name": "create_account",
+        "concurrency": 1
+      },
+      {
+        "name": "request_funds",
+        "concurrency": 1
+      }
+    ]
+  }
+}

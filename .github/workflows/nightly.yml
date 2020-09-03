@@ -1,6 +1,7 @@
 name: Nightly
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'
 
@@ -36,7 +37,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: coinbase/rosetta-cli
-          ref: f4943c21f095400fb0dd6780964c02cdc505dce0
+          ref: 4b2226853f91b4dc5ba7a18c2e3db730165b5232
           path: rosetta-cli
       - name: Install rosetta-cli
         working-directory: rosetta-cli
@@ -45,23 +46,21 @@ jobs:
         working-directory: cardano-rosetta/test/check/configuration/src
         run: |
           mkdir ../out
-          jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json host/localhost.json data/byron_sample.json > ../out/data_byron.json
+          jq -s '.[0] * .[1] * .[2] * .[3] * .[4]' base.json data/compat_patch.json network/mainnet.json host/localhost.json data/byron_sample.json > ../out/data_byron.json
           rosetta-cli configuration:validate ../out/data_byron.json
-          jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json host/localhost.json data/shelley_transition_sample.json > ../out/data_shelley_transition.json
+          jq -s '.[0] * .[1] * .[2] * .[3] * .[4]' base.json data/compat_patch.json network/mainnet.json host/localhost.json data/shelley_transition_sample.json > ../out/data_shelley_transition.json
           rosetta-cli configuration:validate ../out/data_shelley_transition.json
-# The disabled check are passing, but we're experiencing suspected false negatives:
-# https://github.com/coinbase/rosetta-cli/issues/124
-#          jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json host/localhost.json data/shelley_sample.json > ../out/data_shelley.json
-#          rosetta-cli configuration:validate ../out/data_shelley.json
+          jq -s '.[0] * .[1] * .[2] * .[3] * .[4]' base.json data/compat_patch.json network/mainnet.json host/localhost.json data/shelley_sample.json > ../out/data_shelley.json
+          rosetta-cli configuration:validate ../out/data_shelley.json
       - name: check:data byron
         working-directory: cardano-rosetta/test/check/configuration/out
         run: rosetta-cli check:data --configuration-file=data_byron.json
       - name: check:data shelley transition
         working-directory: cardano-rosetta/test/check/configuration/out
         run: rosetta-cli check:data --configuration-file=data_shelley_transition.json
-#      - name: check:data shelley
-#        working-directory: cardano-rosetta/test/check/configuration/out
-#        run: rosetta-cli check:data --configuration-file=data_shelley.json
+      - name: check:data shelley
+        working-directory: cardano-rosetta/test/check/configuration/out
+        run: rosetta-cli check:data --configuration-file=data_shelley.json
       - name: Make data snapshot
         env:
           AWS_S3_BUCKET: cardano-data-cache
