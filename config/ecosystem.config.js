@@ -47,6 +47,7 @@ module.exports = {
       script: '/cardano-rosetta-server/dist/src/server/index.js',
       autorestart: true,
       env: {
+        BIND_ADDRESS: '0.0.0.0',
         CARDANOCLI_PATH: '/usr/local/bin/cardano-cli',
         CARDANO_NODE_PATH: '/usr/local/bin/cardano-node',
         CARDANO_NODE_SOCKET_PATH: '/ipc/node.socket',
@@ -56,6 +57,7 @@ module.exports = {
         LOGGER_LEVEL: 'debug',
         NODE_ENV: 'development',
         PAGE_SIZE: 30,
+        PORT: 8080,
         TOPOLOGY_FILE_PATH: '/config/cardano-node/topology.json'
       },
       env_production: {
