@@ -1,10 +1,10 @@
 name: Build Cardano Rosetta
 description: Builds the Dockerfile using a remote cache
 inputs:
-  cardano-rosetta-version:
-    description: Software version
+  tag:
+    description: Docker tag
     required: false
-    default: master
+    default: latest
   network-identifier:
     description: Supported Cardano network
     required: false
@@ -13,17 +13,19 @@ inputs:
     description: From the Docker registry, including tag
     required: false
     default: inputoutput/cardano-rosetta:master
+  build-context:
+    description: Mapped to the docker build command
+    required: true
 runs:
   using: composite
   steps:
-    - name: Build remote Dockerile using cache
-      run: wget --secure-protocol=TLSv1_2
-        -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/${{ inputs.cardano-rosetta-version }}/Dockerfile
-        | docker build --build-arg BUILDKIT_INLINE_CACHE=1
-          --build-arg NETWORK=${{ inputs.network-identifier }}
-          --cache-from ${{ inputs.build-cache-image }}
-          -t cardano-rosetta:${{ inputs.cardano-rosetta-version }}
-          -
+    - name: Build image with inline cache
+      run: docker build
+        --build-arg BUILDKIT_INLINE_CACHE=1
+        --build-arg NETWORK=${{ inputs.network-identifier }}
+        --cache-from ${{ inputs.build-cache-image }}
+        -t cardano-rosetta:${{ inputs.tag }}
+        ${{ inputs.build-context }}
       shell: bash
       env:
         DOCKER_BUILDKIT: 1

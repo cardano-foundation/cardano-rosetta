@@ -64,8 +64,6 @@ yarn testnet:services:down
 yarn dev
 ```
 
-
-
 ### Configure Rosetta Spec Types
 
 Rosetta openapi spec file is used to:
@@ -79,27 +77,3 @@ To do so, the following steps are required:
 2. Place them `src/server/openApi.json`
 3. Introduce as many changes as you need (`metadata` fields need to be populated manually to allow Fastify to return the fields)
 4. Execute `yarn generate-rosetta-types`
-
-### Build Dev Docker image
-
-As it's more convenient to build a Cardano Rosetta image using local source code during development, a 
-[`dev.Dockerfile`](../../dev.Dockerfile) is maintained to patch in only the source-accessing layers 
-resulting in almost identical runtime images. The spec-compliant builds that must clone the 
-source code, [will be](https://github.com/input-output-hk/cardano-rosetta/issues/126) used during 
-CI, and for performing the manual QA steps prior to release.
-
-```
-./scripts/build_dev_docker_images.sh
-```
-Your local docker engine will now have the following loaded:
-- `cardano-rosetta:dev`
-- `cardano-rosetta:dev-testnet`
-
-### Run a Dev Image
-
-**_Optionally_** mount a single volume into the [standard storage location](https://www.rosetta-api.org/docs/standard_storage_location.html) 
-mapping the server port to the host.
-
-```console
-docker run -p 8080:8080 -v cardano-rosetta-testnet:/data cardano-rosetta:dev-testnet cardano-rosetta-testnet
-```

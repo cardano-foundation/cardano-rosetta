@@ -9,24 +9,21 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
-      - name: Build remote Dockerile without cache
-        run: wget --secure-protocol=TLSv1_2
-          -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/${{ github.sha }}/Dockerfile
-          | docker build
-            -t cardano-rosetta:${{ github.sha }}
-            -
+      - name: Build from Git URL with no cache
+        run: docker build
+          -t cardano-rosetta:${{ github.sha }}
+          https://github.com/input-output-hk/cardano-rosetta.git#${{ github.sha }}
       - name: Smoke test remote build
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
-          cardano-rosetta-version: ${{ github.sha }}
-      - name: Testnet build with local cache
-        run: wget --secure-protocol=TLSv1_2
-          -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/${{ github.sha }}/Dockerfile
-          | docker build --build-arg NETWORK=testnet
-            -t cardano-rosetta:${{ github.sha }}
-            -
+          tag: ${{ github.sha }}
+      - name: Build from Git URL with local cache, configured for testnet
+        run: docker build
+          --build-arg NETWORK=testnet
+          -t cardano-rosetta:testnet-${{ github.sha }}
+          https://github.com/input-output-hk/cardano-rosetta.git#${{ github.sha }}
       - name: Smoke test remote testnet build with local cache
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
-          cardano-rosetta-version: ${{ github.sha }}
+          tag: ${{ github.sha }}
           network-identifier: testnet

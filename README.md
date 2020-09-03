@@ -5,29 +5,31 @@ An implementation of [Rosetta 1.4.1] for [Cardano].
 
 ## Build
 
-The Dockerfile can be [built anywhere], initially taking around 30 minutes:
+### [From anywhere]
 
 ```console
-wget --secure-protocol=TLSv1_2 \
-  -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/0.2.0/Dockerfile \
-  | docker build \
-    -t cardano-rosetta:0.2.0 -
+docker build -t cardano-rosetta:0.2.1 https://github.com/input-output-hk/cardano-rosetta.git#0.2.1
 ```
+### With local source code
+```
+docker build -t cardano-rosetta .
+```
+
 **_Optionally_**  specify a [network] name, other than `mainnet`, using a build argument:
 
 ```console
   --build-arg=NETWORK=testnet
 ```
 
-**_Optionally_** with cached build layers, useful for non-production use-cases:
+**_Optionally_** use cached build layers to reduce the initialization time. Suits dev and demo 
+use-cases:
 ```console
-wget --secure-protocol=TLSv1_2 \
-  -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/0.2.0/Dockerfile \
-  | DOCKER_BUILDKIT=1 \
-  docker build \
+export DOCKER_BUILDKIT=1
+docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --cache-from=inputoutput/cardano-rosetta:master \
-    -t cardano-rosetta:0.2.0 -
+    -t cardano-rosetta:0.2.1 \
+    https://github.com/input-output-hk/cardano-rosetta.git#0.2.1
 ```
 
 ## Run
@@ -40,9 +42,8 @@ docker run \
   --name cardano-rosetta \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
-  cardano-rosetta:0.2.0 
+  cardano-rosetta:0.2.1
 ```
-
 
 ## Documentation
 
@@ -66,7 +67,7 @@ docker run \
 [workflow_Nightly]: https://github.com/input-output-hk/cardano-rosetta/actions?query=workflow%3ANightly
 [Rosetta 1.4.1]: https://www.rosetta-api.org/docs/1.4.1/welcome.html
 [Cardano]: https://cardano.org/
-[built anywhere]: https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere
+[From anywhere]: https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere
 [network]: config/network
 [standard storage location]: https://www.rosetta-api.org/docs/standard_storage_location.html
 [Docker run reference]: https://docs.docker.com/engine/reference/run/
