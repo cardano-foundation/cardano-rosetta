@@ -141,7 +141,10 @@ ENTRYPOINT ["./entrypoint.sh"]
 FROM nodejs-builder as rosetta-server-builder
 ARG CARDANO_ROSETTA_VERSION=master
 RUN apt-get update && apt-get install git -y
-RUN git clone -b ${CARDANO_ROSETTA_VERSION} https://github.com/input-output-hk/cardano-rosetta
+RUN git clone https://github.com/input-output-hk/cardano-rosetta.git &&\
+  cd cardano-rosetta &&\
+  git fetch --all --tags &&\
+  git checkout ${CARDANO_ROSETTA_VERSION}
 WORKDIR /cardano-rosetta/cardano-rosetta-server
 RUN yarn --offline --frozen-lockfile --non-interactive
 RUN yarn build
