@@ -19,7 +19,9 @@ runs:
     - name: Build remote Dockerile using cache
       run: wget --secure-protocol=TLSv1_2
         -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/${{ inputs.cardano-rosetta-version }}/Dockerfile
-        | docker build --build-arg BUILDKIT_INLINE_CACHE=1
+        | docker build
+          --build-arg BUILDKIT_INLINE_CACHE=1
+          --build-arg CARDANO_ROSETTA_VERSION=${{ inputs.cardano-rosetta-version }}
           --build-arg NETWORK=${{ inputs.network-identifier }}
           --cache-from ${{ inputs.build-cache-image }}
           -t cardano-rosetta:${{ inputs.cardano-rosetta-version }}
