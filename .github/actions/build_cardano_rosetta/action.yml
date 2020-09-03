@@ -16,16 +16,21 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Prepare tag name
+      run: echo "::set-env name=tag::$(echo $version | sed -e 's/\//-/g')"
+      shell: bash
+      env:
+        version: ${{ inputs.cardano-rosetta-version }}
     - name: Build remote Dockerile using cache
       run: wget --secure-protocol=TLSv1_2
-        -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/${{ inputs.cardano-rosetta-version }}/Dockerfile
-        | docker build
-          --build-arg BUILDKIT_INLINE_CACHE=1
-          --build-arg CARDANO_ROSETTA_VERSION=${{ inputs.cardano-rosetta-version }}
-          --build-arg NETWORK=${{ inputs.network-identifier }}
-          --cache-from ${{ inputs.build-cache-image }}
-          -t cardano-rosetta:${{ inputs.cardano-rosetta-version }}
-          -
+          -O- https://raw.githubusercontent.com/input-output-hk/cardano-rosetta/${{ inputs.cardano-rosetta-version }}/Dockerfile
+          | docker build
+            --build-arg BUILDKIT_INLINE_CACHE=1
+            --build-arg CARDANO_ROSETTA_VERSION=${{ inputs.cardano-rosetta-version }}
+            --build-arg NETWORK=${{ inputs.network-identifier }}
+            --cache-from ${{ inputs.build-cache-image }}
+            -t cardano-rosetta:$tag
+            -
       shell: bash
       env:
         DOCKER_BUILDKIT: 1

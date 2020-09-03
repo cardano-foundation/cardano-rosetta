@@ -36,10 +36,26 @@ jobs:
           CARDANO_NODE_SOCKET_PATH: /tmp/ipc/node.socket
           PAGE_SIZE: 5
           DEFAULT_RELATIVE_TTL: 1000
+#      - name: Build Source Images
+#        working-directory: ./cardano-rosetta
+#        env:
+#          DOCKER_BUILDKIT: 1
+#        run: ./scripts/build_source_images.sh .
+#      - name: Build Local Cardano Rosetta
+#        working-directory: ./cardano-rosetta
+#        env:
+#          DOCKER_BUILDKIT: 1
+#        run: docker build
+#            --build-arg BUILDKIT_INLINE_CACHE=1
+#            --cache-from inputoutput/cardano-rosetta:master
+#            -t cardano-rosetta:${{ github.sha }}
+#            -f dev.Dockerfile
+#            .
+      - run: echo ${{ github.ref }} && echo ${{ github.head_ref }} && echo ${{ github.base_ref }}
       - name: Build Cardano Rosetta
         uses: ./cardano-rosetta/.github/actions/build_cardano_rosetta
         with:
-          cardano-rosetta-version: ${{ github.sha }}
+          cardano-rosetta-version: ${{ github.ref }}
       - name: Smoke test Cardano Rosetta image
         uses: ./cardano-rosetta/.github/actions/smoke_test_cardano_rosetta
         with:

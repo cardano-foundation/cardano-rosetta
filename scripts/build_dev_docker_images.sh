@@ -1,12 +1,23 @@
 #!/usr/bin/env bash
 
 set -euo pipefail
+DIR="$(dirname "$(readlink -fm "$0")")"
+BUILD_CONTEXT="$(dirname $DIR)"
+export DOCKER_BUILDKIT=1
 
-REPO_ROOT="$(dirname "$(dirname "$(readlink -fm "$0")")")"
+${DIR}/build_source_images.sh $BUILD_CONTEXT
 
-docker build --target=haskell-builder -t haskell-builder $REPO_ROOT
-docker build --target=nodejs-builder -t nodejs-builder $REPO_ROOT
-docker build --target=ubuntu-nodejs -t ubuntu-nodejs $REPO_ROOT
-docker build --target=runtime-base -t runtime-base $REPO_ROOT
-docker build -f dev.Dockerfile -t cardano-rosetta:dev $REPO_ROOT
-docker build --build-arg=NETWORK=testnet -f dev.Dockerfile -t cardano-rosetta:dev-testnet $REPO_ROOT
+docker build \
+  -f dev.Dockerfile \
+  -t cardano-rosetta:dev \
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --cache-from inputoutput/cardano-rosetta:master \
+  $BUILD_CONTEXT
+
+docker build \
+  --build-arg=NETWORK=testnet \
+  -f dev.Dockerfile \
+  -t cardano-rosetta:dev-testnet \
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --cache-from inputoutput/cardano-rosetta:master \
+  $BUILD_CONTEXT
