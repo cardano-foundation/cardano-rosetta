@@ -1,0 +1,18 @@
+{
+  "packageFiles": [
+    {
+      "filename": "cardano-rosetta-server/package.json",
+      "type": "json"
+    }
+  ],
+  "bumpFiles": [
+    {
+      "filename": "cardano-rosetta-server/package.json",
+      "type": "json"
+    }
+  ],
+  "skip": {
+    "tag": true
+  },
+  "tag-prefix": ""
+}
