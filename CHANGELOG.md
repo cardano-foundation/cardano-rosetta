@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.1](https://github.com/input-output-hk/cardano-rosetta/compare/v0.0.1...v0.2.1) (2020-09-04)
+
+### Bug Fixes
+* adds PORT and BIND_ADDRESS to pm2 ecosystem config ([2961f72](https://github.com/input-output-hk/cardano-rosetta/commit/2961f7248e370cb9b71e981d0b9d6492717e6148))
+
 ## [0.2.0](https://github.com/input-output-hk/cardano-rosetta/compare/v0.1.0...0.2.0) (2020-09-01)
 
 
