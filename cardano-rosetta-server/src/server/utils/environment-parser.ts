@@ -35,7 +35,9 @@ export const parseEnvironment = (): Environment => {
     DEFAULT_RELATIVE_TTL: num(),
     CARDANOCLI_PATH: existingFileValidator(),
     PAGE_SIZE: num(),
-    CARDANO_NODE_PATH: existingFileValidator()
+    CARDANO_NODE_PATH: existingFileValidator(),
+    GENESIS_PATH: existingFileValidator(),
+    CARDANO_NODE_SOCKET_PATH: existingFileValidator()
   });
   let topologyFile: TopologyConfig;
   try {
