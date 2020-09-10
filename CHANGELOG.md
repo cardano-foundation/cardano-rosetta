@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.2.2](https://github.com/input-output-hk/cardano-rosetta/compare/0.2.1...0.2.2) (2020-09-10)
+
+
+### Features
+
+* configurable default relative TTL at Docker runtime ([6c1dd3c](https://github.com/input-output-hk/cardano-rosetta/commit/6c1dd3c82b0024b85ac64d4d8adbdb263707ab5e))
+* configurable page size at Docker runtime ([964a15b](https://github.com/input-output-hk/cardano-rosetta/commit/964a15bea42a35e3231cb44f8067f16a085117b1))
+* improve env parser functions and test.  ([b54b3fb](https://github.com/input-output-hk/cardano-rosetta/commit/b54b3fb00cf3d59cb72821176559f6c5744bc27a))
+
+
+### Bug Fixes
+
+* account total balance was calculated using Number instead of BigInt ([81c45fd](https://github.com/input-output-hk/cardano-rosetta/commit/81c45fd494f494aee3779cf4557ddfab3ccaa039))
+
 ### [0.2.1](https://github.com/input-output-hk/cardano-rosetta/compare/v0.0.1...v0.2.1) (2020-09-04)
 
 ### Bug Fixes
