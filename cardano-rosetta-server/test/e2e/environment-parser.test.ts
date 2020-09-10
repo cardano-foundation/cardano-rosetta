@@ -4,7 +4,7 @@ const fakePath = 'fakePath';
 const fakeHost = '129.this.412.is-a-super-fake-host12*312/40120|¿';
 const fakeNumber = 'thisIsNotANumber';
 
-const environmentParer = () => parseEnvironment();
+const environmentParser = () => parseEnvironment();
 
 describe('Environment parser test', () => {
   test('Should throw an error if a field is expected to be a number but its not', () => {
@@ -13,7 +13,7 @@ describe('Environment parser test', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
-    expect(environmentParer).toThrowError();
+    expect(environmentParser).toThrowError();
     expect(mockExit).toHaveBeenCalledWith(1);
     process.env.PORT = previousPort;
   });
@@ -23,7 +23,7 @@ describe('Environment parser test', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
-    expect(environmentParer).toThrowError();
+    expect(environmentParser).toThrowError();
     expect(mockExit).toHaveBeenCalledWith(1);
     process.env.CARDANOCLI_PATH = previousPath;
   });
@@ -33,19 +33,21 @@ describe('Environment parser test', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
-    expect(environmentParer).toThrowError();
-    expect(mockExit).toHaveBeenCalledWith(1);
+    expect(environmentParser).toThrowError(Error);
     process.env.TOPOLOGY_FILE_PATH = previousPath;
   });
-
   test('Should throw an error if a field is expected to be a valid host but its not', () => {
     const previousAddress = process.env.BIND_ADDRESS;
     process.env.BIND_ADDRESS = fakeHost;
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
-    expect(environmentParer).toThrowError();
+    expect(environmentParser).toThrowError();
     expect(mockExit).toHaveBeenCalledWith(1);
     process.env.BIND_ADDRESS = previousAddress;
+  });
+  test('Should return all environment variables and topology file parsed', () => {
+    const environment = environmentParser();
+    expect(environment).not.toBeUndefined();
   });
 });
