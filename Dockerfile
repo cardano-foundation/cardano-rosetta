@@ -171,6 +171,7 @@ CMD ["node", "/cardano-rosetta-server/dist/src/server/index.js"]
 
 FROM runtime-base
 ARG NETWORK=mainnet
+ENV LOGGER_MIN_SEVERITY=info
 COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
 COPY config/ecosystem.config.js .
