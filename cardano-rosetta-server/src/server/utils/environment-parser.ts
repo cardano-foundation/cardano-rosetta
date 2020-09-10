@@ -37,7 +37,7 @@ export const parseEnvironment = (): Environment => {
     PAGE_SIZE: num(),
     CARDANO_NODE_PATH: existingFileValidator(),
     GENESIS_PATH: existingFileValidator(),
-    CARDANO_NODE_SOCKET_PATH: existingFileValidator()
+    CARDANO_NODE_SOCKET_PATH: str()
   });
   let topologyFile: TopologyConfig;
   try {
