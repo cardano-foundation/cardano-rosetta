@@ -31,6 +31,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     await database.end();
   });
 
+  // eslint-disable-next-line max-len
   test('Should return the address corresponding to the public key and mainnet network when providing a valid public key', async () => {
     const response = await server.inject({
       method: 'post',

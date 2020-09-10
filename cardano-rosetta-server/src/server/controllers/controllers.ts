@@ -1,5 +1,4 @@
 import { Services } from '../services/services';
-import { ErrorFactory } from '../utils/errors';
 import blockController, { BlockController } from './block-controller';
 import accountController, { AccountController } from './account-controller';
 import networkController, { NetworkController } from './network-controller';

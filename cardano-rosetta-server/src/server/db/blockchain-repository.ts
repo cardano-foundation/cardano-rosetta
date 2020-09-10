@@ -284,7 +284,8 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     blockHash: string
   ): Promise<TransactionWithInputsAndOutputs | null> {
     logger.debug(
-      `[findTransactionByHashAndBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
+      `[findTransactionByHashAndBlock] Parameters received for run query 
+      blockNumber: ${blockNumber}, blockHash: ${blockHash}`
     );
     const parameters = [hashStringToBuffer(hash), Number(blockNumber), hashStringToBuffer(blockHash)];
     logger.debug(

@@ -2,15 +2,6 @@
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import {
-  block1,
-  block1000WithoutTxs,
-  block23236WithTransactions,
-  block7134WithTxs,
-  blockWith8Txs,
-  GENESIS_HASH,
-  latestBlock
-} from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 import { generateNetworkPayload } from '../network/common';
 import { CARDANO, MAINNET } from '../../../src/server/utils/constants';

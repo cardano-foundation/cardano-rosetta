@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { findAllNetworksQuery, findNetworkByNetworkName } from './queries/network-queries';
+import { findAllNetworksQuery } from './queries/network-queries';
 import { Logger } from 'fastify';
 import { Network } from '../models';
 

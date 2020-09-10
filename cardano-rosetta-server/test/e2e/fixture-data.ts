@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import cbor from 'cbor';
 import { SIGNATURE_TYPE } from '../../src/server/utils/constants';
 

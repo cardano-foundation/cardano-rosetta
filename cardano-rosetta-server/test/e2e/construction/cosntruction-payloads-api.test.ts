@@ -70,7 +70,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       retriable: false,
       details: {
         message:
-          // eslint-disable-next-line quotes
+          // eslint-disable-next-line max-len, quotes
           "There was an error deserializating transaction input: Deserialization failed in TransactionHash because: Invalid cbor: expected tuple 'hash length' of length 32 but got length Len(0)."
       }
     });

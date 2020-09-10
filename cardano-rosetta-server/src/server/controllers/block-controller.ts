@@ -53,7 +53,8 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkId: str
         const logger = request.log;
         const transactionHash = blockTransactionRequest.transaction_identifier.hash;
         logger.info(
-          `[blockTransaction] Looking for transaction for hash ${transactionHash} and block ${blockTransactionRequest.block_identifier}`
+          `[blockTransaction] Looking for transaction for hash ${transactionHash} 
+          and block ${blockTransactionRequest.block_identifier}`
         );
         const transaction = await blockService.findTransaction(
           request.log,

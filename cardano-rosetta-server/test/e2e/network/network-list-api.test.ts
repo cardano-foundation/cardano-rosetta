@@ -19,6 +19,7 @@ describe('/network/list endpoint', () => {
     await database.end();
   });
 
+  // eslint-disable-next-line max-len
   test('if requested with an empty request body it should properly return an array of one element equal to cardano mainnet', async () => {
     const response = await server.inject({
       method: 'post',
