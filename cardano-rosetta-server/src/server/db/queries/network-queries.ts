@@ -3,10 +3,4 @@ const findAllNetworksQuery = `SELECT
 FROM
     meta m`;
 
-const findNetworkByNetworkName = `SELECT 
-    COUNT(*) 
-FROM 
-    meta m 
-WHERE m.network_name = $1`;
-
-export { findAllNetworksQuery, findNetworkByNetworkName };
+export { findAllNetworksQuery };

@@ -27,6 +27,7 @@ describe('Environment parser test', () => {
     expect(mockExit).toHaveBeenCalledWith(1);
     process.env.CARDANOCLI_PATH = previousPath;
   });
+  // eslint-disable-next-line max-len
   test('Should throw an error if a field is expected to be a valid file path with a valid schema but file has not a valid schema', () => {
     const previousPath = process.env.TOPOLOGY_FILE_PATH;
     process.env.TOPOLOGY_FILE_PATH = process.env.CARDANOCLI_PATH;

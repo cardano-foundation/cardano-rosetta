@@ -29,6 +29,7 @@ describe('/network/status endpoint', () => {
     await database.end();
   });
 
+  // eslint-disable-next-line max-len
   test('If requested with valid payload, it should properly return an object containing proper status information', async () => {
     const response = await server.inject({
       method: 'post',

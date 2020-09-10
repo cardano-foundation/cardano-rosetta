@@ -42,6 +42,7 @@ describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
         network: 'mainnet'
       },
       unsigned_transaction:
+        // eslint-disable-next-line max-len
         'a4008182582010c3c63f2a97ce531730fd2bd708cda1eb08920f79d2abeeb833c7089f13c54e00018182582b82d818582183581c0b40138c75daebf910edf9cb34024528cab10c74ed2a897c37b464b0a0001a777c6af614021a0002b4f60314',
       signatures: [
         {

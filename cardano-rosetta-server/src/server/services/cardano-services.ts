@@ -322,7 +322,8 @@ const configure = (): CardanoService => ({
     logger.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
     const addresses = inputs.map(input => {
       if (input.account) return input.account?.address;
-      // This logic is not necessary (because it is made on this.getTransactionInputs(..)) but ts expects me to do it again
+      // This logic is not necessary (because it is made on this.getTransactionInputs(..))
+      // but ts expects me to do it again
       throw ErrorFactory.transactionInputsParametersMissingError('Input has missing account address field');
     });
 

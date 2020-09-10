@@ -122,6 +122,7 @@ describe('/network/options endpoint', () => {
     await database.end();
   });
 
+  // eslint-disable-next-line max-len
   test('if requested with proper payload it should properly return an object containing proper version information', async () => {
     const response = await server.inject({
       method: 'post',
@@ -133,6 +134,7 @@ describe('/network/options endpoint', () => {
   });
 
   // nth: Do this test more granular to assert in a specific test errors array
+  // eslint-disable-next-line max-len
   test('if requested with proper payload it should properly return an object containing proper allow information', async () => {
     const response = await server.inject({
       method: 'post',
