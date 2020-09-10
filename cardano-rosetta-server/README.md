@@ -17,7 +17,7 @@ There must be a `.env` or `.env.test` file in the root directory with the follow
 ```
 # App port
 PORT=8080
-# Application log level {silent, fatal, error, warn, info, debug, trace, all}
+# Application log level [ trace | debug | info | warn | error | fatal ]
 LOGGER_LEVEL="debug"
 # App address to bind to
 BIND_ADDRESS=0.0.0.0

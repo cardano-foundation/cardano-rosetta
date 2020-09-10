@@ -44,7 +44,12 @@ docker run \
   -v cardano-rosetta:/data \
   cardano-rosetta:0.2.1
 ```
-
+### Configuration
+```console
+-e DEFAULT_RELATIVE_TTL=1000
+-e LOGGER_MIN_SEVERITY=[ trace | debug | info (default) | warn | error | fatal ]
+-e PAGE_SIZE=25
+```
 ## Documentation
 
 | Link                               | Audience                                                     |
