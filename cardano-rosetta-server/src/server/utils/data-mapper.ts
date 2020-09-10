@@ -160,11 +160,10 @@ const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] =>
  * @param blockUtxos
  * @param accountAddress
  */
-export const mapToAccountBalanceResponse = (
-  blockUtxos: BlockUtxos,
-  accountAddress: string
-): Components.Schemas.AccountBalanceResponse => {
-  const balanceForAddress = blockUtxos.utxos.reduce((acum, current) => acum + Number(current.value), 0).toString();
+export const mapToAccountBalanceResponse = (blockUtxos: BlockUtxos): Components.Schemas.AccountBalanceResponse => {
+  const balanceForAddress = blockUtxos.utxos
+    .reduce((acum, current) => acum + BigInt(current.value), BigInt(0))
+    .toString();
   return {
     block_identifier: {
       index: blockUtxos.block.number,
@@ -176,9 +175,7 @@ export const mapToAccountBalanceResponse = (
         currency: {
           symbol: ADA,
           decimals: ADA_DECIMALS,
-          metadata: {
-            issuer: accountAddress
-          }
+          metadata: {}
         },
         metadata: {}
       }
