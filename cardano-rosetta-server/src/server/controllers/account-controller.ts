@@ -26,7 +26,7 @@ const configure = (blockService: BlockService, networkId: string): AccountContro
           accountBalanceRequest.block_identifier?.index,
           accountBalanceRequest.block_identifier?.hash
         );
-        const toReturn = mapToAccountBalanceResponse(blockUtxos, accountAddress);
+        const toReturn = mapToAccountBalanceResponse(blockUtxos);
         logger.debug(toReturn, '[accountBalance] About to return ');
         return toReturn;
       },
