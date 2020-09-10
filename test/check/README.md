@@ -16,13 +16,13 @@ rosetta-cli configuration:validate config.json
 
 ### `:data`
 ``` console
-jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json host/localhost.json data/byron_sample.json > data_config.json
+jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json data/host/localhost.json data/byron_sample.json > data_config.json
 rosetta-cli check:data --configuration-file=data_config.json
 ```
 
 ### `:construction`
 ``` console
-jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/testnet.json host/localhost.json construction/1.json > construction_config.json
+jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/testnet.json construction/host/localhost.json construction/1.json > construction_config.json
 rosetta-cli check:construction --configuration-file=construction_config.json
 ```
 
