@@ -47,6 +47,7 @@ docker run \
 ### Configuration
 ```console
 -e LOGGER_MIN_SEVERITY=[ trace | debug | info (default) | warn | error | fatal ]
+-e PAGE_SIZE=25
 ```
 ## Documentation
 

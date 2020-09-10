@@ -56,7 +56,7 @@ module.exports = {
         GENESIS_PATH: '/config/genesis/shelley.json',
         LOGGER_LEVEL: process.env.LOGGER_MIN_SEVERITY,
         NODE_ENV: 'development',
-        PAGE_SIZE: 30,
+        PAGE_SIZE: process.env.PAGE_SIZE,
         PORT: 8080,
         TOPOLOGY_FILE_PATH: '/config/cardano-node/topology.json'
       },
