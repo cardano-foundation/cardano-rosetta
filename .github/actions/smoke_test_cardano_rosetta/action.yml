@@ -9,6 +9,9 @@ inputs:
     description: Supported Cardano network
     required: false
     default: mainnet
+  test-exe:
+    description: Smoke test executable
+    required: true
 runs:
   using: composite
   steps:
@@ -18,6 +21,6 @@ runs:
     - name: Test
       run: |
         sleep 10
-        curl -X POST -H "Content-Type: application/json" -d '{"network_identifier":{"blockchain": "cardano", "network":"${{ inputs.network-identifier }}"}}' http://localhost:8080/network/status
+        ${{ inputs.test-exe }} ${{ inputs.network-identifier }}
         docker stop cardano-rosetta
       shell: bash
