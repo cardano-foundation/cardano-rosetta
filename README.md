@@ -18,7 +18,7 @@ docker build -t cardano-rosetta .
 **_Optionally_**  specify a [network] name, other than `mainnet`, using a build argument:
 
 ```console
-  --build-arg=NETWORK=testnet
+  --build-arg NETWORK=testnet
 ```
 
 **_Optionally_** use cached build layers to reduce the initialization time. Suits dev and demo 
