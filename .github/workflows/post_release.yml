@@ -20,6 +20,7 @@ jobs:
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
           tag: ${{ github.event.release.tag_name }}
+          test-exe: ./test/smoke_test.sh
       - name: Apply latest tag
         run: |
           docker tag cardano-rosetta:${{ github.event.release.tag_name }} inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}

@@ -27,3 +27,4 @@ jobs:
         with:
           tag: ${{ github.sha }}
           network-identifier: testnet
+          test-exe: ./test/smoke_test.sh
