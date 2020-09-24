@@ -26,7 +26,7 @@ jobs:
           tar xvf data.tar data
           rm data.tar
       - name: Run Cardano Rosetta
-        run: docker run --rm -d -p 8080:8080 -v ${{ github.workspace }}/data:/data --name cardano-rosetta cardano-rosetta:${{ github.sha }}
+        run: docker run --rm -d -p 8080:8080 -v ${{ github.workspace }}/data:/data --name cardano-rosetta --shm-size=2g cardano-rosetta:${{ github.sha }}
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
