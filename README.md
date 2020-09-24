@@ -34,14 +34,16 @@ docker build \
 
 ## Run
 
-Mount a single volume into the [standard storage location] mapping the server port to the host. 
-See the complete [Docker run reference] for full control. 
+Mount a single volume into the [standard storage location], mapping the server port to the host, 
+and allocating a suitably-sized `/dev/shm`. See the complete [Docker run reference] for full 
+control.
 
 ```console
 docker run \
   --name cardano-rosetta \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
+  --shm-size=2g \
   cardano-rosetta:0.2.2
 ```
 ### Configuration
