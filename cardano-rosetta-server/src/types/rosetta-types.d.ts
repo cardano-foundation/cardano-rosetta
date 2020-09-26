@@ -326,6 +326,7 @@ declare namespace Components {
        */
       options?: {
         relative_ttl: number;
+        transaction_size: number;
       };
       required_public_keys?: /* The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated). */ AccountIdentifier[];
     }

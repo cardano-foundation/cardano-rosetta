@@ -1526,9 +1526,10 @@
           "options": {
             "type": "object",
             "description": "The options that will be sent directly to `/construction/metadata` by the caller.",
-            "required": ["relative_ttl"],
+            "required": ["relative_ttl", "transaction_size"],
             "properties": {
-              "relative_ttl": { "type": "number" }
+              "relative_ttl": { "type": "number" },
+              "transaction_size": { "type": "number" }
             }
           },
           "required_public_keys": {

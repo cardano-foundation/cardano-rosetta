@@ -52,6 +52,10 @@ export const Errors = {
     message: 'Cant deserialize transaction output from transaction body',
     code: 4014
   },
+  INVALID_ADDRESS: {
+    message: 'Provided address is invalid',
+    code: 4015
+  },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -102,6 +106,7 @@ const transactionInputDeserializationError: CreateErrorFunction = (details?: str
   buildApiError(Errors.TRANSACTION_INPUT_DESERIALIZATION_ERROR, false, details);
 const transactionOutputDeserializationError: CreateErrorFunction = (details?: string) =>
   buildApiError(Errors.TRANSACTION_OUTPUT_DESERIALIZATION_ERROR, false, details);
+const invalidAddressError: CreateErrorFunction = address => buildApiError(Errors.INVALID_ADDRESS, true, address);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -124,7 +129,8 @@ export const ErrorFactory = {
   cantCreateUnsignedTransactionFromBytes,
   sendTransactionError,
   transactionInputDeserializationError,
-  transactionOutputDeserializationError
+  transactionOutputDeserializationError,
+  invalidAddressError
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>

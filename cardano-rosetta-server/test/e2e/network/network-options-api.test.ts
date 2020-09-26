@@ -73,6 +73,11 @@ const allow = {
       retriable: false
     },
     {
+      code: 4015,
+      message: 'Provided address is invalid',
+      retriable: true
+    },
+    {
       code: 5000,
       message: 'An error occurred',
       retriable: true

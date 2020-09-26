@@ -109,8 +109,9 @@ const configure = (
       async () => {
         // eslint-disable-next-line camelcase
         const relativeTtl = constructionService.calculateRelativeTtl(request.body.metadata?.relative_ttl);
+        const transactionSize = cardanoService.calculateTxSize(request.log, request.body.operations, '0');
         // eslint-disable-next-line camelcase
-        return { options: { relative_ttl: relativeTtl } };
+        return { options: { relative_ttl: relativeTtl, transaction_size: transactionSize } };
       },
       request.log,
       networkId

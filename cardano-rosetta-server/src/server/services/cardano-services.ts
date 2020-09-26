@@ -5,7 +5,8 @@ import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
 import { ADA, ADA_DECIMALS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 
-export const PUBLIC_KEY_LENGTH = 32;
+// Nibbles
+export const SIGNATURE_LENGTH = 128;
 export const PUBLIC_KEY_BYTES_LENGTH = 64;
 
 export enum NetworkIdentifier {
@@ -28,6 +29,14 @@ export interface TransactionParsed {
   signers: string[];
 }
 
+export enum AddressType {
+  Shelley,
+  Byron
+}
+
+const SHELLEY_FAKE_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
+const SHELLEY_FAKE_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
+
 export interface CardanoService {
   /**
    * Derives a Shelley bech32 Enterprise address for the given public key
@@ -36,6 +45,13 @@ export interface CardanoService {
    * @param publicKey public key hex string representation
    */
   generateAddress(logger: Logger, networkId: NetworkIdentifier, publicKey: string): string | null;
+
+  /**
+   * This function returns the address type based on a string encoded one
+   *
+   * @param address to be parsed
+   */
+  getAddressType(address: string): AddressType | null;
 
   /**
    * Returns the transaction hash for the given signed transaction.
@@ -55,6 +71,15 @@ export interface CardanoService {
     operations: Components.Schemas.Operation[],
     ttl: string
   ): UnsignedTransaction;
+
+  /**
+   * Calculates the transaction size in bytes for the given operations
+   *
+   * @param logger
+   * @param operations
+   * @param ttl
+   */
+  calculateTxSize(logger: Logger, operations: Components.Schemas.Operation[], ttl: string): number;
 
   /**
    * Generates an hex encoded signed transaction
@@ -256,6 +281,8 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
+const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
+
 const configure = (): CardanoService => ({
   generateAddress(logger, network, publicKey) {
     logger.info(
@@ -275,6 +302,19 @@ const configure = (): CardanoService => ({
     logger.info(`[generateAddress] base address is ${address}`);
     return address;
   },
+
+  getAddressType(address) {
+    if (CardanoWasm.ByronAddress.is_valid(address)) {
+      return AddressType.Byron;
+    }
+    try {
+      CardanoWasm.Address.from_bech32(address);
+      return AddressType.Shelley;
+    } catch (error) {
+      return null;
+    }
+  },
+
   getHashOfSignedTransaction(logger, signedTransaction) {
     try {
       logger.info(`[getHashOfSignedTransaction] About to hash signed transaction ${signedTransaction}`);
@@ -340,6 +380,26 @@ const configure = (): CardanoService => ({
       '[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash'
     );
     return toReturn;
+  },
+
+  calculateTxSize(logger, operations, ttl) {
+    const { bytes, addresses } = this.createUnsignedTransaction(logger, operations, ttl);
+    // eslint-disable-next-line consistent-return
+    const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
+      switch (this.getAddressType(address)) {
+        case AddressType.Shelley:
+          return {
+            signature: SHELLEY_FAKE_SIGNATURE,
+            publicKey: SHELLEY_FAKE_PUBKEY
+          };
+        case AddressType.Byron: // FIXME: handle this properly when supporting byron in a separate PR
+        case null:
+          throw ErrorFactory.invalidAddressError(address);
+      }
+    });
+    const transaction = this.buildTransaction(logger, bytes, signatures);
+    // eslint-disable-next-line no-magic-numbers
+    return transaction.length / 2; // transaction is returned as an hex string and we need size in bytes
   },
 
   parseSignedTransaction(logger, networkId, transaction, extraData) {
