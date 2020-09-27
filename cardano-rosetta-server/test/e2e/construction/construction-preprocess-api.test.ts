@@ -3,15 +3,9 @@ import StatusCodes from 'http-status-codes';
 import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
-import { CONSTRUCTION_PAYLOADS_REQUEST, SIGNED_TRANSACTION } from '../fixture-data';
+import { CONSTRUCTION_PAYLOADS_REQUEST, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_PREPROCESS_ENDPOINT = '/construction/preprocess';
-
-// Preprocess transcation size considers 0 as ttl while the signed transaction is
-// using 1000, therefore we need to substract 2 bytes (that will be added in metadata endpoint)
-
-// eslint-disable-next-line no-magic-numbers
-const TRANSACTION_SIZE_IN_BYTES = SIGNED_TRANSACTION.length / 2 - 2;
 
 const generateProcessPayload = (blockchain: string, network: string, relativeTtl?: number) => ({
   network_identifier: {

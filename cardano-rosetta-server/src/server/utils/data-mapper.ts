@@ -17,6 +17,14 @@ import { Block, BlockUtxos, Network, TransactionWithInputsAndOutputs, Utxo } fro
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
 
+export const mapAmount = (lovelace: string): Components.Schemas.Amount => ({
+  value: lovelace,
+  currency: {
+    symbol: ADA,
+    decimals: ADA_DECIMALS
+  }
+});
+
 /**
  * Creates a Rosetta operation for the given information ready to be consumed by clients
  *
@@ -47,13 +55,7 @@ const createOperation = (
   account: {
     address
   },
-  amount: {
-    value,
-    currency: {
-      symbol: 'ADA',
-      decimals: 6
-    }
-  },
+  amount: mapAmount(value),
   coin_change,
   related_operations: relatedOperations
 });
@@ -151,7 +153,7 @@ export const mapToRosettaBlock = (
  */
 const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] =>
   utxoDetails.map(utxoDetail => ({
-    amount: { value: utxoDetail.value, currency: { symbol: ADA, decimals: ADA_DECIMALS } },
+    amount: mapAmount(utxoDetail.value),
     coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
   }));
 
@@ -169,17 +171,7 @@ export const mapToAccountBalanceResponse = (blockUtxos: BlockUtxos): Components.
       index: blockUtxos.block.number,
       hash: blockUtxos.block.hash
     },
-    balances: [
-      {
-        value: balanceForAddress,
-        currency: {
-          symbol: ADA,
-          decimals: ADA_DECIMALS,
-          metadata: {}
-        },
-        metadata: {}
-      }
-    ],
+    balances: [mapAmount(balanceForAddress)],
     coins: parseUtxoDetails(blockUtxos.utxos)
   };
 };

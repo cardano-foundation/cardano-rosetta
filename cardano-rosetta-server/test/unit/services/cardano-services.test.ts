@@ -4,7 +4,7 @@ describe('Cardano Service', () => {
   let cardanoService: CardanoService;
 
   beforeAll(() => {
-    cardanoService = configure();
+    cardanoService = configure({ minFeeA: 0, minFeeB: 0 });
   });
 
   describe('Address type detection', () => {

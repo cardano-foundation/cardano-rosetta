@@ -6,6 +6,7 @@ import {
   decodeExtraData,
   encodeExtraData,
   getNetworkIdentifierByRequestParameters,
+  mapAmount,
   mapToConstructionHashResponse
 } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
@@ -109,7 +110,7 @@ const configure = (
       async () => {
         // eslint-disable-next-line camelcase
         const relativeTtl = constructionService.calculateRelativeTtl(request.body.metadata?.relative_ttl);
-        const transactionSize = cardanoService.calculateTxSize(request.log, request.body.operations, '0');
+        const transactionSize = cardanoService.calculateTxSize(request.log, request.body.operations, 0);
         // eslint-disable-next-line camelcase
         return { options: { relative_ttl: relativeTtl, transaction_size: transactionSize } };
       },
@@ -121,9 +122,21 @@ const configure = (
       request.body.network_identifier,
       request,
       async () => {
+        const logger = request.log;
         const ttlOffset = request.body.options.relative_ttl;
-        const ttl = (await constructionService.calculateTtl(request.log, ttlOffset)).toString();
-        return { metadata: { ttl } };
+        const txSize = request.body.options.transaction_size;
+        logger.debug(`[constructionMetadata] Calculating ttl based on ${ttlOffset} relative ttl`);
+        const ttl = await constructionService.calculateTtl(request.log, ttlOffset);
+        logger.debug(`[constructionMetadata] ttl is ${ttl}`);
+        // As we have calculated tx assuming ttl as 0, we need to properly update the size
+        // now that we have it already
+        logger.debug(`[constructionMetadata] updating tx size from ${txSize}`);
+        const updatedTxSize = cardanoService.updateTxSize(txSize, 0, ttl);
+        logger.debug(`[constructionMetadata] updated txSize size is ${updatedTxSize}`);
+        const suggestedFee: BigInt = cardanoService.calculateTxMinimumFee(updatedTxSize);
+        logger.debug(`[constructionMetadata] suggested fee is ${suggestedFee}`);
+        // eslint-disable-next-line camelcase
+        return { metadata: { ttl: ttl.toString() }, suggested_fee: [mapAmount(suggestedFee.toString())] };
       },
       request.log,
       networkId
@@ -137,7 +150,7 @@ const configure = (
         const ttl = request.body.metadata.ttl;
         const operations = request.body.operations;
         logger.info(operations, '[constuctionPayloads] Operations about to be processed');
-        const unsignedTransaction = cardanoService.createUnsignedTransaction(logger, operations, ttl);
+        const unsignedTransaction = cardanoService.createUnsignedTransaction(logger, operations, parseInt(ttl));
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         return {
           // eslint-disable-next-line camelcase

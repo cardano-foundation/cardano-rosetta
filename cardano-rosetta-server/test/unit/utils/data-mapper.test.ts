@@ -35,10 +35,8 @@ describe('Data Mapper', () => {
           {
             currency: {
               decimals: 6,
-              metadata: {},
               symbol: 'ADA'
             },
-            metadata: {},
             value: '37999999989620601'
           }
         ],

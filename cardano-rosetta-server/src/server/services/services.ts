@@ -1,6 +1,6 @@
 import { Repositories } from '../db/repositories';
 import blockService, { BlockService } from './block-service';
-import cardanoService, { CardanoService } from './cardano-services';
+import cardanoService, { CardanoService, LinearFeeParameters } from './cardano-services';
 import constructionService, { ConstructionService } from './construction-service';
 import networkService, { NetworkService, TopologyConfig } from './network-service';
 
@@ -19,10 +19,11 @@ export interface Services {
 export const configure = (
   repositories: Repositories,
   topologyFile: TopologyConfig,
-  DEFAULT_RELATIVE_TTL: number
+  DEFAULT_RELATIVE_TTL: number,
+  linearFeeParameters: LinearFeeParameters
 ): Services => {
   const blockServiceInstance = blockService(repositories.blockchainRepository);
-  const cardanoServiceInstance = cardanoService();
+  const cardanoServiceInstance = cardanoService(linearFeeParameters);
   return {
     blockService: blockServiceInstance,
     constructionService: constructionService(blockServiceInstance, DEFAULT_RELATIVE_TTL),

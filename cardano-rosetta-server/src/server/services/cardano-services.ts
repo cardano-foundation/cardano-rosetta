@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import CardanoWasm, { BigNum, Ed25519Signature, PublicKey, Vkey } from '@emurgo/cardano-serialization-lib-nodejs';
+import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
@@ -27,6 +28,11 @@ export interface UnsignedTransaction {
 export interface TransactionParsed {
   operations: Components.Schemas.Operation[];
   signers: string[];
+}
+
+export interface LinearFeeParameters {
+  minFeeA: number;
+  minFeeB: number;
 }
 
 export enum AddressType {
@@ -69,7 +75,7 @@ export interface CardanoService {
   createUnsignedTransaction(
     logger: Logger,
     operations: Components.Schemas.Operation[],
-    ttl: string
+    ttl: number
   ): UnsignedTransaction;
 
   /**
@@ -79,7 +85,24 @@ export interface CardanoService {
    * @param operations
    * @param ttl
    */
-  calculateTxSize(logger: Logger, operations: Components.Schemas.Operation[], ttl: string): number;
+  calculateTxSize(logger: Logger, operations: Components.Schemas.Operation[], ttl: number): number;
+
+  /**
+   * Updates calculated tx size if ttl was replaced with a different value
+   *
+   * @param previousTxSize in bytes
+   * @param previousTtl value
+   * @param newTtl value
+   */
+  updateTxSize(previousTxSize: number, previousTtl: number, newTtl: number): number;
+
+  /**
+   * Returns the transaction minimum fee given the transaction size using the
+   * linear fee calculation formula
+   *
+   * @param transactionSize in bytes
+   */
+  calculateTxMinimumFee(transactionSize: number): BigInt;
 
   /**
    * Generates an hex encoded signed transaction
@@ -283,7 +306,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
 
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
 
-const configure = (): CardanoService => ({
+const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => ({
   generateAddress(logger, network, publicKey) {
     logger.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
@@ -357,7 +380,7 @@ const configure = (): CardanoService => ({
       validateAndParseTransactionInputs(logger, inputs),
       validateAndParseTransactionOutputs(logger, outputs),
       fee,
-      Number(ttl)
+      ttl
     );
     logger.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
     const addresses = inputs.map(input => {
@@ -400,6 +423,14 @@ const configure = (): CardanoService => ({
     const transaction = this.buildTransaction(logger, bytes, signatures);
     // eslint-disable-next-line no-magic-numbers
     return transaction.length / 2; // transaction is returned as an hex string and we need size in bytes
+  },
+
+  updateTxSize(previousTxSize, previousTtl, updatedTtl) {
+    return previousTxSize + cbor.encode(updatedTtl).byteLength - cbor.encode(previousTtl).byteLength;
+  },
+
+  calculateTxMinimumFee(transactionSize: number): BigInt {
+    return BigInt(linearFeeParameters.minFeeA) * BigInt(transactionSize) + BigInt(linearFeeParameters.minFeeB);
   },
 
   parseSignedTransaction(logger, networkId, transaction, extraData) {
