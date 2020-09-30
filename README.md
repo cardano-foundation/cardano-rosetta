@@ -52,6 +52,18 @@ docker run \
 -e LOGGER_MIN_SEVERITY=[ trace | debug | info (default) | warn | error | fatal ]
 -e PAGE_SIZE=25
 ```
+
+### Upgrading
+As per the release notes, you **_may_** be required to rebuild the PostgreSQL database. This can 
+be achieved without requiring a network re-sync using the following command:
+
+```console
+docker stop cardano-rosetta && \
+docker rm cardano-rosetta && \
+docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql
+```
+Progress will be logged by the new container. 
+
 ## Documentation
 
 | Link                               | Audience                                                     |
