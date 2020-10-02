@@ -508,14 +508,14 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
   }
 };
 
-const CONSTRUCTION_EXTRADADATA = CONSTRUCTION_PAYLOADS_REQUEST.operations.filter(
+const CONSTRUCTION_EXTRA_DATA = CONSTRUCTION_PAYLOADS_REQUEST.operations.filter(
   op => op.coin_change?.coin_action === 'coin_spent'
 );
 
 export const CONSTRUCTION_PAYLOADS_RESPONSE = cbor
   .encode([
     'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
-    CONSTRUCTION_EXTRADADATA
+    CONSTRUCTION_EXTRA_DATA
   ])
   .toString('hex');
 
@@ -834,25 +834,25 @@ export const SIGNED_TRANSACTION =
 // eslint-disable-next-line no-magic-numbers
 export const TRANSACTION_SIZE_IN_BYTES = SIGNED_TRANSACTION.length / 2 - 2;
 
-export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRADATA = cbor
-  .encode([SIGNED_TRANSACTION, CONSTRUCTION_EXTRADADATA])
+export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
+  .encode([SIGNED_TRANSACTION, CONSTRUCTION_EXTRA_DATA])
   .toString('hex');
 
-export const CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRADATA = cbor
+export const CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
   .encode([
     'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
-    CONSTRUCTION_EXTRADADATA
+    CONSTRUCTION_EXTRA_DATA
   ])
   .toString('hex');
 
-export const CONSTRUCTION_INVALID_TRANSACTION = cbor.encode(['invalid_tx', CONSTRUCTION_EXTRADADATA]).toString('hex');
+export const CONSTRUCTION_INVALID_TRANSACTION = cbor.encode(['invalid_tx', CONSTRUCTION_EXTRA_DATA]).toString('hex');
 
 export const CONSTRUCTION_COMBINE_PAYLOAD = {
   network_identifier: {
     blockchain: 'cardano',
     network: 'mainnet'
   },
-  unsigned_transaction: CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRADATA,
+  unsigned_transaction: CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA,
   signatures: [
     {
       signing_payload: {

@@ -5,7 +5,7 @@ import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import { cardanoCliMock, setupDatabase, setupServer } from '../utils/test-utils';
 import { Errors } from '../../../src/server/utils/errors';
-import { CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRADATA } from '../fixture-data';
+import { CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA } from '../fixture-data';
 
 const CONSTRUCTION_SUBMIT_ENDPOINT = '/construction/submit';
 
@@ -66,7 +66,7 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
       payload: generatePayloadWithSignedTransaction(
         'cardano',
         'mainnet',
-        CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRADATA
+        CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
@@ -88,7 +88,7 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
       payload: generatePayloadWithSignedTransaction(
         'cardano',
         'mainnet',
-        CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRADATA
+        CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);

@@ -40,8 +40,8 @@ export enum AddressType {
   Byron
 }
 
-const SHELLEY_FAKE_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
-const SHELLEY_FAKE_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
+const SHELLEY_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
+const SHELLEY_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
 
 export interface CardanoService {
   /**
@@ -412,8 +412,8 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       switch (this.getAddressType(address)) {
         case AddressType.Shelley:
           return {
-            signature: SHELLEY_FAKE_SIGNATURE,
-            publicKey: SHELLEY_FAKE_PUBKEY
+            signature: SHELLEY_DUMMY_SIGNATURE,
+            publicKey: SHELLEY_DUMMY_PUBKEY
           };
         case AddressType.Byron: // FIXME: handle this properly when supporting byron in a separate PR
         case null:
