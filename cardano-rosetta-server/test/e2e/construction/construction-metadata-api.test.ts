@@ -3,7 +3,8 @@
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
-import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import { linearFeeParameters, setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import { SIGNED_TRANSACTION, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 
@@ -13,7 +14,8 @@ const generateMetadataPayload = (blockchain: string, network: string, relativeTt
     network
   },
   options: {
-    relative_ttl: relativeTtl
+    relative_ttl: relativeTtl,
+    transaction_size: TRANSACTION_SIZE_IN_BYTES
   }
 });
 
@@ -42,7 +44,23 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
       payload: generateMetadataPayload('cardano', 'mainnet', 100)
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual({ metadata: { ttl: '65294' } });
+    expect(response.json()).toEqual({
+      metadata: {
+        ttl: '65294'
+      },
+      suggested_fee: [
+        {
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          },
+          value: (
+            (SIGNED_TRANSACTION.length / 2) * linearFeeParameters.minFeeA +
+            linearFeeParameters.minFeeB
+          ).toString()
+        }
+      ]
+    });
   });
 
   testInvalidNetworkParameters(

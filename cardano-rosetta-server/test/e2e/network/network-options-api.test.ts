@@ -73,6 +73,11 @@ const allow = {
       retriable: false
     },
     {
+      code: 4015,
+      message: 'Provided address is invalid',
+      retriable: true
+    },
+    {
       code: 5000,
       message: 'An error occurred',
       retriable: true
@@ -104,7 +109,7 @@ const allow = {
 };
 
 const version = {
-  rosetta_version: '1.4.1',
+  rosetta_version: '1.4.4',
   node_version: 'cardano-node 1.18.0 - linux-x86_64 - ghc-8.6\ngit rev 36ad7b90bfbde8afd41b68ed9b928df3fcab0dbc',
   middleware_version: packageJson.version,
   metadata: {}

@@ -5,7 +5,7 @@ import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import { cardanoCliMock, setupDatabase, setupServer } from '../utils/test-utils';
 import { Errors } from '../../../src/server/utils/errors';
-import { CONSTRUCTION_SIGNED_TRANSACTION } from '../fixture-data';
+import { CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA } from '../fixture-data';
 
 const CONSTRUCTION_SUBMIT_ENDPOINT = '/construction/submit';
 
@@ -63,7 +63,11 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_SUBMIT_ENDPOINT,
-      payload: generatePayloadWithSignedTransaction('cardano', 'mainnet', CONSTRUCTION_SIGNED_TRANSACTION)
+      payload: generatePayloadWithSignedTransaction(
+        'cardano',
+        'mainnet',
+        CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA
+      )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(mock.mock.calls.length).toBe(1);
@@ -81,7 +85,11 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_SUBMIT_ENDPOINT,
-      payload: generatePayloadWithSignedTransaction('cardano', 'mainnet', CONSTRUCTION_SIGNED_TRANSACTION)
+      payload: generatePayloadWithSignedTransaction(
+        'cardano',
+        'mainnet',
+        CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA
+      )
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect((cardanoCliMock.submitTransaction as jest.Mock).mock.calls.length).toBe(1);

@@ -7,8 +7,8 @@ import {
   CONSTRUCTION_INVALID_TRANSACTION,
   CONSTRUCTION_PARSE_OPERATIONS,
   CONSTRUCTION_PAYLOADS_REQUEST,
-  CONSTRUCTION_SIGNED_TRANSACTION,
-  CONSTRUCTION_UNSIGNED_TRANSACTION
+  CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
+  CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA
 } from '../fixture-data';
 
 const CONSTRUCTION_PARSE_ENDPOINT = '/construction/parse';
@@ -35,7 +35,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PARSE_ENDPOINT,
-      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TRANSACTION)
+      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA)
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(CONSTRUCTION_PARSE_OPERATIONS);
@@ -46,7 +46,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PARSE_ENDPOINT,
-      payload: generateParsePayload('cardano', 'mainnet', false, CONSTRUCTION_UNSIGNED_TRANSACTION)
+      payload: generateParsePayload('cardano', 'mainnet', false, CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA)
     });
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
@@ -86,7 +86,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PARSE_ENDPOINT,
-      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_UNSIGNED_TRANSACTION)
+      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA)
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
@@ -100,7 +100,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PARSE_ENDPOINT,
-      payload: generateParsePayload('cardano', 'mainnet', false, CONSTRUCTION_SIGNED_TRANSACTION)
+      payload: generateParsePayload('cardano', 'mainnet', false, CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA)
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({

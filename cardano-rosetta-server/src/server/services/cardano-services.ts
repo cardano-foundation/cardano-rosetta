@@ -1,11 +1,13 @@
 /* eslint-disable camelcase */
 import CardanoWasm, { BigNum, Ed25519Signature, PublicKey, Vkey } from '@emurgo/cardano-serialization-lib-nodejs';
+import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
 import { ADA, ADA_DECIMALS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
 
-export const PUBLIC_KEY_LENGTH = 32;
+// Nibbles
+export const SIGNATURE_LENGTH = 128;
 export const PUBLIC_KEY_BYTES_LENGTH = 64;
 
 export enum NetworkIdentifier {
@@ -28,6 +30,19 @@ export interface TransactionParsed {
   signers: string[];
 }
 
+export interface LinearFeeParameters {
+  minFeeA: number;
+  minFeeB: number;
+}
+
+export enum AddressType {
+  Shelley,
+  Byron
+}
+
+const SHELLEY_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
+const SHELLEY_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
+
 export interface CardanoService {
   /**
    * Derives a Shelley bech32 Enterprise address for the given public key
@@ -36,6 +51,13 @@ export interface CardanoService {
    * @param publicKey public key hex string representation
    */
   generateAddress(logger: Logger, networkId: NetworkIdentifier, publicKey: string): string | null;
+
+  /**
+   * This function returns the address type based on a string encoded one
+   *
+   * @param address to be parsed
+   */
+  getAddressType(address: string): AddressType | null;
 
   /**
    * Returns the transaction hash for the given signed transaction.
@@ -53,8 +75,34 @@ export interface CardanoService {
   createUnsignedTransaction(
     logger: Logger,
     operations: Components.Schemas.Operation[],
-    ttl: string
+    ttl: number
   ): UnsignedTransaction;
+
+  /**
+   * Calculates the transaction size in bytes for the given operations
+   *
+   * @param logger
+   * @param operations
+   * @param ttl
+   */
+  calculateTxSize(logger: Logger, operations: Components.Schemas.Operation[], ttl: number): number;
+
+  /**
+   * Updates calculated tx size if ttl was replaced with a different value
+   *
+   * @param previousTxSize in bytes
+   * @param previousTtl value
+   * @param newTtl value
+   */
+  updateTxSize(previousTxSize: number, previousTtl: number, newTtl: number): number;
+
+  /**
+   * Returns the transaction minimum fee given the transaction size using the
+   * linear fee calculation formula
+   *
+   * @param transactionSize in bytes
+   */
+  calculateTxMinimumFee(transactionSize: number): BigInt;
 
   /**
    * Generates an hex encoded signed transaction
@@ -256,7 +304,9 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
-const configure = (): CardanoService => ({
+const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
+
+const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => ({
   generateAddress(logger, network, publicKey) {
     logger.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
@@ -275,6 +325,19 @@ const configure = (): CardanoService => ({
     logger.info(`[generateAddress] base address is ${address}`);
     return address;
   },
+
+  getAddressType(address) {
+    if (CardanoWasm.ByronAddress.is_valid(address)) {
+      return AddressType.Byron;
+    }
+    try {
+      CardanoWasm.Address.from_bech32(address);
+      return AddressType.Shelley;
+    } catch (error) {
+      return null;
+    }
+  },
+
   getHashOfSignedTransaction(logger, signedTransaction) {
     try {
       logger.info(`[getHashOfSignedTransaction] About to hash signed transaction ${signedTransaction}`);
@@ -317,7 +380,7 @@ const configure = (): CardanoService => ({
       validateAndParseTransactionInputs(logger, inputs),
       validateAndParseTransactionOutputs(logger, outputs),
       fee,
-      Number(ttl)
+      ttl
     );
     logger.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
     const addresses = inputs.map(input => {
@@ -340,6 +403,34 @@ const configure = (): CardanoService => ({
       '[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash'
     );
     return toReturn;
+  },
+
+  calculateTxSize(logger, operations, ttl) {
+    const { bytes, addresses } = this.createUnsignedTransaction(logger, operations, ttl);
+    // eslint-disable-next-line consistent-return
+    const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
+      switch (this.getAddressType(address)) {
+        case AddressType.Shelley:
+          return {
+            signature: SHELLEY_DUMMY_SIGNATURE,
+            publicKey: SHELLEY_DUMMY_PUBKEY
+          };
+        case AddressType.Byron: // FIXME: handle this properly when supporting byron in a separate PR
+        case null:
+          throw ErrorFactory.invalidAddressError(address);
+      }
+    });
+    const transaction = this.buildTransaction(logger, bytes, signatures);
+    // eslint-disable-next-line no-magic-numbers
+    return transaction.length / 2; // transaction is returned as an hex string and we need size in bytes
+  },
+
+  updateTxSize(previousTxSize, previousTtl, updatedTtl) {
+    return previousTxSize + cbor.encode(updatedTtl).byteLength - cbor.encode(previousTtl).byteLength;
+  },
+
+  calculateTxMinimumFee(transactionSize: number): BigInt {
+    return BigInt(linearFeeParameters.minFeeA) * BigInt(transactionSize) + BigInt(linearFeeParameters.minFeeB);
   },
 
   parseSignedTransaction(logger, networkId, transaction, extraData) {

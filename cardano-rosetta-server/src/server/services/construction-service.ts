@@ -14,7 +14,7 @@ export interface ConstructionService {
    *
    * @param ttlOffset
    */
-  calculateTtl(logger: Logger, ttlOffset: number): Promise<BigInt>;
+  calculateTtl(logger: Logger, ttlOffset: number): Promise<number>;
 }
 
 const configure = (blockService: BlockService, defaultRelativeTTL: number): ConstructionService => ({
@@ -22,7 +22,7 @@ const configure = (blockService: BlockService, defaultRelativeTTL: number): Cons
 
   calculateTtl: async (logger, ttlOffset) => {
     const latestBlock = await blockService.getLatestBlock(logger);
-    return BigInt(latestBlock.slotNo) + BigInt(ttlOffset);
+    return latestBlock.slotNo + ttlOffset;
   }
 });
 

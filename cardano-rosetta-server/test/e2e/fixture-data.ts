@@ -508,14 +508,14 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
   }
 };
 
-const CONSTRUCTION_EXTRADADATA = CONSTRUCTION_PAYLOADS_REQUEST.operations.filter(
+const CONSTRUCTION_EXTRA_DATA = CONSTRUCTION_PAYLOADS_REQUEST.operations.filter(
   op => op.coin_change?.coin_action === 'coin_spent'
 );
 
 export const CONSTRUCTION_PAYLOADS_RESPONSE = cbor
   .encode([
     'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
-    CONSTRUCTION_EXTRADADATA
+    CONSTRUCTION_EXTRA_DATA
   ])
   .toString('hex');
 
@@ -580,8 +580,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
         currency: {
           symbol: 'ADA',
           decimals: 6
-        },
-        metadata: {}
+        }
       },
       coin_change: {
         coin_identifier: {
@@ -613,8 +612,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
         currency: {
           symbol: 'ADA',
           decimals: 6
-        },
-        metadata: {}
+        }
       },
       coin_change: {
         coin_identifier: {
@@ -651,16 +649,14 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
       type: 'transfer',
       status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-        metadata: {}
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
       },
       amount: {
         value: '-90000',
         currency: {
           symbol: 'ADA',
           decimals: 6
-        },
-        metadata: {}
+        }
       },
       coin_change: {
         coin_identifier: {
@@ -693,8 +689,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
         currency: {
           symbol: 'ADA',
           decimals: 6
-        },
-        metadata: {}
+        }
       },
       coin_change: {
         coin_identifier: {
@@ -719,16 +714,14 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
       type: 'transfer',
       status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
-        metadata: {}
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
       },
       amount: {
         value: '40000',
         currency: {
           symbol: 'ADA',
           decimals: 6
-        },
-        metadata: {}
+        }
       },
       coin_change: {
         coin_identifier: {
@@ -743,7 +736,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
   }
 };
 
-// Parse operations as the same as the ones sent before but status should be enpty
+// Parse operations as the same as the ones sent before but status should be empty
 export const CONSTRUCTION_PARSE_OPERATIONS = CONSTRUCTION_PAYLOADS_REQUEST.operations.map(operation => ({
   ...operation,
   status: ''
@@ -771,8 +764,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
         currency: {
           symbol: 'ADA',
           decimals: 6
-        },
-        metadata: {}
+        }
       },
       coin_change: {
         coin_identifier: {
@@ -801,8 +793,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
         currency: {
           symbol: 'ADA',
           decimals: 6
-        },
-        metadata: {}
+        }
       }
     },
     {
@@ -826,8 +817,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
         currency: {
           symbol: 'ADA',
           decimals: 6
-        },
-        metadata: {}
+        }
       }
     }
   ],
@@ -836,28 +826,33 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
   }
 };
 
-export const CONSTRUCTION_SIGNED_TRANSACTION = cbor
-  .encode([
-    '83a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6',
-    CONSTRUCTION_EXTRADADATA
-  ])
+export const SIGNED_TRANSACTION =
+  '83a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6';
+
+// Preprocess transaction size considers 0 as ttl while the signed transaction is
+// using 1000, therefore we need to subtract 2 bytes (that will be added in metadata endpoint)
+// eslint-disable-next-line no-magic-numbers
+export const TRANSACTION_SIZE_IN_BYTES = SIGNED_TRANSACTION.length / 2 - 2;
+
+export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
+  .encode([SIGNED_TRANSACTION, CONSTRUCTION_EXTRA_DATA])
   .toString('hex');
 
-export const CONSTRUCTION_UNSIGNED_TRANSACTION = cbor
+export const CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
   .encode([
     'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
-    CONSTRUCTION_EXTRADADATA
+    CONSTRUCTION_EXTRA_DATA
   ])
   .toString('hex');
 
-export const CONSTRUCTION_INVALID_TRANSACTION = cbor.encode(['invalid_tx', CONSTRUCTION_EXTRADADATA]).toString('hex');
+export const CONSTRUCTION_INVALID_TRANSACTION = cbor.encode(['invalid_tx', CONSTRUCTION_EXTRA_DATA]).toString('hex');
 
 export const CONSTRUCTION_COMBINE_PAYLOAD = {
   network_identifier: {
     blockchain: 'cardano',
     network: 'mainnet'
   },
-  unsigned_transaction: CONSTRUCTION_UNSIGNED_TRANSACTION,
+  unsigned_transaction: CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA,
   signatures: [
     {
       signing_payload: {

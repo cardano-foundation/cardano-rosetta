@@ -6,7 +6,7 @@ import { setupDatabase, setupServer } from '../utils/test-utils';
 import {
   CONSTRUCTION_COMBINE_PAYLOAD,
   CONSTRUCTION_INVALID_TRANSACTION,
-  CONSTRUCTION_SIGNED_TRANSACTION
+  CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA
 } from '../fixture-data';
 import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
 
@@ -32,7 +32,7 @@ describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
       payload: CONSTRUCTION_COMBINE_PAYLOAD
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().signed_transaction).toEqual(CONSTRUCTION_SIGNED_TRANSACTION);
+    expect(response.json().signed_transaction).toEqual(CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA);
   });
 
   test('Should return error when providing valid unsigned transaction but invalid signatures', async () => {

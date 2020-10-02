@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 import StatusCodes from 'http-status-codes';
 import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
-import { CONSTRUCTION_INVALID_TRANSACTION, CONSTRUCTION_SIGNED_TRANSACTION } from '../fixture-data';
+import { CONSTRUCTION_INVALID_TRANSACTION, CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA } from '../fixture-data';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 
@@ -35,7 +35,11 @@ describe(CONSTRUCTION_HASH_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_HASH_ENDPOINT,
-      payload: generatePayloadWithSignedTransaction('cardano', 'mainnet', CONSTRUCTION_SIGNED_TRANSACTION)
+      payload: generatePayloadWithSignedTransaction(
+        'cardano',
+        'mainnet',
+        CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA
+      )
     });
 
     expect(response.statusCode).toEqual(StatusCodes.OK);

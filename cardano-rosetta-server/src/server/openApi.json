@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.2",
   "info": {
-    "version": "1.4.1",
+    "version": "1.4.4",
     "title": "Rosetta",
     "description": "Build Once. Integrate Your Blockchain Everywhere.",
     "license": {
@@ -173,7 +173,7 @@
     "/block/transaction": {
       "post": {
         "summary": "Get a Block Transaction",
-        "description": "Get a transaction in a block by its Transaction Identifier. This endpoint should only be used when querying a node for a block does not return all transactions contained within it. All transactions returned by this endpoint must be appended to any transactions returned by the /block method by consumers of this data. Fetching a transaction by hash is considered an Explorer Method (which is classified under the Future Work section). Calling this endpoint requires reference to a BlockIdentifier because transaction parsing can change depending on which block contains the transaction. For example, in Bitcoin it is necessary to know which block contains a transaction to determine the destination of fee payments. Without specifying a block identifier, the node would have to infer which block to use (which could change during a re-org). Implementations that require fetching previous transactions to populate the response (ex: Previous UTXOs in Bitcoin) may find it useful to run a cache within the Rosetta server in the /data directory (on a path that does not conflict with the node).",
+        "description": "Get a transaction in a block by its Transaction Identifier. This endpoint should only be used when querying a node for a block does not return all transactions contained within it. All transactions returned by this endpoint must be appended to any transactions returned by the /block method by consumers of this data. Fetching a transaction by hash is considered an Explorer Method (which is classified under the Future Work section). This method can be used to let consumers to paginate results when the  block trasactions count is too big to be returned in a single BlockResponse. Calling this endpoint requires reference to a BlockIdentifier because transaction parsing can change depending on which block contains the transaction. For example, in Bitcoin it is necessary to know which block contains a transaction to determine the destination of fee payments. Without specifying a block identifier, the node would have to infer which block to use (which could change during a re-org). Implementations that require fetching previous transactions to populate the response (ex: Previous UTXOs in Bitcoin) may find it useful to run a cache within the Rosetta server in the /data directory (on a path that does not conflict with the node).",
         "operationId": "blockTransaction",
         "tags": ["Block"],
         "requestBody": {
@@ -332,8 +332,8 @@
     },
     "/construction/derive": {
       "post": {
-        "summary": "Derive an Address from a PublicKey",
-        "description": "Derive returns the network-specific address associated with a public key. Blockchains that require an on-chain action to create an account should not implement this method.",
+        "summary": "Derive an AccountIdentifier from a PublicKey",
+        "description": "Derive returns the AccountIdentifier associated with a public key. Blockchains that require an on-chain action to create an account should not implement this method.",
         "operationId": "constructionDerive",
         "tags": ["Construction"],
         "requestBody": {
@@ -373,7 +373,7 @@
     "/construction/preprocess": {
       "post": {
         "summary": "Create a Request to Fetch Metadata",
-        "description": "Preprocess is called prior to `/construction/payloads` to construct a request for any metadata that is needed for transaction construction given (i.e. account nonce). The request returned from this method will be used by the caller (in a different execution environment) to call the `/construction/metadata` endpoint.",
+        "description": "Preprocess is called prior to `/construction/payloads` to construct a request for any metadata that is needed for transaction construction given (i.e. account nonce). The `options` object returned from this endpoint will be sent to the `/construction/metadata` endpoint UNMODIFIED by the caller (in an offline execution environment). If your Construction API implementation has configuration options, they MUST be specified in the `/construction/preprocess` request (in the `metadata` field).",
         "operationId": "constructionPreprocess",
         "tags": ["Construction"],
         "requestBody": {
@@ -413,7 +413,7 @@
     "/construction/metadata": {
       "post": {
         "summary": "Get Metadata for Transaction Construction",
-        "description": "Get any information required to construct a transaction for a specific network. Metadata returned here could be a recent hash to use, an account sequence number, or even arbitrary chain state. The request used when calling this endpoint is often created by calling `/construction/preprocess` in an offline environment. It is important to clarify that this endpoint should not pre-construct any transactions for the client (this should happen in `/construction/payloads`). This endpoint is left purposely unstructured because of the wide scope of metadata that could be required.",
+        "description": "Get any information required to construct a transaction for a specific network. Metadata returned here could be a recent hash to use, an account sequence number, or even arbitrary chain state. The request used when calling this endpoint is created by calling `/construction/preprocess` in an offline environment. You should NEVER assume that the request sent to this endpoint will be created by the caller or populated with any custom parameters. This must occur in `/construction/preprocess`. It is important to clarify that this endpoint should not pre-construct any transactions for the client (this should happen in `/construction/payloads`). This endpoint is left purposely unstructured because of the wide scope of metadata that could be required.",
         "operationId": "constructionMetadata",
         "tags": ["Construction"],
         "requestBody": {
@@ -453,7 +453,7 @@
     "/construction/payloads": {
       "post": {
         "summary": "Generate an Unsigned Transaction and Signing Payloads",
-        "description": "Payloads is called with an array of operations and the response from `/construction/metadata`. It returns an unsigned transaction blob and a collection of payloads that must be signed by particular addresses using a certain SignatureType. The array of operations provided in transaction construction often times can not specify all \"effects\" of a transaction (consider invoked transactions in Ethereum). However, they can deterministically specify the \"intent\" of the transaction, which is sufficient for construction. For this reason, parsing the corresponding transaction in the Data API (when it lands on chain) will contain a superset of whatever operations were provided during construction.",
+        "description": "Payloads is called with an array of operations and the response from `/construction/metadata`. It returns an unsigned transaction blob and a collection of payloads that must be signed by particular AccountIdentifiers using a certain SignatureType. The array of operations provided in transaction construction often times can not specify all \"effects\" of a transaction (consider invoked transactions in Ethereum). However, they can deterministically specify the \"intent\" of the transaction, which is sufficient for construction. For this reason, parsing the corresponding transaction in the Data API (when it lands on chain) will contain a superset of whatever operations were provided during construction.",
         "operationId": "constructionPayloads",
         "tags": ["Construction"],
         "requestBody": {
@@ -743,7 +743,7 @@
             "type": "integer",
             "format": "int64",
             "minimum": 0,
-            "example": 1
+            "example": 5
           },
           "network_index": {
             "description": "Some blockchains specify an operation index that is essential for client use. For example, Bitcoin uses a network_index to identify which UTXO was used in a transaction. network_index should not be populated if there is no notion of an operation index in a blockchain (typically most account-based blockchains).",
@@ -865,15 +865,15 @@
             },
             "example": [
               {
-                "index": 0,
-                "operation_identifier": {
-                  "index": 0
-                }
+                "index": 1
+              },
+              {
+                "index": 2
               }
             ]
           },
           "type": {
-            "description": "The network-specific type of the operation. Ensure that any type that can be returned here is also specified in the NetworkStatus. This can be very useful to downstream consumers that parse all block data.",
+            "description": "The network-specific type of the operation. Ensure that any type that can be returned here is also specified in the NetworkOptionsResponse. This can be very useful to downstream consumers that parse all block data.",
             "type": "string",
             "example": "Transfer"
           },
@@ -1092,18 +1092,21 @@
         }
       },
       "CurveType": {
-        "description": "CurveType is the type of cryptographic curve associated with a PublicKey.  * secp256k1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * edwards25519: `y (255-bits) || x-sign-bit (1-bit)` - `32 bytes` (https://ed25519.cr.yp.to/ed25519-20110926.pdf)",
+        "description": "CurveType is the type of cryptographic curve associated with a PublicKey. * secp256k1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * secp256r1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * edwards25519: `y (255-bits) || x-sign-bit (1-bit)` - `32 bytes` (https://ed25519.cr.yp.to/ed25519-20110926.pdf) * tweedle: 1st pk : Fq.t (32 bytes) || 2nd pk : Fq.t (32 bytes) (https://github.com/CodaProtocol/coda/blob/develop/rfcs/0038-rosetta-construction-api.md#marshal-keys)",
         "type": "string",
-        "enum": ["secp256k1", "edwards25519"]
+        "enum": ["secp256k1", "secp256r1", "edwards25519", "tweedle"]
       },
       "SigningPayload": {
-        "description": "SigningPayload is signed by the client with the keypair associated with an address using the specified SignatureType. SignatureType can be optionally populated if there is a restriction on the signature scheme that can be used to sign the payload.",
+        "description": "SigningPayload is signed by the client with the keypair associated with an AccountIdentifier using the specified SignatureType. SignatureType can be optionally populated if there is a restriction on the signature scheme that can be used to sign the payload.",
         "type": "object",
-        "required": ["address", "hex_bytes"],
+        "required": ["hex_bytes"],
         "properties": {
           "address": {
             "type": "string",
-            "description": "The network-specific address of the account that should sign the payload."
+            "description": "[DEPRECATED by `account_identifier` in `v1.4.4`] The network-specific address of the account that should sign the payload."
+          },
+          "account_identifier": {
+            "$ref": "#/components/schemas/AccountIdentifier"
           },
           "hex_bytes": {
             "type": "string"
@@ -1133,9 +1136,9 @@
         }
       },
       "SignatureType": {
-        "description": "SignatureType is the type of a cryptographic signature. * ecdsa: `r (32-bytes) || s (32-bytes)` - `64 bytes` * ecdsa_recovery: `r (32-bytes) || s (32-bytes) || v (1-byte)` - `65 bytes` * ed25519: `R (32-byte) || s (32-bytes)` - `64 bytes`",
+        "description": "SignatureType is the type of a cryptographic signature. * ecdsa: `r (32-bytes) || s (32-bytes)` - `64 bytes` * ecdsa_recovery: `r (32-bytes) || s (32-bytes) || v (1-byte)` - `65 bytes` * ed25519: `R (32-byte) || s (32-bytes)` - `64 bytes` * schnorr_1: `r (32-bytes) || s (32-bytes)` - `64 bytes`  (schnorr signature implemented by Zilliqa where both `r` and `s` are scalars encoded as `32-bytes` values, most significant byte first.) * schnorr_poseidon: `r (32-bytes) || s (32-bytes)` where s = Hash(1st pk || 2nd pk || r) - `64 bytes`  (schnorr signature w/ Poseidon hash function implemented by O(1) Labs where both `r` and `s` are scalars encoded as `32-bytes` values, least significant byte first. https://github.com/CodaProtocol/signer-reference/blob/master/schnorr.ml )",
         "type": "string",
-        "enum": ["ecdsa", "ecdsa_recovery", "ed25519"]
+        "enum": ["ecdsa", "ecdsa_recovery", "ed25519", "schnorr_1", "schnorr_poseidon"]
       },
       "CoinAction": {
         "description": "CoinActions are different state changes that a Coin can undergo. When a Coin is created, it is coin_created. When a Coin is spent, it is coin_spent. It is assumed that a single Coin cannot be created or spent more than once.",
@@ -1241,7 +1244,7 @@
         }
       },
       "BlockResponse": {
-        "description": "A BlockResponse includes a fully-populated block or a partially-populated block with a list of other transactions to fetch (other_transactions).",
+        "description": "A BlockResponse includes a fully-populated block or a partially-populated block with a list of other transactions to fetch (other_transactions). As a result of the consensus algorithm of some blockchains, blocks can be omitted (i.e. certain block indexes can be skipped). If a query for one of these omitted indexes is made, the response should not include a `Block` object. It is VERY important to note that blocks MUST still form a canonical, connected chain of blocks where each block has a unique index. In other words, the `PartialBlockIdentifier` of a block after an omitted block should reference the last non-omitted block.",
         "type": "object",
         "required": ["block"],
         "properties": {
@@ -1403,7 +1406,7 @@
         }
       },
       "ConstructionMetadataRequest": {
-        "description": "A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers.",
+        "description": "A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers. Optionally, the request can also include an array of PublicKeys associated with the AccountIdentifiers returned in ConstructionPreprocessResponse.",
         "type": "object",
         "required": ["network_identifier", "options"],
         "properties": {
@@ -1413,15 +1416,22 @@
           "options": {
             "description": "Some blockchains require different metadata for different types of transaction construction (ex: delegation versus a transfer). Instead of requiring a blockchain node to return all possible types of metadata for construction (which may require multiple node fetches), the client can populate an options object to limit the metadata returned to only the subset required.",
             "type": "object",
-            "required": ["relative_ttl"],
+            "required": ["relative_ttl", "transaction_size"],
             "properties": {
-              "relative_ttl": { "type": "number" }
+              "relative_ttl": { "type": "number" },
+              "transaction_size": { "type": "number" }
+            }
+          },
+          "public_keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicKey"
             }
           }
         }
       },
       "ConstructionMetadataResponse": {
-        "description": "The ConstructionMetadataResponse returns network-specific metadata used for transaction construction.",
+        "description": "The ConstructionMetadataResponse returns network-specific metadata used for transaction construction. Optionally, the implementer can return the suggested fee associated with the transaction being constructed. The caller may use this info to adjust the intent of the transaction or to create a transaction with a different account that can pay the suggested fee. Suggested fee is an array in case fee payment must occur in multiple currencies.",
         "type": "object",
         "required": ["metadata"],
         "properties": {
@@ -1433,6 +1443,12 @@
             "example": {
               "account_sequence": 23,
               "recent_block_hash": "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5"
+            }
+          },
+          "suggested_fee": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Amount"
             }
           }
         }
@@ -1460,7 +1476,10 @@
         "properties": {
           "address": {
             "type": "string",
-            "description": "Address in network-specific format."
+            "description": "[DEPRECATED by `account_identifier` in `v1.4.4`] Address in network-specific format."
+          },
+          "account_identifier": {
+            "$ref": "#/components/schemas/AccountIdentifier"
           },
           "metadata": {
             "type": "object"
@@ -1468,7 +1487,7 @@
         }
       },
       "ConstructionPreprocessRequest": {
-        "description": "ConstructionPreprocessRequest is passed to the `/construction/preprocess` endpoint so that a Rosetta implementation can determine which metadata it needs to request for construction.",
+        "description": "ConstructionPreprocessRequest is passed to the `/construction/preprocess` endpoint so that a Rosetta implementation can determine which metadata it needs to request for construction. Metadata provided in this object should NEVER be a product of live data (i.e. the caller must follow some network-specific data fetching strategy outside of the Construction API to populate required Metadata). If live data is required for construction, it MUST be fetched in the call to `/construction/metadata`. The caller can provide a max fee they are willing to pay for a transaction. This is an array in the case fees must be paid in multiple currencies. The caller can also provide a suggested fee multiplier to indicate that the suggested fee should be scaled. This may be used to set higher fees for urgent transactions or to pay lower fees when there is less urgency. It is assumed that providing a very low multiplier (like 0.0001) will never lead to a transaction being created with a fee less than the minimum network fee (if applicable). In the case that the caller provides both a max fee and a suggested fee multiplier, the max fee will set an upper bound on the suggested fee (regardless of the multiplier provided).",
         "type": "object",
         "required": ["network_identifier", "operations"],
         "properties": {
@@ -1487,25 +1506,43 @@
             "properties": {
               "relative_ttl": { "type": "number" }
             }
+          },
+          "max_fee": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Amount"
+            }
+          },
+          "suggested_fee_multiplier": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0
           }
         }
       },
       "ConstructionPreprocessResponse": {
-        "description": "ConstructionPreprocessResponse contains the request that will be sent directly to `/construction/metadata`. If it is not necessary to make a request to `/construction/metadata`, options should be null.",
+        "description": "ConstructionPreprocessResponse contains `options` that will be sent unmodified to `/construction/metadata`. If it is not necessary to make a request to `/construction/metadata`, `options` should be omitted.  Some blockchains require the PublicKey of particular AccountIdentifiers to construct a valid transaction. To fetch these PublicKeys, populate `required_public_keys` with the AccountIdentifiers associated with the desired PublicKeys. If it is not necessary to retrieve any PublicKeys for construction, `required_public_keys` should be omitted.",
         "type": "object",
         "properties": {
           "options": {
             "type": "object",
             "description": "The options that will be sent directly to `/construction/metadata` by the caller.",
-            "required": ["relative_ttl"],
+            "required": ["relative_ttl", "transaction_size"],
             "properties": {
-              "relative_ttl": { "type": "number" }
+              "relative_ttl": { "type": "number" },
+              "transaction_size": { "type": "number" }
+            }
+          },
+          "required_public_keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountIdentifier"
             }
           }
         }
       },
       "ConstructionPayloadsRequest": {
-        "description": "ConstructionPayloadsRequest is the request to `/construction/payloads`. It contains the network, a slice of operations, and arbitrary metadata that was returned by the call to `/construction/metadata`.",
+        "description": "ConstructionPayloadsRequest is the request to `/construction/payloads`. It contains the network, a slice of operations, and arbitrary metadata that was returned by the call to `/construction/metadata`. Optionally, the request can also include an array of PublicKeys associated with the AccountIdentifiers returned in ConstructionPreprocessResponse.",
         "type": "object",
         "required": ["network_identifier", "operations", "metadata"],
         "properties": {
@@ -1523,6 +1560,12 @@
             "required": ["ttl"],
             "properties": {
               "ttl": { "type": "string" }
+            }
+          },
+          "public_keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicKey"
             }
           }
         }
@@ -1602,10 +1645,16 @@
             }
           },
           "signers": {
-            "description": "All signers of a particular transaction. If the transaction is unsigned, it should be empty.",
+            "description": "[DEPRECATED by `account_identifier_signers` in `v1.4.4`] All signers (addresses) of a particular transaction. If the transaction is unsigned, it should be empty.",
             "type": "array",
             "items": {
               "type": "string"
+            }
+          },
+          "account_identifier_signers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AccountIdentifier"
             }
           },
           "metadata": {
