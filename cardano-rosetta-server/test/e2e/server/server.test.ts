@@ -6,6 +6,19 @@ import { setupDatabase, setupServer } from '../utils/test-utils';
 import { generateNetworkPayload } from '../network/common';
 import { CARDANO, MAINNET } from '../../../src/server/utils/constants';
 
+const genericErrorMatcher = (regexp: RegExp) =>
+  expect.objectContaining({
+    code: 5000,
+    details: {
+      message: expect.stringMatching(
+        // eslint-disable-next-line prettier/prettier
+        regexp
+      )
+    },
+    message: 'An error occurred',
+    retriable: true
+  });
+
 describe('Server test', () => {
   let database: Pool;
   let server: FastifyInstance;
@@ -18,24 +31,17 @@ describe('Server test', () => {
     await database.end();
   });
 
-  const genericErrorMatcher = expect.objectContaining({
-    code: 5000,
-    details: {
-      message: expect.stringContaining('An error occurred for request')
-    },
-    message: 'An error occurred',
-    retriable: true
-  });
-
   test('should return a generic error if payload is not valid', async () => {
     const response = await server.inject({
       method: 'post',
       url: '/block',
-      payload: '{ asdasd }'
+      payload: { asdasa: 10 }
     });
 
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual(genericErrorMatcher);
+    expect(response.json()).toEqual(
+      genericErrorMatcher(/An error occurred for request \d: body should have required property 'network_identifier'/)
+    );
   });
 
   test('should return a generic error if there is db connection problem', async () => {
@@ -47,6 +53,6 @@ describe('Server test', () => {
     });
 
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual(genericErrorMatcher);
+    expect(response.json()).toEqual(genericErrorMatcher(/An error occurred for request.*/));
   });
 });

@@ -43,7 +43,7 @@ const buildServer = (
   server.setErrorHandler((error: Error, request, reply) => {
     let toSend = error;
     if (error instanceof ApiError === false) {
-      toSend = ErrorFactory.unspecifiedError(`An error occurred for request ${request.id}`);
+      toSend = ErrorFactory.unspecifiedError(`An error occurred for request ${request.id}: ${error.message}`);
     }
     // rosseta-go-sdk always returns 500
     reply.status(StatusCodes.INTERNAL_SERVER_ERROR).send({ ...toSend, message: toSend.message });
