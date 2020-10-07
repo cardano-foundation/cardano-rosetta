@@ -5,10 +5,13 @@
     "send-transactions-example": "ts-node ./send-transaction-example.ts"
   },
   "dependencies": {
+    "@emurgo/cardano-serialization-lib-nodejs": "2.0.0",
+    "@types/node": "^14.11.5",
     "@types/temp-write": "^4.0.0",
     "axios": "^0.19.2",
     "delay": "^4.4.0",
     "ts-node": "^8.10.2",
-    "tweetnacl": "^1.0.3"
+    "tweetnacl": "^1.0.3",
+    "typescript": "^4.0.3"
   }
 }

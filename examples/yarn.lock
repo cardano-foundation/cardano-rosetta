@@ -2,6 +2,16 @@
 # yarn lockfile v1
 
 
+"@emurgo/cardano-serialization-lib-nodejs@2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@emurgo/cardano-serialization-lib-nodejs/-/cardano-serialization-lib-nodejs-2.0.0.tgz#e0dc17587bcda0a852aa27cb9cebcfe174a20a62"
+  integrity sha512-JZapVXweLo2MEpXtlonES7BrvpzNPGZdOWL2QUAyd30tC30I75ZpTiLyBKeVYBj3yvAV1BwReQpvcO+PsXWBog==
+
+"@types/node@^14.11.5":
+  version "14.11.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-14.11.5.tgz#fecad41c041cae7f2404ad4b2d0742fdb628b305"
+  integrity sha512-jVFzDV6NTbrLMxm4xDSIW/gKnk8rQLF9wAzLWIOg+5nU6ACrIMndeBdXci0FGtqJbP9tQvm6V39eshc96TO2wQ==
+
 "@types/temp-write@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@types/temp-write/-/temp-write-4.0.0.tgz#983237bb6dbcac883137dba8189b8c6177e8a04d"
@@ -126,6 +136,11 @@ tweetnacl@^1.0.3:
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-1.0.3.tgz#ac0af71680458d8a6378d0d0d050ab1407d35596"
   integrity sha512-6rt+RN7aOi1nGMyC4Xa5DdYiukl2UWCbcJft7YhxReBGQD7OAM8Pbxw6YMo4r2diNEA8FEmu32YOn9rhaiE5yw==
+
+typescript@^4.0.3:
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.0.3.tgz#153bbd468ef07725c1df9c77e8b453f8d36abba5"
+  integrity sha512-tEu6DGxGgRJPb/mVPIZ48e69xCn2yRmCgYmDugAVwmJ6o+0u1RI18eO7E7WBTLYLaEVVOhwQmcdhQHweux/WPg==
 
 uuid@^3.3.2:
   version "3.4.0"
