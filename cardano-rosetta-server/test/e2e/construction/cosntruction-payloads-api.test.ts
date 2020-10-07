@@ -4,6 +4,7 @@ import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 import {
+  CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS,
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS,
@@ -55,6 +56,16 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
         }
       ]
     });
+  });
+
+  test('Should return a single payload for each input address', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().payloads.length).toEqual(1);
   });
 
   test('Should throw an error when invalid inputs are sent as parameters', async () => {
