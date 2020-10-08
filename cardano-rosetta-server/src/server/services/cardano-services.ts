@@ -383,12 +383,14 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       ttl
     );
     logger.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
-    const addresses = inputs.map(input => {
-      if (input.account) return input.account?.address;
-      // This logic is not necessary (because it is made on this.getTransactionInputs(..))
-      // but ts expects me to do it again
-      throw ErrorFactory.transactionInputsParametersMissingError('Input has missing account address field');
-    });
+    const addresses = getUniqueAddresses(
+      inputs.map(input => {
+        if (input.account) return input.account?.address;
+        // This logic is not necessary (because it is made on this.getTransactionInputs(..))
+        // but ts expects me to do it again
+        throw ErrorFactory.transactionInputsParametersMissingError('Input has missing account address field');
+      })
+    );
 
     const transactionBytes = hexFormatter(Buffer.from(transactionBody.to_bytes()));
     logger.info('[createUnsignedTransaction] Hashing transaction body');
