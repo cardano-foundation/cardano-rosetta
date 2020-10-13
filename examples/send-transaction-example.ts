@@ -2,9 +2,9 @@
 /* eslint-disable camelcase */
 /* eslint-disable new-cap */
 /* eslint-disable no-console */
-import delay from "delay";
-import * as NaCl from "tweetnacl";
-import axios from "axios";
+import delay from 'delay';
+import * as NaCl from 'tweetnacl';
+import axios from 'axios';
 
 const logger = console;
 
@@ -105,7 +105,7 @@ const buildOperation = (
         network_index: 0,
       },
       related_operations: [],
-      type: "transfer",
+      type: "input",
       status: "success",
       account: {
         address,
@@ -130,7 +130,7 @@ const buildOperation = (
         network_index: 0,
       },
       related_operations: [],
-      type: "transfer",
+      type: "output",
       status: "success",
       account: {
         address: destination,

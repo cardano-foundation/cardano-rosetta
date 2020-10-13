@@ -13,7 +13,7 @@
         "operation_identifier": {
           "index": 0
         },
-        "type": "transfer",
+        "type": "input",
         "status": "",
         "account": {
           "address": "{{ SENDER }}"
@@ -33,7 +33,7 @@
         "operation_identifier": {
           "index": 1
         },
-        "type": "transfer",
+        "type": "output",
         "status": "",
         "account": {
           "address": "{{ RECIPIENT }}"
@@ -55,7 +55,7 @@
       "operation_identifier": {
         "index": 2
       },
-      "type": "transfer",
+      "type": "output",
       "status": "",
       "account": {
         "address": "{{ CHANGE_ADDRESS }}"
