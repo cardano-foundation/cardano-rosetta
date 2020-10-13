@@ -42,23 +42,15 @@ jobs:
         run: go install
       - name: Prepare rosetta-cli configuration
         working-directory: cardano-rosetta/test/check/configuration/src
-        run: |
-          mkdir ../out
-          jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json data/host/localhost.json data/byron_sample.json > ../out/data_byron.json
-          rosetta-cli configuration:validate ../out/data_byron.json
-          jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json data/host/localhost.json data/shelley_transition_sample.json > ../out/data_shelley_transition.json
-          rosetta-cli configuration:validate ../out/data_shelley_transition.json
-          jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json data/host/localhost.json data/shelley_sample.json > ../out/data_shelley.json
-          rosetta-cli configuration:validate ../out/data_shelley.json
       - name: check:data byron
-        working-directory: cardano-rosetta/test/check/configuration/out
-        run: rosetta-cli check:data --configuration-file=data_byron.json
+        working-directory: cardano-rosetta/test/check/configuration/data
+        run: rosetta-cli check:data --configuration-file byron_sample.json
       - name: check:data shelley transition
-        working-directory: cardano-rosetta/test/check/configuration/out
-        run: rosetta-cli check:data --configuration-file=data_shelley_transition.json
+        working-directory: cardano-rosetta/test/check/configuration/data
+        run: rosetta-cli check:data --configuration-file shelley_transition.json
       - name: check:data shelley
-        working-directory: cardano-rosetta/test/check/configuration/out
-        run: rosetta-cli check:data --configuration-file=data_shelley.json
+        working-directory: cardano-rosetta/test/check/configuration/data
+        run: rosetta-cli check:data --configuration-file shelley_sample.json
       - name: Make data snapshot
         env:
           AWS_S3_BUCKET: cardano-data-cache

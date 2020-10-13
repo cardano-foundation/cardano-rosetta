@@ -1,9 +1,0 @@
-{
-  "network": {
-    "blockchain": "cardano"
-  },
-  "http_timeout": 100000,
-  "tip_delay": 10000,
-  "sync_concurrency": 16,
-  "transaction_concurrency": 32
-}
