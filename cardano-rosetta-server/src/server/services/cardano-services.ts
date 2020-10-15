@@ -4,7 +4,7 @@ import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
-import { ADA, ADA_DECIMALS, TRANSFER_OPERATION_TYPE } from '../utils/constants';
+import { ADA, ADA_DECIMALS, operationType } from '../utils/constants';
 
 // Nibbles
 export const SIGNATURE_LENGTH = 128;
@@ -159,11 +159,11 @@ const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: numbe
     coin_identifier: {
       identifier: `${hexFormatter(Buffer.from(input.transaction_id().to_bytes()))}:${input.index()}`
     },
-    // FIXME: we have this as a constant in `block-service`. We should move to a converstion module.
+    // FIXME: we have this as a constant in `block-service`. We should move to a conversation module.
     coin_action: 'coin_spent'
   },
   status: '',
-  type: TRANSFER_OPERATION_TYPE
+  type: operationType.INPUT
 });
 
 const parseOutputToOperation = (
@@ -177,7 +177,7 @@ const parseOutputToOperation = (
   account: { address: output.address().to_bech32(addressPrefix) },
   amount: { value: output.amount().to_str(), currency: { symbol: ADA, decimals: ADA_DECIMALS } },
   status: '',
-  type: TRANSFER_OPERATION_TYPE
+  type: operationType.OUTPUT
 });
 
 const getRelatedOperationsFromInputs = (

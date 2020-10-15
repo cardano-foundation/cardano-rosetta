@@ -1,17 +1,9 @@
 /* eslint-disable camelcase */
 
 import cbor from 'cbor';
-import { NetworkIdentifier, UnsignedTransaction } from '../services/cardano-services';
+import { NetworkIdentifier } from '../services/cardano-services';
 import { NetworkStatus } from '../services/network-service';
-import {
-  ADA,
-  ADA_DECIMALS,
-  CARDANO,
-  MAINNET,
-  SIGNATURE_TYPE,
-  SUCCESS_STATUS,
-  TRANSFER_OPERATION_TYPE
-} from './constants';
+import { ADA, ADA_DECIMALS, CARDANO, MAINNET, operationType, SIGNATURE_TYPE, SUCCESS_STATUS } from './constants';
 import { Block, BlockUtxos, Network, TransactionWithInputsAndOutputs, Utxo } from '../models';
 
 const COIN_SPENT_ACTION = 'coin_spent';
@@ -82,7 +74,7 @@ export const mapToRosettaTransaction = (
   const inputsAsOperations = transaction.inputs.map((input, index) =>
     createOperation(
       index,
-      TRANSFER_OPERATION_TYPE,
+      operationType.INPUT,
       SUCCESS_STATUS,
       input.address,
       `-${input.value}`,
@@ -100,7 +92,7 @@ export const mapToRosettaTransaction = (
   const outputsAsOperations = transaction.outputs.map((output, index) =>
     createOperation(
       inputsAsOperations.length + index,
-      TRANSFER_OPERATION_TYPE,
+      operationType.OUTPUT,
       SUCCESS_STATUS,
       output.address,
       output.value,

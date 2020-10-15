@@ -1,6 +1,6 @@
 /* eslint-disable max-len */
 import cbor from 'cbor';
-import { SIGNATURE_TYPE } from '../../src/server/utils/constants';
+import { operationType, SIGNATURE_TYPE } from '../../src/server/utils/constants';
 
 /* eslint-disable camelcase */
 const slotLeader2b1 = 'SlotLeader-52df0f2c5539b2b1';
@@ -76,7 +76,7 @@ export const block23236WithTransactions = {
             operation_identifier: {
               index: 0
             },
-            type: 'transfer',
+            type: operationType.INPUT,
             status: 'success',
             account: {
               address: 'Ae2tdPwUPEZH1TtKqx7VsvXUPAv2KaG7TkXJTfyb2bqFCctePknLVgVQyfn'
@@ -105,7 +105,7 @@ export const block23236WithTransactions = {
                 index: 0
               }
             ],
-            type: 'transfer',
+            type: operationType.OUTPUT,
             status: 'success',
             account: {
               address:
@@ -136,7 +136,7 @@ export const block23236WithTransactions = {
             operation_identifier: {
               index: 0
             },
-            type: 'transfer',
+            type: operationType.INPUT,
             status: 'success',
             account: {
               address: 'Ae2tdPwUPEZE74MFSWpMuXKTbh8uyc7GVXT8Rc4dk1kCUfVpX19jk1VW2CW'
@@ -165,7 +165,7 @@ export const block23236WithTransactions = {
                 index: 0
               }
             ],
-            type: 'transfer',
+            type: operationType.OUTPUT,
             status: 'success',
             account: {
               address:
@@ -219,7 +219,7 @@ export const block7134WithTxs = {
             operation_identifier: {
               index: 0
             },
-            type: 'transfer',
+            type: operationType.INPUT,
             status: 'success',
             account: {
               address:
@@ -250,7 +250,7 @@ export const block7134WithTxs = {
                 index: 0
               }
             ],
-            type: 'transfer',
+            type: operationType.OUTPUT,
             status: 'success',
             account: {
               address:
@@ -280,7 +280,7 @@ export const block7134WithTxs = {
                 index: 0
               }
             ],
-            type: 'transfer',
+            type: operationType.OUTPUT,
             status: 'success',
             account: {
               address:
@@ -398,7 +398,7 @@ export const transaction987aOnGenesis = {
         },
         related_operations: [],
         status: 'success',
-        type: 'transfer',
+        type: operationType.OUTPUT,
         coin_change: {
           coin_action: 'coin_created',
           coin_identifier: {
@@ -438,7 +438,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
         index: 0,
         network_index: 0
       },
-      type: 'transfer',
+      type: operationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -467,7 +467,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
           index: 0
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -489,7 +489,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
           index: 0
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -519,7 +519,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS = {
         index: 0,
         network_index: 0
       },
-      type: 'transfer',
+      type: operationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -544,7 +544,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS = {
         index: 1,
         network_index: 0
       },
-      type: 'transfer',
+      type: operationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -576,7 +576,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS = {
           index: 1
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -601,7 +601,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS = {
           index: 1
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -650,7 +650,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
           }
         }
       ],
-      type: 'transfer',
+      type: operationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -682,7 +682,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
           }
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -714,7 +714,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
           }
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -758,7 +758,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
           }
         }
       ],
-      type: 'transfer',
+      type: operationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -790,7 +790,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
           }
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
@@ -823,7 +823,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
           }
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -865,7 +865,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
         index: 0,
         network_index: 0
       },
-      type: 'transfer',
+      type: operationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
@@ -895,7 +895,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
           index: 0
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -918,7 +918,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
           index: 0
         }
       ],
-      type: 'transfer',
+      type: operationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',

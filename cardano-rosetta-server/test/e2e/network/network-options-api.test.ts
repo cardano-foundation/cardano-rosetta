@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
-import { CARDANO, MAINNET } from '../../../src/server/utils/constants';
+import { CARDANO, MAINNET, operationType } from '../../../src/server/utils/constants';
 import { generateNetworkPayload } from './common';
 import packageJson from '../../../package.json';
 
@@ -16,7 +16,7 @@ const allow = {
       successful: true
     }
   ],
-  operation_types: ['transfer'],
+  operation_types: [operationType.INPUT, operationType.OUTPUT],
   errors: [
     {
       code: 4001,

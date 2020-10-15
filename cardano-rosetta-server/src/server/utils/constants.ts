@@ -12,14 +12,14 @@ export const VOUT = 'Vout';
 export const SIGNATURE_TYPE = 'ed25519';
 
 export enum operationType {
-  TRANSFER = 'transfer'
+  INPUT = 'input',
+  OUTPUT = 'output'
 }
 
 enum operationTypeStatus {
   SUCCESS = 'success'
 }
 
-export const TRANSFER_OPERATION_TYPE = 'transfer';
 export const SUCCESS_STATUS = 'success';
 
 export const MAINNET = 'mainnet';

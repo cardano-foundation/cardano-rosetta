@@ -71,7 +71,7 @@ const configure = (networkService: NetworkService, networkId: string, cardanoNod
           },
           allow: {
             operation_statuses: [SUCCESS_OPERATION_STATE],
-            operation_types: [operationType.TRANSFER],
+            operation_types: [operationType.INPUT, operationType.OUTPUT],
             errors: Object.values(ErrorFactory)
               .map(fn => fn())
               // Return them sorted by code

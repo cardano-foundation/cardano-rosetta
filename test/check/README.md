@@ -1,33 +1,22 @@
-# [rosetta-cli] check
+# `rosetta-cli` checks
 
-## `configuration`
-The `/src` directory contains modular components, intended to be composed to run a particular 
-scenario. For example using [jq]
-```console
-jq -s '.[0] * .[1] * .[2]' one.json two.json three.json > config.json
+Requires [rosetta-cli] `v0.5.8` or later 
+
+## `data`
+Run a mainnet or testnet instance with the server exposed at `http://localhost:8080`
+``` console
+rosetta-cli check:data --configuration-file ./data/byron_sample.json
+rosetta-cli check:data --configuration-file ./data/shelley_sample.json
+rosetta-cli check:data --configuration-file ./data/shelley_transition.json
 ```
 
-### `:validate`
+## `construction`
+Run a testnet instance with the server exposed at `http://localhost:8081`
 ``` console
-rosetta-cli configuration:validate config.json
-```
-
-## `check`
-
-### `:data`
-``` console
-jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/mainnet.json data/host/localhost.json data/byron_sample.json > data_config.json
-rosetta-cli check:data --configuration-file=data_config.json
-```
-
-### `:construction`
-``` console
-jq -s '.[0] * .[1] * .[2] * .[3]' base.json network/testnet.json construction/host/localhost.json construction/1.json > construction_config.json
-rosetta-cli check:construction --configuration-file=construction_config.json
+rosetta-cli check:construction --configuration-file ./construction/configuration.json
 ```
 
 See the [QA doc] for implementation detail.
 
-[rosetta-cli]: https://github.com/coinbase/rosetta-cli
-[jq]: https://stedolan.github.io/jq/
+[rosetta-cli]: https://github.com/coinbase/rosetta-cli#install
 [QA doc]: ../../docs/QA.md
