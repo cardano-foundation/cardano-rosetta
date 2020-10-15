@@ -1,0 +1,244 @@
+request_funds(1){
+  find_account{
+    currency = {
+      "symbol":"ADA",
+      "decimals":6
+    };
+    random_account = find_balance({
+      "minimum_balance":{
+        "value": "0",
+        "currency": {{currency}}
+      },
+      "create_limit":1
+    });
+  },
+  request{
+    loaded_account = find_balance({
+      "account_identifier": {{random_account.account_identifier}},
+      "minimum_balance":{
+        "value": "1000000",
+        "currency": {{currency}}
+      }
+    });
+  }
+}
+
+create_account(1){
+  create_account{
+    network = {"network":"testnet", "blockchain":"cardano"};
+    key = generate_key({"curve_type":"edwards25519"});
+    account = derive({
+      "network_identifier": {{network}},
+      "public_key": {{key.public_key}}
+    });
+    save_account({
+      "account_identifier": {{account.account_identifier}},
+      "keypair": {{key}}
+    });
+  }
+}
+
+transfer(10){
+  transfer_dry_run{
+    transfer_dry_run.network = {"network":"testnet", "blockchain":"cardano"};
+    currency = {"symbol":"ADA", "decimals":6};
+    dust_amount = "600";
+    max_fee_amount = "1000000";
+    send_buffer = {{dust_amount}} + {{max_fee_amount}};
+    reserved_amount = "2400";
+    sender = find_balance({
+      "require_coin": true,
+      "minimum_balance":{
+        "value": {{reserved_amount}},
+        "currency": {{currency}}
+      }
+    });
+    available_amount = {{sender.balance.value}} - {{send_buffer}};
+    recipient_amount = random_number({
+      "minimum": {{dust_amount}},
+      "maximum": {{available_amount}}
+    });
+    print_message({"recipient_amount": {{recipient_amount}}});
+    total_change_amount = {{sender.balance.value}} - {{recipient_amount}};
+    change_amount = {{total_change_amount}} - {{max_fee_amount}};
+    print_message({"change_amount": {{change_amount}}});
+    sender_amount = 0 - {{sender.balance.value}};
+    recipient = find_balance({
+      "create_limit": 100,
+      "create_probability": 50,
+      "minimum_balance":{
+        "value": "0",
+        "currency": {{currency}}
+      },
+      "not_account_identifier": [{{sender.account_identifier}}],
+      "not_coins": [{{sender.coin}}]
+    });
+    transfer_dry_run.confirmation_depth = "1";
+    transfer_dry_run.dry_run = true;
+    transfer_dry_run.operations = [
+      {
+        "operation_identifier": {"index": 0},
+        "type": "input",
+        "account": {{sender.account_identifier}},
+        "amount": {
+          "value": {{sender_amount}},
+          "currency": {{currency}}
+        },
+        "coin_change": {
+          "coin_action": "coin_spent",
+          "coin_identifier": {{sender.coin}}
+        }
+      },
+      {
+        "operation_identifier": {"index" :1},
+        "type": "output",
+        "account": {{recipient.account_identifier}},
+        "amount": {
+          "value": {{recipient_amount}},
+          "currency": {{currency}}
+        }
+      },
+      {
+        "operation_identifier": {"index": 2},
+        "type": "output",
+        "account": {{sender.account_identifier}},
+        "amount": {
+          "value": {{change_amount}},
+          "currency": {{currency}}
+        }
+      }
+    ];
+    print_message({{transfer_dry_run.operations}});
+  },
+  transfer{
+    suggested_fee = find_currency_amount({
+      "currency": {{currency}},
+      "amounts": {{transfer_dry_run.suggested_fee}}
+    });
+    change_amount = {{total_change_amount}} - {{suggested_fee.value}};
+    change_minus_dust = {{change_amount}} - {{dust_amount}};
+    assert({{change_minus_dust}});
+    network = {"network":"testnet", "blockchain":"cardano"};
+    confirmation_depth = 1;
+    operations = [
+      {
+        "operation_identifier": {"index": 0},
+        "type": "input",
+        "account": {{sender.account_identifier}},
+        "amount": {
+          "value": {{sender_amount}},
+          "currency": {{currency}}
+        },
+        "coin_change": {
+          "coin_action": "coin_spent",
+          "coin_identifier": {{sender.coin}}
+        }
+      },
+      {
+        "operation_identifier": {"index" :1},
+        "type": "output",
+        "account": {{recipient.account_identifier}},
+        "amount": {
+          "value": {{recipient_amount}},
+          "currency": {{currency}}
+        }
+      },
+      {
+        "operation_identifier": {"index": 2},
+        "type": "output",
+        "account": {{sender.account_identifier}},
+        "amount": {
+          "value": {{change_amount}},
+          "currency": {{currency}}
+        }
+      }
+    ];
+    print_message({{operations}});
+  }
+}
+
+return_funds(10){
+  transfer_dry_run{
+    transfer_dry_run.network = {"network":"testnet", "blockchain":"cardano"};
+    currency = {"symbol":"ADA", "decimals":6};
+    max_fee_amount = "1200";
+    reserved_amount = "1800";
+    sender = find_balance({
+      "require_coin": true,
+      "minimum_balance":{
+        "value": {{reserved_amount}},
+        "currency": {{currency}}
+      }
+    });
+    recipient_amount = {{sender.balance.value}} - {{max_fee_amount}};
+    print_message({"recipient_amount": {{recipient_amount}}});
+    sender_amount = 0 - {{sender.balance.value}};
+    transfer_dry_run.confirmation_depth = 1;
+    return_address = load_env("FUND_RETURN_ADDRESS");
+    recipient = { 
+      "address": {{return_address}}
+    };
+    transfer_dry_run.operations = [
+      {
+        "operation_identifier": {"index": 0},
+        "type": "input",
+        "account": {{sender.account_identifier}},
+        "amount": {
+          "value": {{sender_amount}},
+          "currency": {{currency}}
+        },
+        "coin_change": {
+          "coin_action": "coin_spent",
+          "coin_identifier": {{sender.coin}}
+        }
+      },
+      {
+        "operation_identifier": {"index" :1},
+        "type": "output",
+        "account": {{recipient}},
+        "amount": {
+          "value": {{recipient_amount}},
+          "currency": {{currency}}
+        }
+      }
+    ];
+    print_message({{transfer_dry_run.operations}});
+  },
+  transfer{
+    network = {"network":"testnet", "blockchain":"cardano"};
+    confirmation_depth = 1;
+    suggested_fee = find_currency_amount({
+      "currency": {{currency}},
+      "amounts": {{transfer_dry_run.suggested_fee}}
+    });
+    recipient_amount = {{sender.balance.value}} - {{suggested_fee.value}};
+    dust_amount = 600;
+    recipient_minus_dust = {{recipient_amount}} - {{dust_amount}};
+    assert({{recipient_minus_dust}});
+    operations = [
+      {
+        "operation_identifier": {"index": 0},
+        "type": "input",
+        "account": {{sender.account_identifier}},
+        "amount": {
+          "value": {{sender_amount}},
+          "currency": {{currency}}
+        },
+        "coin_change": {
+          "coin_action": "coin_spent",
+          "coin_identifier": {{sender.coin}}
+        }
+      },
+      {
+        "operation_identifier": {"index" :1},
+        "type": "output",
+        "account": {{recipient}},
+        "amount": {
+          "value": {{recipient_amount}},
+          "currency": {{currency}}
+        }
+      }
+    ];
+    print_message({{operations}});
+  }
+}  
