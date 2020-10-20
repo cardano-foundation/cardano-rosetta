@@ -53,7 +53,7 @@ module.exports = {
         CARDANO_NODE_SOCKET_PATH: '/ipc/node.socket',
         DB_CONNECTION_STRING: 'socket://postgres:*@/var/run/postgresql?db=cexplorer',
         DEFAULT_RELATIVE_TTL: process.env.DEFAULT_RELATIVE_TTL,
-        GENESIS_PATH: '/config/genesis/shelley.json',
+        GENESIS_SHELLEY_PATH: '/config/genesis/shelley.json',
         LOGGER_LEVEL: process.env.LOGGER_MIN_SEVERITY,
         NODE_ENV: 'development',
         PAGE_SIZE: process.env.PAGE_SIZE,

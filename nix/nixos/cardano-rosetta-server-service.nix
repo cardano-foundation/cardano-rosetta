@@ -109,8 +109,8 @@ in {
         BIND_ADDRESS             = cfg.bindAddress;
         DB_CONNECTION_STRING     = cfg.dbConnectionString;
         TOPOLOGY_FILE_PATH       = cfg.topologyFilePath;
-        CARDANOCLI_PATH          = cfg.cardanoCliPath;
-        GENESIS_PATH             = cfg.genesisPath;
+        CARDANO_CLI_PATH         = cfg.cardanoCliPath;
+        GENESIS_SHELLEY_PATH     = cfg.genesisPath;
         CARDANO_NODE_PATH        = cfg.cardanoNodePath;
         CARDANO_NODE_SOCKET_PATH = cfg.cardanoNodeSocketPath;
         PAGE_SIZE                = toString cfg.pageSize;

@@ -31,10 +31,10 @@ jobs:
           DB_CONNECTION_STRING: postgresql://postgres:notForProduction!@127.0.0.1:5432/cexplorer
           TOPOLOGY_FILE_PATH: test/e2e/utils/topology-test.json
           # PATHs should be strings and must exist
-          CARDANOCLI_PATH: /tmp
+          CARDANO_CLI_PATH: /tmp
           CARDANO_NODE_PATH: /tmp
           CARDANO_NODE_SOCKET_PATH: /tmp
-          GENESIS_PATH: test/e2e/utils/mainnet-genesis.json
+          GENESIS_SHELLEY_PATH: test/e2e/utils/mainnet-genesis.json
           PAGE_SIZE: 5
           DEFAULT_RELATIVE_TTL: 1000
       - name: Build Cardano Rosetta
