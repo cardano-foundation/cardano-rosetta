@@ -18,19 +18,19 @@ describe('Environment parser test', () => {
     process.env.PORT = previousPort;
   });
   test('Should throw an error if a field is expected to be a valid file path but file does not exists', () => {
-    const previousPath = process.env.CARDANOCLI_PATH;
-    process.env.CARDANOCLI_PATH = fakePath;
+    const previousPath = process.env.CARDANO_CLI_PATH;
+    process.env.CARDANO_CLI_PATH = fakePath;
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
     expect(environmentParser).toThrowError();
     expect(mockExit).toHaveBeenCalledWith(1);
-    process.env.CARDANOCLI_PATH = previousPath;
+    process.env.CARDANO_CLI_PATH = previousPath;
   });
   // eslint-disable-next-line max-len
   test('Should throw an error if a field is expected to be a valid file path with a valid schema but file has not a valid schema', () => {
     const previousPath = process.env.TOPOLOGY_FILE_PATH;
-    process.env.TOPOLOGY_FILE_PATH = process.env.CARDANOCLI_PATH;
+    process.env.TOPOLOGY_FILE_PATH = process.env.CARDANO_CLI_PATH;
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
     });
