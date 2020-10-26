@@ -40,8 +40,7 @@ RUN wget --secure-protocol=TLSv1_2 \
   tar -xf ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz &&\
   rm ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz
 WORKDIR /app/ghc/ghc-${GHC_VERSION}
-RUN ./configure
-RUN make install
+RUN ./configure && make install
 WORKDIR /app/src
 RUN git clone https://github.com/input-output-hk/libsodium.git &&\
   cd libsodium &&\
@@ -79,7 +78,7 @@ WORKDIR /app/src/cardano-db-sync
 #RUN cabal install cardano-db-sync \
 #  --install-method=copy \
 #  --installdir=/usr/local/bin
-RUN cabal build cardano-db-sync && \
+RUN cabal build cardano-db-sync &&\
   mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-db-sync-${CARDANO_DB_SYNC_VERSION}/x/cardano-db-sync/build/cardano-db-sync/cardano-db-sync /usr/local/bin/
 # Cleanup for runtiume-base copy of /usr/local/lib
 RUN rm -rf /usr/local/lib/ghc-${GHC_VERSION} /usr/local/lib/pkgconfig
@@ -87,24 +86,24 @@ RUN rm -rf /usr/local/lib/ghc-${GHC_VERSION} /usr/local/lib/pkgconfig
 FROM ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
 ARG NODEJS_MAJOR_VERSION=14
 ENV DEBIAN_FRONTEND=nonintercative
-RUN apt-get update && apt-get install curl -y
-RUN curl --proto '=https' --tlsv1.2 -sSf -L https://deb.nodesource.com/setup_${NODEJS_MAJOR_VERSION}.x | bash -
-RUN apt-get install nodejs -y
+RUN apt-get update && apt-get install curl -y &&\
+  curl --proto '=https' --tlsv1.2 -sSf -L https://deb.nodesource.com/setup_${NODEJS_MAJOR_VERSION}.x | bash - &&\
+  apt-get install nodejs -y
 
 FROM ubuntu-nodejs as nodejs-builder
-RUN curl --proto '=https' --tlsv1.2 -sSf -L https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install gcc g++ make gnupg2 yarn -y
+RUN curl --proto '=https' --tlsv1.2 -sSf -L https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - &&\
+  echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list &&\
+  apt-get update && apt-get install gcc g++ make gnupg2 yarn -y
 
 FROM ubuntu-nodejs as runtime-base
-RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - &&\
+  echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list &&\
+  apt-get update && apt-get install -y --no-install-recommends \
   ca-certificates \
   jq \
   postgresql-12 \
-  postgresql-client-12
-RUN npm install pm2 -g
+  postgresql-client-12 &&\
+  npm install pm2 -g
 COPY --from=haskell-builder /usr/local/lib /usr/local/lib
 COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
@@ -132,8 +131,7 @@ RUN set -eux; \
 	gosu --version; \
 	gosu nobody true
 ENV PGPASSFILE=/cardano-db-sync/config/pgpass
-RUN chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
-RUN mkdir /ipc
+RUN chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE && mkdir /ipc
 VOLUME /data
 EXPOSE 8080
 ENTRYPOINT ["./entrypoint.sh"]
