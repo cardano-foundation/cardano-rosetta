@@ -27,7 +27,7 @@ RUN apt-get update -y && apt-get install -y \
   pkg-config \
   tmux \
   wget \
-  zlib1g-dev=1:1.2.11.dfsg-2ubuntu1
+  zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.1
 RUN wget --secure-protocol=TLSv1_2 \
   https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
   tar -xf cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
