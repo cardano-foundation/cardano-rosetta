@@ -47,11 +47,30 @@ docker run \
   cardano-rosetta:0.2.2
 ```
 ### Configuration
+
+Set ENVs for optional runtime configuration
 ```console
--e DEFAULT_RELATIVE_TTL=1000
--e LOGGER_MIN_SEVERITY=[ trace | debug | info (default) | warn | error | fatal ]
--e PAGE_SIZE=25
+-e MODE=offline
 ```
+
+#### `MODE`
+See Rosetta docs for information on [modes]
+- `online` - default
+- `offline`
+
+#### `DEFAULT_RELATIVE_TTL`
+Specify the TTL without needing to access an online method. Default: `1000`
+
+#### `LOGGER_MIN_SEVERITY`
+- `trace`
+- `debug`
+- `info` - default
+- `warn`
+- `error`
+- `fatal`
+
+#### `PAGE_SIZE`
+Default: `25`
 
 ### Upgrading
 As per the release notes, you **_may_** be required to rebuild the PostgreSQL database. This can 
@@ -90,6 +109,8 @@ Progress will be logged by the new container.
 [network]: config/network
 [standard storage location]: https://www.rosetta-api.org/docs/standard_storage_location.html
 [Docker run reference]: https://docs.docker.com/engine/reference/run/
+[modes]: https://www.rosetta-api.org/docs/node_deployment.html#multiple-modes
+[docs]: cardano-rosetta-server/README.md
 [Construction API Documentation]: https://www.rosetta-api.org/docs/construction_api_introduction.html
 [Data API Documentation]: https://www.rosetta-api.org/docs/data_api_introduction.html
 [Developer]: cardano-rosetta-server/README.md
