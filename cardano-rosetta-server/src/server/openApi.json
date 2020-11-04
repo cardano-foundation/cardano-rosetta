@@ -1077,6 +1077,11 @@
         "minimum": 0,
         "example": 1582833600000
       },
+      "AddressType": {
+        "description": "AddressType is the type of UTxO address. * Base address - associated to a payment and a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API",
+        "type": "string",
+        "enum": ["Enterprise", "Base", "Reward"]
+      },
       "PublicKey": {
         "description": "PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation.",
         "type": "object",
@@ -1463,6 +1468,12 @@
           },
           "public_key": {
             "$ref": "#/components/schemas/PublicKey"
+          },
+          "staking_credential": {
+            "$ref": "#/components/schemas/PublicKey"
+          },
+          "address_type": {
+            "$ref": "#/components/schemas/AddressType"
           },
           "metadata": {
             "type": "object"
