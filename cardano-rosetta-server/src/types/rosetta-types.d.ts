@@ -216,9 +216,10 @@ declare namespace Components {
     export interface ConstructionDeriveRequest {
       network_identifier: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       public_key: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
-      staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
-      address_type?: /* AddressType is the type of UTxO address. * Base address - associated to a payment and a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API */ AddressType;
-      metadata?: {};
+      metadata?: {
+        staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
+        address_type?: /* AddressType is the type of UTxO address. * Base address - associated to a payment and a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API */ AddressType;
+      };
     }
     /**
      * ConstructionDeriveResponse is returned by the `/construction/derive` endpoint.

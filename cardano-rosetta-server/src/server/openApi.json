@@ -1469,14 +1469,16 @@
           "public_key": {
             "$ref": "#/components/schemas/PublicKey"
           },
-          "staking_credential": {
-            "$ref": "#/components/schemas/PublicKey"
-          },
-          "address_type": {
-            "$ref": "#/components/schemas/AddressType"
-          },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "staking_credential": {
+                "$ref": "#/components/schemas/PublicKey"
+              },
+              "address_type": {
+                "$ref": "#/components/schemas/AddressType"
+              }
+            }
           }
         }
       },
