@@ -78,6 +78,11 @@ const allow = {
       retriable: true
     },
     {
+      code: 4016,
+      message: 'Provided address type is invalid',
+      retriable: true
+    },
+    {
       code: 5000,
       message: 'An error occurred',
       retriable: true

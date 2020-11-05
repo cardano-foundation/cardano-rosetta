@@ -56,6 +56,10 @@ export const Errors = {
     message: 'Provided address is invalid',
     code: 4015
   },
+  INVALID_ADDRESS_TYPE: {
+    message: 'Provided address type is invalid',
+    code: 4016
+  },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -107,6 +111,7 @@ const transactionInputDeserializationError: CreateErrorFunction = (details?: str
 const transactionOutputDeserializationError: CreateErrorFunction = (details?: string) =>
   buildApiError(Errors.TRANSACTION_OUTPUT_DESERIALIZATION_ERROR, false, details);
 const invalidAddressError: CreateErrorFunction = address => buildApiError(Errors.INVALID_ADDRESS, true, address);
+const invalidAddressTypeError: CreateErrorFunction = type => buildApiError(Errors.INVALID_ADDRESS_TYPE, true, type);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -130,7 +135,8 @@ export const ErrorFactory = {
   sendTransactionError,
   transactionInputDeserializationError,
   transactionOutputDeserializationError,
-  invalidAddressError
+  invalidAddressError,
+  invalidAddressTypeError
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>
