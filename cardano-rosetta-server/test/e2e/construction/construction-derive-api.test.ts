@@ -7,7 +7,14 @@ import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../uti
 const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
 
-const generatePayload = (blockchain: string, network: string, key?: string, curveType?: string) => ({
+type GeneratePayloadInput = {
+  blockchain: string;
+  network: string;
+  key?: string;
+  curveType?: string;
+};
+
+const generatePayload = ({ blockchain, network, key, curveType }: GeneratePayloadInput) => ({
   network_identifier: {
     blockchain,
     network
@@ -36,7 +43,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_DERIVE_ENDPOINT,
-      payload: generatePayload('cardano', 'mainnet')
+      payload: generatePayload({ blockchain: 'cardano', network: 'mainnet' })
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().address).toEqual('addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx');
@@ -46,7 +53,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_DERIVE_ENDPOINT,
-      payload: generatePayload('cardano', 'mainnet', 'smallPublicKey')
+      payload: generatePayload({ blockchain: 'cardano', network: 'mainnet', key: 'smallPublicKey' })
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
@@ -56,11 +63,11 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_DERIVE_ENDPOINT,
-      payload: generatePayload(
-        'cardano',
-        'mainnet',
-        'ThisIsABiggerPublicKeyForTestingPurposesThisIsABiggerPublicKeyForTestingPurposes'
-      )
+      payload: generatePayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        key: 'ThisIsABiggerPublicKeyForTestingPurposesThisIsABiggerPublicKeyForTestingPurposes'
+      })
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
@@ -68,7 +75,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
 
   testInvalidNetworkParameters(
     CONSTRUCTION_DERIVE_ENDPOINT,
-    (blockchain, network) => generatePayload(blockchain, network),
+    (blockchain, network) => generatePayload({ blockchain, network }),
     () => server
   );
 
@@ -76,12 +83,12 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_DERIVE_ENDPOINT,
-      payload: generatePayload(
-        'cardano',
-        'mainnet',
-        '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-        'secp256k1'
-      )
+      payload: generatePayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        key: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
+        curveType: 'secp256k1'
+      })
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
@@ -91,11 +98,11 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_DERIVE_ENDPOINT,
-      payload: generatePayload(
-        'cardano',
-        'mainnet',
-        '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F__.'
-      )
+      payload: generatePayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        key: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F__'
+      })
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
