@@ -1,6 +1,8 @@
-name: Nightly
+name: Nightly build
 
 on:
+  schedule:
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,52 +13,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: cardano-rosetta
-      - name: Build Cardano Rosetta
-        uses: ./cardano-rosetta/.github/actions/build_cardano_rosetta
-        with:
-          build-context: ${{ github.workspace }}/cardano-rosetta
-          tag: ${{ github.sha }}
-      - name: Restore data snapshot
-        env:
-          AWS_S3_BUCKET: cardano-data-cache
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          aws s3 cp s3://cardano-data-cache/rosetta/data.tar data.tar
-          tar xvf data.tar data
-          rm data.tar
-      - name: Run Cardano Rosetta
-        run: docker run --rm -d -p 8080:8080 -v ${{ github.workspace }}/data:/data --name cardano-rosetta --shm-size=2g cardano-rosetta:${{ github.sha }}
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.15.0
-      - name: Checkout rosetta-cli source code
-        uses: actions/checkout@v2
-        with:
-          repository: coinbase/rosetta-cli
-          ref: 4b2226853f91b4dc5ba7a18c2e3db730165b5232
-          path: rosetta-cli
-      - name: Install rosetta-cli
-        working-directory: rosetta-cli
-        run: go install
-      - name: Prepare rosetta-cli configuration
-        working-directory: cardano-rosetta/test/check/configuration/src
-      - name: check:data byron
-        working-directory: cardano-rosetta/test/check/configuration/data
-        run: rosetta-cli check:data --configuration-file byron_sample.json
-      - name: check:data shelley transition
-        working-directory: cardano-rosetta/test/check/configuration/data
-        run: rosetta-cli check:data --configuration-file shelley_transition.json
-      - name: check:data shelley
-        working-directory: cardano-rosetta/test/check/configuration/data
-        run: rosetta-cli check:data --configuration-file shelley_sample.json
-      - name: Make data snapshot
-        env:
-          AWS_S3_BUCKET: cardano-data-cache
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        run: |
-          docker stop cardano-rosetta
-          sudo tar cvf data.tar data
-          aws s3 cp data.tar s3://cardano-data-cache/rosetta/data.tar
+      - name: Build image without cache
+        run: docker build
+          --no-cache
+          -t cardano-rosetta:${{ github.sha }}-nightly
+          ${{ github.workspace }}/cardano-rosetta

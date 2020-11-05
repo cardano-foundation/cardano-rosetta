@@ -20,7 +20,7 @@ RUN apt-get update -y && apt-get install -y \
   libncursesw5=6.2-0ubuntu2 \
   libpq-dev=12.4-0ubuntu0.20.04.1 \
   libssl-dev=1.1.1f-1ubuntu2 \
-  libsystemd-dev=245.4-4ubuntu3.2 \
+  libsystemd-dev=245.4-4ubuntu3.3 \
   libtinfo-dev=6.2-0ubuntu2 \
   libtool=2.4.6-14 \
   make \
