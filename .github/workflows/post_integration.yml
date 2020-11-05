@@ -21,6 +21,7 @@ jobs:
         with:
           build-cache-image: cardano-rosetta:${{ github.sha }}
           build-context: ${{ github.workspace }}
+          network-identifier: testnet
           tag: ${{ github.sha }}-testnet
       - name: Smoke test Cardano Rosetta image
         uses: ./.github/actions/smoke_test_cardano_rosetta
