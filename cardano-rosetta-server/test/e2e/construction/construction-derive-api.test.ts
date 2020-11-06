@@ -211,7 +211,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
       })
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().address).toEqual('addr1uxnjdq7ma0kqsmrny460fu5azvnqtap3486jvaudacuam3ghuwnnw');
+    expect(response.json().address).toEqual('stake1uxnjdq7ma0kqsmrny460fu5azvnqtap3486jvaudacuam3g3yc4nu');
   });
 
   test('Should return an error when the staking key has a lower length than 32', async () => {
