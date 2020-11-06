@@ -13,7 +13,11 @@ export const SIGNATURE_TYPE = 'ed25519';
 
 export enum operationType {
   INPUT = 'input',
-  OUTPUT = 'output'
+  OUTPUT = 'output',
+  STAKE_KEY_REGISTRATION = 'stakeKeyRegistration',
+  STAKE_DELEGATION = 'stakeDelegation',
+  WITHDRAWAL = 'withdrawal',
+  STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration'
 }
 
 enum operationTypeStatus {
