@@ -159,6 +159,9 @@ const calculateFee = (inputs: Components.Schemas.Operation[], outputs: Component
 const getAddressPrefix = (network: number) =>
   network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'addr' : 'addr_test';
 
+const getStakeAddressPrefix = (network: number) =>
+  network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'stake' : 'stake_test';
+
 const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: number): Components.Schemas.Operation => ({
   operation_identifier: { index },
   coin_change: {
@@ -333,7 +336,7 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
     if (type === UTxOAddressTypes.REWARD) {
       logger.info('[generateAddress] Deriving cardano enterprise address from valid public staking key');
       const rewardAddress = CardanoWasm.RewardAddress.new(network, payment);
-      const bech32address = rewardAddress.to_address().to_bech32(getAddressPrefix(network));
+      const bech32address = rewardAddress.to_address().to_bech32(getStakeAddressPrefix(network));
       logger.info(`[generateAddress] reward address is ${bech32address}`);
       return bech32address;
     }
