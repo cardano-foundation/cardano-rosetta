@@ -213,4 +213,28 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().address).toEqual('addr1uxnjdq7ma0kqsmrny460fu5azvnqtap3486jvaudacuam3ghuwnnw');
   });
+
+  test('Should return an error when the staking key has a lower length than 32', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_DERIVE_ENDPOINT,
+      payload: generatePayload({ blockchain: 'cardano', network: 'mainnet', stakingKey: 'smallPublicKey' })
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
+  });
+
+  test('Should return an error when the staking key has a bigger length than 32', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_DERIVE_ENDPOINT,
+      payload: generatePayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        stakingKey: 'ThisIsABiggerPublicKeyForTestingPurposesThisIsABiggerPublicKeyForTestingPurposes'
+      })
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
+  });
 });
