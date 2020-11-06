@@ -50,7 +50,13 @@ export interface CardanoService {
    * @param networkId cardano network
    * @param publicKey public key hex string representation
    */
-  generateAddress(logger: Logger, networkId: NetworkIdentifier, publicKey: string): string | null;
+  generateAddress(
+    logger: Logger,
+    networkId: NetworkIdentifier,
+    publicKey: string,
+    type?: string,
+    stakingCredential?: string
+  ): string | null;
 
   /**
    * This function returns the address type based on a string encoded one
@@ -306,8 +312,14 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
 
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
 
+enum UTxOAddressTypes {
+  ENTERPRISE = 'Enterprise',
+  BASE = 'Base',
+  REWARD = 'Reward'
+}
+
 const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => ({
-  generateAddress(logger, network, publicKey) {
+  generateAddress(logger, network, publicKey, type, stakingCredential) {
     logger.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
     );
@@ -316,14 +328,37 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
 
     const pub = CardanoWasm.PublicKey.from_bytes(publicKeyBuffer);
 
-    logger.info('[generateAddress] Deriving cardano address from valid public key');
-    const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(
-      network,
-      CardanoWasm.StakeCredential.from_keyhash(pub.hash())
-    );
-    const address = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
-    logger.info(`[generateAddress] base address is ${address}`);
-    return address;
+    const payment = CardanoWasm.StakeCredential.from_keyhash(pub.hash());
+
+    if (type === UTxOAddressTypes.REWARD) {
+      logger.info('[generateAddress] Deriving cardano enterprise address from valid public staking key');
+      const rewardAddress = CardanoWasm.RewardAddress.new(network, payment);
+      const bech32address = rewardAddress.to_address().to_bech32(getAddressPrefix(network));
+      logger.info(`[generateAddress] reward address is ${bech32address}`);
+      return bech32address;
+    }
+
+    if (type === UTxOAddressTypes.BASE && stakingCredential) {
+      const stakingKeyBuffer = Buffer.from(stakingCredential, 'hex');
+
+      const staking = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
+
+      logger.info('[generateAddress] Deriving cardano address from valid public key and staking key');
+      const baseAddress = CardanoWasm.BaseAddress.new(
+        network,
+        payment,
+        CardanoWasm.StakeCredential.from_keyhash(staking.hash())
+      );
+      const bech32address = baseAddress.to_address().to_bech32(getAddressPrefix(network));
+      logger.info(`[generateAddress] base address is ${bech32address}`);
+      return bech32address;
+    }
+
+    logger.info('[generateAddress] Deriving cardano enterprise address from valid public key');
+    const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(network, payment);
+    const bech32address = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
+    logger.info(`[generateAddress] enterprise address is ${bech32address}`);
+    return bech32address;
   },
 
   getAddressType(address) {

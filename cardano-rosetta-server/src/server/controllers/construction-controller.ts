@@ -97,7 +97,14 @@ const configure = (
         }
 
         logger.info(request.body, '[constructionDerive] About to generate address');
-        const address = cardanoService.generateAddress(logger, networkIdentifier, publicKey.hex_bytes);
+        const address = cardanoService.generateAddress(
+          logger,
+          networkIdentifier,
+          publicKey.hex_bytes,
+          addressType,
+          // eslint-disable-next-line camelcase
+          stakingCredential?.hex_bytes
+        );
         if (!address) {
           logger.error('[constructionDerive] There was an error generating address');
           throw ErrorFactory.addressGenerationError();
