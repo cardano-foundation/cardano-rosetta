@@ -4,7 +4,7 @@ import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
-import { ADA, ADA_DECIMALS, operationType } from '../utils/constants';
+import { ADA, ADA_DECIMALS, operationType, UTxOAddressTypes } from '../utils/constants';
 
 // Nibbles
 export const SIGNATURE_LENGTH = 128;
@@ -314,12 +314,6 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
 };
 
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
-
-enum UTxOAddressTypes {
-  ENTERPRISE = 'Enterprise',
-  BASE = 'Base',
-  REWARD = 'Reward'
-}
 
 const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => ({
   generateAddress(logger, network, publicKey, type, stakingCredential) {
