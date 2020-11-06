@@ -49,7 +49,7 @@ declare namespace Components {
     /**
      * AddressType is the type of UTxO address. * Base address - associated to a payment and a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API
      */
-    export type AddressType = 'Enterprise' | 'Base' | 'Reward';
+    export type AddressType = string;
     /**
      * Allow specifies supported Operation status, Operation types, and all possible error statuses. This Allow object is used by clients to validate the correctness of a Rosetta Server implementation. It is expected that these clients will error if they receive some response that contains any of the above information that is not specified here.
      */

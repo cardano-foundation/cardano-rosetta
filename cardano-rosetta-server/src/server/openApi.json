@@ -1079,8 +1079,7 @@
       },
       "AddressType": {
         "description": "AddressType is the type of UTxO address. * Base address - associated to a payment and a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API",
-        "type": "string",
-        "enum": ["Enterprise", "Base", "Reward"]
+        "type": "string"
       },
       "PublicKey": {
         "description": "PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation.",
