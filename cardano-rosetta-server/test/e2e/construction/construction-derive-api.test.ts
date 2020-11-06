@@ -178,4 +178,39 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({ code: 4016, message: INVALID_ADDRESS_TYPE, retriable: true });
   });
+
+  // eslint-disable-next-line max-len
+  test('Should return the Base address corresponding to the public key, staking key and mainnet network when providing valid keys', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_DERIVE_ENDPOINT,
+      payload: generatePayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        type: 'Base',
+        key: '159abeeecdf167ccc0ea60b30f9522154a0d74161aeb159fb43b6b0695f057b3',
+        stakingKey: '964774728c8306a42252adbfb07ccd6ef42399f427ade25a5933ce190c5a8760'
+      })
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().address).toEqual(
+      'addr1q9dhy809valxaer3nlvg2h5nudd62pxp6lu0cs36zczhfr98y6pah6lvppk8xft57nef6yexqh6rr204yemcmm3emhzsgg4fg0'
+    );
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return the Reward address corresponding to the public key and mainnet network when providing a valid public key', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_DERIVE_ENDPOINT,
+      payload: generatePayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        type: 'Reward',
+        key: '964774728c8306a42252adbfb07ccd6ef42399f427ade25a5933ce190c5a8760'
+      })
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().address).toEqual('addr1uxnjdq7ma0kqsmrny460fu5azvnqtap3486jvaudacuam3ghuwnnw');
+  });
 });
