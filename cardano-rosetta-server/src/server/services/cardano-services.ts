@@ -338,7 +338,11 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       return bech32address;
     }
 
-    if (type === UTxOAddressType.BASE && stakingCredential) {
+    if (type === UTxOAddressType.BASE) {
+      if (!stakingCredential) {
+        logger.error('[constructionDerive] No staking key was provided for base address creation');
+        throw ErrorFactory.missingStakingKeyError();
+      }
       const stakingKeyBuffer = Buffer.from(stakingCredential, 'hex');
 
       const staking = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
@@ -354,11 +358,16 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       return bech32address;
     }
 
-    logger.info('[generateAddress] Deriving cardano enterprise address from valid public key');
-    const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(network, payment);
-    const bech32address = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
-    logger.info(`[generateAddress] enterprise address is ${bech32address}`);
-    return bech32address;
+    if (type === UTxOAddressType.ENTERPRISE) {
+      logger.info('[generateAddress] Deriving cardano enterprise address from valid public key');
+      const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(network, payment);
+      const bech32address = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
+      logger.info(`[generateAddress] enterprise address is ${bech32address}`);
+      return bech32address;
+    }
+
+    logger.info('[generateAddress] Address type has an invalid value');
+    throw ErrorFactory.invalidAddressTypeError();
   },
 
   getAddressType(address) {
