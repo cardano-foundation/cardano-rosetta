@@ -161,6 +161,7 @@ const calculateFee = (inputs: Components.Schemas.Operation[], outputs: Component
 const getAddressPrefix = (network: number) =>
   network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'addr' : 'addr_test';
 
+// Prefix according to: https://github.com/cardano-foundation/CIPs/tree/master/CIP5#specification
 const getStakeAddressPrefix = (network: number) =>
   network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'stake' : 'stake_test';
 
