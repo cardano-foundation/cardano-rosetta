@@ -7,6 +7,7 @@ import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../uti
 const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
 const INVALID_STAKING_KEY_FORMAT = 'Invalid staking key format';
+const STAKING_KEY_MISSING = 'Staking key is required for this type of address';
 const INVALID_ADDRESS_TYPE = 'Provided address type is invalid';
 
 type PublicKey = {
@@ -199,6 +200,21 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     expect(response.json().address).toEqual(
       'addr1q9dhy809valxaer3nlvg2h5nudd62pxp6lu0cs36zczhfr98y6pah6lvppk8xft57nef6yexqh6rr204yemcmm3emhzsgg4fg0'
     );
+  });
+
+  test('Should return an error when the address type is Base but no staking credentials are provided', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_DERIVE_ENDPOINT,
+      payload: generatePayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        type: 'Base',
+        key: '159abeeecdf167ccc0ea60b30f9522154a0d74161aeb159fb43b6b0695f057b3'
+      })
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({ code: 4018, message: STAKING_KEY_MISSING, retriable: false });
   });
 
   // eslint-disable-next-line max-len
