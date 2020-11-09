@@ -9,25 +9,25 @@ ENV DEBIAN_FRONTEND=nonintercative
 RUN mkdir -p /app/src
 WORKDIR /app
 RUN apt-get update -y && apt-get install -y \
-  automake=1:1.16.1-4ubuntu6 \
-  build-essential \
-  g++=4:9.3.0-1ubuntu2 \
-  git \
+  automake=1:1.16.* \
+  build-essential=12.* \
+  g++=4:9.3.* \
+  git=1:2.25.* \
   jq \
-  libffi-dev=3.3-4 \
-  libghc-postgresql-libpq-dev=0.9.4.2-1build1 \
-  libgmp-dev=2:6.2.0+dfsg-4 \
-  libncursesw5=6.2-0ubuntu2 \
-  libpq-dev=12.4-0ubuntu0.20.04.1 \
-  libssl-dev=1.1.1f-1ubuntu2 \
-  libsystemd-dev=245.4-4ubuntu3.3 \
-  libtinfo-dev=6.2-0ubuntu2 \
-  libtool=2.4.6-14 \
-  make \
-  pkg-config \
-  tmux \
-  wget \
-  zlib1g-dev=1:1.2.11.dfsg-2ubuntu1.1
+  libffi-dev=3.* \
+  libghc-postgresql-libpq-dev=0.9.4.* \
+  libgmp-dev=2:6.2.* \
+  libncursesw5=6.* \
+  libpq-dev=12.* \
+  libssl-dev=1.1.* \
+  libsystemd-dev=245.* \
+  libtinfo-dev=6.* \
+  libtool=2.4.* \
+  make=4.2.* \
+  pkg-config=0.29.* \
+  tmux=3.* \
+  wget=1.20.* \
+  zlib1g-dev=1:1.2.*
 RUN wget --secure-protocol=TLSv1_2 \
   https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
   tar -xf cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
