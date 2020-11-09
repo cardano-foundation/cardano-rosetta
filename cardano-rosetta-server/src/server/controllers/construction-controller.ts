@@ -81,7 +81,7 @@ const configure = (
           logger.info('[constructionDerive] About to check if staking credential has valid length and curve type');
           if (!isKeyValid(stakingCredential.hex_bytes, stakingCredential.curve_type)) {
             logger.info('[constructionDerive] Staking credential has an invalid format');
-            throw ErrorFactory.invalidPublicKeyFormat();
+            throw ErrorFactory.invalidStakingKeyFormat();
           }
           logger.info('[constructionDerive] Staking credential key has a valid format');
         }

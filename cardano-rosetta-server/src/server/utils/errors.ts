@@ -60,6 +60,7 @@ export const Errors = {
     message: 'Provided address type is invalid',
     code: 4016
   },
+  INVALID_STAKING_KEY_FORMAT: { message: 'Invalid staking key format', code: 4017 },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -90,6 +91,7 @@ const genesisBlockNotFound: CreateErrorFunction = () => buildApiError(Errors.GEN
 const transactionNotFound: CreateErrorFunction = () => buildApiError(Errors.TRANSACTION_NOT_FOUND, false);
 const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.ADDRESS_GENERATION_ERROR, false);
 const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
+const invalidStakingKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_STAKING_KEY_FORMAT, false);
 const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
 const cantBuildWitnessesSet: CreateErrorFunction = () => buildApiError(Errors.CANT_BUILD_WITNESSES_SET, false);
@@ -124,6 +126,7 @@ export const ErrorFactory = {
   transactionNotFound,
   addressGenerationError,
   invalidPublicKeyFormat,
+  invalidStakingKeyFormat,
   parseSignedTransactionError,
   cantBuildSignedTransaction,
   cantBuildWitnessesSet,

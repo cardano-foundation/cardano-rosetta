@@ -6,6 +6,7 @@ import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../uti
 
 const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
+const INVALID_STAKING_KEY_FORMAT = 'Invalid staking key format';
 const INVALID_ADDRESS_TYPE = 'Provided address type is invalid';
 
 type PublicKey = {
@@ -161,7 +162,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
       })
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
+    expect(response.json()).toEqual({ code: 4017, message: INVALID_STAKING_KEY_FORMAT, retriable: false });
   });
 
   test('Should return an error when the address type has an invalid value', async () => {
@@ -224,7 +225,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
       payload: generatePayload({ blockchain: 'cardano', network: 'mainnet', stakingKey: 'smallPublicKey' })
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
+    expect(response.json()).toEqual({ code: 4017, message: INVALID_STAKING_KEY_FORMAT, retriable: false });
   });
 
   test('Should return an error when the staking key has a bigger length than 32', async () => {
@@ -238,6 +239,6 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
       })
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual({ code: 4007, message: INVALID_PUBLIC_KEY_FORMAT, retriable: false });
+    expect(response.json()).toEqual({ code: 4017, message: INVALID_STAKING_KEY_FORMAT, retriable: false });
   });
 });
