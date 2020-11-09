@@ -21,9 +21,9 @@ SELECT
   b.slot_no as "slotNo"
 FROM 
   block b 
-  JOIN slot_leader s ON b.slot_leader = s.id
-  LEFT JOIN block b2 ON b.previous = b2.id
-  LEFT JOIN block b3 ON b2.previous = b3.id
+  JOIN slot_leader s ON b.slot_leader_id = s.id
+  LEFT JOIN block b2 ON b.previous_id = b2.id
+  LEFT JOIN block b3 ON b2.previous_id = b3.id
 WHERE
   ${blockNumber ? 'b.block_no = $1' : '$1 = $1'} AND
   ${blockHash ? 'b.hash = $2' : '$2 = $2'}
@@ -99,7 +99,7 @@ SELECT
 FROM
   block
 WHERE
-  previous IS NULL
+  previous_id IS NULL
 LIMIT 1`;
 
 export interface FindTransactionsOutputs {

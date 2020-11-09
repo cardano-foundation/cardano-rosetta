@@ -2,7 +2,7 @@ ARG UBUNTU_VERSION=20.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
 ARG CABAL_VERSION=3.2.0.0
 ARG CARDANO_NODE_VERSION=1.21.1
-ARG CARDANO_DB_SYNC_VERSION=5.0.3
+ARG CARDANO_DB_SYNC_VERSION=6.0.0
 ARG GHC_VERSION=8.6.5
 ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
 ENV DEBIAN_FRONTEND=nonintercative
@@ -109,7 +109,6 @@ COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-db-sync /usr/local/bin/
 COPY --from=haskell-builder /app/src/cardano-db-sync/schema /cardano-db-sync/schema
-COPY --from=haskell-builder /app/src/cardano-db-sync/config /cardano-db-sync/config
 # easy step-down from root
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VERSION 1.12
@@ -130,8 +129,7 @@ RUN set -eux; \
 	chmod +x /usr/local/bin/gosu; \
 	gosu --version; \
 	gosu nobody true
-ENV PGPASSFILE=/cardano-db-sync/config/pgpass
-RUN chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE && mkdir /ipc
+RUN mkdir /ipc
 VOLUME /data
 EXPOSE 8080
 ENTRYPOINT ["./entrypoint.sh"]
@@ -175,4 +173,6 @@ COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-se
 COPY config/ecosystem.config.js .
 COPY config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
 COPY config/network/${NETWORK} /config/
+ENV PGPASSFILE=/config/cardano-db-sync/pgpass
+RUN chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
 COPY scripts/entrypoint.sh .
