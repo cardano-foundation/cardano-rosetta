@@ -12,6 +12,7 @@ import {
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
 import { CardanoCli } from '../utils/cardanonode-cli';
+import { UTxOAddressType } from '../utils/constants';
 
 export interface ConstructionController {
   constructionDerive(
@@ -101,9 +102,9 @@ const configure = (
           logger,
           networkIdentifier,
           publicKey.hex_bytes,
-          addressType,
           // eslint-disable-next-line camelcase
-          stakingCredential?.hex_bytes
+          stakingCredential?.hex_bytes,
+          addressType as UTxOAddressType
         );
         if (!address) {
           logger.error('[constructionDerive] There was an error generating address');

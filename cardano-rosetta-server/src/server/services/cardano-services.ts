@@ -4,7 +4,7 @@ import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
-import { ADA, ADA_DECIMALS, operationType, UTxOAddressTypes } from '../utils/constants';
+import { ADA, ADA_DECIMALS, operationType, UTxOAddressType } from '../utils/constants';
 
 // Nibbles
 export const SIGNATURE_LENGTH = 128;
@@ -49,13 +49,15 @@ export interface CardanoService {
    *
    * @param networkId cardano network
    * @param publicKey public key hex string representation
+   * @param stakingCredential hex string representation
+   * @param type UTxOAddressTypes either Enterprise, Base or Reward
    */
   generateAddress(
     logger: Logger,
     networkId: NetworkIdentifier,
     publicKey: string,
-    type?: string,
-    stakingCredential?: string
+    stakingCredential?: string,
+    type?: UTxOAddressType
   ): string | null;
 
   /**
@@ -316,7 +318,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
 
 const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => ({
-  generateAddress(logger, network, publicKey, type, stakingCredential) {
+  generateAddress(logger, network, publicKey, stakingCredential, type = UTxOAddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
     );
@@ -327,7 +329,7 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
 
     const payment = CardanoWasm.StakeCredential.from_keyhash(pub.hash());
 
-    if (type === UTxOAddressTypes.REWARD) {
+    if (type === UTxOAddressType.REWARD) {
       logger.info('[generateAddress] Deriving cardano enterprise address from valid public staking key');
       const rewardAddress = CardanoWasm.RewardAddress.new(network, payment);
       const bech32address = rewardAddress.to_address().to_bech32(getStakeAddressPrefix(network));
@@ -335,7 +337,7 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       return bech32address;
     }
 
-    if (type === UTxOAddressTypes.BASE && stakingCredential) {
+    if (type === UTxOAddressType.BASE && stakingCredential) {
       const stakingKeyBuffer = Buffer.from(stakingCredential, 'hex');
 
       const staking = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
