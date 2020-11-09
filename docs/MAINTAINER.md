@@ -3,6 +3,18 @@
 - [cardano-db-sync]
 - [PostgreSQL]
 
+## Pinning Ubuntu Dev Dependencies
+Run an auto-removing container of the base image:
+``` console
+docker run --rm -t -i ubuntu:20.04 /bin/bash
+```
+Lookup available versions in the container:
+``` console
+$ apt-get update
+$ apt list -a automake
+Listing... Done
+automake/focal 1:1.16.1-4ubuntu6 all
+```
 ## Process Management
 [PM2] is used to manage Cardano Rosetta 
 processes within the container.
