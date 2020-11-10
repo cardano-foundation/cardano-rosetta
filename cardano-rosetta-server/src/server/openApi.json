@@ -1078,7 +1078,7 @@
         "example": 1582833600000
       },
       "AddressType": {
-        "description": "AddressType is the type of UTxO address. * Base address - associated to a payment and a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API",
+        "description": "* Base address - associated to a payment and a staking credential, * Reward address - associated to a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API",
         "type": "string"
       },
       "PublicKey": {
