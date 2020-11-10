@@ -4,7 +4,7 @@ import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
-import { ADA, ADA_DECIMALS, operationType, UTxOAddressType } from '../utils/constants';
+import { ADA, ADA_DECIMALS, operationType, AddressType } from '../utils/constants';
 
 // Nibbles
 export const SIGNATURE_LENGTH = 128;
@@ -35,7 +35,7 @@ export interface LinearFeeParameters {
   minFeeB: number;
 }
 
-export enum AddressType {
+export enum EraAddressType {
   Shelley,
   Byron
 }
@@ -50,22 +50,22 @@ export interface CardanoService {
    * @param networkId cardano network
    * @param publicKey public key hex string representation
    * @param stakingCredential hex string representation
-   * @param type UTxOAddressTypes either Enterprise, Base or Reward
+   * @param type Address type: either Enterprise, Base or Reward
    */
   generateAddress(
     logger: Logger,
     networkId: NetworkIdentifier,
     publicKey: string,
     stakingCredential?: string,
-    type?: UTxOAddressType
+    type?: AddressType
   ): string | null;
 
   /**
-   * This function returns the address type based on a string encoded one
+   * Returns the era address type (either Shelley or Byron) based on an encoded string
    *
    * @param address to be parsed
    */
-  getAddressType(address: string): AddressType | null;
+  getEraAddressType(address: string): EraAddressType | null;
 
   /**
    * Returns the transaction hash for the given signed transaction.
@@ -319,7 +319,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
 
 const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => ({
-  generateAddress(logger, network, publicKey, stakingCredential, type = UTxOAddressType.ENTERPRISE) {
+  generateAddress(logger, network, publicKey, stakingCredential, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
     );
@@ -330,7 +330,7 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
 
     const payment = CardanoWasm.StakeCredential.from_keyhash(pub.hash());
 
-    if (type === UTxOAddressType.REWARD) {
+    if (type === AddressType.REWARD) {
       logger.info('[generateAddress] Deriving cardano enterprise address from valid public staking key');
       const rewardAddress = CardanoWasm.RewardAddress.new(network, payment);
       const bech32address = rewardAddress.to_address().to_bech32(getStakeAddressPrefix(network));
@@ -338,7 +338,7 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       return bech32address;
     }
 
-    if (type === UTxOAddressType.BASE) {
+    if (type === AddressType.BASE) {
       if (!stakingCredential) {
         logger.error('[constructionDerive] No staking key was provided for base address creation');
         throw ErrorFactory.missingStakingKeyError();
@@ -358,7 +358,7 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       return bech32address;
     }
 
-    if (type === UTxOAddressType.ENTERPRISE) {
+    if (type === AddressType.ENTERPRISE) {
       logger.info('[generateAddress] Deriving cardano enterprise address from valid public key');
       const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(network, payment);
       const bech32address = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
@@ -370,13 +370,13 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
     throw ErrorFactory.invalidAddressTypeError();
   },
 
-  getAddressType(address) {
+  getEraAddressType(address) {
     if (CardanoWasm.ByronAddress.is_valid(address)) {
-      return AddressType.Byron;
+      return EraAddressType.Byron;
     }
     try {
       CardanoWasm.Address.from_bech32(address);
-      return AddressType.Shelley;
+      return EraAddressType.Shelley;
     } catch (error) {
       return null;
     }
@@ -455,13 +455,13 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
     const { bytes, addresses } = this.createUnsignedTransaction(logger, operations, ttl);
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
-      switch (this.getAddressType(address)) {
-        case AddressType.Shelley:
+      switch (this.getEraAddressType(address)) {
+        case EraAddressType.Shelley:
           return {
             signature: SHELLEY_DUMMY_SIGNATURE,
             publicKey: SHELLEY_DUMMY_PUBKEY
           };
-        case AddressType.Byron: // FIXME: handle this properly when supporting byron in a separate PR
+        case EraAddressType.Byron: // FIXME: handle this properly when supporting byron in a separate PR
         case null:
           throw ErrorFactory.invalidAddressError(address);
       }

@@ -30,7 +30,7 @@ export const SUCCESS_OPERATION_STATE = {
   successful: true
 };
 
-export enum UTxOAddressType {
+export enum AddressType {
   ENTERPRISE = 'Enterprise',
   BASE = 'Base',
   REWARD = 'Reward'
