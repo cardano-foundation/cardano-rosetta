@@ -3,7 +3,7 @@ import cbor from 'cbor';
 import { operationType, SIGNATURE_TYPE } from '../../src/server/utils/constants';
 
 /* eslint-disable camelcase */
-const slotLeader2b1 = 'SlotLeader-52df0f2c5539b2b1';
+const slotLeader2b1 = 'ByronGenesis-52df0f2c5539b2b1';
 export const block1000WithoutTxs = {
   block: {
     block_identifier: {
@@ -17,7 +17,7 @@ export const block1000WithoutTxs = {
     timestamp: 1506223071000,
     metadata: {
       transactionsCount: 0,
-      createdBy: 'SlotLeader-8e8a7b0f4a23f07a',
+      createdBy: 'ByronGenesis-8e8a7b0f4a23f07a',
       size: 669,
       epochNo: 0,
       slotNo: 999
@@ -29,21 +29,21 @@ export const block1000WithoutTxs = {
 export const latestBlock = {
   block: {
     block_identifier: {
-      index: 65168,
-      hash: '94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252'
+      index: 67984,
+      hash: 'a2ee76dfea1dae6eda713246df08e96dabc33fc15ac25e3108bb230765c9559c'
     },
     parent_block_identifier: {
-      index: 65167,
-      hash: '1e783f0c84e0aa06e5b8dbc7965674e8856aebd87838f9466952b5b738381adf'
+      index: 67983,
+      hash: 'c4bc9aebc008d270cdd6ee0a0746ee9113ace144e8eba4e7bae7f5d0b03e20d5'
     },
-    timestamp: 1507506971000,
+    timestamp: 1507563311000,
     transactions: [],
     metadata: {
       transactionsCount: 0,
-      createdBy: slotLeader2b1,
-      size: 669,
+      createdBy: 'ByronGenesis-64c61078e9577d3b',
+      size: 671,
       epochNo: 3,
-      slotNo: 65194
+      slotNo: 68011
     }
   }
 };
@@ -61,7 +61,7 @@ export const block23236WithTransactions = {
     timestamp: 1506668071000,
     metadata: {
       transactionsCount: 2,
-      createdBy: 'SlotLeader-64c61078e9577d3b',
+      createdBy: 'ByronGenesis-64c61078e9577d3b',
       size: 1155,
       epochNo: 1,
       slotNo: 23249
@@ -320,7 +320,7 @@ export const blockWith8Txs = {
     transactions: [],
     metadata: {
       transactionsCount: 8,
-      createdBy: 'SlotLeader-888c451ae09a16fe',
+      createdBy: 'ByronGenesis-888c451ae09a16fe',
       size: 2845,
       epochNo: 1,
       slotNo: 23725

@@ -4,7 +4,7 @@ import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import { linearFeeParameters, setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
-import { SIGNED_TRANSACTION, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
+import { latestBlock, SIGNED_TRANSACTION, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 
@@ -38,15 +38,16 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
   });
 
   test('Should return a valid TTL when the parameters are valid', async () => {
+    const relativeTtl = 100;
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_METADATA_ENDPOINT,
-      payload: generateMetadataPayload('cardano', 'mainnet', 100)
+      payload: generateMetadataPayload('cardano', 'mainnet', relativeTtl)
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       metadata: {
-        ttl: '65294'
+        ttl: (latestBlock.block.metadata.slotNo + relativeTtl).toString()
       },
       suggested_fee: [
         {
@@ -54,8 +55,9 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
             decimals: 6,
             symbol: 'ADA'
           },
+          // ttl is encoded as 5 bytes but metadaa comes with one already
           value: (
-            (SIGNED_TRANSACTION.length / 2) * linearFeeParameters.minFeeA +
+            (TRANSACTION_SIZE_IN_BYTES + 4) * linearFeeParameters.minFeeA +
             linearFeeParameters.minFeeB
           ).toString()
         }

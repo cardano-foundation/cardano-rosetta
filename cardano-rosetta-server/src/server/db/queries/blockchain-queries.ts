@@ -45,7 +45,7 @@ SELECT
   tx.*,
   block.hash as blockHash
 FROM tx
-JOIN block ON block.id = tx.block
+JOIN block ON block.id = tx.block_id
 WHERE
   ${blockNumber ? '(block.block_no = $1 OR (block.block_no is null AND $1 = 0))' : '$1 = $1'} AND
   ${blockHash ? 'block.hash = $2' : '$2 = $2'}
@@ -59,7 +59,7 @@ SELECT
   tx.*,
   block.hash as blockHash
 FROM tx
-JOIN block ON block.id = tx.block
+JOIN block ON block.id = tx.block_id
 WHERE
   tx.hash = $1
 AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
@@ -149,10 +149,10 @@ ${selectFields}
 	tx_out.index::smallint = tx_in.tx_out_index::smallint 
 	LEFT JOIN tx as tx_in_tx ON 
 		tx_in_tx.id = tx_in.tx_in_id AND
-    tx_in_tx.block <= (select id from block where hash = $2)	
+    tx_in_tx.block_id <= (select id from block where hash = $2)	
 	JOIN tx AS tx_out_tx ON
 	  tx_out_tx.id = tx_out.tx_id AND
-    tx_out_tx.block <= (select id from block where hash = $2)	
+    tx_out_tx.block_id <= (select id from block where hash = $2)	
   WHERE 
 	  tx_out.address = $1 AND
 	  tx_in_tx.id IS NULL

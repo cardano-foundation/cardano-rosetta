@@ -5,6 +5,7 @@ import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 import { CARDANO } from '../../../src/server/utils/constants';
+import { latestBlock } from '../fixture-data';
 
 const generatePayload = (
   blockchain: string,
@@ -76,10 +77,7 @@ describe('/account/balance endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       balances: [{ currency: { decimals: 6, symbol: 'ADA' }, value: '21063' }],
-      block_identifier: {
-        hash: '94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
-        index: 65168
-      },
+      block_identifier: latestBlock.block.block_identifier,
       coins: [
         {
           coin_identifier: { identifier: 'af0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad:0' },
@@ -180,10 +178,7 @@ describe('/account/balance endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      block_identifier: {
-        index: 65168,
-        hash: '94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252'
-      },
+      block_identifier: latestBlock.block.block_identifier,
       balances: [
         {
           value: '11509379714',

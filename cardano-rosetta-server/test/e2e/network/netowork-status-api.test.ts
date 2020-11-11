@@ -5,6 +5,7 @@ import StatusCodes from 'http-status-codes';
 import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 import { CARDANO, MAINNET } from '../../../src/server/utils/constants';
 import { generateNetworkPayload } from './common';
+import { latestBlock } from '../fixture-data';
 
 const NETWORK_STATUS_ENDPOINT = '/network/status';
 const peers = [{ peer_id: 'relays-new.cardano-mainnet.iohk.io' }];
@@ -12,10 +13,7 @@ const genesis_block_identifier = {
   hash: '5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb',
   index: 0 // FIXME this is not ok
 };
-const last_block_identifier = {
-  hash: '94049f0e34aee1c5b0b492a57acd054885251e802401f72687a1e79fa1a6e252',
-  index: 65168
-};
+const latest_block_identifier = latestBlock.block.block_identifier;
 
 describe('/network/status endpoint', () => {
   let database: Pool;
@@ -38,7 +36,7 @@ describe('/network/status endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().genesis_block_identifier).toEqual(genesis_block_identifier);
-    expect(response.json().current_block_identifier).toEqual(last_block_identifier);
+    expect(response.json().current_block_identifier).toEqual(latest_block_identifier);
     expect(response.json().peers).toEqual(peers);
   });
 
