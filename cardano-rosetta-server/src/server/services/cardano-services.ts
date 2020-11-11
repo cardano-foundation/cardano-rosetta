@@ -251,13 +251,17 @@ const validateAndParseTransactionOutputs = (
       logger.error('[validateAndParseTransactionOutputs] Output has missing address field');
       throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
     }
-    const value = output.amount && BigNum.from_str(output.amount.value);
+    const value = Number(output.amount?.value);
     if (!value) {
       logger.error('[validateAndParseTransactionOutputs] Output has missing amount value field');
       throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
     }
+    if (value <= 0) {
+      logger.error('[validateAndParseTransactionOutputs] Output has negative value');
+      throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
+    }
     try {
-      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, value));
+      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, BigNum.new(BigInt(value))));
     } catch (error) {
       throw ErrorFactory.transactionOutputDeserializationError(error.toString());
     }
@@ -279,6 +283,15 @@ const validateAndParseTransactionInputs = (
     if (!(transactionId && index)) {
       logger.error('[validateAndParseTransactionInputs] Input has missing transactionId and index');
       throw ErrorFactory.transactionInputsParametersMissingError('Input has invalid coin_identifier field');
+    }
+    const value = Number(input.amount?.value);
+    if (!value) {
+      logger.error('[validateAndParseTransactionInputs] Input has missing amount value field');
+      throw ErrorFactory.transactionInputsParametersMissingError('Input has missing amount value field');
+    }
+    if (value >= 0) {
+      logger.error('[validateAndParseTransactionInputs] Input has negative value');
+      throw ErrorFactory.transactionInputsParametersMissingError('Input has positive amount value');
     }
     try {
       transactionInputs.add(
@@ -415,8 +428,9 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
     logger.info(
       `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
     );
-    const inputs = operations.filter(operation => Number(operation.amount?.value) < 0);
-    const outputs = operations.filter(operation => Number(operation.amount?.value) > 0);
+    const inputs = operations.filter(({ type }) => type === operationType.INPUT);
+    const outputs = operations.filter(({ type }) => type === operationType.OUTPUT);
+
     logger.info('[createUnsignedTransaction] About to calculate fee');
     const fee = calculateFee(inputs, outputs);
     logger.info('[createUnsignedTransaction] About to create transaction body');
