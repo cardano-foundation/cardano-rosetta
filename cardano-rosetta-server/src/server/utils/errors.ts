@@ -56,6 +56,12 @@ export const Errors = {
     message: 'Provided address is invalid',
     code: 4015
   },
+  INVALID_ADDRESS_TYPE: {
+    message: 'Provided address type is invalid',
+    code: 4016
+  },
+  INVALID_STAKING_KEY_FORMAT: { message: 'Invalid staking key format', code: 4017 },
+  STAKING_KEY_MISSING: { message: 'Staking key is required for this type of address', code: 4018 },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -86,6 +92,8 @@ const genesisBlockNotFound: CreateErrorFunction = () => buildApiError(Errors.GEN
 const transactionNotFound: CreateErrorFunction = () => buildApiError(Errors.TRANSACTION_NOT_FOUND, false);
 const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.ADDRESS_GENERATION_ERROR, false);
 const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
+const invalidStakingKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_STAKING_KEY_FORMAT, false);
+const missingStakingKeyError: CreateErrorFunction = type => buildApiError(Errors.STAKING_KEY_MISSING, false, type);
 const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
 const cantBuildWitnessesSet: CreateErrorFunction = () => buildApiError(Errors.CANT_BUILD_WITNESSES_SET, false);
@@ -107,6 +115,7 @@ const transactionInputDeserializationError: CreateErrorFunction = (details?: str
 const transactionOutputDeserializationError: CreateErrorFunction = (details?: string) =>
   buildApiError(Errors.TRANSACTION_OUTPUT_DESERIALIZATION_ERROR, false, details);
 const invalidAddressError: CreateErrorFunction = address => buildApiError(Errors.INVALID_ADDRESS, true, address);
+const invalidAddressTypeError: CreateErrorFunction = type => buildApiError(Errors.INVALID_ADDRESS_TYPE, true, type);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -119,6 +128,8 @@ export const ErrorFactory = {
   transactionNotFound,
   addressGenerationError,
   invalidPublicKeyFormat,
+  invalidStakingKeyFormat,
+  missingStakingKeyError,
   parseSignedTransactionError,
   cantBuildSignedTransaction,
   cantBuildWitnessesSet,
@@ -130,7 +141,8 @@ export const ErrorFactory = {
   sendTransactionError,
   transactionInputDeserializationError,
   transactionOutputDeserializationError,
-  invalidAddressError
+  invalidAddressError,
+  invalidAddressTypeError
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>

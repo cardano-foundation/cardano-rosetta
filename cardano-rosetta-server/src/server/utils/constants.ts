@@ -29,3 +29,9 @@ export const SUCCESS_OPERATION_STATE = {
   status: operationTypeStatus.SUCCESS,
   successful: true
 };
+
+export enum AddressType {
+  ENTERPRISE = 'Enterprise',
+  BASE = 'Base',
+  REWARD = 'Reward'
+}

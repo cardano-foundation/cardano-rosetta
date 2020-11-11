@@ -47,6 +47,10 @@ declare namespace Components {
       metadata?: {};
     }
     /**
+     * * Base address - associated to a payment and a staking credential, * Reward address - associated to a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API
+     */
+    export type AddressType = string;
+    /**
      * Allow specifies supported Operation status, Operation types, and all possible error statuses. This Allow object is used by clients to validate the correctness of a Rosetta Server implementation. It is expected that these clients will error if they receive some response that contains any of the above information that is not specified here.
      */
     export interface Allow {
@@ -212,7 +216,10 @@ declare namespace Components {
     export interface ConstructionDeriveRequest {
       network_identifier: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       public_key: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
-      metadata?: {};
+      metadata?: {
+        staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
+        address_type?: /* * Base address - associated to a payment and a staking credential, * Reward address - associated to a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API */ AddressType;
+      };
     }
     /**
      * ConstructionDeriveResponse is returned by the `/construction/derive` endpoint.
