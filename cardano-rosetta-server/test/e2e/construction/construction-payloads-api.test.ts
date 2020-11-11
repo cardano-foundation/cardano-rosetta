@@ -9,7 +9,8 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID,
-  CONSTRUCTION_PAYLOADS_RESPONSE
+  CONSTRUCTION_PAYLOADS_RESPONSE,
+  CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE
 } from '../fixture-data';
 import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
 
@@ -66,6 +67,20 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().payloads.length).toEqual(1);
+  });
+
+  test('Should return an error when operations with invalid types are sent as parameters', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4019,
+      message: 'Provided operation type is invalid',
+      retriable: true
+    });
   });
 
   test('Should throw an error when invalid inputs are sent as parameters', async () => {

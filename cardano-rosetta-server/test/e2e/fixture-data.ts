@@ -508,6 +508,32 @@ export const CONSTRUCTION_PAYLOADS_REQUEST = {
   }
 };
 
+export const CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: 'invalid',
+      status: 'success',
+      metadata: {
+        staking_credential: {
+          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
+          curve_type: 'edwards25519'
+        }
+      }
+    }
+  ],
+  metadata: {
+    ttl: 1000
+  }
+};
+
 export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS = {
   network_identifier: {
     blockchain: 'cardano',
