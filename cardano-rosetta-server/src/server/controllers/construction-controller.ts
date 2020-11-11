@@ -12,7 +12,7 @@ import {
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
 import { CardanoCli } from '../utils/cardanonode-cli';
-import { AddressType } from '../utils/constants';
+import { AddressType, operationType } from '../utils/constants';
 
 export interface ConstructionController {
   constructionDerive(
@@ -181,6 +181,21 @@ const configure = (
         const logger = request.log;
         const ttl = request.body.metadata.ttl;
         const operations = request.body.operations;
+        operations.forEach(({ operation_identifier: operationId, type, metadata }) => {
+          if (!(<any>Object).values(operationType).includes(type)) {
+            logger.error(`[constructionPayloads] Operation with id ${operationId} has invalid type`);
+            throw ErrorFactory.invalidOperationTypeError();
+          }
+          if (
+            // eslint-disable-next-line camelcase
+            metadata?.staking_credential &&
+            // eslint-disable-next-line camelcase
+            !isKeyValid(metadata?.staking_credential.hex_bytes, metadata?.staking_credential.curve_type)
+          ) {
+            logger.info('[constructionPayloads] Staking key has an invalid format');
+            throw ErrorFactory.invalidPublicKeyFormat();
+          }
+        });
         logger.info(operations, '[constuctionPayloads] Operations about to be processed');
         const unsignedTransaction = cardanoService.createUnsignedTransaction(logger, operations, parseInt(ttl));
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
