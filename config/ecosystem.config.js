@@ -33,7 +33,8 @@ module.exports = {
       args: [
         '--config', '/config/cardano-db-sync/config.json',
         '--schema-dir', '/cardano-db-sync/schema/',
-        '--socket-path', '/ipc/node.socket'
+        '--socket-path', '/ipc/node.socket',
+        "--state-dir", "/data/db-sync"
       ],
       autorestart: true,
       env: {

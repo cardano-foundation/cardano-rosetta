@@ -34,9 +34,13 @@ services:
         max-size: "400k"
         max-file: "20"
   cardano-db-sync:
-    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-5.0.1}
+    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-6.0.0}
+    command: [
+      "--config", "/config/cardano-db-sync/config.json",
+      "--socket-path", "/node-ipc/node.socket",
+      "--state-dir", "/data"
+    ]
     environment:
-      - NETWORK=${NETWORK:-mainnet}
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
     depends_on:
@@ -47,6 +51,8 @@ services:
       - postgres_user
       - postgres_db
     volumes:
+      - ../config/network/${NETWORK:-mainnet}:/config
+      - db-sync-data:/data
       - node-ipc:/node-ipc
     restart: on-failure
     logging:
@@ -92,6 +98,7 @@ secrets:
   postgres_user:
     file: ./config/secrets/postgres_user
 volumes:
+  db-sync-data:
   node-db:
   node-ipc:
   postgres-data:

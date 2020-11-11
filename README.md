@@ -73,13 +73,14 @@ Specify the TTL without needing to access an online method. Default: `1000`
 Default: `25`
 
 ### Upgrading
-As per the release notes, you **_may_** be required to rebuild the PostgreSQL database. This can 
-be achieved without requiring a network re-sync using the following command:
+As per the release notes, you **_may_** be required to refresh the state managed by 
+`cardano-db-sync`. This can be achieved without requiring a network re-sync using the following 
+command:
 
 ```console
 docker stop cardano-rosetta && \
 docker rm cardano-rosetta && \
-docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql
+docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql /data/db-sync
 ```
 Progress will be logged by the new container. 
 

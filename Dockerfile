@@ -2,32 +2,32 @@ ARG UBUNTU_VERSION=20.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
 ARG CABAL_VERSION=3.2.0.0
 ARG CARDANO_NODE_VERSION=1.21.1
-ARG CARDANO_DB_SYNC_VERSION=5.0.3
+ARG CARDANO_DB_SYNC_VERSION=6.0.0
 ARG GHC_VERSION=8.6.5
 ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
 ENV DEBIAN_FRONTEND=nonintercative
 RUN mkdir -p /app/src
 WORKDIR /app
 RUN apt-get update -y && apt-get install -y \
-  automake \
-  build-essential \
-  g++ \
-  git \
+  automake=1:1.16.* \
+  build-essential=12.* \
+  g++=4:9.3.* \
+  git=1:2.25.* \
   jq \
-  libffi-dev \
-  libghc-postgresql-libpq-dev \
-  libgmp-dev \
-  libncursesw5 \
-  libpq-dev \
-  libssl-dev \
-  libsystemd-dev \
-  libtinfo-dev \
-  libtool \
-  make \
-  pkg-config \
-  tmux \
-  wget \
-  zlib1g-dev
+  libffi-dev=3.* \
+  libghc-postgresql-libpq-dev=0.9.4.* \
+  libgmp-dev=2:6.2.* \
+  libncursesw5=6.* \
+  libpq-dev=12.* \
+  libssl-dev=1.1.* \
+  libsystemd-dev=245.* \
+  libtinfo-dev=6.* \
+  libtool=2.4.* \
+  make=4.2.* \
+  pkg-config=0.29.* \
+  tmux=3.* \
+  wget=1.20.* \
+  zlib1g-dev=1:1.2.*
 RUN wget --secure-protocol=TLSv1_2 \
   https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
   tar -xf cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
@@ -109,7 +109,6 @@ COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-db-sync /usr/local/bin/
 COPY --from=haskell-builder /app/src/cardano-db-sync/schema /cardano-db-sync/schema
-COPY --from=haskell-builder /app/src/cardano-db-sync/config /cardano-db-sync/config
 # easy step-down from root
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VERSION 1.12
@@ -130,8 +129,7 @@ RUN set -eux; \
 	chmod +x /usr/local/bin/gosu; \
 	gosu --version; \
 	gosu nobody true
-ENV PGPASSFILE=/cardano-db-sync/config/pgpass
-RUN chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE && mkdir /ipc
+RUN mkdir /ipc
 VOLUME /data
 EXPOSE 8080
 ENTRYPOINT ["./entrypoint.sh"]
@@ -175,4 +173,6 @@ COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-se
 COPY config/ecosystem.config.js .
 COPY config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
 COPY config/network/${NETWORK} /config/
+ENV PGPASSFILE=/config/cardano-db-sync/pgpass
+RUN chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
 COPY scripts/entrypoint.sh .
