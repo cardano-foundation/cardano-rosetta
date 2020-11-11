@@ -78,6 +78,13 @@ const allow = {
       retriable: true
     },
     {
+      code: 4016,
+      message: 'Provided address type is invalid',
+      retriable: true
+    },
+    { code: 4017, message: 'Invalid staking key format', retriable: false },
+    { code: 4018, message: 'Staking key is required for this type of address', retriable: false },
+    {
       code: 5000,
       message: 'An error occurred',
       retriable: true
