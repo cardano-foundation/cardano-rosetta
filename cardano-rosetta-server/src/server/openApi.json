@@ -1077,6 +1077,10 @@
         "minimum": 0,
         "example": 1582833600000
       },
+      "AddressType": {
+        "description": "* Base address - associated to a payment and a staking credential, * Reward address - associated to a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API",
+        "type": "string"
+      },
       "PublicKey": {
         "description": "PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation.",
         "type": "object",
@@ -1465,7 +1469,15 @@
             "$ref": "#/components/schemas/PublicKey"
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "staking_credential": {
+                "$ref": "#/components/schemas/PublicKey"
+              },
+              "address_type": {
+                "$ref": "#/components/schemas/AddressType"
+              }
+            }
           }
         }
       },
