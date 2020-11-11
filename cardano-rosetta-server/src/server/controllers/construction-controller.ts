@@ -13,6 +13,8 @@ import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
 import { CardanoCli } from '../utils/cardanonode-cli';
 import { NetworkService } from '../services/network-service';
+import { AddressType } from '../utils/constants';
+
 export interface ConstructionController {
   constructionDerive(
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.ConstructionDeriveRequest>
@@ -50,6 +52,8 @@ export interface ConstructionController {
 const isKeyValid = (publicKeyBytes: string, curveType: string): boolean =>
   publicKeyBytes.length === PUBLIC_KEY_BYTES_LENGTH && curveType === 'edwards25519';
 
+const isAddressTypeValid = (type: string): boolean => ['Enterprise', 'Base', 'Reward', '', undefined].includes(type);
+
 const configure = (
   constructionService: ConstructionService,
   cardanoService: CardanoService,
@@ -72,8 +76,37 @@ const configure = (
         }
         logger.info('[constructionDerive] Public key has a valid format');
 
+        // eslint-disable-next-line camelcase
+        const stakingCredential = request.body.metadata?.staking_credential;
+        if (stakingCredential) {
+          logger.info('[constructionDerive] About to check if staking credential has valid length and curve type');
+          if (!isKeyValid(stakingCredential.hex_bytes, stakingCredential.curve_type)) {
+            logger.info('[constructionDerive] Staking credential has an invalid format');
+            throw ErrorFactory.invalidStakingKeyFormat();
+          }
+          logger.info('[constructionDerive] Staking credential key has a valid format');
+        }
+
+        // eslint-disable-next-line camelcase
+        const addressType = request.body.metadata?.address_type;
+        if (addressType) {
+          logger.info('[constructionDerive] About to check if address type is valid');
+          if (!isAddressTypeValid(addressType)) {
+            logger.info('[constructionDerive] Address type has an invalid value');
+            throw ErrorFactory.invalidAddressTypeError();
+          }
+          logger.info('[constructionDerive] Address type has a valid value');
+        }
+
         logger.info(request.body, '[constructionDerive] About to generate address');
-        const address = cardanoService.generateAddress(logger, networkIdentifier, publicKey.hex_bytes);
+        const address = cardanoService.generateAddress(
+          logger,
+          networkIdentifier,
+          publicKey.hex_bytes,
+          // eslint-disable-next-line camelcase
+          stakingCredential?.hex_bytes,
+          addressType as AddressType
+        );
         if (!address) {
           logger.error('[constructionDerive] There was an error generating address');
           throw ErrorFactory.addressGenerationError();
