@@ -88,6 +88,13 @@ export interface CardanoService {
   getHashOfSignedTransaction(logger: Logger, signedTransaction: string): string;
 
   /**
+   * This function returns a the address prefix based on a string encoded one
+   *
+   * @param address to be parsed
+   */
+  getPrefixFromAddress(address: string): string;
+
+  /**
    * Creates an unsigned transaction for the given operation.
    *
    * @param operations
@@ -477,7 +484,9 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       return null;
     }
   },
-
+  getPrefixFromAddress(address) {
+    return address.slice(0, PREFIX_LENGTH);
+  },
   getHashOfSignedTransaction(logger, signedTransaction) {
     try {
       logger.info(`[getHashOfSignedTransaction] About to hash signed transaction ${signedTransaction}`);

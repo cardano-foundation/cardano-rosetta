@@ -1,7 +1,9 @@
 import { Logger } from 'fastify';
-import { Block, BlockUtxos, GenesisBlock, Transaction, PopulatedTransaction } from '../models';
+import { Block, BlockUtxos, BalanceAtBlock, GenesisBlock, Transaction, PopulatedTransaction } from '../models';
 import { ErrorFactory } from '../utils/errors';
+import { stakeType } from '../utils/constants';
 import { BlockchainRepository } from '../db/blockchain-repository';
+import { CardanoService } from './cardano-services';
 
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -68,10 +70,15 @@ export interface BlockService {
    * @param number
    * @param hash
    */
-  findUtxoByAddressAndBlock(logger: Logger, address: string, number?: number, hash?: string): Promise<BlockUtxos>;
+  findUtxoByAddressAndBlock(
+    logger: Logger,
+    address: string,
+    number?: number,
+    hash?: string
+  ): Promise<BlockUtxos | BalanceAtBlock>;
 }
 
-const configure = (repository: BlockchainRepository): BlockService => ({
+const configure = (repository: BlockchainRepository, cardanoService: CardanoService): BlockService => ({
   async findBlock(logger, number, hash) {
     logger.info({ number, hash }, '[findBlock] Looking for block:');
     // cardano doesn't have block zero but we need to map it to genesis
@@ -133,13 +140,28 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     logger.debug({ genesisBlock }, '[getGenesisBlock] Returning genesis block');
     return genesisBlock;
   },
+  // FIXME: change the name for a more generic one, could be 'findBalanceDataByAddressAndBlock'
   async findUtxoByAddressAndBlock(logger, address, number, hash) {
     const block = await this.findBlock(logger, number, hash);
     if (block === null) {
       logger.error('[findUtxoByAddressAndBlock] Block not found');
       throw ErrorFactory.blockNotFoundError();
     }
+
     logger.info(`[findUtxoByAddressAndBlock] Looking for utxos for address ${address} and block ${block.hash}`);
+    const addressPrefix = cardanoService.getPrefixFromAddress(address);
+    if ([stakeType.STAKE as string, stakeType.STAKE_TEST as string].includes(addressPrefix)) {
+      const balance = await repository.findBalanceByAddressAndBlock(logger, address, block.hash);
+      logger.debug(
+        balance,
+        `[findStakeUtxoByAddressAndBlock] Found stake balance of ${balance} for address ${address}`
+      );
+
+      return {
+        block,
+        balance
+      };
+    }
     const utxoDetails = await repository.findUtxoByAddressAndBlock(logger, address, block.hash);
     logger.debug(
       utxoDetails,

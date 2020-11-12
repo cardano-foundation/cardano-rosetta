@@ -192,7 +192,6 @@ ${selectFields}
   WHERE 
 	  tx_out.address = $1 AND
 	  tx_in_tx.id IS NULL
-		
 `;
 
 const selectUtxoDetail = `SELECT
@@ -201,6 +200,24 @@ const selectUtxoDetail = `SELECT
   tx_out.index as index`;
 
 const findUtxoByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectUtxoDetail);
+
+const findBalanceByAddressAndBlock = `SELECT (SELECT COALESCE(SUM(r.amount),0) 
+  FROM reward r
+  JOIN stake_address ON 
+    stake_address.id = r.addr_id AND 
+    stake_address.view = $1
+  JOIN block ON
+    block.id = r.block_id
+  WHERE stake_address.view = $1
+  AND block.epoch_no < (SELECT epoch_no FROM block WHERE hash = $2))- 
+  (SELECT COALESCE(SUM(w.amount),0) 
+  FROM withdrawal w
+  JOIN tx ON tx.id = w.tx_id AND 
+    tx.block_id <= (SELECT id FROM block WHERE hash = $2)
+  JOIN stake_address ON stake_address.id = w.addr_id
+  WHERE stake_address.view = $1) 
+  AS balance
+`;
 
 const Queries = {
   findBlock,
@@ -212,7 +229,8 @@ const Queries = {
   findTransactionRegistrations,
   findLatestBlockNumber,
   findGenesisBlock,
-  findUtxoByAddressAndBlock
+  findUtxoByAddressAndBlock,
+  findBalanceByAddressAndBlock
 };
 
 export default Queries;
