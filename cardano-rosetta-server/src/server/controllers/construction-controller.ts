@@ -140,9 +140,15 @@ const configure = (
       request.body.network_identifier,
       request,
       async () => {
+        const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         // eslint-disable-next-line camelcase
         const relativeTtl = constructionService.calculateRelativeTtl(request.body.metadata?.relative_ttl);
-        const transactionSize = cardanoService.calculateTxSize(request.log, request.body.operations, 0);
+        const transactionSize = cardanoService.calculateTxSize(
+          request.log,
+          networkIdentifier,
+          request.body.operations,
+          0
+        );
         // eslint-disable-next-line camelcase
         return { options: { relative_ttl: relativeTtl, transaction_size: transactionSize } };
       },
@@ -181,6 +187,7 @@ const configure = (
         const logger = request.log;
         const ttl = request.body.metadata.ttl;
         const operations = request.body.operations;
+        const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         operations.forEach(({ operation_identifier: operationId, type, metadata }) => {
           if (!(<any>Object).values(operationType).includes(type)) {
             logger.error(`[constructionPayloads] Operation with id ${operationId} has invalid type`);
@@ -197,7 +204,12 @@ const configure = (
           }
         });
         logger.info(operations, '[constuctionPayloads] Operations about to be processed');
-        const unsignedTransaction = cardanoService.createUnsignedTransaction(logger, operations, parseInt(ttl));
+        const unsignedTransaction = cardanoService.createUnsignedTransaction(
+          logger,
+          networkIdentifier,
+          operations,
+          parseInt(ttl)
+        );
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         return {
           // eslint-disable-next-line camelcase

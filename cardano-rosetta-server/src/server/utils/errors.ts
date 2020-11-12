@@ -66,6 +66,7 @@ export const Errors = {
     message: 'Provided operation type is invalid',
     code: 4019
   },
+  POOL_KEY_MISSING: { message: 'Pool key hash is required for stake delegation', code: 4020 },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -98,6 +99,7 @@ const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.A
 const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
 const invalidStakingKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_STAKING_KEY_FORMAT, false);
 const missingStakingKeyError: CreateErrorFunction = type => buildApiError(Errors.STAKING_KEY_MISSING, false, type);
+const missingPoolKeyError: CreateErrorFunction = type => buildApiError(Errors.POOL_KEY_MISSING, false, type);
 const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
 const cantBuildWitnessesSet: CreateErrorFunction = () => buildApiError(Errors.CANT_BUILD_WITNESSES_SET, false);
@@ -135,6 +137,7 @@ export const ErrorFactory = {
   invalidPublicKeyFormat,
   invalidStakingKeyFormat,
   missingStakingKeyError,
+  missingPoolKeyError,
   parseSignedTransactionError,
   cantBuildSignedTransaction,
   cantBuildWitnessesSet,

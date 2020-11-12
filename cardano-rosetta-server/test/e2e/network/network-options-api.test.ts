@@ -90,6 +90,11 @@ const allow = {
       retriable: true
     },
     {
+      code: 4020,
+      message: 'Pool key hash is required for stake delegation',
+      retriable: false
+    },
+    {
       code: 5000,
       message: 'An error occurred',
       retriable: true
