@@ -287,4 +287,34 @@ describe('/account/balance endpoint', () => {
       coins: []
     });
   });
+  test('should return 0 for the balance of stake account at block with no earned rewards', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'stake1u9ylzsgxaa6xctf4juup682ar3juj85n8tx3hthnljg47zctvm3rc',
+        3336,
+        '824f66a4159ec3afb1b87ebb6c34deeef32788f6701ebadb40fa80f88add3702'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: {
+        index: 3336,
+        hash: '824f66a4159ec3afb1b87ebb6c34deeef32788f6701ebadb40fa80f88add3702'
+      },
+      balances: [
+        {
+          value: '0',
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          }
+        }
+      ],
+      coins: []
+    });
+  });
 });
