@@ -200,7 +200,7 @@ const configure = (
             !isKeyValid(metadata?.staking_credential.hex_bytes, metadata?.staking_credential.curve_type)
           ) {
             logger.info('[constructionPayloads] Staking key has an invalid format');
-            throw ErrorFactory.invalidPublicKeyFormat();
+            throw ErrorFactory.invalidStakingKeyFormat();
           }
         });
         logger.info(operations, '[constuctionPayloads] Operations about to be processed');

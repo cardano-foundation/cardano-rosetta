@@ -24,6 +24,8 @@ import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
 
 const CONSTRUCTION_PAYLOADS_ENDPOINT = '/construction/payloads';
 
+const INVALID_STAKING_KEY_FORMAT = { message: 'Invalid staking key format', code: 4017, retriable: false };
+
 describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
   let database: Pool;
   let server: FastifyInstance;
@@ -237,6 +239,96 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
           hex_bytes: 'a8f7cce3c339a5c2648aad189c2d50d8bfa6e88776bd7cd29767b94e8bf59382'
         }
       ]
+    });
+  });
+
+  test('Should return an error when staking key in one operation has invalid format', async () => {
+    const { network_identifier, operations, metadata } = CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION;
+    const payload = {
+      network_identifier,
+      operations: operations.map(({ metadata: opMetadata, ...rest }) => ({
+        metadata: opMetadata && {
+          staking_credential: { hex_bytes: opMetadata.staking_credential.hex_bytes, curve_type: 'secp256k1' }
+        },
+        ...rest
+      })),
+      metadata
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual(INVALID_STAKING_KEY_FORMAT);
+  });
+
+  test('Should return an error when staking key in one operation has a bigger length than 32', async () => {
+    const { network_identifier, operations, metadata } = CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION;
+    const bigCredential = {
+      hex_bytes: 'ThisIsABiggerPublicKeyForTestingPurposesThisIsABiggerPublicKeyForTestingPurposes',
+      curve_type: 'edwards25519'
+    };
+    const payload = {
+      network_identifier,
+      operations: operations.map(({ metadata: opMetadata, ...rest }) => ({
+        metadata: opMetadata && { staking_credential: bigCredential },
+        ...rest
+      })),
+      metadata
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual(INVALID_STAKING_KEY_FORMAT);
+  });
+
+  test('Should return an error when staking key in one operation has a smaller length than 32', async () => {
+    const { network_identifier, operations, metadata } = CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION;
+    const smallCredential = {
+      hex_bytes: 'smallPublicKey',
+      curve_type: 'edwards25519'
+    };
+    const payload = {
+      network_identifier,
+      operations: operations.map(({ metadata: opMetadata, ...rest }) => ({
+        metadata: opMetadata && { staking_credential: smallCredential },
+        ...rest
+      })),
+      metadata
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual(INVALID_STAKING_KEY_FORMAT);
+  });
+
+  test('Should return an error when no pool key hash is provided for stake delegation', async () => {
+    const { network_identifier, operations, metadata } = CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION;
+    const payload = {
+      network_identifier,
+      operations: operations.map(({ metadata: opMetadata, ...rest }) => ({
+        ...rest,
+        metadata: { staking_credential: opMetadata?.staking_credential }
+      })),
+      metadata
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4020,
+      message: 'Pool key hash is required for stake delegation',
+      retriable: false
     });
   });
 });
