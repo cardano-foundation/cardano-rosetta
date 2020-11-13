@@ -5,11 +5,19 @@ import { FastifyInstance } from 'fastify';
 import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 import {
   CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID,
   CONSTRUCTION_PAYLOADS_RESPONSE,
+  CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_STAKE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE
 } from '../fixture-data';
 import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
@@ -40,7 +48,8 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     () => server
   );
 
-  test('Should return a valid unsigned transaction hash whenever valid operations are sent as parameters', async () => {
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash whenever valid input and output operations are sent as parameters', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -148,6 +157,86 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       code: 4010,
       message: 'The transaction you are trying to build has more outputs than inputs',
       retriable: false
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including stake key registration', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_RESPONSE,
+      payloads: [
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'cc4fc12d1ce6beb1466a7b558c46e4c22910f2498626a97f1e5d1c5555c3c1eb'
+        }
+      ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including stake delegation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_DELEGATION_RESPONSE,
+      payloads: [
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'd4818d5a1ad1163fdb84b1e538d6d2c2fc34a86a91cd13f628dd3a7e4458a7c1'
+        }
+      ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including withdrawal', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
+      payloads: [
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'ef644af4af142d0c5bc5ea7380a328ddaba517de2ac0b258436f7268cca5398e'
+        }
+      ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including stake key deregistration', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE,
+      payloads: [
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'a8f7cce3c339a5c2648aad189c2d50d8bfa6e88776bd7cd29767b94e8bf59382'
+        }
+      ]
     });
   });
 });

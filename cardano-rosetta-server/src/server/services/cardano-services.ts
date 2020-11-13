@@ -276,7 +276,9 @@ const processStakeOperations = (
     logger.info('[processStakeOperations] About to process stake key deregistration');
     stakeKeyDeregistrations.forEach(({ metadata }) => {
       const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
-      const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_registration(StakeDeregistration.new(credential));
+      const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_deregistration(
+        StakeDeregistration.new(credential)
+      );
       certificates.add(stakeRegistrationCert);
     });
     transactionBody.set_certs(certificates);
