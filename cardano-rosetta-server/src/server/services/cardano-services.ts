@@ -254,6 +254,63 @@ const getStakingCredentialFromHex = (
   return CardanoWasm.StakeCredential.from_keyhash(stakingKey.hash());
 };
 
+const processStakeOperations = (
+  logger: Logger,
+  network: NetworkIdentifier,
+  operations: Components.Schemas.Operation[],
+  transactionBody: CardanoWasm.TransactionBody
+): void => {
+  const certificates = CardanoWasm.Certificates.new();
+  const stakeKeyRegistrations = operations.filter(({ type }) => type === operationType.STAKE_KEY_REGISTRATION);
+  if (stakeKeyRegistrations.length > 0) {
+    logger.info('[processStakeOperations] About to process stake key registration');
+    stakeKeyRegistrations.forEach(({ metadata }) => {
+      const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
+      const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
+      certificates.add(stakeRegistrationCert);
+    });
+    transactionBody.set_certs(certificates);
+  }
+  const stakeKeyDeregistrations = operations.filter(({ type }) => type === operationType.STAKE_KEY_DEREGISTRATION);
+  if (stakeKeyDeregistrations.length > 0) {
+    logger.info('[processStakeOperations] About to process stake key deregistration');
+    stakeKeyDeregistrations.forEach(({ metadata }) => {
+      const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
+      const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_registration(StakeDeregistration.new(credential));
+      certificates.add(stakeRegistrationCert);
+    });
+    transactionBody.set_certs(certificates);
+  }
+  const stakeKeyDelegations = operations.filter(({ type }) => type === operationType.STAKE_DELEGATION);
+  if (stakeKeyDelegations.length > 0) {
+    logger.info('[processStakeOperations] About to process stake key delegation');
+    stakeKeyDelegations.forEach(({ metadata }) => {
+      const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
+      const poolKeyHash = metadata?.pool_key_hash;
+      if (!poolKeyHash) {
+        logger.error('[processStakeOperations] no pool key hash provided for stake delegation');
+        throw ErrorFactory.missingPoolKeyError();
+      }
+      const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_delegation(
+        StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
+      );
+      certificates.add(stakeRegistrationCert);
+    });
+    transactionBody.set_certs(certificates);
+  }
+  const withdrawalOperations = operations.filter(({ type }) => type === operationType.WITHDRAWAL);
+  if (withdrawalOperations.length > 0) {
+    logger.info('[processStakeOperations] About to process withdrawals');
+    const withdrawals = CardanoWasm.Withdrawals.new();
+    withdrawalOperations.forEach(({ metadata, amount }) => {
+      const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
+      const rewardAddress = CardanoWasm.RewardAddress.new(network, credential);
+      withdrawals.insert(rewardAddress, BigNum.new(BigInt(Number(amount?.value))));
+    });
+    transactionBody.set_withdrawals(withdrawals);
+  }
+};
+
 const createTransactionBody = (
   inputs: CardanoWasm.TransactionInputs,
   outputs: CardanoWasm.TransactionOutputs,
@@ -467,57 +524,8 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       fee,
       ttl
     );
-    const certificates = CardanoWasm.Certificates.new();
-    const stakeKeyRegistrations = operations.filter(({ type }) => type === operationType.STAKE_KEY_REGISTRATION);
-    if (stakeKeyRegistrations) {
-      stakeKeyRegistrations.forEach(({ metadata }) => {
-        const stakingKeyBytes = metadata?.staking_credential?.hex_bytes;
-        const credential = getStakingCredentialFromHex(stakingKeyBytes, logger);
-        const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
-        certificates.add(stakeRegistrationCert);
-      });
-      transactionBody.set_certs(certificates);
-    }
-    const stakeKeyDeregistrations = operations.filter(({ type }) => type === operationType.STAKE_KEY_DEREGISTRATION);
-    if (stakeKeyDeregistrations) {
-      stakeKeyDeregistrations.forEach(({ metadata }) => {
-        const stakingKeyBytes = metadata?.staking_credential?.hex_bytes;
-        const credential = getStakingCredentialFromHex(stakingKeyBytes, logger);
-        const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_registration(
-          StakeDeregistration.new(credential)
-        );
-        certificates.add(stakeRegistrationCert);
-      });
-      transactionBody.set_certs(certificates);
-    }
-    const stakeKeyDelegations = operations.filter(({ type }) => type === operationType.STAKE_DELEGATION);
-    if (stakeKeyDelegations) {
-      stakeKeyDelegations.forEach(({ metadata }) => {
-        const stakingKeyBytes = metadata?.staking_credential?.hex_bytes;
-        const credential = getStakingCredentialFromHex(stakingKeyBytes, logger);
-        const poolKeyHash = metadata?.pool_key_hash;
-        if (!poolKeyHash) {
-          logger.error('[createUnsignedTransaction] no pool key hash provided for stake delegation');
-          throw ErrorFactory.missingPoolKeyError();
-        }
-        const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_delegation(
-          StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
-        );
-        certificates.add(stakeRegistrationCert);
-      });
-      transactionBody.set_certs(certificates);
-    }
-    const withdrawalOperations = operations.filter(({ type }) => type === operationType.WITHDRAWAL);
-    if (withdrawalOperations) {
-      const withdrawals = CardanoWasm.Withdrawals.new();
-      withdrawalOperations.forEach(({ metadata, amount }) => {
-        const stakingKeyBytes = metadata?.staking_credential?.hex_bytes;
-        const credential = getStakingCredentialFromHex(stakingKeyBytes, logger);
-        const rewardAddress = CardanoWasm.RewardAddress.new(network, credential);
-        withdrawals.insert(rewardAddress, BigNum.new(BigInt(Number(amount?.value))));
-      });
-      transactionBody.set_withdrawals(withdrawals);
-    }
+    logger.info('[createUnsignedTransaction] About to process stake operations');
+    processStakeOperations(logger, network, operations, transactionBody);
 
     logger.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
     const addresses = getUniqueAddresses(
