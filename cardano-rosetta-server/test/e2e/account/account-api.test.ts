@@ -313,8 +313,7 @@ describe('/account/balance endpoint', () => {
             symbol: 'ADA'
           }
         }
-      ],
-      coins: []
+      ]
     });
   });
 });
