@@ -129,6 +129,11 @@ export interface FindTransactionWithdrawals extends FindTransactionFieldResult {
   amount: string;
 }
 
+export interface FindTransactionRegistrations extends FindTransactionFieldResult {
+  address: string;
+  amount: string;
+}
+
 const findTransactionWithdrawals = `
 SELECT 
   amount,
@@ -137,6 +142,18 @@ SELECT
 FROM withdrawal w
 INNER JOIN tx on w.tx_id = tx.id
 INNER JOIN stake_address sa on w.addr_id = sa.id
+WHERE
+  tx.hash = ANY ($1)
+`;
+
+const findTransactionRegistrations = `
+SELECT 
+  tx.deposit as "amount",
+  sa.view as "address",
+  tx.hash as "txHash"
+FROM stake_registration sr
+INNER JOIN tx on tx.id = sr.tx_id
+INNER JOIN stake_address sa on sr.addr_id = sa.id
 WHERE
   tx.hash = ANY ($1)
 `;
@@ -192,6 +209,7 @@ const Queries = {
   findTransactionsInputs,
   findTransactionsOutputs,
   findTransactionWithdrawals,
+  findTransactionRegistrations,
   findLatestBlockNumber,
   findGenesisBlock,
   findUtxoByAddressAndBlock

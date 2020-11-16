@@ -7,7 +7,8 @@ import Queries, {
   FindTransactionsInputs,
   FindTransactionsOutputs,
   FindTransactionWithdrawals,
-  FindUtxo
+  FindUtxo,
+  FindTransactionRegistrations
 } from './queries/blockchain-queries';
 import { Logger } from 'fastify';
 import { Block, GenesisBlock, Transaction, PopulatedTransaction, Utxo } from '../models';
@@ -95,7 +96,8 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
         size: transaction.size,
         inputs: [],
         outputs: [],
-        withdrawals: []
+        withdrawals: [],
+        registrations: []
       }
     };
   }, {});
@@ -152,10 +154,10 @@ const parseOutputsRow = (transaction: PopulatedTransaction, output: FindTransact
 });
 
 /**
- * Updates the transaction appending outputs
+ * Updates the transaction appending withdrawals
  *
  * @param transaction
- * @param output
+ * @param withdrawal
  */
 const parseWithdrawalsRow = (
   transaction: PopulatedTransaction,
@@ -165,6 +167,23 @@ const parseWithdrawalsRow = (
   withdrawals: transaction.withdrawals.concat({
     stakeAddress: withdrawal.address,
     amount: withdrawal.amount
+  })
+});
+
+/**
+ * Updates the transaction appending registrations
+ *
+ * @param transaction
+ * @param registration
+ */
+const parseRegistrationsRow = (
+  transaction: PopulatedTransaction,
+  registration: FindTransactionRegistrations
+): PopulatedTransaction => ({
+  ...transaction,
+  registrations: transaction.registrations.concat({
+    stakeAddress: registration.address,
+    amount: registration.amount
   })
 });
 
@@ -184,9 +203,14 @@ const populateTransactions = async (
     Queries.findTransactionWithdrawals,
     [transactionsHashes]
   );
+  const registrations: QueryResult<FindTransactionRegistrations> = await databaseInstance.query(
+    Queries.findTransactionRegistrations,
+    [transactionsHashes]
+  );
   transactionsMap = populateTransactionField(transactionsMap, inputs.rows, parseInputsRow);
   transactionsMap = populateTransactionField(transactionsMap, outputs.rows, parseOutputsRow);
   transactionsMap = populateTransactionField(transactionsMap, withdrawals.rows, parseWithdrawalsRow);
+  transactionsMap = populateTransactionField(transactionsMap, registrations.rows, parseRegistrationsRow);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore it will never be undefined
   return Object.values(transactionsMap);

@@ -99,6 +99,23 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
       withdrawalAmount: mapAmount(`-${withdrawal.amount}`)
     }
   }));
+
+  const registrationsAsOperations: Components.Schemas.Operation[] = transaction.registrations.map(
+    (registration, index) => ({
+      operation_identifier: {
+        index: inputsAsOperations.length + withdrawalsAsOperations.length + index
+      },
+      type: operationType.STAKE_KEY_REGISTRATION,
+      status: SUCCESS_STATUS,
+      account: {
+        address: registration.stakeAddress
+      },
+      metadata: {
+        depositAmount: mapAmount(registration.amount)
+      }
+    })
+  );
+
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
   // refactored to use a reduce)
@@ -108,7 +125,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
 
   const outputsAsOperations = transaction.outputs.map((output, index) =>
     createOperation(
-      inputsAsOperations.length + withdrawalsAsOperations.length + index,
+      inputsAsOperations.length + withdrawalsAsOperations.length + registrationsAsOperations.length + index,
       operationType.OUTPUT,
       SUCCESS_STATUS,
       output.address,
@@ -123,7 +140,10 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
     transaction_identifier: {
       hash: transaction.hash
     },
-    operations: inputsAsOperations.concat(withdrawalsAsOperations).concat(outputsAsOperations)
+    operations: inputsAsOperations
+      .concat(withdrawalsAsOperations)
+      .concat(registrationsAsOperations)
+      .concat(outputsAsOperations)
   };
 };
 

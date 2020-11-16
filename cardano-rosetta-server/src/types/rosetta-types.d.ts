@@ -554,6 +554,10 @@ declare namespace Components {
       withdrawalAmount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
       staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
       pool_key_hash?: string;
+      /**
+       * If it's a registration operation, the amount will re returned here.
+       */
+      depositAmount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
     }
     /**
      * OperationStatus is utilized to indicate which Operation status are considered successful.

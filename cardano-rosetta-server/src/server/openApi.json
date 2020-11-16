@@ -916,6 +916,10 @@
             "description": "If it's a withdrawal operation, the amount will re returned here.",
             "$ref": "#/components/schemas/Amount"
           },
+          "depositAmount": {
+            "description": "If it's a registration operation, the amount will re returned here.",
+            "$ref": "#/components/schemas/Amount"
+          },
           "staking_credential": {
             "$ref": "#/components/schemas/PublicKey"
           },

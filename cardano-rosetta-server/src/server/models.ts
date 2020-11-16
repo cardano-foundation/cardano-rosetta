@@ -45,6 +45,11 @@ export interface Withdrawal {
   amount: string;
 }
 
+export interface Registration {
+  stakeAddress: string;
+  amount: string;
+}
+
 export interface Transaction {
   hash: string;
   blockHash: string;
@@ -56,6 +61,7 @@ export interface PopulatedTransaction extends Transaction {
   inputs: TransactionInput[];
   outputs: TransactionOutput[];
   withdrawals: Withdrawal[];
+  registrations: Registration[];
 }
 
 export interface Network {
