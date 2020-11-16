@@ -2,7 +2,11 @@
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { block23236WithTransactions, transaction987aOnGenesis } from '../fixture-data';
+import {
+  block23236WithTransactions,
+  transaction987aOnGenesis,
+  transactionBlock4876885WithWithdrawals
+} from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
 const TRANSACTION_NOT_FOUND = 'Transaction not found';
@@ -170,5 +174,22 @@ describe('/block/transactions endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(transaction987aOnGenesis);
+  });
+
+  test('should return transaction withdrawals', async () => {
+    const transaction = '8e071ca57cd7bc53fc333a26df09a2ae1016458a3ed2300699e6fb7608152a7e';
+    const response = await server.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(4876885, '8633863f0fc42a0436c2754ce70684a902e2f7b2349a080321e5c3f5e11fd184'),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: transaction
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(transactionBlock4876885WithWithdrawals);
   });
 });
