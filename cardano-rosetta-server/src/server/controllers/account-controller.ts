@@ -20,7 +20,7 @@ const configure = (blockService: BlockService, networkId: string): AccountContro
         const accountAddress = accountBalanceRequest.account_identifier.address;
         logger.debug({ accountBalanceRequest: request }, '[accountBalance] Request received');
         logger.info(`[accountBalance] Looking for block: ${accountBalanceRequest.block_identifier || 'latest'}`);
-        const blockUtxos = await blockService.findUtxoByAddressAndBlock(
+        const blockUtxos = await blockService.findBalanceDataByAddressAndBlock(
           logger,
           accountBalanceRequest.account_identifier.address,
           accountBalanceRequest.block_identifier?.index,
