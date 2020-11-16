@@ -347,7 +347,7 @@ const validateAndParseTransactionOutputs = (
       throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
     }
     try {
-      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, BigNum.new(BigInt(value))));
+      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, BigNum.new(BigInt(output.amount?.value))));
     } catch (error) {
       throw ErrorFactory.transactionOutputDeserializationError(error.toString());
     }
@@ -376,7 +376,7 @@ const validateAndParseTransactionInputs = (
       throw ErrorFactory.transactionInputsParametersMissingError('Input has missing amount value field');
     }
     if (value >= 0) {
-      logger.error('[validateAndParseTransactionInputs] Input has negative value');
+      logger.error('[validateAndParseTransactionInputs] Input has positive value');
       throw ErrorFactory.transactionInputsParametersMissingError('Input has positive amount value');
     }
     try {
