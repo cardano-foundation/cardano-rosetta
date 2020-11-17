@@ -189,7 +189,7 @@ const configure = (
         const operations = request.body.operations;
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         operations.forEach(({ operation_identifier: operationId, type, metadata }) => {
-          if (!(<any>Object).values(operationType).includes(type)) {
+          if (!Object.values(operationType).includes(type as operationType)) {
             logger.error(`[constructionPayloads] Operation with id ${operationId} has invalid type`);
             throw ErrorFactory.invalidOperationTypeError();
           }
