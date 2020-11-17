@@ -20,6 +20,13 @@ export enum operationType {
   STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration'
 }
 
+export const stakingOperations = [
+  operationType.STAKE_DELEGATION,
+  operationType.STAKE_KEY_REGISTRATION,
+  operationType.STAKE_KEY_DEREGISTRATION,
+  operationType.WITHDRAWAL
+];
+
 enum operationTypeStatus {
   SUCCESS = 'success'
 }

@@ -12,7 +12,7 @@ import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
-import { ADA, ADA_DECIMALS, operationType, AddressType } from '../utils/constants';
+import { ADA, ADA_DECIMALS, operationType, stakingOperations, AddressType } from '../utils/constants';
 
 // Nibbles
 export const SIGNATURE_LENGTH = 128;
@@ -261,56 +261,48 @@ const processStakeOperations = (
   transactionBody: CardanoWasm.TransactionBody
 ): void => {
   const certificates = CardanoWasm.Certificates.new();
-  const stakeKeyRegistrations = operations.filter(({ type }) => type === operationType.STAKE_KEY_REGISTRATION);
-  if (stakeKeyRegistrations.length > 0) {
-    logger.info('[processStakeOperations] About to process stake key registration');
-    stakeKeyRegistrations.forEach(({ metadata }) => {
-      const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
-      const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
-      certificates.add(stakeRegistrationCert);
-    });
-    transactionBody.set_certs(certificates);
-  }
-  const stakeKeyDeregistrations = operations.filter(({ type }) => type === operationType.STAKE_KEY_DEREGISTRATION);
-  if (stakeKeyDeregistrations.length > 0) {
-    logger.info('[processStakeOperations] About to process stake key deregistration');
-    stakeKeyDeregistrations.forEach(({ metadata }) => {
-      const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
-      const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_deregistration(
-        StakeDeregistration.new(credential)
-      );
-      certificates.add(stakeRegistrationCert);
-    });
-    transactionBody.set_certs(certificates);
-  }
-  const stakeKeyDelegations = operations.filter(({ type }) => type === operationType.STAKE_DELEGATION);
-  if (stakeKeyDelegations.length > 0) {
-    logger.info('[processStakeOperations] About to process stake key delegation');
-    stakeKeyDelegations.forEach(({ metadata }) => {
-      const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
-      const poolKeyHash = metadata?.pool_key_hash;
-      if (!poolKeyHash) {
-        logger.error('[processStakeOperations] no pool key hash provided for stake delegation');
-        throw ErrorFactory.missingPoolKeyError();
+  const withdrawals = CardanoWasm.Withdrawals.new();
+  operations.forEach(({ type, metadata, amount }) => {
+    if (!stakingOperations.includes(type as operationType)) return;
+    const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
+    switch (type) {
+      case operationType.STAKE_KEY_REGISTRATION: {
+        logger.info('[processStakeOperations] About to process stake key registration');
+        const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
+        certificates.add(stakeRegistrationCert);
+        break;
       }
-      const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_delegation(
-        StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
-      );
-      certificates.add(stakeRegistrationCert);
-    });
-    transactionBody.set_certs(certificates);
-  }
-  const withdrawalOperations = operations.filter(({ type }) => type === operationType.WITHDRAWAL);
-  if (withdrawalOperations.length > 0) {
-    logger.info('[processStakeOperations] About to process withdrawals');
-    const withdrawals = CardanoWasm.Withdrawals.new();
-    withdrawalOperations.forEach(({ metadata, amount }) => {
-      const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
-      const rewardAddress = CardanoWasm.RewardAddress.new(network, credential);
-      withdrawals.insert(rewardAddress, BigNum.new(BigInt(Number(amount?.value))));
-    });
-    transactionBody.set_withdrawals(withdrawals);
-  }
+      case operationType.STAKE_KEY_DEREGISTRATION: {
+        logger.info('[processStakeOperations] About to process stake key deregistration');
+        const stakeDeregistrationCert = CardanoWasm.Certificate.new_stake_deregistration(
+          StakeDeregistration.new(credential)
+        );
+        certificates.add(stakeDeregistrationCert);
+        break;
+      }
+      case operationType.STAKE_DELEGATION: {
+        logger.info('[processStakeOperations] About to process stake key delegation');
+        const poolKeyHash = metadata?.pool_key_hash;
+        if (!poolKeyHash) {
+          logger.error('[processStakeOperations] no pool key hash provided for stake delegation');
+          throw ErrorFactory.missingPoolKeyError();
+        }
+        const stakeDelegationCert = CardanoWasm.Certificate.new_stake_delegation(
+          StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
+        );
+        certificates.add(stakeDelegationCert);
+        break;
+      }
+      case operationType.WITHDRAWAL: {
+        logger.info('[processStakeOperations] About to process withdrawals');
+        const rewardAddress = CardanoWasm.RewardAddress.new(network, credential);
+        withdrawals.insert(rewardAddress, BigNum.new(BigInt(Number(amount?.value))));
+        break;
+      }
+    }
+  });
+  if (certificates.len() > 0) transactionBody.set_certs(certificates);
+  if (withdrawals.len() > 0) transactionBody.set_withdrawals(withdrawals);
 };
 
 const createTransactionBody = (
