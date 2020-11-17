@@ -483,6 +483,69 @@ export const transactionBlock4876885WithWithdrawals = {
   }
 };
 
+export const transactionBlock4490558WithRegistrations = {
+  transaction: {
+    operations: [
+      {
+        account: {
+          address: 'addr1vy8ejqxs4525x6328d8x5pt627grqsxnj29l05xg35amcpg7elhka'
+        },
+        amount: {
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          },
+          value: '-600000000'
+        },
+        coin_change: {
+          coin_action: 'coin_spent',
+          coin_identifier: {
+            identifier: '9965d997083669a7681259f9a91953200b84ab5f03a4af33ed8a9e2e3cf78300:0'
+          }
+        },
+        operation_identifier: {
+          index: 0
+        },
+        status: 'success',
+        type: 'input'
+      },
+      {
+        operation_identifier: { index: 1 },
+        type: 'stakeKeyRegistration',
+        status: 'success',
+        account: { address: 'stake1uyacuruhne34456jh7vzuc9ly0rqmxanu9z4pzyly06z94gmm4a8a' },
+        metadata: { depositAmount: { value: '2000000', currency: { symbol: 'ADA', decimals: 6 } } }
+      },
+      {
+        operation_identifier: { index: 2, network_index: 0 },
+        related_operations: [{ index: 0 }],
+        type: 'output',
+        status: 'success',
+        account: {
+          address:
+            'addr1qy8ejqxs4525x6328d8x5pt627grqsxnj29l05xg35amcpfm3c8e08nrttf490uc9est7g7xpkdm8c292zyf7gl5yt2s9q6mtt'
+        },
+        amount: {
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          },
+          value: '597821123'
+        },
+        coin_change: {
+          coin_action: 'coin_created',
+          coin_identifier: {
+            identifier: '91f88c21679fdc95cb0712dc8a755eab20fdf9e919871c3c668515c830572090:0'
+          }
+        }
+      }
+    ],
+    transaction_identifier: {
+      hash: '91f88c21679fdc95cb0712dc8a755eab20fdf9e919871c3c668515c830572090'
+    }
+  }
+};
+
 export const GENESIS_HASH = '5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb';
 
 export const block1 = {

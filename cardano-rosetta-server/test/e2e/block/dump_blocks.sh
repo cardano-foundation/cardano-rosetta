@@ -23,7 +23,7 @@ DB='cexplorer'
 # Block Ids. Ideally we need to export them in batches of 3 as when we skip Epoch Boundary Blocks checking 3 blocks 
 # before the one we are interested, so, if you are willing to fetch a block, please state B-2, B-1, B
 # See: cardano-rosetta-server/src/server/db/queries/blockchain-queries.ts#findBlock
-BLOCKS_TO_EXPORT="4877060, 4877061, 4877062"
+BLOCKS_TO_EXPORT="4877060,4877061, 4877062, 4490735, 4490736, 4490737"
 echo "-- Dumping blocks with id $BLOCKS_TO_EXPORT" > $OUT_FILE;
 
 echo "ALTER TABLE public.block DISABLE TRIGGER ALL;" >> $OUT_FILE;
@@ -88,3 +88,15 @@ echo "-- Dumping Block transaction withdrawals stake addresses" >> $OUT_FILE;
 echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
 echo 'COPY public.stake_address (id, hash_raw, view, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from stake_address WHERE id IN (SELECT addr_id from withdrawal WHERE tx_id IN $SELECT_TX_ID)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo "\." >> $OUT_FILE;
+
+echo "-- Dumping Block transactions stake_registrations" >> $OUT_FILE;
+echo "ALTER TABLE public.stake_registration DISABLE TRIGGER ALL;" >> $OUT_FILE;
+echo 'COPY public.stake_registration (id, addr_id, cert_index, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * FROM stake_registration WHERE tx_id IN $SELECT_TX_ID) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo "\." >> $OUT_FILE;
+
+echo "-- Dumping Block transactions stake_registrations stake addresses" >> $OUT_FILE;
+echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * from stake_address WHERE id IN (SELECT addr_id from stake_registration WHERE tx_id IN $SELECT_TX_ID)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
