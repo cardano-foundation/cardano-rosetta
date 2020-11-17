@@ -897,9 +897,6 @@
               "staking_credential": {
                 "$ref": "#/components/schemas/PublicKey"
               },
-              "payment_key": {
-                "$ref": "#/components/schemas/PublicKey"
-              },
               "pool_key_hash": {
                 "type": "string"
               }
