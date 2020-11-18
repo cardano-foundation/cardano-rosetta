@@ -11,6 +11,10 @@ export const VIN = 'Vin';
 export const VOUT = 'Vout';
 export const SIGNATURE_TYPE = 'ed25519';
 
+// Nibbles
+export const SIGNATURE_LENGTH = 128;
+export const PUBLIC_KEY_BYTES_LENGTH = 64;
+
 export enum operationType {
   INPUT = 'input',
   OUTPUT = 'output',

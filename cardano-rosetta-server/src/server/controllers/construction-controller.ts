@@ -1,5 +1,5 @@
 import { FastifyRequest } from 'fastify';
-import { CardanoService, PUBLIC_KEY_BYTES_LENGTH } from '../services/cardano-services';
+import { CardanoService } from '../services/cardano-services';
 import { ConstructionService } from '../services/construction-service';
 import {
   constructPayloadsForTransactionBody,
@@ -13,6 +13,7 @@ import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
 import { CardanoCli } from '../utils/cardanonode-cli';
 import { AddressType, operationType } from '../utils/constants';
+import { isAddressTypeValid, isKeyValid } from '../utils/validations';
 
 export interface ConstructionController {
   constructionDerive(
@@ -47,11 +48,6 @@ export interface ConstructionController {
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.ConstructionSubmitRequest>
   ): Promise<Components.Schemas.TransactionIdentifierResponse | Components.Schemas.Error>;
 }
-
-const isKeyValid = (publicKeyBytes: string, curveType: string): boolean =>
-  publicKeyBytes.length === PUBLIC_KEY_BYTES_LENGTH && curveType === 'edwards25519';
-
-const isAddressTypeValid = (type: string): boolean => ['Enterprise', 'Base', 'Reward', '', undefined].includes(type);
 
 const configure = (
   constructionService: ConstructionService,

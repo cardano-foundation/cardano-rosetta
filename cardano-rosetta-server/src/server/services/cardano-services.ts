@@ -12,11 +12,15 @@ import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
-import { ADA, ADA_DECIMALS, operationType, stakingOperations, AddressType } from '../utils/constants';
-
-// Nibbles
-export const SIGNATURE_LENGTH = 128;
-export const PUBLIC_KEY_BYTES_LENGTH = 64;
+import {
+  ADA,
+  ADA_DECIMALS,
+  operationType,
+  stakingOperations,
+  AddressType,
+  SIGNATURE_LENGTH,
+  PUBLIC_KEY_BYTES_LENGTH
+} from '../utils/constants';
 
 export enum NetworkIdentifier {
   CARDANO_TESTNET_NETWORK = 0,
