@@ -9,6 +9,7 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
   CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
   CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS,
@@ -18,6 +19,7 @@ import {
   CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_DELEGATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
+  CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE
 } from '../fixture-data';
 import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
@@ -217,6 +219,26 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
           address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'ef644af4af142d0c5bc5ea7380a328ddaba517de2ac0b258436f7268cca5398e'
+        }
+      ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including withdrawal and stake registration', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
+      payloads: [
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '0812fbd81e68cd68dd1b1c5426920c2d66fb65d5864cc21998ad050f0a16e162'
         }
       ]
     });
