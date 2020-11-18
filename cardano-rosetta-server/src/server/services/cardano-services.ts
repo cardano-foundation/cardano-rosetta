@@ -296,7 +296,7 @@ const processStakeOperations = (
       case operationType.WITHDRAWAL: {
         logger.info('[processStakeOperations] About to process withdrawals');
         const rewardAddress = CardanoWasm.RewardAddress.new(network, credential);
-        withdrawals.insert(rewardAddress, BigNum.new(BigInt(Number(amount?.value))));
+        withdrawals.insert(rewardAddress, BigNum.new(BigInt(amount?.value)));
         break;
       }
     }
