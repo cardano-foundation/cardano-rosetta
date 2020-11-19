@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+/* eslint-disable wrap-regex */
 import CardanoWasm, {
   BigNum,
   Ed25519Signature,
@@ -333,12 +334,12 @@ const validateAndParseTransactionOutputs = (
       logger.error('[validateAndParseTransactionOutputs] Output has missing address field');
       throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
     }
-    const value = Number(output.amount?.value);
+    const value = output.amount?.value;
     if (!value) {
       logger.error('[validateAndParseTransactionOutputs] Output has missing amount value field');
       throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
     }
-    if (value <= 0) {
+    if (/^-\d+/.test(value)) {
       logger.error('[validateAndParseTransactionOutputs] Output has negative value');
       throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
     }
@@ -366,12 +367,12 @@ const validateAndParseTransactionInputs = (
       logger.error('[validateAndParseTransactionInputs] Input has missing transactionId and index');
       throw ErrorFactory.transactionInputsParametersMissingError('Input has invalid coin_identifier field');
     }
-    const value = Number(input.amount?.value);
+    const value = input.amount?.value;
     if (!value) {
       logger.error('[validateAndParseTransactionInputs] Input has missing amount value field');
       throw ErrorFactory.transactionInputsParametersMissingError('Input has missing amount value field');
     }
-    if (value >= 0) {
+    if (/^\+?\d+/.test(value)) {
       logger.error('[validateAndParseTransactionInputs] Input has positive value');
       throw ErrorFactory.transactionInputsParametersMissingError('Input has positive amount value');
     }
