@@ -11,10 +11,25 @@ export const VIN = 'Vin';
 export const VOUT = 'Vout';
 export const SIGNATURE_TYPE = 'ed25519';
 
+// Nibbles
+export const SIGNATURE_LENGTH = 128;
+export const PUBLIC_KEY_BYTES_LENGTH = 64;
+
 export enum operationType {
   INPUT = 'input',
-  OUTPUT = 'output'
+  OUTPUT = 'output',
+  STAKE_KEY_REGISTRATION = 'stakeKeyRegistration',
+  STAKE_DELEGATION = 'stakeDelegation',
+  WITHDRAWAL = 'withdrawal',
+  STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration'
 }
+
+export const stakingOperations = [
+  operationType.STAKE_DELEGATION,
+  operationType.STAKE_KEY_REGISTRATION,
+  operationType.STAKE_KEY_DEREGISTRATION,
+  operationType.WITHDRAWAL
+];
 
 enum operationTypeStatus {
   SUCCESS = 'success'

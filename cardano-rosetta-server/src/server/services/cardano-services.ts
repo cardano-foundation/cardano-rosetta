@@ -1,14 +1,27 @@
 /* eslint-disable camelcase */
-import CardanoWasm, { BigNum, Ed25519Signature, PublicKey, Vkey } from '@emurgo/cardano-serialization-lib-nodejs';
+/* eslint-disable wrap-regex */
+import CardanoWasm, {
+  BigNum,
+  Ed25519Signature,
+  PublicKey,
+  StakeRegistration,
+  StakeDeregistration,
+  StakeDelegation,
+  Vkey
+} from '@emurgo/cardano-serialization-lib-nodejs';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
-import { ADA, ADA_DECIMALS, operationType, AddressType } from '../utils/constants';
-
-// Nibbles
-export const SIGNATURE_LENGTH = 128;
-export const PUBLIC_KEY_BYTES_LENGTH = 64;
+import {
+  ADA,
+  ADA_DECIMALS,
+  operationType,
+  stakingOperations,
+  AddressType,
+  SIGNATURE_LENGTH,
+  PUBLIC_KEY_BYTES_LENGTH
+} from '../utils/constants';
 
 export enum NetworkIdentifier {
   CARDANO_TESTNET_NETWORK = 0,
@@ -82,6 +95,7 @@ export interface CardanoService {
    */
   createUnsignedTransaction(
     logger: Logger,
+    networkId: NetworkIdentifier,
     operations: Components.Schemas.Operation[],
     ttl: number
   ): UnsignedTransaction;
@@ -93,7 +107,12 @@ export interface CardanoService {
    * @param operations
    * @param ttl
    */
-  calculateTxSize(logger: Logger, operations: Components.Schemas.Operation[], ttl: number): number;
+  calculateTxSize(
+    logger: Logger,
+    networkId: NetworkIdentifier,
+    operations: Components.Schemas.Operation[],
+    ttl: number
+  ): number;
 
   /**
    * Updates calculated tx size if ttl was replaced with a different value
@@ -227,6 +246,70 @@ const parseOperationsFromTransactionBody = (
   return operations;
 };
 
+const getStakingCredentialFromHex = (
+  stakingKeyBytes: string | undefined,
+  logger: Logger
+): CardanoWasm.StakeCredential => {
+  if (!stakingKeyBytes) {
+    logger.error('[getStakingCredentialFromHex] Staking key not provided');
+    throw ErrorFactory.missingStakingKeyError();
+  }
+  const stakingKeyBuffer = Buffer.from(stakingKeyBytes, 'hex');
+  const stakingKey = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
+  return CardanoWasm.StakeCredential.from_keyhash(stakingKey.hash());
+};
+
+const processStakeOperations = (
+  logger: Logger,
+  network: NetworkIdentifier,
+  operations: Components.Schemas.Operation[],
+  transactionBody: CardanoWasm.TransactionBody
+): void => {
+  const certificates = CardanoWasm.Certificates.new();
+  const withdrawals = CardanoWasm.Withdrawals.new();
+  operations.forEach(({ type, metadata, amount }) => {
+    if (!stakingOperations.includes(type as operationType)) return;
+    const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
+    switch (type) {
+      case operationType.STAKE_KEY_REGISTRATION: {
+        logger.info('[processStakeOperations] About to process stake key registration');
+        const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
+        certificates.add(stakeRegistrationCert);
+        break;
+      }
+      case operationType.STAKE_KEY_DEREGISTRATION: {
+        logger.info('[processStakeOperations] About to process stake key deregistration');
+        const stakeDeregistrationCert = CardanoWasm.Certificate.new_stake_deregistration(
+          StakeDeregistration.new(credential)
+        );
+        certificates.add(stakeDeregistrationCert);
+        break;
+      }
+      case operationType.STAKE_DELEGATION: {
+        logger.info('[processStakeOperations] About to process stake key delegation');
+        const poolKeyHash = metadata?.pool_key_hash;
+        if (!poolKeyHash) {
+          logger.error('[processStakeOperations] no pool key hash provided for stake delegation');
+          throw ErrorFactory.missingPoolKeyError();
+        }
+        const stakeDelegationCert = CardanoWasm.Certificate.new_stake_delegation(
+          StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
+        );
+        certificates.add(stakeDelegationCert);
+        break;
+      }
+      case operationType.WITHDRAWAL: {
+        logger.info('[processStakeOperations] About to process withdrawals');
+        const rewardAddress = CardanoWasm.RewardAddress.new(network, credential);
+        withdrawals.insert(rewardAddress, BigNum.new(BigInt(amount?.value)));
+        break;
+      }
+    }
+  });
+  if (certificates.len() > 0) transactionBody.set_certs(certificates);
+  if (withdrawals.len() > 0) transactionBody.set_withdrawals(withdrawals);
+};
+
 const createTransactionBody = (
   inputs: CardanoWasm.TransactionInputs,
   outputs: CardanoWasm.TransactionOutputs,
@@ -252,13 +335,17 @@ const validateAndParseTransactionOutputs = (
       logger.error('[validateAndParseTransactionOutputs] Output has missing address field');
       throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
     }
-    const value = output.amount && BigNum.from_str(output.amount.value);
+    const value = output.amount?.value;
     if (!value) {
       logger.error('[validateAndParseTransactionOutputs] Output has missing amount value field');
       throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
     }
+    if (/^-\d+/.test(value)) {
+      logger.error('[validateAndParseTransactionOutputs] Output has negative value');
+      throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
+    }
     try {
-      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, value));
+      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, BigNum.new(BigInt(output.amount?.value))));
     } catch (error) {
       throw ErrorFactory.transactionOutputDeserializationError(error.toString());
     }
@@ -280,6 +367,15 @@ const validateAndParseTransactionInputs = (
     if (!(transactionId && index)) {
       logger.error('[validateAndParseTransactionInputs] Input has missing transactionId and index');
       throw ErrorFactory.transactionInputsParametersMissingError('Input has invalid coin_identifier field');
+    }
+    const value = input.amount?.value;
+    if (!value) {
+      logger.error('[validateAndParseTransactionInputs] Input has missing amount value field');
+      throw ErrorFactory.transactionInputsParametersMissingError('Input has missing amount value field');
+    }
+    if (/^\+?\d+/.test(value)) {
+      logger.error('[validateAndParseTransactionInputs] Input has positive value');
+      throw ErrorFactory.transactionInputsParametersMissingError('Input has positive amount value');
     }
     try {
       transactionInputs.add(
@@ -412,12 +508,13 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
     }
   },
 
-  createUnsignedTransaction(logger, operations, ttl) {
+  createUnsignedTransaction(logger, network, operations, ttl) {
     logger.info(
       `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
     );
-    const inputs = operations.filter(operation => Number(operation.amount?.value) < 0);
-    const outputs = operations.filter(operation => Number(operation.amount?.value) > 0);
+    const inputs = operations.filter(({ type }) => type === operationType.INPUT);
+    const outputs = operations.filter(({ type }) => type === operationType.OUTPUT);
+
     logger.info('[createUnsignedTransaction] About to calculate fee');
     const fee = calculateFee(inputs, outputs);
     logger.info('[createUnsignedTransaction] About to create transaction body');
@@ -427,6 +524,9 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       fee,
       ttl
     );
+    logger.info('[createUnsignedTransaction] About to process stake operations');
+    processStakeOperations(logger, network, operations, transactionBody);
+
     logger.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
     const addresses = getUniqueAddresses(
       inputs.map(input => {
@@ -452,8 +552,8 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
     return toReturn;
   },
 
-  calculateTxSize(logger, operations, ttl) {
-    const { bytes, addresses } = this.createUnsignedTransaction(logger, operations, ttl);
+  calculateTxSize(logger, network, operations, ttl) {
+    const { bytes, addresses } = this.createUnsignedTransaction(logger, network, operations, ttl);
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
       switch (this.getEraAddressType(address)) {

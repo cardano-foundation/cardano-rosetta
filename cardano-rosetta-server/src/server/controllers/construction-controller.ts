@@ -1,5 +1,5 @@
 import { FastifyRequest } from 'fastify';
-import { CardanoService, PUBLIC_KEY_BYTES_LENGTH } from '../services/cardano-services';
+import { CardanoService } from '../services/cardano-services';
 import { ConstructionService } from '../services/construction-service';
 import {
   constructPayloadsForTransactionBody,
@@ -12,7 +12,8 @@ import {
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
 import { CardanoCli } from '../utils/cardanonode-cli';
-import { AddressType } from '../utils/constants';
+import { AddressType, operationType } from '../utils/constants';
+import { isAddressTypeValid, isKeyValid } from '../utils/validations';
 
 export interface ConstructionController {
   constructionDerive(
@@ -47,11 +48,6 @@ export interface ConstructionController {
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.ConstructionSubmitRequest>
   ): Promise<Components.Schemas.TransactionIdentifierResponse | Components.Schemas.Error>;
 }
-
-const isKeyValid = (publicKeyBytes: string, curveType: string): boolean =>
-  publicKeyBytes.length === PUBLIC_KEY_BYTES_LENGTH && curveType === 'edwards25519';
-
-const isAddressTypeValid = (type: string): boolean => ['Enterprise', 'Base', 'Reward', '', undefined].includes(type);
 
 const configure = (
   constructionService: ConstructionService,
@@ -140,9 +136,15 @@ const configure = (
       request.body.network_identifier,
       request,
       async () => {
+        const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         // eslint-disable-next-line camelcase
         const relativeTtl = constructionService.calculateRelativeTtl(request.body.metadata?.relative_ttl);
-        const transactionSize = cardanoService.calculateTxSize(request.log, request.body.operations, 0);
+        const transactionSize = cardanoService.calculateTxSize(
+          request.log,
+          networkIdentifier,
+          request.body.operations,
+          0
+        );
         // eslint-disable-next-line camelcase
         return { options: { relative_ttl: relativeTtl, transaction_size: transactionSize } };
       },
@@ -181,8 +183,29 @@ const configure = (
         const logger = request.log;
         const ttl = request.body.metadata.ttl;
         const operations = request.body.operations;
+        const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
+        operations.forEach(({ operation_identifier: operationId, type, metadata }) => {
+          if (!Object.values(operationType).includes(type as operationType)) {
+            logger.error(`[constructionPayloads] Operation with id ${operationId} has invalid type`);
+            throw ErrorFactory.invalidOperationTypeError();
+          }
+          if (
+            // eslint-disable-next-line camelcase
+            metadata?.staking_credential &&
+            // eslint-disable-next-line camelcase
+            !isKeyValid(metadata?.staking_credential.hex_bytes, metadata?.staking_credential.curve_type)
+          ) {
+            logger.info('[constructionPayloads] Staking key has an invalid format');
+            throw ErrorFactory.invalidStakingKeyFormat();
+          }
+        });
         logger.info(operations, '[constuctionPayloads] Operations about to be processed');
-        const unsignedTransaction = cardanoService.createUnsignedTransaction(logger, operations, parseInt(ttl));
+        const unsignedTransaction = cardanoService.createUnsignedTransaction(
+          logger,
+          networkIdentifier,
+          operations,
+          parseInt(ttl)
+        );
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         return {
           // eslint-disable-next-line camelcase
