@@ -270,7 +270,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       network_identifier,
       operations: operations.map(({ metadata: opMetadata, ...rest }) => ({
         metadata: opMetadata && {
-          staking_credential: { hex_bytes: opMetadata.staking_credential.hex_bytes, curve_type: 'secp256k1' }
+          staking_credential: { hex_bytes: opMetadata.staking_credential!.hex_bytes, curve_type: 'secp256k1' }
         },
         ...rest
       })),
