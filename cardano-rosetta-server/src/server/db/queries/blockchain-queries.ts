@@ -204,8 +204,7 @@ const findUtxoByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectUtxoDeta
 const findBalanceByAddressAndBlock = `SELECT (SELECT COALESCE(SUM(r.amount),0) 
   FROM reward r
   JOIN stake_address ON 
-    stake_address.id = r.addr_id AND 
-    stake_address.view = $1
+    stake_address.id = r.addr_id
   JOIN block ON
     block.id = r.block_id
   WHERE stake_address.view = $1
