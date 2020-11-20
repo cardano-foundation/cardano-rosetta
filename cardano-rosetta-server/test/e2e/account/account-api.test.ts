@@ -294,20 +294,49 @@ describe('/account/balance endpoint', () => {
       payload: generatePayload(
         CARDANO,
         'mainnet',
-        'stake1u9ylzsgxaa6xctf4juup682ar3juj85n8tx3hthnljg47zctvm3rc',
-        3336,
-        '824f66a4159ec3afb1b87ebb6c34deeef32788f6701ebadb40fa80f88add3702'
+        'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+        4490560,
+        '6fca1ba5a6ccd557968140e2586f2fed947785f4ef15bac0090657db80c68386'
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       block_identifier: {
-        index: 3336,
-        hash: '824f66a4159ec3afb1b87ebb6c34deeef32788f6701ebadb40fa80f88add3702'
+        index: 4490560,
+        hash: '6fca1ba5a6ccd557968140e2586f2fed947785f4ef15bac0090657db80c68386'
       },
       balances: [
         {
           value: '0',
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          }
+        }
+      ]
+    });
+  });
+  test('should sum all rewards and subtract all withdrawals till block 4876885', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+        4876885,
+        '8633863f0fc42a0436c2754ce70684a902e2f7b2349a080321e5c3f5e11fd184'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: {
+        index: 4876885,
+        hash: '8633863f0fc42a0436c2754ce70684a902e2f7b2349a080321e5c3f5e11fd184'
+      },
+      balances: [
+        {
+          value: '111979582',
           currency: {
             decimals: 6,
             symbol: 'ADA'

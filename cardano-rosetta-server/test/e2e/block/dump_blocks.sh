@@ -23,7 +23,7 @@ DB='cexplorer'
 # Block Ids. Ideally we need to export them in batches of 3 as when we skip Epoch Boundary Blocks checking 3 blocks 
 # before the one we are interested, so, if you are willing to fetch a block, please state B-2, B-1, B
 # See: cardano-rosetta-server/src/server/db/queries/blockchain-queries.ts#findBlock
-BLOCKS_TO_EXPORT="4877060,4877061,4877062,4619398,4490735,4490736,4490737" 
+BLOCKS_TO_EXPORT="4877060,4877061,4877062,4619398,4598038,4597956,4490735,4490736,4490737" 
 echo "-- Dumping blocks with id $BLOCKS_TO_EXPORT" > $OUT_FILE;
 
 echo "ALTER TABLE public.block DISABLE TRIGGER ALL;" >> $OUT_FILE;
