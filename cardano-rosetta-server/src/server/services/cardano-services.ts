@@ -4,6 +4,7 @@ import CardanoWasm, {
   BigNum,
   Ed25519Signature,
   PublicKey,
+  StakeCredential,
   StakeRegistration,
   StakeDeregistration,
   StakeDelegation,
@@ -21,7 +22,8 @@ import {
   SIGNATURE_LENGTH,
   PUBLIC_KEY_BYTES_LENGTH,
   stakeType,
-  PREFIX_LENGTH
+  PREFIX_LENGTH,
+  CurveType
 } from '../utils/constants';
 import { isKeyValid } from '../utils/validations';
 
@@ -235,6 +237,39 @@ const parseOutputToOperation = (
   type: operationType.OUTPUT
 });
 
+const getHexFromStakingCredential = (stakingCredential: StakeCredential): string =>
+  hexFormatter(Buffer.from(stakingCredential.to_bytes()));
+
+const parseCertToOperation = (cert: CardanoWasm.Certificate, index: number): Components.Schemas.Operation => {
+  if (cert.as_stake_registration() !== null) {
+    const stakeRegistration: StakeRegistration = cert.as_stake_registration()!;
+    const stakeCredential: StakeCredential = stakeRegistration.stake_credential();
+    const hex = getHexFromStakingCredential(stakeCredential);
+    return {
+      operation_identifier: { index },
+      status: '',
+      type: operationType.STAKE_KEY_REGISTRATION,
+      metadata: {
+        staking_credential: { hex_bytes: hex, curve_type: CurveType.edwards25519 }
+      }
+    };
+  }
+  if (cert.as_stake_deregistration() !== null) {
+    const stakeDeregistration: StakeDeregistration = cert.as_stake_deregistration()!;
+    const stakeCredential: StakeCredential = stakeDeregistration.stake_credential();
+    const hex = getHexFromStakingCredential(stakeCredential);
+    return {
+      operation_identifier: { index },
+      status: '',
+      type: operationType.STAKE_KEY_DEREGISTRATION,
+      metadata: {
+        staking_credential: { hex_bytes: hex, curve_type: CurveType.edwards25519 }
+      }
+    };
+  }
+  throw ErrorFactory.invalidOperationTypeError();
+};
+
 const getRelatedOperationsFromInputs = (
   inputs: Components.Schemas.Operation[]
 ): Components.Schemas.OperationIdentifier[] => inputs.map(input => ({ index: input.operation_identifier.index }));
@@ -247,6 +282,8 @@ const parseOperationsFromTransactionBody = (
   const operations = [];
   const inputsCount = transactionBody.inputs().len();
   const outputsCount = transactionBody.outputs().len();
+  const certsCount = transactionBody.certs()?.len() || 0;
+  const withdrawalsCount = transactionBody.withdrawals()?.len();
   let currentIndex = 0;
   while (currentIndex < inputsCount) {
     const input = transactionBody.inputs().get(currentIndex);
@@ -267,6 +304,12 @@ const parseOperationsFromTransactionBody = (
     );
     operations.push(outputParsed);
   }
+  currentIndex = 0;
+  while (currentIndex < certsCount) {
+    const cert = transactionBody.certs()!.get(currentIndex++);
+    const parsedOperation = parseCertToOperation(cert, operations.length);
+    operations.push(parsedOperation);
+  }
   return operations;
 };
 
@@ -276,7 +319,7 @@ const getStakingCredentialFromHex = (
     hex_bytes: string;
     curve_type: string;
   }
-): CardanoWasm.StakeCredential => {
+): StakeCredential => {
   if (!staking_credential?.hex_bytes) {
     logger.error('[getStakingCredentialFromHex] Staking key not provided');
     throw ErrorFactory.missingStakingKeyError();
@@ -287,7 +330,7 @@ const getStakingCredentialFromHex = (
   }
   const stakingKeyBuffer = Buffer.from(staking_credential.hex_bytes, 'hex');
   const stakingKey = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
-  return CardanoWasm.StakeCredential.from_keyhash(stakingKey.hash());
+  return StakeCredential.from_keyhash(stakingKey.hash());
 };
 
 const validateAndParseTransactionOutput = (
@@ -507,7 +550,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
 
     const pub = CardanoWasm.PublicKey.from_bytes(publicKeyBuffer);
 
-    const payment = CardanoWasm.StakeCredential.from_keyhash(pub.hash());
+    const payment = StakeCredential.from_keyhash(pub.hash());
 
     if (type === AddressType.REWARD) {
       logger.info('[generateAddress] Deriving cardano enterprise address from valid public staking key');
@@ -527,11 +570,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       const staking = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
 
       logger.info('[generateAddress] Deriving cardano address from valid public key and staking key');
-      const baseAddress = CardanoWasm.BaseAddress.new(
-        network,
-        payment,
-        CardanoWasm.StakeCredential.from_keyhash(staking.hash())
-      );
+      const baseAddress = CardanoWasm.BaseAddress.new(network, payment, StakeCredential.from_keyhash(staking.hash()));
       const bech32address = baseAddress.to_address().to_bech32(getAddressPrefix(network));
       logger.info(`[generateAddress] base address is ${bech32address}`);
       return bech32address;

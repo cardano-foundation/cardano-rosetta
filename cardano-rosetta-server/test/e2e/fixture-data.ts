@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 /* eslint-disable no-magic-numbers */
 import cbor from 'cbor';
+import { Schema } from 'inspector';
 import { operationType, SIGNATURE_TYPE } from '../../src/server/utils/constants';
 
 /* eslint-disable camelcase */
@@ -1566,14 +1567,13 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS: Components.Schemas.Construct
   }
 };
 
-const CONSTRUCTION_EXTRA_DATA = CONSTRUCTION_PAYLOADS_REQUEST.operations.filter(
-  op => op.coin_change?.coin_action === 'coin_spent'
-);
+const constructionExtraData = (constructionPayloadsRequest: Components.Schemas.ConstructionPayloadsRequest) =>
+  constructionPayloadsRequest.operations.filter(op => op.coin_change?.coin_action === 'coin_spent');
 
 export const CONSTRUCTION_PAYLOADS_RESPONSE = cbor
   .encode([
     'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
-    CONSTRUCTION_EXTRA_DATA
+    constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST)
   ])
   .toString('hex');
 
@@ -1836,6 +1836,14 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
 };
 
 // Parse operations as the same as the ones sent before but status should be empty
+export const constructionParseOperations = (
+  constructionPayloadRequest: Components.Schemas.ConstructionPayloadsRequest
+) =>
+  constructionPayloadRequest.operations.map(operation => ({
+    ...operation,
+    status: ''
+  }));
+
 export const CONSTRUCTION_PARSE_OPERATIONS = CONSTRUCTION_PAYLOADS_REQUEST.operations.map(operation => ({
   ...operation,
   status: ''
@@ -1971,17 +1979,27 @@ export const TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL_SIZE_IN_BYTES =
   SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL.length / 2;
 
 export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
-  .encode([SIGNED_TRANSACTION, CONSTRUCTION_EXTRA_DATA])
+  .encode([SIGNED_TRANSACTION, constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST)])
   .toString('hex');
 
 export const CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
   .encode([
     'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
-    CONSTRUCTION_EXTRA_DATA
+    constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST)
   ])
   .toString('hex');
 
-export const CONSTRUCTION_INVALID_TRANSACTION = cbor.encode(['invalid_tx', CONSTRUCTION_EXTRA_DATA]).toString('hex');
+export const CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_STAKE_KEY_REGISTRATION_WITH_EXTRA_DATA = cbor
+  .encode([
+    // 'a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8048182001B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
+    'a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8048182008200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+    constructionExtraData(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION)
+  ])
+  .toString('hex');
+
+export const CONSTRUCTION_INVALID_TRANSACTION = cbor
+  .encode(['invalid_tx', constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST)])
+  .toString('hex');
 
 export const CONSTRUCTION_COMBINE_PAYLOAD = {
   network_identifier: {

@@ -1599,7 +1599,7 @@
             "type": "object",
             "required": ["ttl"],
             "properties": {
-              "ttl": { "type": "string" }
+              "ttl": { "type": "number" }
             }
           },
           "public_keys": {
