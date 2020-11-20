@@ -4,7 +4,7 @@ import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import { linearFeeParameters, setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
-import { latestBlockSlot, SIGNED_TRANSACTION, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
+import { latestBlock, SIGNED_TRANSACTION, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 
@@ -47,7 +47,7 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       metadata: {
-        ttl: (latestBlockSlot + relativeTtl).toString()
+        ttl: (latestBlock.block.metadata.slotNo + relativeTtl).toString()
       },
       suggested_fee: [
         {

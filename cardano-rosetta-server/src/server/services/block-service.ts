@@ -1,7 +1,6 @@
 import { Logger } from 'fastify';
 import { Block, BlockUtxos, BalanceAtBlock, GenesisBlock, Transaction, PopulatedTransaction } from '../models';
 import { ErrorFactory } from '../utils/errors';
-import { stakeType } from '../utils/constants';
 import { BlockchainRepository } from '../db/blockchain-repository';
 import { CardanoService } from './cardano-services';
 
@@ -148,8 +147,7 @@ const configure = (repository: BlockchainRepository, cardanoService: CardanoServ
     }
 
     logger.info(`[findBalanceDataByAddressAndBlock] Looking for utxos for address ${address} and block ${block.hash}`);
-    const addressPrefix = cardanoService.getPrefixFromAddress(address);
-    if ([stakeType.STAKE as string, stakeType.STAKE_TEST as string].some(type => addressPrefix.includes(type))) {
+    if (cardanoService.isStakeAddress(address)) {
       logger.debug(`[findBalanceDataByAddressAndBlock] About to get balance for ${address}`);
       const balance = await repository.findBalanceByAddressAndBlock(logger, address, block.hash);
       logger.debug(

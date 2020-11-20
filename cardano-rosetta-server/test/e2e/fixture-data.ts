@@ -27,11 +27,26 @@ export const block1000WithoutTxs = {
   }
 };
 
-export const latestBlockHash = '8633863f0fc42a0436c2754ce70684a902e2f7b2349a080321e5c3f5e11fd184';
-export const latestBlockSlot = 12312818;
-export const latestBlockIdentifier = {
-  hash: latestBlockHash,
-  index: 4876885
+export const latestBlock = {
+  block: {
+    block_identifier: {
+      index: 67984,
+      hash: 'a2ee76dfea1dae6eda713246df08e96dabc33fc15ac25e3108bb230765c9559c'
+    },
+    parent_block_identifier: {
+      index: 67983,
+      hash: 'c4bc9aebc008d270cdd6ee0a0746ee9113ace144e8eba4e7bae7f5d0b03e20d5'
+    },
+    timestamp: 1507563311000,
+    transactions: [],
+    metadata: {
+      transactionsCount: 0,
+      createdBy: 'ByronGenesis-64c61078e9577d3b',
+      size: 671,
+      epochNo: 3,
+      slotNo: 68011
+    }
+  }
 };
 
 export const block23236WithTransactions = {
