@@ -26,26 +26,11 @@ export const block1000WithoutTxs = {
   }
 };
 
-export const latestBlock = {
-  block: {
-    block_identifier: {
-      index: 67984,
-      hash: 'a2ee76dfea1dae6eda713246df08e96dabc33fc15ac25e3108bb230765c9559c'
-    },
-    parent_block_identifier: {
-      index: 67983,
-      hash: 'c4bc9aebc008d270cdd6ee0a0746ee9113ace144e8eba4e7bae7f5d0b03e20d5'
-    },
-    timestamp: 1507563311000,
-    transactions: [],
-    metadata: {
-      transactionsCount: 0,
-      createdBy: 'ByronGenesis-64c61078e9577d3b',
-      size: 671,
-      epochNo: 3,
-      slotNo: 68011
-    }
-  }
+export const latestBlockHash = '8633863f0fc42a0436c2754ce70684a902e2f7b2349a080321e5c3f5e11fd184';
+export const latestBlockSlot = 12312818;
+export const latestBlockIdentifier = {
+  hash: latestBlockHash,
+  index: 4876885
 };
 
 export const block23236WithTransactions = {
@@ -352,6 +337,213 @@ export const blockWith8Txs = {
       hash: '4bbb5c30666c31c700d8dbfdf9811d1b5398a030796c3447e7d56285e9f49282'
     }
   ]
+};
+
+export const transactionBlock4876885WithWithdrawals = {
+  transaction: {
+    operations: [
+      {
+        account: {
+          address:
+            'addr1qx4tp3cdytmuhjgal8gjczm5zss8kcau5lg2q2tq89cjns2aaqy0ysmvwmp8pm0njegu4dd32gwzpdz74vpnczwuqdyqgsyztm'
+        },
+        amount: {
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          },
+          value: '-19600000'
+        },
+        coin_change: {
+          coin_action: 'coin_spent',
+          coin_identifier: {
+            identifier: '82d0ddd8940ec05edc9dbeff3a8647fb9b2aeba85c8573e5c958c3a57b97b819:0'
+          }
+        },
+        operation_identifier: {
+          index: 0
+        },
+        status: 'success',
+        type: 'input'
+      },
+      {
+        account: {
+          address: 'stake1u8djnja6l00lmc7gjdlzmj2htq06gjlckyzh82h3wwxh46s4s70j0'
+        },
+        metadata: {
+          withdrawalAmount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '-11748906033'
+          }
+        },
+        operation_identifier: {
+          index: 1
+        },
+        status: 'success',
+        type: 'withdrawal'
+      },
+      {
+        account: {
+          address: 'stake1u86xjjg2khnwc0mc3xefwk0y5s95w0qzmffp23a3cvp8urcxwqcp0'
+        },
+        metadata: {
+          withdrawalAmount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '-2525964'
+          }
+        },
+        operation_identifier: {
+          index: 2
+        },
+        status: 'success',
+        type: 'withdrawal'
+      },
+      {
+        account: {
+          address:
+            'addr1qx4tp3cdytmuhjgal8gjczm5zss8kcau5lg2q2tq89cjns2aaqy0ysmvwmp8pm0njegu4dd32gwzpdz74vpnczwuqdyqgsyztm'
+        },
+        amount: {
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          },
+          value: '19400000'
+        },
+        coin_change: {
+          coin_action: 'coin_created',
+          coin_identifier: {
+            identifier: '8e071ca57cd7bc53fc333a26df09a2ae1016458a3ed2300699e6fb7608152a7e:0'
+          }
+        },
+        operation_identifier: {
+          index: 3,
+          network_index: 0
+        },
+        related_operations: [
+          {
+            index: 0
+          },
+          {
+            index: 1
+          },
+          {
+            index: 2
+          }
+        ],
+        status: 'success',
+        type: 'output'
+      },
+      {
+        account: {
+          address:
+            'addr1q9l5wwxzq9mypttyqd0duqgqhzzsfpz7qhzdtsr2pt99the82jganjlfyetr45prwl7tjmnla0av2d3arfw8l5p5ay4sq6j4ev'
+        },
+        amount: {
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          },
+          value: '11751431997'
+        },
+        coin_change: {
+          coin_action: 'coin_created',
+          coin_identifier: {
+            identifier: '8e071ca57cd7bc53fc333a26df09a2ae1016458a3ed2300699e6fb7608152a7e:1'
+          }
+        },
+        operation_identifier: {
+          index: 4,
+          network_index: 1
+        },
+        related_operations: [
+          {
+            index: 0
+          },
+          {
+            index: 1
+          },
+          {
+            index: 2
+          }
+        ],
+        status: 'success',
+        type: 'output'
+      }
+    ],
+    transaction_identifier: {
+      hash: '8e071ca57cd7bc53fc333a26df09a2ae1016458a3ed2300699e6fb7608152a7e'
+    }
+  }
+};
+
+export const transactionBlock4490558WithRegistrations = {
+  transaction: {
+    operations: [
+      {
+        account: {
+          address: 'addr1vy8ejqxs4525x6328d8x5pt627grqsxnj29l05xg35amcpg7elhka'
+        },
+        amount: {
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          },
+          value: '-600000000'
+        },
+        coin_change: {
+          coin_action: 'coin_spent',
+          coin_identifier: {
+            identifier: '9965d997083669a7681259f9a91953200b84ab5f03a4af33ed8a9e2e3cf78300:0'
+          }
+        },
+        operation_identifier: {
+          index: 0
+        },
+        status: 'success',
+        type: 'input'
+      },
+      {
+        operation_identifier: { index: 1 },
+        type: 'stakeKeyRegistration',
+        status: 'success',
+        account: { address: 'stake1uyacuruhne34456jh7vzuc9ly0rqmxanu9z4pzyly06z94gmm4a8a' },
+        metadata: { depositAmount: { value: '2000000', currency: { symbol: 'ADA', decimals: 6 } } }
+      },
+      {
+        operation_identifier: { index: 2, network_index: 0 },
+        related_operations: [{ index: 0 }],
+        type: 'output',
+        status: 'success',
+        account: {
+          address:
+            'addr1qy8ejqxs4525x6328d8x5pt627grqsxnj29l05xg35amcpfm3c8e08nrttf490uc9est7g7xpkdm8c292zyf7gl5yt2s9q6mtt'
+        },
+        amount: {
+          currency: {
+            decimals: 6,
+            symbol: 'ADA'
+          },
+          value: '597821123'
+        },
+        coin_change: {
+          coin_action: 'coin_created',
+          coin_identifier: {
+            identifier: '91f88c21679fdc95cb0712dc8a755eab20fdf9e919871c3c668515c830572090:0'
+          }
+        }
+      }
+    ],
+    transaction_identifier: {
+      hash: '91f88c21679fdc95cb0712dc8a755eab20fdf9e919871c3c668515c830572090'
+    }
+  }
 };
 
 export const GENESIS_HASH = '5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb';

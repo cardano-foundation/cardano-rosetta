@@ -525,25 +525,7 @@ declare namespace Components {
       account?: /* The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated). */ AccountIdentifier;
       amount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
       coin_change?: /* CoinChange is used to represent a change in state of a some coin identified by a coin_identifier. This object is part of the Operation model and must be populated for UTXO-based blockchains. Coincidentally, this abstraction of UTXOs allows for supporting both account-based transfers and UTXO-based transfers on the same blockchain (when a transfer is account-based, don't populate this model). */ CoinChange;
-      /**
-       * example:
-       * {
-       *   "staking_credential": {
-       *     "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
-       *     "curve_type": "edwards25519"
-       *   },
-       *   "payment_key": {
-       *     "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
-       *     "curve_type": "edwards25519"
-       *   },
-       *   "asm": "304502201fd8abb11443f8b1b9a04e0495e0543d05611473a790c8939f089d073f90509a022100f4677825136605d732e2126d09a2d38c20c75946cd9fc239c0497e84c634e3dd01 03301a8259a12e35694cc22ebc45fee635f4993064190f6ce96e7fb19a03bb6be2",
-       *   "hex": "48304502201fd8abb11443f8b1b9a04e0495e0543d05611473a790c8939f089d073f90509a022100f4677825136605d732e2126d09a2d38c20c75946cd9fc239c0497e84c634e3dd012103301a8259a12e35694cc22ebc45fee635f4993064190f6ce96e7fb19a03bb6be2"
-       * }
-       */
-      metadata?: {
-        staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
-        pool_key_hash?: string;
-      };
+      metadata?: /* Metadata related to Cardano operations */ OperationMetadata;
     }
     /**
      * The operation_identifier uniquely identifies an operation within a transaction.
@@ -561,6 +543,21 @@ declare namespace Components {
        * 0
        */
       network_index?: number; // int64
+    }
+    /**
+     * Metadata related to Cardano operations
+     */
+    export interface OperationMetadata {
+      /**
+       * If it's a withdrawal operation, the amount will re returned here.
+       */
+      withdrawalAmount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
+      staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
+      pool_key_hash?: string;
+      /**
+       * If it's a registration operation, the amount will re returned here.
+       */
+      depositAmount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
     }
     /**
      * OperationStatus is utilized to indicate which Operation status are considered successful.
