@@ -21,7 +21,7 @@ SELECT
   b.slot_no as "slotNo"
 FROM 
   block b 
-  JOIN slot_leader s ON b.slot_leader_id = s.id
+  LEFT JOIN slot_leader s ON b.slot_leader_id = s.id
   LEFT JOIN block b2 ON b.previous_id = b2.id
   LEFT JOIN block b3 ON b2.previous_id = b3.id
 WHERE
@@ -51,6 +51,10 @@ WHERE
   ${blockHash ? 'block.hash = $2' : '$2 = $2'}
 `;
 
+export interface FindTransactionFieldResult {
+  txHash: Buffer;
+}
+
 // AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
 // This condition is made because genesis block has block_no = null
 // Also, genesis number is 0, thats why $2 = 0.
@@ -66,8 +70,7 @@ AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
 AND block.hash = $3
 `;
 
-export interface FindTransactionsInputs {
-  txHash: Buffer;
+export interface FindTransactionsInputs extends FindTransactionFieldResult {
   address: string;
   value: string;
   sourceTxHash: Buffer;
@@ -102,11 +105,10 @@ WHERE
   previous_id IS NULL
 LIMIT 1`;
 
-export interface FindTransactionsOutputs {
+export interface FindTransactionsOutputs extends FindTransactionFieldResult {
   address: string;
   value: string;
   index: number;
-  txHash: Buffer;
 }
 
 const findTransactionsOutputs = `
@@ -118,6 +120,40 @@ SELECT
 FROM tx
 JOIN tx_out
   ON tx.id = tx_out.tx_id
+WHERE
+  tx.hash = ANY ($1)
+`;
+
+export interface FindTransactionWithdrawals extends FindTransactionFieldResult {
+  address: string;
+  amount: string;
+}
+
+export interface FindTransactionRegistrations extends FindTransactionFieldResult {
+  address: string;
+  amount: string;
+}
+
+const findTransactionWithdrawals = `
+SELECT 
+  amount,
+  sa.view as "address",
+  tx.hash as "txHash"
+FROM withdrawal w
+INNER JOIN tx on w.tx_id = tx.id
+INNER JOIN stake_address sa on w.addr_id = sa.id
+WHERE
+  tx.hash = ANY ($1)
+`;
+
+const findTransactionRegistrations = `
+SELECT 
+  tx.deposit as "amount",
+  sa.view as "address",
+  tx.hash as "txHash"
+FROM stake_registration sr
+INNER JOIN tx on tx.id = sr.tx_id
+INNER JOIN stake_address sa on sr.addr_id = sa.id
 WHERE
   tx.hash = ANY ($1)
 `;
@@ -172,6 +208,8 @@ const Queries = {
   findTransactionByHashAndBlock,
   findTransactionsInputs,
   findTransactionsOutputs,
+  findTransactionWithdrawals,
+  findTransactionRegistrations,
   findLatestBlockNumber,
   findGenesisBlock,
   findUtxoByAddressAndBlock
