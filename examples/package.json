@@ -2,11 +2,12 @@
   "name": "cardano-rosetta-examples",
   "license": "Apache-2.0",
   "scripts": {
-    "send-transactions-example": "ts-node ./send-transaction-example.ts"
+    "send-transactions-example": "ts-node ./send-transaction-example.ts",
+    "register-stake-key-example": "ts-node ./register-stake-key-example.ts"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "2.0.0",
-    "@types/node": "^14.11.5",
+    "@types/node": "^14.14.10",
     "@types/temp-write": "^4.0.0",
     "axios": "^0.19.2",
     "delay": "^4.4.0",
