@@ -1,5 +1,5 @@
 import { Logger } from 'fastify';
-import { Block, BlockUtxos, GenesisBlock, Transaction, TransactionWithInputsAndOutputs } from '../models';
+import { Block, BlockUtxos, GenesisBlock, Transaction, PopulatedTransaction } from '../models';
 import { ErrorFactory } from '../utils/errors';
 import { BlockchainRepository } from '../db/blockchain-repository';
 
@@ -29,7 +29,7 @@ export interface BlockService {
    * @param logger
    * @param transactions
    */
-  fillTransactions(logger: Logger, transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]>;
+  fillTransactions(logger: Logger, transactions: Transaction[]): Promise<PopulatedTransaction[]>;
 
   /**
    * Looks for a transaction based on it's hash but also on the block it's supposed to
@@ -45,7 +45,7 @@ export interface BlockService {
     transactionHash: string,
     blockNumber: number,
     blockHash: string
-  ): Promise<TransactionWithInputsAndOutputs | null>;
+  ): Promise<PopulatedTransaction | null>;
 
   /**
    * Returns the genesis block.
@@ -107,7 +107,7 @@ const configure = (repository: BlockchainRepository): BlockService => ({
     }
     return Promise.resolve([]);
   },
-  fillTransactions(logger: Logger, transactions): Promise<TransactionWithInputsAndOutputs[]> {
+  fillTransactions(logger: Logger, transactions): Promise<PopulatedTransaction[]> {
     if (transactions.length === 0) return Promise.resolve([]);
     return repository.fillTransaction(logger, transactions);
   },

@@ -3,12 +3,15 @@ import moment from 'moment';
 import { hashStringToBuffer, hexFormatter } from '../utils/formatters';
 import Queries, {
   FindTransaction,
+  FindTransactionFieldResult,
   FindTransactionsInputs,
   FindTransactionsOutputs,
-  FindUtxo
+  FindTransactionWithdrawals,
+  FindUtxo,
+  FindTransactionRegistrations
 } from './queries/blockchain-queries';
 import { Logger } from 'fastify';
-import { Block, GenesisBlock, Transaction, TransactionWithInputsAndOutputs, Utxo } from '../models';
+import { Block, GenesisBlock, Transaction, PopulatedTransaction, Utxo } from '../models';
 
 export interface BlockchainRepository {
   /**
@@ -25,7 +28,7 @@ export interface BlockchainRepository {
    *
    * @param hashes
    */
-  fillTransaction(logger: Logger, transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]>;
+  fillTransaction(logger: Logger, transactions: Transaction[]): Promise<PopulatedTransaction[]>;
 
   /**
    * Returns, if any, the transactions a block contains
@@ -45,7 +48,7 @@ export interface BlockchainRepository {
     hash: string,
     blockNumber: number,
     blockHash: string
-  ): Promise<TransactionWithInputsAndOutputs | null>;
+  ): Promise<PopulatedTransaction | null>;
 
   /**
    * Returns the tip of the chain block number
@@ -81,7 +84,7 @@ const parseTransactionRows = (result: QueryResult<FindTransaction>): Transaction
  *
  * @param transactions a list of transaction rows returned by the DB
  */
-const mapTransactionsToDict = (transactions: Transaction[]): NodeJS.Dict<TransactionWithInputsAndOutputs> =>
+const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
   transactions.reduce((mappedTransactions, transaction) => {
     const hash = transaction.hash;
     return {
@@ -92,84 +95,102 @@ const mapTransactionsToDict = (transactions: Transaction[]): NodeJS.Dict<Transac
         fee: transaction.fee,
         size: transaction.size,
         inputs: [],
-        outputs: []
+        outputs: [],
+        withdrawals: [],
+        registrations: []
       }
     };
   }, {});
 
-/**
- * Updates the transactions map appending inputs for each transaction
- *
- * @param transactionsMap
- * @param inputs
- */
-const parseInputsRows = (
-  transactionsMap: NodeJS.Dict<TransactionWithInputsAndOutputs>,
-  inputs: FindTransactionsInputs[]
-) =>
-  inputs.reduce((updatedTransactionsMap, input) => {
-    const transaction = updatedTransactionsMap[hexFormatter(input.txHash)];
+type TransactionsMap = NodeJS.Dict<PopulatedTransaction>;
+
+const populateTransactionField = <T extends FindTransactionFieldResult>(
+  transactionsMap: TransactionsMap,
+  queryResults: T[],
+  populateTransaction: (transaction: PopulatedTransaction, result: T) => PopulatedTransaction
+): TransactionsMap =>
+  queryResults.reduce((updatedTransactionsMap, row) => {
+    const transaction = updatedTransactionsMap[hexFormatter(row.txHash)];
     // This case is not supposed to happen but still this if is required
     if (transaction) {
-      const transactionWithInputs: TransactionWithInputsAndOutputs = {
-        ...transaction,
-        inputs: transaction.inputs.concat({
-          address: input.address,
-          value: input.value,
-          sourceTransactionHash: hexFormatter(input.sourceTxHash),
-          sourceTransactionIndex: input.sourceTxIndex
-        })
-      };
+      const updatedTransaction: PopulatedTransaction = populateTransaction(transaction, row);
       return {
         ...updatedTransactionsMap,
-        [transaction.hash]: transactionWithInputs
+        [transaction.hash]: updatedTransaction
       };
     }
     return updatedTransactionsMap;
   }, transactionsMap);
 
 /**
- * Updates the transactions map appending output for each transaction
+ * Updates the transaction inputs
  *
- * @param transactionsMap
- * @param inputs
+ * @param transaction
+ * @param input
  */
-const parseOutputRows = (
-  transactionsMap: NodeJS.Dict<TransactionWithInputsAndOutputs>,
-  outputs: FindTransactionsOutputs[]
-) =>
-  outputs.reduce((updatedTransactionsMap, output) => {
-    const transaction = updatedTransactionsMap[hexFormatter(output.txHash)];
-    if (transaction) {
-      const transactionWithOutputs = {
-        ...transaction,
-        outputs: transaction.outputs.concat({
-          address: output.address,
-          value: output.value,
-          index: output.index
-        })
-      };
-      return {
-        ...updatedTransactionsMap,
-        [transaction.hash]: transactionWithOutputs
-      };
-    }
-    return updatedTransactionsMap;
-  }, transactionsMap);
+const parseInputsRow = (transaction: PopulatedTransaction, input: FindTransactionsInputs): PopulatedTransaction => ({
+  ...transaction,
+  inputs: transaction.inputs.concat({
+    address: input.address,
+    value: input.value,
+    sourceTransactionHash: hexFormatter(input.sourceTxHash),
+    sourceTransactionIndex: input.sourceTxIndex
+  })
+});
 
 /**
- * This function returns an array of _proper_ transactions based on a FindTransaction query result, ie,
- * parses the transaction and adds the corresponding inputs and outputs
+ * Updates the transaction appending outputs
  *
- * @param databaseInstance
- * @param result
+ * @param transaction
+ * @param output
  */
-const processTransactionsQueryResult = async (
+const parseOutputsRow = (transaction: PopulatedTransaction, output: FindTransactionsOutputs): PopulatedTransaction => ({
+  ...transaction,
+  outputs: transaction.outputs.concat({
+    address: output.address,
+    value: output.value,
+    index: output.index
+  })
+});
+
+/**
+ * Updates the transaction appending withdrawals
+ *
+ * @param transaction
+ * @param withdrawal
+ */
+const parseWithdrawalsRow = (
+  transaction: PopulatedTransaction,
+  withdrawal: FindTransactionWithdrawals
+): PopulatedTransaction => ({
+  ...transaction,
+  withdrawals: transaction.withdrawals.concat({
+    stakeAddress: withdrawal.address,
+    amount: withdrawal.amount
+  })
+});
+
+/**
+ * Updates the transaction appending registrations
+ *
+ * @param transaction
+ * @param registration
+ */
+const parseRegistrationsRow = (
+  transaction: PopulatedTransaction,
+  registration: FindTransactionRegistrations
+): PopulatedTransaction => ({
+  ...transaction,
+  registrations: transaction.registrations.concat({
+    stakeAddress: registration.address,
+    amount: registration.amount
+  })
+});
+
+const populateTransactions = async (
   databaseInstance: Pool,
-  result: QueryResult<FindTransaction>
-): Promise<TransactionWithInputsAndOutputs[]> => {
-  // Fetch the transactions first
-  let transactionsMap = mapTransactionsToDict(parseTransactionRows(result));
+  transactionsMap: TransactionsMap
+): Promise<PopulatedTransaction[]> => {
   const transactionsHashes = Object.keys(transactionsMap).map(hashStringToBuffer);
   // Look for inputs and outputs based on found tx hashes
   const inputs: QueryResult<FindTransactionsInputs> = await databaseInstance.query(Queries.findTransactionsInputs, [
@@ -178,8 +199,18 @@ const processTransactionsQueryResult = async (
   const outputs: QueryResult<FindTransactionsOutputs> = await databaseInstance.query(Queries.findTransactionsOutputs, [
     transactionsHashes
   ]);
-  transactionsMap = parseInputsRows(transactionsMap, inputs.rows);
-  transactionsMap = parseOutputRows(transactionsMap, outputs.rows);
+  const withdrawals: QueryResult<FindTransactionWithdrawals> = await databaseInstance.query(
+    Queries.findTransactionWithdrawals,
+    [transactionsHashes]
+  );
+  const registrations: QueryResult<FindTransactionRegistrations> = await databaseInstance.query(
+    Queries.findTransactionRegistrations,
+    [transactionsHashes]
+  );
+  transactionsMap = populateTransactionField(transactionsMap, inputs.rows, parseInputsRow);
+  transactionsMap = populateTransactionField(transactionsMap, outputs.rows, parseOutputsRow);
+  transactionsMap = populateTransactionField(transactionsMap, withdrawals.rows, parseWithdrawalsRow);
+  transactionsMap = populateTransactionField(transactionsMap, registrations.rows, parseRegistrationsRow);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore it will never be undefined
   return Object.values(transactionsMap);
@@ -242,37 +273,11 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     return [];
   },
 
-  async fillTransaction(logger: Logger, transactions: Transaction[]): Promise<TransactionWithInputsAndOutputs[]> {
+  async fillTransaction(logger: Logger, transactions: Transaction[]): Promise<PopulatedTransaction[]> {
     if (transactions.length > 0) {
       // Fetch the transactions first
-      let transactionsMap = mapTransactionsToDict(transactions);
-      const transactionsHashes = Object.keys(transactionsMap).map(hashStringToBuffer);
-      logger.debug(
-        { transactionsHashes },
-        `[fillTransaction] About to query for inputs and outputs given ${transactions.length} transaction's hashes`
-      );
-      // Look for inputs and outputs based on found tx hashes
-      logger.debug('[fillTransaction] About to query for inputs');
-      const inputs: QueryResult<FindTransactionsInputs> = await databaseInstance.query(Queries.findTransactionsInputs, [
-        transactionsHashes
-      ]);
-      logger.debug(`[fillTransaction] Found ${inputs.rowCount}`);
-
-      logger.debug('[fillTransaction] About to query for outputs');
-      const outputs: QueryResult<FindTransactionsOutputs> = await databaseInstance.query(
-        Queries.findTransactionsOutputs,
-        [transactionsHashes]
-      );
-      logger.debug(`[fillTransaction] Found ${outputs.rowCount}`);
-
-      logger.debug('[fillTransaction] Parsing inputs');
-      transactionsMap = parseInputsRows(transactionsMap, inputs.rows);
-      logger.debug('[fillTransaction] Parsing outputs');
-      transactionsMap = parseOutputRows(transactionsMap, outputs.rows);
-      logger.debug('[fillTransaction] Returning inputs and outputs as a transaction map');
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore it will never be undefined
-      return Object.values(transactionsMap);
+      const transactionsMap = mapTransactionsToDict(transactions);
+      return await populateTransactions(databaseInstance, transactionsMap);
     }
     logger.debug('[fillTransaction] Since no transactions were given, no inputs and outputs are looked for');
     return [];
@@ -282,7 +287,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     hash: string,
     blockNumber: number,
     blockHash: string
-  ): Promise<TransactionWithInputsAndOutputs | null> {
+  ): Promise<PopulatedTransaction | null> {
     logger.debug(
       `[findTransactionByHashAndBlock] Parameters received for run query 
       blockNumber: ${blockNumber}, blockHash: ${blockHash}`
@@ -298,7 +303,8 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     );
     logger.debug(`[findTransactionByHashAndBlock] Found ${result.rowCount} transactions`);
     if (result.rows.length > 0) {
-      const [transaction] = await processTransactionsQueryResult(databaseInstance, result);
+      const transactionsMap = mapTransactionsToDict(parseTransactionRows(result));
+      const [transaction] = await populateTransactions(databaseInstance, transactionsMap);
       return transaction || null;
     }
     return null;

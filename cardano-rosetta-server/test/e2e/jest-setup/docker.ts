@@ -45,6 +45,11 @@ export const setupPostgresContainer = async (
     User: 'root'
   });
 
+  await container.putArchive(path.join(__dirname, 'fixture_data.tar'), {
+    path: CONTAINER_TEMP_DIR,
+    User: 'root'
+  });
+
   // Wait for the db service to be running (container started event is not enough)
   await containerExec(container, [
     'bash',
@@ -54,4 +59,10 @@ export const setupPostgresContainer = async (
 
   // Execute backup restore
   await containerExec(container, ['bash', '-c', `cat ${CONTAINER_TEMP_DIR}/db.bak | psql -U ${user} ${database}`]);
+
+  await containerExec(container, [
+    'bash',
+    '-c',
+    `cat ${CONTAINER_TEMP_DIR}/fixture_data.sql | psql -U ${user} ${database}`
+  ]);
 };

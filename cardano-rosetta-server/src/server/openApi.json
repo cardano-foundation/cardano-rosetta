@@ -892,15 +892,7 @@
             "$ref": "#/components/schemas/CoinChange"
           },
           "metadata": {
-            "type": "object",
-            "properties": {
-              "staking_credential": {
-                "$ref": "#/components/schemas/PublicKey"
-              },
-              "pool_key_hash": {
-                "type": "string"
-              }
-            },
+            "$ref": "#/components/schemas/OperationMetadata",
             "example": {
               "staking_credential": {
                 "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
@@ -913,6 +905,26 @@
               "asm": "304502201fd8abb11443f8b1b9a04e0495e0543d05611473a790c8939f089d073f90509a022100f4677825136605d732e2126d09a2d38c20c75946cd9fc239c0497e84c634e3dd01 03301a8259a12e35694cc22ebc45fee635f4993064190f6ce96e7fb19a03bb6be2",
               "hex": "48304502201fd8abb11443f8b1b9a04e0495e0543d05611473a790c8939f089d073f90509a022100f4677825136605d732e2126d09a2d38c20c75946cd9fc239c0497e84c634e3dd012103301a8259a12e35694cc22ebc45fee635f4993064190f6ce96e7fb19a03bb6be2"
             }
+          }
+        }
+      },
+      "OperationMetadata": {
+        "description": "Metadata related to Cardano operations",
+        "type": "object",
+        "properties": {
+          "withdrawalAmount": {
+            "description": "If it's a withdrawal operation, the amount will re returned here.",
+            "$ref": "#/components/schemas/Amount"
+          },
+          "depositAmount": {
+            "description": "If it's a registration operation, the amount will re returned here.",
+            "$ref": "#/components/schemas/Amount"
+          },
+          "staking_credential": {
+            "$ref": "#/components/schemas/PublicKey"
+          },
+          "pool_key_hash": {
+            "type": "string"
           }
         }
       },

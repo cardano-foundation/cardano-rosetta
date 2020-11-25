@@ -2,7 +2,12 @@
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { block23236WithTransactions, transaction987aOnGenesis } from '../fixture-data';
+import {
+  block23236WithTransactions,
+  transaction987aOnGenesis,
+  transactionBlock4876885WithWithdrawals,
+  transactionBlock4490558WithRegistrations
+} from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
 const TRANSACTION_NOT_FOUND = 'Transaction not found';
@@ -149,10 +154,10 @@ describe('/block/transactions endpoint', () => {
         }
       }
     });
-
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({ message: TRANSACTION_NOT_FOUND, code: 4006, retriable: false });
   });
+
   test('should return transaction for genesis block when requested', async () => {
     const genesisIndex = 0;
     const genesisHash = '5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb';
@@ -168,7 +173,44 @@ describe('/block/transactions endpoint', () => {
         }
       }
     });
+
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(transaction987aOnGenesis);
+  });
+
+  test('should return transaction withdrawals', async () => {
+    const transaction = '8e071ca57cd7bc53fc333a26df09a2ae1016458a3ed2300699e6fb7608152a7e';
+    const response = await server.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(4876885, '8633863f0fc42a0436c2754ce70684a902e2f7b2349a080321e5c3f5e11fd184'),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: transaction
+        }
+      }
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(transactionBlock4876885WithWithdrawals);
+  });
+
+  test('should return transaction registrations', async () => {
+    const transaction = '91f88c21679fdc95cb0712dc8a755eab20fdf9e919871c3c668515c830572090';
+    const response = await server.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(4490558, '600fc0fc8b9d4bcb777536cd9168703d0645ab4986fe8d3bdae4011ad0ee5919'),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: transaction
+        }
+      }
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(transactionBlock4490558WithRegistrations);
   });
 });

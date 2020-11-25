@@ -3,9 +3,9 @@
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { setupDatabase, setupServer } from '../utils/test-utils';
 import { CARDANO } from '../../../src/server/utils/constants';
-import { latestBlock } from '../fixture-data';
+import { latestBlockIdentifier } from '../fixture-data';
+import { setupDatabase, setupServer } from '../utils/test-utils';
 
 const generatePayload = (
   blockchain: string,
@@ -77,7 +77,7 @@ describe('/account/balance endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       balances: [{ currency: { decimals: 6, symbol: 'ADA' }, value: '21063' }],
-      block_identifier: latestBlock.block.block_identifier,
+      block_identifier: latestBlockIdentifier,
       coins: [
         {
           coin_identifier: { identifier: 'af0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad:0' },
@@ -178,7 +178,7 @@ describe('/account/balance endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      block_identifier: latestBlock.block.block_identifier,
+      block_identifier: latestBlockIdentifier,
       balances: [
         {
           value: '11509379714',
