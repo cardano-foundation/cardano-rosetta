@@ -42,6 +42,7 @@ const buildServer = (
   // the fastify default one
   server.setErrorHandler((error: Error, request, reply) => {
     let toSend = error;
+    request.log.error(error, '[errorHandler] An error ocurred and will be sent as response');
     if (error instanceof ApiError === false) {
       toSend = ErrorFactory.unspecifiedError(`An error occurred for request ${request.id}: ${error.message}`);
     }
