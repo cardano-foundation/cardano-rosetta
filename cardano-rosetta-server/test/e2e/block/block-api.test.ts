@@ -9,7 +9,7 @@ import {
   block7134WithTxs,
   blockWith8Txs,
   GENESIS_HASH,
-  latestBlock
+  latestBlockIdentifier
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
@@ -90,7 +90,7 @@ describe('/block endpoint', () => {
     });
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual(latestBlock);
+    expect(response.json().block.block_identifier).toEqual(latestBlockIdentifier);
   });
 
   test('should properly return a block with transactions', async () => {

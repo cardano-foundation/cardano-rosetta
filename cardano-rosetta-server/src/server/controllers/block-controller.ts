@@ -36,6 +36,7 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkId: str
       }
       logger.info('[block] Looking for blocks transactions full data');
       const transactions = await blockService.fillTransactions(logger, transactionsFound);
+      logger.info(transactions, '[block] transactions already filled');
       return {
         block: mapToRosettaBlock(block, transactions)
       };
