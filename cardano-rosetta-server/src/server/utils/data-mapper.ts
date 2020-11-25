@@ -68,6 +68,12 @@ const getOperationIndexes = (operations: Components.Schemas.Operation[]): Compon
     index: operation.operation_identifier.index
   }));
 
+const getOperationCurrentIndex = (
+  operationsList: Array<Components.Schemas.Operation[]>,
+  relativeIndex: number
+): number =>
+  operationsList.reduce((accumulator, currentOperations) => accumulator + currentOperations.length, relativeIndex);
+
 /**
  * Converts a Cardano Transaction into a Rosetta one
  *
@@ -86,9 +92,10 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
       getCoinChange(input.sourceTransactionIndex, input.sourceTransactionHash, COIN_SPENT_ACTION)
     )
   );
+  const totalOperations = [inputsAsOperations];
   const withdrawalsAsOperations: Components.Schemas.Operation[] = transaction.withdrawals.map((withdrawal, index) => ({
     operation_identifier: {
-      index: inputsAsOperations.length + index
+      index: getOperationCurrentIndex(totalOperations, index)
     },
     type: operationType.WITHDRAWAL,
     status: SUCCESS_STATUS,
@@ -99,11 +106,11 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
       withdrawalAmount: mapAmount(`-${withdrawal.amount}`)
     }
   }));
-
+  totalOperations.push(withdrawalsAsOperations);
   const registrationsAsOperations: Components.Schemas.Operation[] = transaction.registrations.map(
     (registration, index) => ({
       operation_identifier: {
-        index: inputsAsOperations.length + withdrawalsAsOperations.length + index
+        index: getOperationCurrentIndex(totalOperations, index)
       },
       type: operationType.STAKE_KEY_REGISTRATION,
       status: SUCCESS_STATUS,
@@ -115,6 +122,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
       }
     })
   );
+  totalOperations.push(registrationsAsOperations);
 
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
@@ -125,7 +133,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
 
   const outputsAsOperations = transaction.outputs.map((output, index) =>
     createOperation(
-      inputsAsOperations.length + withdrawalsAsOperations.length + registrationsAsOperations.length + index,
+      getOperationCurrentIndex(totalOperations, index),
       operationType.OUTPUT,
       SUCCESS_STATUS,
       output.address,
