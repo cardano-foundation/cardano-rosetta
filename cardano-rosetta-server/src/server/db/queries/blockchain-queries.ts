@@ -208,7 +208,7 @@ const findBalanceByAddressAndBlock = `SELECT (SELECT COALESCE(SUM(r.amount),0)
   JOIN block ON
     block.id = r.block_id
   WHERE stake_address.view = $1
-  AND block.epoch_no <= (SELECT epoch_no FROM block WHERE hash = $2))- 
+  AND block.id <= (SELECT id FROM block WHERE hash = $2))- 
   (SELECT COALESCE(SUM(w.amount),0) 
   FROM withdrawal w
   JOIN tx ON tx.id = w.tx_id AND 
