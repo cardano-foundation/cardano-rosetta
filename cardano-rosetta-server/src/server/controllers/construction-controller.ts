@@ -189,7 +189,7 @@ const configure = (
           logger,
           networkIdentifier,
           operations,
-          parseInt(ttl)
+          ttl
         );
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         return {
