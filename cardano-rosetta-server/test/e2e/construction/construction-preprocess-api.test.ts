@@ -7,13 +7,17 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION,
   CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
+  CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
   CONSTRUCTION_PAYLOADS_REQUEST,
   TRANSACTION_SIZE_IN_BYTES,
   TX_WITH_STAKE_KEY_REGISTRATION_SIZE_IN_BYTES,
   TX_WITH_STAKE_DELEGATION_SIZE_IN_BYTES,
+  TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION_SIZE_IN_BYTES,
   TX_WITH_WITHDRAWAL_SIZE_IN_BYTES,
+  TX_WITH_TWO_WITHDRAWALS_SIZE_IN_BYTES,
   TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL_SIZE_IN_BYTES
 } from '../fixture-data';
 
@@ -135,6 +139,28 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
   });
 
+  test('Should return a valid TTL when the operations include stake key registration and stake delegation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        operations: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION.operations,
+        relativeTtl: 100
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: {
+        relative_ttl: 100,
+        transaction_size: TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION_SIZE_IN_BYTES
+      }
+    });
+  });
+
   test('Should return a valid TTL when the operations include withdrawal', async () => {
     const response = await server.inject({
       method: 'post',
@@ -151,6 +177,25 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       options: { relative_ttl: 100, transaction_size: TX_WITH_WITHDRAWAL_SIZE_IN_BYTES }
+    });
+  });
+
+  test('Should return a valid TTL when the operations include two withdrawals', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        operations: CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS.operations,
+        relativeTtl: 100
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: { relative_ttl: 100, transaction_size: TX_WITH_TWO_WITHDRAWALS_SIZE_IN_BYTES }
     });
   });
 
