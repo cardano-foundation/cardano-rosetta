@@ -1,4 +1,5 @@
 /* eslint-disable max-len */
+/* eslint-disable no-magic-numbers */
 import cbor from 'cbor';
 import { operationType, SIGNATURE_TYPE } from '../../src/server/utils/constants';
 
@@ -791,6 +792,114 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION = {
   }
 };
 
+export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: operationType.INPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: operationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '10000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 2
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: operationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '40000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: operationType.STAKE_KEY_REGISTRATION,
+      status: 'success',
+      metadata: {
+        staking_credential: {
+          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
+          curve_type: 'edwards25519'
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: operationType.STAKE_DELEGATION,
+      status: 'success',
+      metadata: {
+        staking_credential: {
+          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
+          curve_type: 'edwards25519'
+        },
+        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+      }
+    }
+  ],
+  metadata: {
+    ttl: 1000
+  }
+};
+
 export const CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL = {
   network_identifier: {
     blockchain: 'cardano',
@@ -892,6 +1001,127 @@ export const CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL = {
   }
 };
 
+export const CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: operationType.INPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: operationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '10000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 2
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: operationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '40000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: operationType.WITHDRAWAL,
+      status: 'success',
+      amount: {
+        value: '10000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      metadata: {
+        staking_credential: {
+          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
+          curve_type: 'edwards25519'
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 4
+      },
+      type: operationType.WITHDRAWAL,
+      status: 'success',
+      amount: {
+        value: '10000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      metadata: {
+        staking_credential: {
+          hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
+          curve_type: 'edwards25519'
+        }
+      }
+    }
+  ],
+  metadata: {
+    ttl: 1000
+  }
+};
+
 export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL = {
   network_identifier: {
     blockchain: 'cardano',
@@ -982,7 +1212,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL = 
     },
     {
       operation_identifier: {
-        index: 3
+        index: 4
       },
       type: operationType.WITHDRAWAL,
       status: 'success',
@@ -1508,7 +1738,6 @@ export const SIGNED_TRANSACTION =
 
 // Preprocess transaction size considers 0 as ttl while the signed transaction is
 // using 1000, therefore we need to subtract 2 bytes (that will be added in metadata endpoint)
-// eslint-disable-next-line no-magic-numbers
 export const TRANSACTION_SIZE_IN_BYTES = SIGNED_TRANSACTION.length / 2 - 2;
 
 // These transactions were signed using a dummy signature, so there's no need to substract 2 bytes
@@ -1518,8 +1747,14 @@ export const SIGNED_TX_WITH_STAKE_KEY_REGISTRATION =
 export const SIGNED_TX_WITH_STAKE_DELEGATION =
   '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c400300048183028200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5a100818258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
 
+export const SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION =
+  '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c400300048282008200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb83028200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5a100818258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
+
 export const SIGNED_TX_WITH_WITHDRAWAL =
   '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40030005a1581de1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb192710a100818258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
+
+export const SIGNED_TX_WITH_TWO_WITHDRAWALS =
+  '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40030005a2581de16f2a3f072ef6a8ebbd9ef73dd83057656157cf6effe46be940ffe0f5192710581de1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb192710a100818258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
 
 export const SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL =
   '83a600818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c400300048182008200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb05a1581de1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb192710a100818258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
@@ -1528,7 +1763,12 @@ export const TX_WITH_STAKE_KEY_REGISTRATION_SIZE_IN_BYTES = SIGNED_TX_WITH_STAKE
 
 export const TX_WITH_STAKE_DELEGATION_SIZE_IN_BYTES = SIGNED_TX_WITH_STAKE_DELEGATION.length / 2;
 
+export const TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION_SIZE_IN_BYTES =
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION.length / 2;
+
 export const TX_WITH_WITHDRAWAL_SIZE_IN_BYTES = SIGNED_TX_WITH_WITHDRAWAL.length / 2;
+
+export const TX_WITH_TWO_WITHDRAWALS_SIZE_IN_BYTES = SIGNED_TX_WITH_TWO_WITHDRAWALS.length / 2;
 
 export const TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL_SIZE_IN_BYTES =
   SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL.length / 2;
