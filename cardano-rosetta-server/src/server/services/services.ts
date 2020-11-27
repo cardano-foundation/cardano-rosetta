@@ -22,8 +22,8 @@ export const configure = (
   DEFAULT_RELATIVE_TTL: number,
   linearFeeParameters: LinearFeeParameters
 ): Services => {
-  const blockServiceInstance = blockService(repositories.blockchainRepository);
   const cardanoServiceInstance = cardanoService(linearFeeParameters);
+  const blockServiceInstance = blockService(repositories.blockchainRepository, cardanoServiceInstance);
   return {
     blockService: blockServiceInstance,
     constructionService: constructionService(blockServiceInstance, DEFAULT_RELATIVE_TTL),

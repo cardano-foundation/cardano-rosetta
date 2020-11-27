@@ -7,8 +7,9 @@ import Queries, {
   FindTransactionsInputs,
   FindTransactionsOutputs,
   FindTransactionWithdrawals,
+  FindTransactionRegistrations,
   FindUtxo,
-  FindTransactionRegistrations
+  FindBalance
 } from './queries/blockchain-queries';
 import { Logger } from 'fastify';
 import { Block, GenesisBlock, Transaction, PopulatedTransaction, Utxo } from '../models';
@@ -66,6 +67,13 @@ export interface BlockchainRepository {
    * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
    */
   findUtxoByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<Utxo[]>;
+
+  /**
+   * Returns the balance for address till block identified by blockIdentifier if present, else the last
+   * @param address account's address to count balance
+   * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
+   */
+  findBalanceByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<string>;
 }
 
 /**
@@ -341,5 +349,19 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       transactionHash: hexFormatter(utxo.txHash),
       index: utxo.index
     }));
+  },
+  async findBalanceByAddressAndBlock(logger: Logger, address, blockHash): Promise<string> {
+    const parameters = [address, hashStringToBuffer(blockHash)];
+    logger.debug(
+      { address, blockHash },
+      '[findBalanceByAddressAndBlock] About to run findBalanceByAddressAndBlock query with parameters:'
+    );
+    const result: QueryResult<FindBalance> = await databaseInstance.query(
+      Queries.findBalanceByAddressAndBlock,
+      parameters
+    );
+    logger.debug(`[findBalanceByAddressAndBlock] Found a balance of ${result.rows[0].balance}`);
+
+    return result.rows[0].balance;
   }
 });

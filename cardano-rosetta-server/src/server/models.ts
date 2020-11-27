@@ -72,3 +72,8 @@ export interface BlockUtxos {
   block: Block;
   utxos: Utxo[];
 }
+
+export interface BalanceAtBlock {
+  block: Block;
+  balance: string;
+}
