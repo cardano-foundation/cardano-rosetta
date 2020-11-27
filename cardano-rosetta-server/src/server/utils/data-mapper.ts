@@ -4,7 +4,7 @@ import cbor from 'cbor';
 import { NetworkIdentifier } from '../services/cardano-services';
 import { NetworkStatus } from '../services/network-service';
 import { ADA, ADA_DECIMALS, CARDANO, MAINNET, operationType, SIGNATURE_TYPE, SUCCESS_STATUS } from './constants';
-import { Block, BlockUtxos, Network, PopulatedTransaction, Utxo } from '../models';
+import { Block, BlockUtxos, BalanceAtBlock, Network, PopulatedTransaction, Utxo } from '../models';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
@@ -193,20 +193,32 @@ const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] =>
 
 /**
  * Generates an AccountBalance response object
- * @param blockUtxos
+ * @param blockBalanceData
  * @param accountAddress
  */
-export const mapToAccountBalanceResponse = (blockUtxos: BlockUtxos): Components.Schemas.AccountBalanceResponse => {
-  const balanceForAddress = blockUtxos.utxos
-    .reduce((acum, current) => acum + BigInt(current.value), BigInt(0))
-    .toString();
+export const mapToAccountBalanceResponse = (
+  blockBalanceData: BlockUtxos | BalanceAtBlock
+): Components.Schemas.AccountBalanceResponse => {
+  // FIXME: handle this in a better way
+  if (blockBalanceData.hasOwnProperty('utxos')) {
+    const balanceForAddress = (blockBalanceData as BlockUtxos).utxos
+      .reduce((acum, current) => acum + BigInt(current.value), BigInt(0))
+      .toString();
+    return {
+      block_identifier: {
+        index: blockBalanceData.block.number,
+        hash: blockBalanceData.block.hash
+      },
+      balances: [mapAmount(balanceForAddress)],
+      coins: parseUtxoDetails((blockBalanceData as BlockUtxos).utxos)
+    };
+  }
   return {
     block_identifier: {
-      index: blockUtxos.block.number,
-      hash: blockUtxos.block.hash
+      index: blockBalanceData.block.number,
+      hash: blockBalanceData.block.hash
     },
-    balances: [mapAmount(balanceForAddress)],
-    coins: parseUtxoDetails(blockUtxos.utxos)
+    balances: [mapAmount((blockBalanceData as BalanceAtBlock).balance)]
   };
 };
 

@@ -10,10 +10,16 @@ export const ADA_DECIMALS = 6;
 export const VIN = 'Vin';
 export const VOUT = 'Vout';
 export const SIGNATURE_TYPE = 'ed25519';
+export const PREFIX_LENGTH = 10;
 
 // Nibbles
 export const SIGNATURE_LENGTH = 128;
 export const PUBLIC_KEY_BYTES_LENGTH = 64;
+
+export enum stakeType {
+  STAKE = 'stake',
+  STAKE_TEST = 'stake_test'
+}
 
 export enum operationType {
   INPUT = 'input',
