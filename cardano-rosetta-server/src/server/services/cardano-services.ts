@@ -20,7 +20,9 @@ import {
   stakingOperations,
   AddressType,
   SIGNATURE_LENGTH,
-  PUBLIC_KEY_BYTES_LENGTH
+  PUBLIC_KEY_BYTES_LENGTH,
+  stakeType,
+  PREFIX_LENGTH
 } from '../utils/constants';
 
 export enum NetworkIdentifier {
@@ -86,6 +88,20 @@ export interface CardanoService {
    * @param signedTransaction
    */
   getHashOfSignedTransaction(logger: Logger, signedTransaction: string): string;
+
+  /**
+   * This function returns a the address prefix based on a string encoded one
+   *
+   * @param address to be parsed
+   */
+  getPrefixFromAddress(address: string): string;
+
+  /**
+   * Returns true if the address's prefix belongs to stake address
+   *
+   * @param address
+   */
+  isStakeAddress(address: string): boolean;
 
   /**
    * Creates an unsigned transaction for the given operation.
@@ -478,7 +494,13 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
       return null;
     }
   },
-
+  getPrefixFromAddress(address) {
+    return address.slice(0, PREFIX_LENGTH);
+  },
+  isStakeAddress(address) {
+    const addressPrefix = this.getPrefixFromAddress(address);
+    return [stakeType.STAKE as string, stakeType.STAKE_TEST as string].some(type => addressPrefix.includes(type));
+  },
   getHashOfSignedTransaction(logger, signedTransaction) {
     try {
       logger.info(`[getHashOfSignedTransaction] About to hash signed transaction ${signedTransaction}`);

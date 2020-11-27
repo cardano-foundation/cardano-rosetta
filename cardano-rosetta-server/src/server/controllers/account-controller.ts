@@ -29,7 +29,7 @@ const configure = (
         if (cardanoService.getAddressType(accountAddress) === null)
           throw ErrorFactory.invalidAddressError(accountAddress);
         logger.info(`[accountBalance] Looking for block: ${accountBalanceRequest.block_identifier || 'latest'}`);
-        const blockUtxos = await blockService.findUtxoByAddressAndBlock(
+        const blockUtxos = await blockService.findBalanceDataByAddressAndBlock(
           logger,
           accountAddress,
           accountBalanceRequest.block_identifier?.index,

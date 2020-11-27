@@ -26,8 +26,8 @@ export const configure = (
   // FIXME: we can group networkId and networkMagic in a new type
   // eslint-disable-next-line max-params
 ): Services => {
-  const blockServiceInstance = blockService(repositories.blockchainRepository);
   const cardanoServiceInstance = cardanoService(linearFeeParameters);
+  const blockServiceInstance = blockService(repositories.blockchainRepository, cardanoServiceInstance);
   return {
     blockService: blockServiceInstance,
     constructionService: constructionService(blockServiceInstance, DEFAULT_RELATIVE_TTL),
