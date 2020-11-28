@@ -14,6 +14,7 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST,
   TRANSACTION_SIZE_IN_BYTES,
   TX_WITH_STAKE_KEY_REGISTRATION_SIZE_IN_BYTES,
+  TX_WITH_STAKE_KEY_DEREGISTRATION_SIZE_IN_BYTES,
   TX_WITH_STAKE_DELEGATION_SIZE_IN_BYTES,
   TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION_SIZE_IN_BYTES,
   TX_WITH_WITHDRAWAL_SIZE_IN_BYTES,
@@ -116,7 +117,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      options: { relative_ttl: 100, transaction_size: TX_WITH_STAKE_KEY_REGISTRATION_SIZE_IN_BYTES }
+      options: { relative_ttl: 100, transaction_size: TX_WITH_STAKE_KEY_DEREGISTRATION_SIZE_IN_BYTES }
     });
   });
 
@@ -139,6 +140,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
   });
 
+  // eslint-disable-next-line max-len
   test('Should return a valid TTL when the operations include stake key registration and stake delegation', async () => {
     const response = await server.inject({
       method: 'post',
