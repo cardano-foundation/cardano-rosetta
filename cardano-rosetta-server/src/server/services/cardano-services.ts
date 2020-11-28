@@ -17,13 +17,13 @@ import {
   ADA,
   ADA_DECIMALS,
   operationType,
-  stakingOperations,
   AddressType,
   SIGNATURE_LENGTH,
   PUBLIC_KEY_BYTES_LENGTH,
   stakeType,
   PREFIX_LENGTH
 } from '../utils/constants';
+import { isKeyValid } from '../utils/validations';
 
 export enum NetworkIdentifier {
   CARDANO_TESTNET_NETWORK = 0,
@@ -184,13 +184,20 @@ export interface CardanoService {
   ): TransactionParsed;
 }
 
-const calculateFee = (inputs: Components.Schemas.Operation[], outputs: Components.Schemas.Operation[]): BigInt => {
-  const inputsSum = inputs.reduce((acum, current) => acum + BigInt(current.amount?.value), BigInt(0)) * BigInt(-1);
-  const outputsSum = outputs.reduce((acum, current) => acum + BigInt(current.amount?.value), BigInt(0));
+const calculateFee = (
+  inputAmounts: string[],
+  outputAmounts: string[],
+  refundsSum: bigint,
+  depositsSum: bigint,
+  withdrawalAmounts: bigint[]
+): BigInt => {
+  const inputsSum = inputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0)) * BigInt(-1);
+  const outputsSum = outputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0));
   if (outputsSum > inputsSum) {
     throw ErrorFactory.outputsAreBiggerThanInputsError();
   }
-  return inputsSum - outputsSum;
+  const withdrawalsSum = withdrawalAmounts.reduce((acum, current) => acum + current, BigInt(0));
+  return inputsSum + withdrawalsSum + refundsSum - outputsSum - depositsSum;
 };
 
 const getAddressPrefix = (network: number) =>
@@ -263,67 +270,201 @@ const parseOperationsFromTransactionBody = (
 };
 
 const getStakingCredentialFromHex = (
-  stakingKeyBytes: string | undefined,
-  logger: Logger
+  logger: Logger,
+  staking_credential?: {
+    hex_bytes: string;
+    curve_type: string;
+  }
 ): CardanoWasm.StakeCredential => {
-  if (!stakingKeyBytes) {
+  if (!staking_credential?.hex_bytes) {
     logger.error('[getStakingCredentialFromHex] Staking key not provided');
     throw ErrorFactory.missingStakingKeyError();
   }
-  const stakingKeyBuffer = Buffer.from(stakingKeyBytes, 'hex');
+  if (!isKeyValid(staking_credential.hex_bytes, staking_credential.curve_type)) {
+    logger.info('[constructionPayloads] Staking key has an invalid format');
+    throw ErrorFactory.invalidStakingKeyFormat();
+  }
+  const stakingKeyBuffer = Buffer.from(staking_credential.hex_bytes, 'hex');
   const stakingKey = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
   return CardanoWasm.StakeCredential.from_keyhash(stakingKey.hash());
 };
 
-const processStakeOperations = (
+const validateAndParseTransactionOutput = (
+  logger: Logger,
+  output: Components.Schemas.Operation
+): CardanoWasm.TransactionOutput => {
+  // eslint-disable-next-line camelcase
+  let address;
+  try {
+    address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
+  } catch (error) {
+    throw ErrorFactory.transactionOutputDeserializationError(error.toString());
+  }
+  if (!address) {
+    logger.error('[validateAndParseTransactionOutput] Output has missing address field');
+    throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
+  }
+  const value = output.amount?.value;
+  if (!value) {
+    logger.error('[validateAndParseTransactionOutput] Output has missing amount value field');
+    throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
+  }
+  if (/^-\d+/.test(value)) {
+    logger.error('[validateAndParseTransactionOutput] Output has negative value');
+    throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
+  }
+  try {
+    return CardanoWasm.TransactionOutput.new(address, BigNum.new(BigInt(output.amount?.value)));
+  } catch (error) {
+    throw ErrorFactory.transactionOutputDeserializationError(error.toString());
+  }
+};
+
+const validateAndParseTransactionInput = (
+  logger: Logger,
+  input: Components.Schemas.Operation
+): CardanoWasm.TransactionInput => {
+  if (!input.coin_change) {
+    logger.error('[validateAndParseTransactionInput] Input has missing coin_change');
+    throw ErrorFactory.transactionInputsParametersMissingError('Input has missing coin_change field');
+  }
+  const [transactionId, index] = input.coin_change && input.coin_change.coin_identifier.identifier.split(':');
+  if (!(transactionId && index)) {
+    logger.error('[validateAndParseTransactionInput] Input has missing transactionId and index');
+    throw ErrorFactory.transactionInputsParametersMissingError('Input has invalid coin_identifier field');
+  }
+  const value = input.amount?.value;
+  if (!value) {
+    logger.error('[validateAndParseTransactionInput] Input has missing amount value field');
+    throw ErrorFactory.transactionInputsParametersMissingError('Input has missing amount value field');
+  }
+  if (/^\+?\d+/.test(value)) {
+    logger.error('[validateAndParseTransactionInput] Input has positive value');
+    throw ErrorFactory.transactionInputsParametersMissingError('Input has positive amount value');
+  }
+  try {
+    return CardanoWasm.TransactionInput.new(
+      CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
+      Number(index)
+    );
+  } catch (error) {
+    throw ErrorFactory.transactionInputDeserializationError(
+      'There was an error deserializating transaction input: '.concat(error)
+    );
+  }
+};
+
+const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
+
+const processStakeKeyRegistration = (
+  logger: Logger,
+  operation: Components.Schemas.Operation
+): CardanoWasm.Certificate => {
+  logger.info('[processStakeKeyRegistration] About to process stake key registration');
+  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  return CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
+};
+
+const processStakeKeyDeRegistration = (
+  logger: Logger,
+  operation: Components.Schemas.Operation
+): CardanoWasm.Certificate => {
+  logger.info('[processStakeKeyDeRegistration] About to process stake key deregistration');
+  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  return CardanoWasm.Certificate.new_stake_deregistration(StakeDeregistration.new(credential));
+};
+
+const processStakeDelegation = (logger: Logger, operation: Components.Schemas.Operation): CardanoWasm.Certificate => {
+  logger.info('[processStakeDelegation] About to process stake key delegation');
+  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  const poolKeyHash = operation.metadata?.pool_key_hash;
+  if (!poolKeyHash) {
+    logger.error('[processStakeDelegation] no pool key hash provided for stake delegation');
+    throw ErrorFactory.missingPoolKeyError();
+  }
+  return CardanoWasm.Certificate.new_stake_delegation(
+    StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
+  );
+};
+
+const processWithdrawal = (
+  logger: Logger,
+  network: NetworkIdentifier,
+  operation: Components.Schemas.Operation
+): CardanoWasm.RewardAddress => {
+  logger.info('[processWithdrawal] About to process withdrawal');
+  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  return CardanoWasm.RewardAddress.new(network, credential);
+};
+
+const processOperations = (
   logger: Logger,
   network: NetworkIdentifier,
   operations: Components.Schemas.Operation[],
-  transactionBody: CardanoWasm.TransactionBody
-): void => {
+  minKeyDeposit: number
+) => {
+  const transactionInputs = CardanoWasm.TransactionInputs.new();
+  const transactionOutputs = CardanoWasm.TransactionOutputs.new();
   const certificates = CardanoWasm.Certificates.new();
   const withdrawals = CardanoWasm.Withdrawals.new();
-  operations.forEach(({ type, metadata, amount }) => {
-    if (!stakingOperations.includes(type as operationType)) return;
-    const credential = getStakingCredentialFromHex(metadata?.staking_credential?.hex_bytes, logger);
-    switch (type) {
+  const addresses: string[] = [];
+  const inputAmounts: string[] = [];
+  const outputAmounts: string[] = [];
+  const withdrawalAmounts: bigint[] = [];
+  let stakeKeyRegistrationsCount = 0;
+  let stakeKeyDeRegistrationsCount = 0;
+  operations.forEach(operation => {
+    switch (operation.type) {
+      case operationType.INPUT: {
+        transactionInputs.add(validateAndParseTransactionInput(logger, operation));
+        addresses.push(operation.account!.address);
+        inputAmounts.push(operation.amount!.value);
+        break;
+      }
+      case operationType.OUTPUT: {
+        transactionOutputs.add(validateAndParseTransactionOutput(logger, operation));
+        outputAmounts.push(operation.amount!.value);
+        break;
+      }
       case operationType.STAKE_KEY_REGISTRATION: {
-        logger.info('[processStakeOperations] About to process stake key registration');
-        const stakeRegistrationCert = CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
-        certificates.add(stakeRegistrationCert);
+        certificates.add(processStakeKeyRegistration(logger, operation));
+        stakeKeyRegistrationsCount++;
         break;
       }
       case operationType.STAKE_KEY_DEREGISTRATION: {
-        logger.info('[processStakeOperations] About to process stake key deregistration');
-        const stakeDeregistrationCert = CardanoWasm.Certificate.new_stake_deregistration(
-          StakeDeregistration.new(credential)
-        );
-        certificates.add(stakeDeregistrationCert);
+        certificates.add(processStakeKeyDeRegistration(logger, operation));
+        stakeKeyDeRegistrationsCount++;
         break;
       }
       case operationType.STAKE_DELEGATION: {
-        logger.info('[processStakeOperations] About to process stake key delegation');
-        const poolKeyHash = metadata?.pool_key_hash;
-        if (!poolKeyHash) {
-          logger.error('[processStakeOperations] no pool key hash provided for stake delegation');
-          throw ErrorFactory.missingPoolKeyError();
-        }
-        const stakeDelegationCert = CardanoWasm.Certificate.new_stake_delegation(
-          StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
-        );
-        certificates.add(stakeDelegationCert);
+        certificates.add(processStakeDelegation(logger, operation));
         break;
       }
       case operationType.WITHDRAWAL: {
-        logger.info('[processStakeOperations] About to process withdrawals');
-        const rewardAddress = CardanoWasm.RewardAddress.new(network, credential);
-        withdrawals.insert(rewardAddress, BigNum.new(BigInt(amount?.value)));
+        const rewardAddress = processWithdrawal(logger, network, operation);
+        const withdrawalAmount = BigInt(operation.amount?.value);
+        withdrawalAmounts.push(withdrawalAmount);
+        withdrawals.insert(rewardAddress, BigNum.new(withdrawalAmount));
         break;
+      }
+      default: {
+        logger.error(`[processOperations] Operation with id ${operation.operation_identifier} has invalid type`);
+        throw ErrorFactory.invalidOperationTypeError();
       }
     }
   });
-  if (certificates.len() > 0) transactionBody.set_certs(certificates);
-  if (withdrawals.len() > 0) transactionBody.set_withdrawals(withdrawals);
+  logger.info('[processOperations] About to calculate fee');
+  const refundsSum = stakeKeyDeRegistrationsCount * minKeyDeposit;
+  const depositsSum = stakeKeyRegistrationsCount * minKeyDeposit;
+  const fee = calculateFee(inputAmounts, outputAmounts, BigInt(refundsSum), BigInt(depositsSum), withdrawalAmounts);
+  return {
+    transactionInputs,
+    transactionOutputs,
+    certificates,
+    withdrawals,
+    addresses: getUniqueAddresses(addresses),
+    fee
+  };
 };
 
 const createTransactionBody = (
@@ -333,81 +474,6 @@ const createTransactionBody = (
   ttl: number
 ): CardanoWasm.TransactionBody =>
   CardanoWasm.TransactionBody.new(inputs, outputs, BigNum.from_str(fee.toString()), ttl);
-
-const validateAndParseTransactionOutputs = (
-  logger: Logger,
-  outputs: Components.Schemas.Operation[]
-): CardanoWasm.TransactionOutputs => {
-  const transactionOutputs = CardanoWasm.TransactionOutputs.new();
-  outputs.forEach(output => {
-    // eslint-disable-next-line camelcase
-    let address;
-    try {
-      address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
-    } catch (error) {
-      throw ErrorFactory.transactionOutputDeserializationError(error.toString());
-    }
-    if (!address) {
-      logger.error('[validateAndParseTransactionOutputs] Output has missing address field');
-      throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
-    }
-    const value = output.amount?.value;
-    if (!value) {
-      logger.error('[validateAndParseTransactionOutputs] Output has missing amount value field');
-      throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
-    }
-    if (/^-\d+/.test(value)) {
-      logger.error('[validateAndParseTransactionOutputs] Output has negative value');
-      throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
-    }
-    try {
-      transactionOutputs.add(CardanoWasm.TransactionOutput.new(address, BigNum.new(BigInt(output.amount?.value))));
-    } catch (error) {
-      throw ErrorFactory.transactionOutputDeserializationError(error.toString());
-    }
-  });
-  return transactionOutputs;
-};
-
-const validateAndParseTransactionInputs = (
-  logger: Logger,
-  inputs: Components.Schemas.Operation[]
-): CardanoWasm.TransactionInputs => {
-  const transactionInputs = CardanoWasm.TransactionInputs.new();
-  inputs.forEach(input => {
-    if (!input.coin_change) {
-      logger.error('[validateAndParseTransactionInputs] Input has missing coin_change');
-      throw ErrorFactory.transactionInputsParametersMissingError('Input has missing coin_change field');
-    }
-    const [transactionId, index] = input.coin_change && input.coin_change.coin_identifier.identifier.split(':');
-    if (!(transactionId && index)) {
-      logger.error('[validateAndParseTransactionInputs] Input has missing transactionId and index');
-      throw ErrorFactory.transactionInputsParametersMissingError('Input has invalid coin_identifier field');
-    }
-    const value = input.amount?.value;
-    if (!value) {
-      logger.error('[validateAndParseTransactionInputs] Input has missing amount value field');
-      throw ErrorFactory.transactionInputsParametersMissingError('Input has missing amount value field');
-    }
-    if (/^\+?\d+/.test(value)) {
-      logger.error('[validateAndParseTransactionInputs] Input has positive value');
-      throw ErrorFactory.transactionInputsParametersMissingError('Input has positive amount value');
-    }
-    try {
-      transactionInputs.add(
-        CardanoWasm.TransactionInput.new(
-          CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
-          Number(index)
-        )
-      );
-    } catch (error) {
-      throw ErrorFactory.transactionInputDeserializationError(
-        'There was an error deserializating transaction input: '.concat(error)
-      );
-    }
-  });
-  return transactionInputs;
-};
 
 const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): CardanoWasm.TransactionWitnessSet => {
   try {
@@ -429,9 +495,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
-const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
-
-const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => ({
+const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: number): CardanoService => ({
   generateAddress(logger, network, publicKey, stakingCredential, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
@@ -534,30 +598,18 @@ const configure = (linearFeeParameters: LinearFeeParameters): CardanoService => 
     logger.info(
       `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
     );
-    const inputs = operations.filter(({ type }) => type === operationType.INPUT);
-    const outputs = operations.filter(({ type }) => type === operationType.OUTPUT);
+    const { transactionInputs, transactionOutputs, certificates, withdrawals, addresses, fee } = processOperations(
+      logger,
+      network,
+      operations,
+      minKeyDeposit
+    );
 
-    logger.info('[createUnsignedTransaction] About to calculate fee');
-    const fee = calculateFee(inputs, outputs);
     logger.info('[createUnsignedTransaction] About to create transaction body');
-    const transactionBody = createTransactionBody(
-      validateAndParseTransactionInputs(logger, inputs),
-      validateAndParseTransactionOutputs(logger, outputs),
-      fee,
-      ttl
-    );
-    logger.info('[createUnsignedTransaction] About to process stake operations');
-    processStakeOperations(logger, network, operations, transactionBody);
+    const transactionBody = createTransactionBody(transactionInputs, transactionOutputs, fee, ttl);
 
-    logger.info('[createUnsignedTransaction] Extracting addresses that will sign transaction from inputs');
-    const addresses = getUniqueAddresses(
-      inputs.map(input => {
-        if (input.account) return input.account?.address;
-        // This logic is not necessary (because it is made on this.getTransactionInputs(..))
-        // but ts expects me to do it again
-        throw ErrorFactory.transactionInputsParametersMissingError('Input has missing account address field');
-      })
-    );
+    if (certificates.len() > 0) transactionBody.set_certs(certificates);
+    if (withdrawals.len() > 0) transactionBody.set_withdrawals(withdrawals);
 
     const transactionBytes = hexFormatter(Buffer.from(transactionBody.to_bytes()));
     logger.info('[createUnsignedTransaction] Hashing transaction body');
