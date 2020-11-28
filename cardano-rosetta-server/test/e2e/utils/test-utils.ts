@@ -32,6 +32,8 @@ export const cardanoNodeMock: CardanoNode = {
 
 export const linearFeeParameters = { minFeeA: 44, minFeeB: 155381 };
 
+export const minKeyDeposit = 2000000;
+
 export const setupServer = (database: Pool): FastifyInstance => {
   // let repositories;
   const repositories = Repositories.configure(database);
@@ -39,7 +41,8 @@ export const setupServer = (database: Pool): FastifyInstance => {
     repositories,
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
     Number(process.env.DEFAULT_RELATIVE_TTL),
-    linearFeeParameters
+    linearFeeParameters,
+    minKeyDeposit
   );
   return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
     networkId: 'mainnet',
