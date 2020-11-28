@@ -148,13 +148,13 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
   test('Should throw an error when more outputs sum is bigger than inputs sum', async () => {
     // We are triplicating the last output of 40k amount
     // eslint-disable-next-line no-magic-numbers
-    const bigOutput = CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS.operations[2];
-    CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS.operations.push(bigOutput);
-    CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS.operations.push(bigOutput);
+    const bigOutput = CONSTRUCTION_PAYLOADS_REQUEST.operations[2];
+    CONSTRUCTION_PAYLOADS_REQUEST.operations.push(bigOutput);
+    CONSTRUCTION_PAYLOADS_REQUEST.operations.push(bigOutput);
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
-      payload: CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS
+      payload: CONSTRUCTION_PAYLOADS_REQUEST
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
@@ -178,7 +178,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
         {
           address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: 'cc4fc12d1ce6beb1466a7b558c46e4c22910f2498626a97f1e5d1c5555c3c1eb'
+          hex_bytes: '77149f22f9b04c45bc30473d27ab5f8ed01d05cba04903169097b2033a25c67f'
         }
       ]
     });
@@ -218,7 +218,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
         {
           address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: 'ef644af4af142d0c5bc5ea7380a328ddaba517de2ac0b258436f7268cca5398e'
+          hex_bytes: 'da2eb0d62aee9313fc68df0827bd176b55168bc9129aedce92f4e29b1d52de38'
         }
       ]
     });
@@ -238,7 +238,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
         {
           address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '0812fbd81e68cd68dd1b1c5426920c2d66fb65d5864cc21998ad050f0a16e162'
+          hex_bytes: '4bf7c4c3eae2e67e97a446aa4ea90f1bdb4b061c7e0affd15a79970edd93e61e'
         }
       ]
     });
@@ -258,7 +258,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
         {
           address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: 'a8f7cce3c339a5c2648aad189c2d50d8bfa6e88776bd7cd29767b94e8bf59382'
+          hex_bytes: '9c0f4e7fa746738d3df3665fc7cd11b2e3115e3268a047e0435f2454ed41fdc5'
         }
       ]
     });

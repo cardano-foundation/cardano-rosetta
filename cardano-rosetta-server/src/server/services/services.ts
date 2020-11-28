@@ -20,9 +20,10 @@ export const configure = (
   repositories: Repositories,
   topologyFile: TopologyConfig,
   DEFAULT_RELATIVE_TTL: number,
-  linearFeeParameters: LinearFeeParameters
+  linearFeeParameters: LinearFeeParameters,
+  minKeyDeposit: number
 ): Services => {
-  const cardanoServiceInstance = cardanoService(linearFeeParameters);
+  const cardanoServiceInstance = cardanoService(linearFeeParameters, minKeyDeposit);
   const blockServiceInstance = blockService(repositories.blockchainRepository, cardanoServiceInstance);
   return {
     blockService: blockServiceInstance,
