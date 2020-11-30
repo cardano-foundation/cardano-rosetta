@@ -350,6 +350,292 @@
             ]
           }
         ]
+      },
+      {
+        "name": "delegate_amount",
+        "concurrency": 1,
+        "scenarios": [
+          {
+            "name": "find_account",
+            "actions": [
+              {
+                "input": "{\"symbol\":\"ADA\", \"decimals\":6}",
+                "type": "set_variable",
+                "output_path": "currency"
+              },
+              {
+                "input": "{\"minimum_balance\":{\"value\": \"0\", \"currency\": {{currency}}}, \"create_limit\":1}",
+                "type": "find_balance",
+                "output_path": "random_account"
+              }
+            ]
+          },
+          {
+            "name": "request",
+            "actions": [
+              {
+                "input": "{\"account_identifier\": {{random_account.account_identifier}}, \"minimum_balance\":{\"value\": \"10000000\", \"currency\": {{currency}}}}",
+                "type": "find_balance",
+                "output_path": "loaded_account"
+              }
+            ]
+          },
+          {
+            "name": "create_staking_key",
+            "actions": [
+              {
+                "input": "{\"network\":\"testnet\", \"blockchain\":\"cardano\"}",
+                "type": "set_variable",
+                "output_path": "network"
+              },
+              {
+                "input": "{\"curve_type\": \"edwards25519\"}",
+                "type": "generate_key",
+                "output_path": "stakingKey"
+              }
+            ]
+          },
+          {
+            "name": "transfer_dry_run",
+            "actions": [
+              {
+                "input": "{\"network\":\"testnet\", \"blockchain\":\"cardano\"}",
+                "type": "set_variable",
+                "output_path": "transfer_dry_run.network"
+              },
+              {
+                "input": "{\"symbol\":\"ADA\", \"decimals\":6}",
+                "type": "set_variable",
+                "output_path": "currency"
+              },
+              {
+                "input": "\"600\"",
+                "type": "set_variable",
+                "output_path": "dust_amount"
+              },
+              {
+                "input": "\"1000000\"",
+                "type": "set_variable",
+                "output_path": "max_fee_amount"
+              },
+              {
+                "input": "{\"operation\":\"addition\", \"left_value\": {{dust_amount}}, \"right_value\": {{max_fee_amount}}}",
+                "type": "math",
+                "output_path": "send_buffer"
+              },
+              {
+                "input": "\"2400\"",
+                "type": "set_variable",
+                "output_path": "reserved_amount"
+              },
+              {
+                "input": "{\"require_coin\":true, \"minimum_balance\":{\"value\": {{reserved_amount}}, \"currency\": {{currency}}}}",
+                "type": "find_balance",
+                "output_path": "sender"
+              },
+              {
+                "input": "{\"operation\":\"subtraction\", \"left_value\": {{sender.balance.value}}, \"right_value\": {{send_buffer}}}",
+                "type": "math",
+                "output_path": "available_amount"
+              },
+              {
+                "input": "{\"minimum\": {{dust_amount}}, \"maximum\": {{available_amount}}}",
+                "type": "random_number",
+                "output_path": "recipient_amount"
+              },
+              {
+                "input": "{\"recipient_amount\":{{recipient_amount}}}",
+                "type": "print_message"
+              },
+              {
+                "input": "{\"operation\":\"subtraction\", \"left_value\": {{sender.balance.value}}, \"right_value\": {{recipient_amount}}}",
+                "type": "math",
+                "output_path": "total_change_amount"
+              },
+              {
+                "input": "{\"operation\":\"subtraction\", \"left_value\": {{total_change_amount}}, \"right_value\": {{max_fee_amount}}}",
+                "type": "math",
+                "output_path": "change_amount"
+              },
+              {
+                "input": "{\"change_amount\":{{change_amount}}}",
+                "type": "print_message"
+              },
+              {
+                "input": "{\"operation\":\"subtraction\", \"left_value\": \"0\", \"right_value\":{{sender.balance.value}}}",
+                "type": "math",
+                "output_path": "sender_amount"
+              },
+              {
+                "input": "{\"not_account_identifier\":[{{sender.account_identifier}}], \"not_coins\":[{{sender.coin}}], \"minimum_balance\":{\"value\": \"0\", \"currency\": {{currency}}}, \"create_limit\": 100, \"create_probability\": 50}",
+                "type": "find_balance",
+                "output_path": "recipient"
+              },
+              {
+                "input": "\"1\"",
+                "type": "set_variable",
+                "output_path": "transfer_dry_run.confirmation_depth"
+              },
+              {
+                "input": "\"true\"",
+                "type": "set_variable",
+                "output_path": "transfer_dry_run.dry_run"
+              },
+              {
+                "input": "[{\"operation_identifier\":{\"index\":0,\"network_index\":0},\"type\":\"input\",\"status\":\"success\",\"account\":{\"address\":\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"},\"amount\":{\"value\":\"-3000000\",\"currency\":{\"symbol\":\"ADA\",\"decimals\":6}},\"coin_change\":{\"coin_identifier\":{\"identifier\":\"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"},\"coin_action\":\"coin_spent\"}},{\"operation_identifier\":{\"index\":1},\"related_operations\":[{\"index\":0}],\"type\":\"output\",\"status\":\"success\",\"account\":{\"address\":\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"},\"amount\":{\"value\":\"500000\",\"currency\":{\"symbol\":\"ADA\",\"decimals\":6}}},{\"operation_identifier\":{\"index\":2},\"related_operations\":[{\"index\":0}],\"type\":\"output\",\"status\":\"success\",\"account\":{\"address\":\"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"},\"amount\":{\"value\":\"40000\",\"currency\":{\"symbol\":\"ADA\",\"decimals\":6}}},{\"operation_identifier\":{\"index\":3},\"type\":\"stakeKeyRegistration\",\"status\":\"success\",\"metadata\":{\"staking_credential\":{\"hex_bytes\":\"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\"curve_type\":\"edwards25519\"}}},{\"operation_identifier\":{\"index\":3},\"type\":\"stakeDelegation\",\"status\":\"success\",\"metadata\":{\"staking_credential\":{\"hex_bytes\":{\"stakingKey\":\"stakingKey\"},\"curve_type\":\"edwards25519\"},\"pool_key_hash\":\"22a8dc80b6fb4852150960c2e3896fa0a03498f514afc474c33152b6\"}}]",
+                "type": "set_variable",
+                "output_path": "transfer_dry_run.operations"
+              },
+              {
+                "input": "{{transfer_dry_run.operations}}",
+                "type": "print_message"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "withdrawal",
+        "concurrency": 1,
+        "scenarios": [
+          {
+            "name": "find_account",
+            "actions": [
+              {
+                "input": "{\"symbol\":\"ADA\", \"decimals\":6}",
+                "type": "set_variable",
+                "output_path": "currency"
+              },
+              {
+                "input": "{\"minimum_balance\":{\"value\": \"0\", \"currency\": {{currency}}}, \"create_limit\":1}",
+                "type": "find_balance",
+                "output_path": "random_account"
+              }
+            ]
+          },
+          {
+            "name": "request",
+            "actions": [
+              {
+                "input": "{\"account_identifier\": {{random_account.account_identifier}}, \"minimum_balance\":{\"value\": \"10000000\", \"currency\": {{currency}}}}",
+                "type": "find_balance",
+                "output_path": "loaded_account"
+              }
+            ]
+          },
+          {
+            "name": "create_staking_key",
+            "actions": [
+              {
+                "input": "{\"network\":\"testnet\", \"blockchain\":\"cardano\"}",
+                "type": "set_variable",
+                "output_path": "network"
+              },
+              {
+                "input": "{\"curve_type\": \"edwards25519\"}",
+                "type": "generate_key",
+                "output_path": "stakingKey"
+              }
+            ]
+          },
+          {
+            "name": "transfer_dry_run",
+            "actions": [
+              {
+                "input": "{\"network\":\"testnet\", \"blockchain\":\"cardano\"}",
+                "type": "set_variable",
+                "output_path": "transfer_dry_run.network"
+              },
+              {
+                "input": "{\"symbol\":\"ADA\", \"decimals\":6}",
+                "type": "set_variable",
+                "output_path": "currency"
+              },
+              {
+                "input": "\"600\"",
+                "type": "set_variable",
+                "output_path": "dust_amount"
+              },
+              {
+                "input": "\"1000000\"",
+                "type": "set_variable",
+                "output_path": "max_fee_amount"
+              },
+              {
+                "input": "{\"operation\":\"addition\", \"left_value\": {{dust_amount}}, \"right_value\": {{max_fee_amount}}}",
+                "type": "math",
+                "output_path": "send_buffer"
+              },
+              {
+                "input": "\"2400\"",
+                "type": "set_variable",
+                "output_path": "reserved_amount"
+              },
+              {
+                "input": "{\"require_coin\":true, \"minimum_balance\":{\"value\": {{reserved_amount}}, \"currency\": {{currency}}}}",
+                "type": "find_balance",
+                "output_path": "sender"
+              },
+              {
+                "input": "{\"operation\":\"subtraction\", \"left_value\": {{sender.balance.value}}, \"right_value\": {{send_buffer}}}",
+                "type": "math",
+                "output_path": "available_amount"
+              },
+              {
+                "input": "{\"minimum\": {{dust_amount}}, \"maximum\": {{available_amount}}}",
+                "type": "random_number",
+                "output_path": "recipient_amount"
+              },
+              {
+                "input": "{\"recipient_amount\":{{recipient_amount}}}",
+                "type": "print_message"
+              },
+              {
+                "input": "{\"operation\":\"subtraction\", \"left_value\": {{sender.balance.value}}, \"right_value\": {{recipient_amount}}}",
+                "type": "math",
+                "output_path": "total_change_amount"
+              },
+              {
+                "input": "{\"operation\":\"subtraction\", \"left_value\": {{total_change_amount}}, \"right_value\": {{max_fee_amount}}}",
+                "type": "math",
+                "output_path": "change_amount"
+              },
+              {
+                "input": "{\"change_amount\":{{change_amount}}}",
+                "type": "print_message"
+              },
+              {
+                "input": "{\"operation\":\"subtraction\", \"left_value\": \"0\", \"right_value\":{{sender.balance.value}}}",
+                "type": "math",
+                "output_path": "sender_amount"
+              },
+              {
+                "input": "{\"not_account_identifier\":[{{sender.account_identifier}}], \"not_coins\":[{{sender.coin}}], \"minimum_balance\":{\"value\": \"0\", \"currency\": {{currency}}}, \"create_limit\": 100, \"create_probability\": 50}",
+                "type": "find_balance",
+                "output_path": "recipient"
+              },
+              {
+                "input": "\"1\"",
+                "type": "set_variable",
+                "output_path": "transfer_dry_run.confirmation_depth"
+              },
+              {
+                "input": "\"true\"",
+                "type": "set_variable",
+                "output_path": "transfer_dry_run.dry_run"
+              },
+              {
+                "input": "[{\"operation_identifier\":{\"index\":0},\"type\":\"input\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{sender_amount}},\"currency\":{{currency}}}, \"coin_change\":{\"coin_action\":\"coin_spent\", \"coin_identifier\":{{sender.coin}}}},{\"operation_identifier\":{\"index\":1},\"type\":\"output\",\"account\":{{recipient.account_identifier}},\"amount\":{\"value\":{{recipient_amount}},\"currency\":{{currency}}}}, {\"operation_identifier\":{\"index\":2},\"type\":\"output\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{change_amount}},\"currency\":{{currency}}}},{\"operation_identifier\":{\"index\":4},\"type\":\"withdrawal\",\"status\":\"success\",\"amount\":{\"value\":\"10000\",\"currency\":{{currency}}},\"metadata\":{\"staking_credential\":{\"hex_bytes\":{create_staking_key.stakingKey.public_key},\"curve_type\":\"edwards25519\"}}}]",
+                "type": "set_variable",
+                "output_path": "transfer_dry_run.operations"
+              },
+              {
+                "input": "{{transfer_dry_run.operations}}",
+                "type": "print_message"
+              }
+            ]
+          }
+        ]
       }
     ],
     "end_conditions": {
