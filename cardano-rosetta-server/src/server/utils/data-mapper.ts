@@ -163,10 +163,22 @@ export const mapToAccountBalanceResponse = (blockUtxos: BlockUtxos): Components.
       index: blockUtxos.block.number,
       hash: blockUtxos.block.hash
     },
-    balances: [mapAmount(balanceForAddress)],
-    coins: parseUtxoDetails(blockUtxos.utxos)
+    balances: [mapAmount(balanceForAddress)]
   };
 };
+
+/**
+ * Generates an AccountCoins response object
+ * @param blockUtxos
+ * @param accountAddress
+ */
+export const mapToAccountCoinsResponse = (blockUtxos: BlockUtxos): Components.Schemas.AccountCoinsResponse => ({
+  block_identifier: {
+    index: blockUtxos.block.number,
+    hash: blockUtxos.block.hash
+  },
+  coins: parseUtxoDetails(blockUtxos.utxos)
+});
 
 export const mapToNetworkList = (networkIdentifiers: Network[]): Components.Schemas.NetworkListResponse => ({
   network_identifiers: networkIdentifiers.map(({ networkName }: Network) => ({
