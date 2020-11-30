@@ -264,17 +264,16 @@ const parseCertsToOperations = (
   stakingOps: Components.Schemas.Operation[],
   certsCount: number
 ): Components.Schemas.Operation[] => {
-  let currentIndex = 0;
   const parsedOperations = [];
   logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
-  while (currentIndex < certsCount) {
-    const stakingOperation = stakingOps[currentIndex];
+  for (let i = 0; i < certsCount; i++) {
+    const stakingOperation = stakingOps[i];
     const hex = stakingOperation.metadata?.staking_credential?.hex_bytes;
     if (!hex) {
       logger.error('[parseCertsToOperations] Staking key not provided');
       throw ErrorFactory.missingStakingKeyError();
     }
-    const cert = transactionBody.certs()!.get(currentIndex++);
+    const cert = transactionBody.certs()!.get(i);
     const parsedOperation = parseCertToOperation(
       cert,
       stakingOperation.operation_identifier.index,
@@ -283,6 +282,7 @@ const parseCertsToOperations = (
     );
     parsedOperations.push(parsedOperation);
   }
+
   return parsedOperations;
 };
 
@@ -334,19 +334,16 @@ const parseOperationsFromTransactionBody = (
   const inputsCount = transactionBody.inputs().len();
   const outputsCount = transactionBody.outputs().len();
   logger.info(`[parseOperationsFromTransactionBody] About to parse ${inputsCount} inputs`);
-  let currentIndex = 0;
-  while (currentIndex < inputsCount) {
-    const input = transactionBody.inputs().get(currentIndex);
+  for (let i = 0; i < inputsCount; i++) {
+    const input = transactionBody.inputs().get(i);
     const inputParsed = parseInputToOperation(input, operations.length);
-    operations.push({ ...inputParsed, ...extraData[currentIndex], status: '' });
-    currentIndex++;
+    operations.push({ ...inputParsed, ...extraData[i], status: '' });
   }
-  currentIndex = 0;
   // till this line operations only contains inputs
   const relatedOperations = getRelatedOperationsFromInputs(operations);
   logger.info(`[parseOperationsFromTransactionBody] About to parse ${outputsCount} outputs`);
-  while (currentIndex < outputsCount) {
-    const output = transactionBody.outputs().get(currentIndex++);
+  for (let i = 0; i < outputsCount; i++) {
+    const output = transactionBody.outputs().get(i);
     const outputParsed = parseOutputToOperation(
       output,
       operations.length,
