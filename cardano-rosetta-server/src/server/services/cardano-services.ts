@@ -262,14 +262,18 @@ const parseCertsToOperations = (
   logger: Logger,
   transactionBody: CardanoWasm.TransactionBody,
   stakingOps: Components.Schemas.Operation[],
-  certsCount: number,
-  operations: Components.Schemas.Operation[]
-) => {
+  certsCount: number
+): Components.Schemas.Operation[] => {
   let currentIndex = 0;
+  const parsedOperations = [];
   logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
   while (currentIndex < certsCount) {
     const stakingOperation = stakingOps[currentIndex];
-    const hex: string = stakingOperation.metadata!.staking_credential!.hex_bytes;
+    const hex = stakingOperation.metadata?.staking_credential?.hex_bytes;
+    if (!hex) {
+      logger.error('[parseCertsToOperations] Staking key not provided');
+      throw ErrorFactory.missingStakingKeyError();
+    }
     const cert = transactionBody.certs()!.get(currentIndex++);
     const parsedOperation = parseCertToOperation(
       cert,
@@ -277,8 +281,9 @@ const parseCertsToOperations = (
       hex,
       stakingOperation.type
     );
-    operations.push(parsedOperation);
+    parsedOperations.push(parsedOperation);
   }
+  return parsedOperations;
 };
 
 const parseWithdrawalToOperation = (value: string, hex: string, index: number): Components.Schemas.Operation => ({
@@ -358,7 +363,8 @@ const parseOperationsFromTransactionBody = (
     ].includes(type as operationType)
   );
   const certsCount = transactionBody.certs()?.len() || 0;
-  parseCertsToOperations(logger, transactionBody, stakingOps, certsCount, operations);
+  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, stakingOps, certsCount);
+  operations.push(...parsedCertOperations);
 
   const withdrawalOps = extraData.filter(({ type }) => type === operationType.WITHDRAWAL);
   const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
