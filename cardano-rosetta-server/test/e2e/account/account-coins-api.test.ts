@@ -7,11 +7,7 @@ import { setupDatabase, setupServer } from '../utils/test-utils';
 import { CARDANO } from '../../../src/server/utils/constants';
 import { latestBlock } from '../fixture-data';
 
-const generatePayload = (
-  blockchain: string,
-  network: string,
-  address: string,
-) => ({
+const generatePayload = (blockchain: string, network: string, address: string) => ({
   // eslint-disable-next-line camelcase
   network_identifier: {
     blockchain,
