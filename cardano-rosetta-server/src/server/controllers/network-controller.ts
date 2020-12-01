@@ -1,6 +1,6 @@
 import { FastifyRequest } from 'fastify';
 import { NetworkService } from '../services/network-service';
-import { MIDDLEWARE_VERSION, operationType, ROSETTA_VERSION, SUCCESS_OPERATION_STATE } from '../utils/constants';
+import { MIDDLEWARE_VERSION, OPERATION_TYPES, ROSETTA_VERSION, SUCCESS_OPERATION_STATE } from '../utils/constants';
 import { mapToNetworkList, mapToNetworkStatusResponse } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
@@ -67,7 +67,7 @@ const configure = (networkService: NetworkService, networkId: string, cardanoNod
           },
           allow: {
             operation_statuses: [SUCCESS_OPERATION_STATE],
-            operation_types: [operationType.INPUT, operationType.OUTPUT],
+            operation_types: OPERATION_TYPES,
             errors: Object.values(ErrorFactory)
               .map(fn => fn())
               // Return them sorted by code
