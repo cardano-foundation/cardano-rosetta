@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.0.0](https://github.com/input-output-hk/cardano-rosetta/compare/0.2.2...1.0.0) (2020-12-01)
+
+
+### Bug Fixes
+
+* bump cardano node to 1.20.0 & cardano-db-sync to 5.0.1 ([5fee129](https://github.com/input-output-hk/cardano-rosetta/commit/5fee129b51900a5fdffcc0ff847268b533beb0b4)), closes [#183](https://github.com/input-output-hk/cardano-rosetta/issues/183)
+* CARDANO_CLI_PATH var in ecosystem file ([2597ef1](https://github.com/input-output-hk/cardano-rosetta/commit/2597ef12c812c73f6e57df358e3a03779e01218f))
+* don't repeat witnesses if multiple inputs from the same address ([b671fef](https://github.com/input-output-hk/cardano-rosetta/commit/b671fef0406c4330e48e0682668f4eb05773252a)), closes [#184](https://github.com/input-output-hk/cardano-rosetta/issues/184)
+* example is not working with the latest rosetta api changed ([565cf69](https://github.com/input-output-hk/cardano-rosetta/commit/565cf69f4124098aad8226ff532c1ef65bb4a268))
+* fix tests after 6.0.0 upgrade ([5d0602f](https://github.com/input-output-hk/cardano-rosetta/commit/5d0602fcfd75e676eec812a7d268e85f506990fd))
+* post-integration testnet build ([07dcb21](https://github.com/input-output-hk/cardano-rosetta/commit/07dcb21b2b900ed918644bc66921e8255d1ac073))
+* properly return detailed error message when req body has an issue ([6042f57](https://github.com/input-output-hk/cardano-rosetta/commit/6042f57932af0853310ec9910fba14da892a6f73))
+* strengthen Docker smoke test ([65f2ac7](https://github.com/input-output-hk/cardano-rosetta/commit/65f2ac7041e3afcb39175ac1ce49eff7f38a7406)), closes [#180](https://github.com/input-output-hk/cardano-rosetta/issues/180)
+* update cardano-db-sync to 6.0.1 to fix an issue when importing blocks ([7fb2c03](https://github.com/input-output-hk/cardano-rosetta/commit/7fb2c03e725ac9394ff27bc155f5f7d003dfd89f))
+* upgrade node-fetch to 2.6.1 ([#189](https://github.com/input-output-hk/cardano-rosetta/issues/189)) ([0a6028b](https://github.com/input-output-hk/cardano-rosetta/commit/0a6028ba1acefb14728093b6e1f1e92dd1e27444)), closes [#188](https://github.com/input-output-hk/cardano-rosetta/issues/188)
+
 ### [0.2.2](https://github.com/input-output-hk/cardano-rosetta/compare/0.2.1...0.2.2) (2020-09-10)
 
 
