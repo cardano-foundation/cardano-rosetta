@@ -1948,16 +1948,11 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
 // Parse operations as the same as the ones sent before but status should be empty
 export const constructionParseOperations = (
   constructionPayloadRequest: Components.Schemas.ConstructionPayloadsRequest
-) =>
+): Components.Schemas.Operation[] =>
   constructionPayloadRequest.operations.map(operation => ({
     ...operation,
     status: ''
   }));
-
-export const CONSTRUCTION_PARSE_OPERATIONS = CONSTRUCTION_PAYLOADS_REQUEST.operations.map(operation => ({
-  ...operation,
-  status: ''
-}));
 
 export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
   network_identifier: {

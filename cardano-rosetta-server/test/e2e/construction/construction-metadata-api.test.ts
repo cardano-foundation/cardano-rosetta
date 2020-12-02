@@ -4,7 +4,7 @@ import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import { linearFeeParameters, setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
-import { latestBlockSlot, SIGNED_TRANSACTION, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
+import { latestBlockSlot, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 

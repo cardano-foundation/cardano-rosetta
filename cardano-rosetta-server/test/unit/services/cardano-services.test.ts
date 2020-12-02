@@ -1,10 +1,12 @@
 import configure, { EraAddressType, CardanoService } from '../../../src/server/services/cardano-services';
 
+const minKeyDeposit = 2000000;
+
 describe('Cardano Service', () => {
   let cardanoService: CardanoService;
 
   beforeAll(() => {
-    cardanoService = configure({ minFeeA: 0, minFeeB: 0 });
+    cardanoService = configure({ minFeeA: 0, minFeeB: 0 }, minKeyDeposit);
   });
 
   describe('Address type detection', () => {
