@@ -26,6 +26,6 @@ jobs:
       - name: Smoke test remote testnet build with local cache
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
-          tag: ${{ github.sha }}
+          tag: testnet-${{ github.sha }}
           network-identifier: testnet
           test-exe: ./test/smoke_test.sh
