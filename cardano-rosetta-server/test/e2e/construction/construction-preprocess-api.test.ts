@@ -27,7 +27,7 @@ const CONSTRUCTION_PREPROCESS_ENDPOINT = '/construction/preprocess';
 type ProcessPayloadType = {
   blockchain?: string;
   network?: string;
-  operations?: any[];
+  operations?: Components.Schemas.Operation[];
   relativeTtl?: number;
 };
 
