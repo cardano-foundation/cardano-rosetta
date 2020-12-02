@@ -132,13 +132,42 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
     })
   );
   totalOperations.push(registrationsAsOperations);
-
+  const deregistrationsAsOperations: Components.Schemas.Operation[] = transaction.deregistrations.map(
+    (deregistration, index) => ({
+      operation_identifier: {
+        index: getOperationCurrentIndex(totalOperations, index)
+      },
+      type: operationType.STAKE_KEY_DEREGISTRATION,
+      status: SUCCESS_STATUS,
+      account: {
+        address: deregistration.stakeAddress
+      },
+      metadata: {
+        fundAmount: mapAmount(deregistration.amount)
+      }
+    })
+  );
+  totalOperations.push(deregistrationsAsOperations);
+  const delegationsAsOperations: Components.Schemas.Operation[] = transaction.delegations.map((delegation, index) => ({
+    operation_identifier: {
+      index: getOperationCurrentIndex(totalOperations, index)
+    },
+    type: operationType.STAKE_KEY_REGISTRATION,
+    status: SUCCESS_STATUS,
+    account: {
+      address: delegation.stakeAddress
+    },
+    metadata: {
+      pool_key_hash: delegation.poolHash
+    }
+  }));
+  totalOperations.push(delegationsAsOperations);
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
   // refactored to use a reduce)
-  const relatedOperations = getOperationIndexes(inputsAsOperations).concat(
-    getOperationIndexes(withdrawalsAsOperations)
-  );
+  const relatedOperations = getOperationIndexes(inputsAsOperations)
+    .concat(getOperationIndexes(withdrawalsAsOperations))
+    .concat(getOperationIndexes(deregistrationsAsOperations));
 
   const outputsAsOperations = transaction.outputs.map((output, index) =>
     createOperation(
@@ -152,15 +181,14 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
       getCoinChange(output.index, transaction.hash, COIN_CREATED_ACTION)
     )
   );
+  totalOperations.push(outputsAsOperations);
 
+  const operations = totalOperations.reduce((accum, operation) => accum.concat(operation), []);
   return {
     transaction_identifier: {
       hash: transaction.hash
     },
-    operations: inputsAsOperations
-      .concat(withdrawalsAsOperations)
-      .concat(registrationsAsOperations)
-      .concat(outputsAsOperations)
+    operations
   };
 };
 

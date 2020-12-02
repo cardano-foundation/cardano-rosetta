@@ -133,6 +133,14 @@ export interface FindTransactionRegistrations extends FindTransactionFieldResult
   address: string;
   amount: string;
 }
+export interface FindTransactionDeregistrations extends FindTransactionFieldResult {
+  address: string;
+  amount: string;
+}
+export interface FindTransactionDelegations extends FindTransactionFieldResult {
+  address: string;
+  poolHash: string;
+}
 
 const findTransactionWithdrawals = `
 SELECT 
@@ -156,6 +164,32 @@ INNER JOIN tx on tx.id = sr.tx_id
 INNER JOIN stake_address sa on sr.addr_id = sa.id
 WHERE
   tx.hash = ANY ($1)
+`;
+
+const findTransactionDeregistrations = `
+SELECT 
+  sa.view as "address",
+  tx.deposit as "amount"
+FROM stake_deregistration sd
+INNER JOIN stake_address sa
+  ON sd.addr_id = sa.id
+INNER JOIN tx
+  ON tx.id = sd.tx_id
+WHERE tx.hash = ANY($1)
+`;
+
+const findTransactionDelegations = `
+SELECT 
+  sa.view as "address",
+  ph.hash_raw as "poolHash"
+FROM delegation d
+INNER JOIN stake_address sa
+  ON d.addr_id = sa.id
+INNER JOIN pool_hash ph
+  ON d.pool_hash_id = ph.id
+INNER JOIN tx
+  ON d.tx_id = tx.id
+WHERE tx.hash = ANY($1)
 `;
 
 const findLatestBlockNumber = `
@@ -226,6 +260,8 @@ const Queries = {
   findTransactionsOutputs,
   findTransactionWithdrawals,
   findTransactionRegistrations,
+  findTransactionDeregistrations,
+  findTransactionDelegations,
   findLatestBlockNumber,
   findGenesisBlock,
   findUtxoByAddressAndBlock,
