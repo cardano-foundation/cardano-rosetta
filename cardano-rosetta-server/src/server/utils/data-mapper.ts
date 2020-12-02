@@ -3,7 +3,16 @@
 import cbor from 'cbor';
 import { NetworkIdentifier } from '../services/cardano-services';
 import { NetworkStatus } from '../services/network-service';
-import { ADA, ADA_DECIMALS, CARDANO, MAINNET, operationType, SIGNATURE_TYPE, SUCCESS_STATUS } from './constants';
+import {
+  ADA,
+  ADA_DECIMALS,
+  CARDANO,
+  MAINNET,
+  operationType,
+  SIGNATURE_TYPE,
+  stakingOperations,
+  SUCCESS_STATUS
+} from './constants';
 import { Block, BlockUtxos, BalanceAtBlock, Network, PopulatedTransaction, Utxo } from '../models';
 
 const COIN_SPENT_ACTION = 'coin_spent';
@@ -278,7 +287,11 @@ export const encodeExtraData = async (
 ): Promise<string> => {
   const extraData: Components.Schemas.Operation[] = operations
     // eslint-disable-next-line camelcase
-    .filter(operation => operation.coin_change?.coin_action === COIN_SPENT_ACTION);
+    .filter(
+      operation =>
+        operation.coin_change?.coin_action === COIN_SPENT_ACTION ||
+        stakingOperations.includes(operation.type as operationType)
+    );
 
   return (await cbor.encodeAsync([transaction, extraData])).toString('hex');
 };

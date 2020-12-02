@@ -4,6 +4,7 @@ import CardanoWasm, {
   BigNum,
   Ed25519Signature,
   PublicKey,
+  StakeCredential,
   StakeRegistration,
   StakeDeregistration,
   StakeDelegation,
@@ -21,7 +22,8 @@ import {
   SIGNATURE_LENGTH,
   PUBLIC_KEY_BYTES_LENGTH,
   stakeType,
-  PREFIX_LENGTH
+  PREFIX_LENGTH,
+  CurveType
 } from '../utils/constants';
 import { isKeyValid } from '../utils/validations';
 
@@ -235,11 +237,95 @@ const parseOutputToOperation = (
   type: operationType.OUTPUT
 });
 
+const parseCertToOperation = (
+  cert: CardanoWasm.Certificate,
+  index: number,
+  hash: string,
+  type: string
+): Components.Schemas.Operation => {
+  const operation: Components.Schemas.Operation = {
+    operation_identifier: { index },
+    status: '',
+    type,
+    metadata: {
+      staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
+    }
+  };
+  const delegationCert = cert.as_stake_delegation();
+  if (delegationCert) {
+    operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
+  }
+  return operation;
+};
+
+const parseCertsToOperations = (
+  logger: Logger,
+  transactionBody: CardanoWasm.TransactionBody,
+  stakingOps: Components.Schemas.Operation[],
+  certsCount: number
+): Components.Schemas.Operation[] => {
+  const parsedOperations = [];
+  logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
+  for (let i = 0; i < certsCount; i++) {
+    const stakingOperation = stakingOps[i];
+    const hex = stakingOperation.metadata?.staking_credential?.hex_bytes;
+    if (!hex) {
+      logger.error('[parseCertsToOperations] Staking key not provided');
+      throw ErrorFactory.missingStakingKeyError();
+    }
+    const cert = transactionBody.certs()!.get(i);
+    const parsedOperation = parseCertToOperation(
+      cert,
+      stakingOperation.operation_identifier.index,
+      hex,
+      stakingOperation.type
+    );
+    parsedOperations.push(parsedOperation);
+  }
+
+  return parsedOperations;
+};
+
+const parseWithdrawalToOperation = (value: string, hex: string, index: number): Components.Schemas.Operation => ({
+  operation_identifier: { index },
+  status: '',
+  amount: {
+    value,
+    currency: {
+      symbol: ADA,
+      decimals: ADA_DECIMALS
+    }
+  },
+  type: operationType.WITHDRAWAL,
+  metadata: {
+    staking_credential: { hex_bytes: hex, curve_type: CurveType.edwards25519 }
+  }
+});
+
+const parseWithdrawalsToOperations = (
+  logger: Logger,
+  withdrawalOps: Components.Schemas.Operation[],
+  withdrawalsCount: number,
+  operations: Components.Schemas.Operation[]
+) => {
+  logger.info(`[parseWithdrawalsToOperations] About to parse ${withdrawalsCount} withdrawals`);
+  for (let i = 0; i < withdrawalsCount; i++) {
+    const withdrawalOperation = withdrawalOps[i];
+    const parsedOperation = parseWithdrawalToOperation(
+      withdrawalOperation.amount!.value,
+      withdrawalOperation.metadata!.staking_credential!.hex_bytes,
+      withdrawalOperation.operation_identifier.index
+    );
+    operations.push(parsedOperation);
+  }
+};
+
 const getRelatedOperationsFromInputs = (
   inputs: Components.Schemas.Operation[]
 ): Components.Schemas.OperationIdentifier[] => inputs.map(input => ({ index: input.operation_identifier.index }));
 
 const parseOperationsFromTransactionBody = (
+  logger: Logger,
   transactionBody: CardanoWasm.TransactionBody,
   extraData: Components.Schemas.Operation[],
   network: number
@@ -247,18 +333,17 @@ const parseOperationsFromTransactionBody = (
   const operations = [];
   const inputsCount = transactionBody.inputs().len();
   const outputsCount = transactionBody.outputs().len();
-  let currentIndex = 0;
-  while (currentIndex < inputsCount) {
-    const input = transactionBody.inputs().get(currentIndex);
+  logger.info(`[parseOperationsFromTransactionBody] About to parse ${inputsCount} inputs`);
+  for (let i = 0; i < inputsCount; i++) {
+    const input = transactionBody.inputs().get(i);
     const inputParsed = parseInputToOperation(input, operations.length);
-    operations.push({ ...inputParsed, ...extraData[currentIndex], status: '' });
-    currentIndex++;
+    operations.push({ ...inputParsed, ...extraData[i], status: '' });
   }
-  currentIndex = 0;
   // till this line operations only contains inputs
   const relatedOperations = getRelatedOperationsFromInputs(operations);
-  while (currentIndex < outputsCount) {
-    const output = transactionBody.outputs().get(currentIndex++);
+  logger.info(`[parseOperationsFromTransactionBody] About to parse ${outputsCount} outputs`);
+  for (let i = 0; i < outputsCount; i++) {
+    const output = transactionBody.outputs().get(i);
     const outputParsed = parseOutputToOperation(
       output,
       operations.length,
@@ -267,6 +352,21 @@ const parseOperationsFromTransactionBody = (
     );
     operations.push(outputParsed);
   }
+  const stakingOps = extraData.filter(({ type }) =>
+    [
+      operationType.STAKE_KEY_REGISTRATION,
+      operationType.STAKE_KEY_DEREGISTRATION,
+      operationType.STAKE_DELEGATION
+    ].includes(type as operationType)
+  );
+  const certsCount = transactionBody.certs()?.len() || 0;
+  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, stakingOps, certsCount);
+  operations.push(...parsedCertOperations);
+
+  const withdrawalOps = extraData.filter(({ type }) => type === operationType.WITHDRAWAL);
+  const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
+  parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations);
+
   return operations;
 };
 
@@ -276,7 +376,7 @@ const getStakingCredentialFromHex = (
     hex_bytes: string;
     curve_type: string;
   }
-): CardanoWasm.StakeCredential => {
+): StakeCredential => {
   if (!staking_credential?.hex_bytes) {
     logger.error('[getStakingCredentialFromHex] Staking key not provided');
     throw ErrorFactory.missingStakingKeyError();
@@ -287,7 +387,7 @@ const getStakingCredentialFromHex = (
   }
   const stakingKeyBuffer = Buffer.from(staking_credential.hex_bytes, 'hex');
   const stakingKey = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
-  return CardanoWasm.StakeCredential.from_keyhash(stakingKey.hash());
+  return StakeCredential.from_keyhash(stakingKey.hash());
 };
 
 const validateAndParseTransactionOutput = (
@@ -506,7 +606,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
 
     const pub = CardanoWasm.PublicKey.from_bytes(publicKeyBuffer);
 
-    const payment = CardanoWasm.StakeCredential.from_keyhash(pub.hash());
+    const payment = StakeCredential.from_keyhash(pub.hash());
 
     if (type === AddressType.REWARD) {
       logger.info('[generateAddress] Deriving cardano enterprise address from valid public staking key');
@@ -526,11 +626,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       const staking = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
 
       logger.info('[generateAddress] Deriving cardano address from valid public key and staking key');
-      const baseAddress = CardanoWasm.BaseAddress.new(
-        network,
-        payment,
-        CardanoWasm.StakeCredential.from_keyhash(staking.hash())
-      );
+      const baseAddress = CardanoWasm.BaseAddress.new(network, payment, StakeCredential.from_keyhash(staking.hash()));
       const bech32address = baseAddress.to_address().to_bech32(getAddressPrefix(network));
       logger.info(`[generateAddress] base address is ${bech32address}`);
       return bech32address;
@@ -661,7 +757,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       logger.info('[parseSignedTransaction] About to create signed transaction from bytes');
       const parsed = CardanoWasm.Transaction.from_bytes(transactionBuffer);
       logger.info('[parseSignedTransaction] About to parse operations from transaction body');
-      const operations = parseOperationsFromTransactionBody(parsed.body(), extraData, networkId);
+      const operations = parseOperationsFromTransactionBody(logger, parsed.body(), extraData, networkId);
       logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
       logger.info(operations, '[parseSignedTransaction] Returning operations');
       const signers = extraData.map(data => data.account?.address || '');
@@ -677,7 +773,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       const transactionBuffer = Buffer.from(transaction, 'hex');
       const parsed = CardanoWasm.TransactionBody.from_bytes(transactionBuffer);
       logger.info(extraData, '[parseUnsignedTransaction] About to parse operations from transaction body');
-      const operations = parseOperationsFromTransactionBody(parsed, extraData, networkId);
+      const operations = parseOperationsFromTransactionBody(logger, parsed, extraData, networkId);
       logger.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
       return { operations, signers: [] };
     } catch (error) {

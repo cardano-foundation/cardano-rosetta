@@ -8,6 +8,7 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION,
   CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
   CONSTRUCTION_PAYLOADS_REQUEST,
@@ -18,6 +19,7 @@ import {
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_DELEGATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE
@@ -205,6 +207,26 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
   });
 
   // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including stake key registration and stake delegation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_DELEGATION_RESPONSE,
+      payloads: [
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'dbf6479409a59e3e99c79b9c46b6af714de7c8264094b1d38c373b7454acf33d'
+        }
+      ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
   test('Should return a valid unsigned transaction hash when sending valid operations including withdrawal', async () => {
     const response = await server.inject({
       method: 'post',
@@ -270,7 +292,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       network_identifier,
       operations: operations.map(({ metadata: opMetadata, ...rest }) => ({
         metadata: opMetadata && {
-          staking_credential: { hex_bytes: opMetadata.staking_credential.hex_bytes, curve_type: 'secp256k1' }
+          staking_credential: { hex_bytes: opMetadata.staking_credential!.hex_bytes, curve_type: 'secp256k1' }
         },
         ...rest
       })),

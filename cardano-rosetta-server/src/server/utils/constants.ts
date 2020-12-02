@@ -43,6 +43,13 @@ enum operationTypeStatus {
   SUCCESS = 'success'
 }
 
+export enum CurveType {
+  secp256k1 = 'secp256k1',
+  secp256r1 = 'secp256r1',
+  edwards25519 = 'edwards25519',
+  tweedle = 'tweedle'
+}
+
 export const SUCCESS_STATUS = 'success';
 
 export const MAINNET = 'mainnet';
