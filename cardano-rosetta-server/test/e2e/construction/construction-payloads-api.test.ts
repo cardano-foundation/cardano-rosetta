@@ -220,7 +220,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
         {
           address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '0c8ffdb72916034e8fdaffbcaca9fbe0295ab356726590be8aea6fd145c3c284'
+          hex_bytes: 'dbf6479409a59e3e99c79b9c46b6af714de7c8264094b1d38c373b7454acf33d'
         }
       ]
     });
