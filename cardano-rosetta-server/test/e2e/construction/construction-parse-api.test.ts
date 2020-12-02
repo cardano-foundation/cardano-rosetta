@@ -9,12 +9,14 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
   CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_DELEGATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
@@ -102,6 +104,25 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION)
+    );
+    expect(response.json().signers).toEqual([]);
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return 1 input, 2 outputs, 1 stake key registration, 1 stake delegation and empty signers if a valid unsigned transaction is set', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload(
+        'cardano',
+        'mainnet',
+        false,
+        CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_DELEGATION_RESPONSE
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION)
     );
     expect(response.json().signers).toEqual([]);
   });
