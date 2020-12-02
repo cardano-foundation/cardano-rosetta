@@ -193,11 +193,12 @@ const calculateFee = (
 ): BigInt => {
   const inputsSum = inputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0)) * BigInt(-1);
   const outputsSum = outputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0));
-  if (outputsSum > inputsSum) {
+  const withdrawalsSum = withdrawalAmounts.reduce((acum, current) => acum + current, BigInt(0));
+  const fee = inputsSum + withdrawalsSum + refundsSum - outputsSum - depositsSum;
+  if (fee < 0) {
     throw ErrorFactory.outputsAreBiggerThanInputsError();
   }
-  const withdrawalsSum = withdrawalAmounts.reduce((acum, current) => acum + current, BigInt(0));
-  return inputsSum + withdrawalsSum + refundsSum - outputsSum - depositsSum;
+  return fee;
 };
 
 const getAddressPrefix = (network: number) =>
@@ -457,6 +458,7 @@ const processOperations = (
   const refundsSum = stakeKeyDeRegistrationsCount * minKeyDeposit;
   const depositsSum = stakeKeyRegistrationsCount * minKeyDeposit;
   const fee = calculateFee(inputAmounts, outputAmounts, BigInt(refundsSum), BigInt(depositsSum), withdrawalAmounts);
+  logger.info(`[processOperations] Calculated fee: ${fee}`);
   return {
     transactionInputs,
     transactionOutputs,

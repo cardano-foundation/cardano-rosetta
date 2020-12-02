@@ -178,7 +178,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
         {
           address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '77149f22f9b04c45bc30473d27ab5f8ed01d05cba04903169097b2033a25c67f'
+          hex_bytes: 'ec6bb1091d68dcb3e4f4889329e143fbb6090b8e78c74e7c8d0903d9eec4eed1'
         }
       ]
     });
@@ -238,7 +238,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
         {
           address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '4bf7c4c3eae2e67e97a446aa4ea90f1bdb4b061c7e0affd15a79970edd93e61e'
+          hex_bytes: '8b47f0f3690167b596f1e7623e1869148f6bea78ebceaa08fe890a2e3e9e4d89'
         }
       ]
     });
