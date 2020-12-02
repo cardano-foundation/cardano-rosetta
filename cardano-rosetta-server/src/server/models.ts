@@ -50,6 +50,16 @@ export interface Registration {
   amount: string;
 }
 
+export interface Deregistration {
+  stakeAddress: string;
+  amount: string;
+}
+
+export interface Delegation {
+  stakeAddress: string;
+  poolHash: string;
+}
+
 export interface Transaction {
   hash: string;
   blockHash: string;
@@ -62,6 +72,8 @@ export interface PopulatedTransaction extends Transaction {
   outputs: TransactionOutput[];
   withdrawals: Withdrawal[];
   registrations: Registration[];
+  deregistrations: Deregistration[];
+  delegations: Delegation[];
 }
 
 export interface Network {
