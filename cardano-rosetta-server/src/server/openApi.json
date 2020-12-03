@@ -920,6 +920,10 @@
             "description": "If it's a registration operation, the amount will re returned here.",
             "$ref": "#/components/schemas/Amount"
           },
+          "fundAmount": {
+            "description": "If it's a deregistration operation, the amount will re returned here.",
+            "$ref": "#/components/schemas/Amount"
+          },
           "staking_credential": {
             "$ref": "#/components/schemas/PublicKey"
           },
