@@ -1,19 +1,19 @@
 # `rosetta-cli` checks
 
-Requires [rosetta-cli] `v0.5.8` or later 
+Requires [rosetta-cli] `v0.5.8` or later
 
 ## `data`
-Run a mainnet or testnet instance with the server exposed at `http://localhost:8080`
+Run a mainnet instance with the server exposed at `http://localhost:8080`
 ``` console
-rosetta-cli check:data --configuration-file ./data/byron_sample.json
-rosetta-cli check:data --configuration-file ./data/shelley_sample.json
-rosetta-cli check:data --configuration-file ./data/shelley_transition.json
+./bin/rosetta-cli check:data --configuration-file ./configuration/data/byron_sample.json
+./bin/rosetta-cli check:data --configuration-file ./configuration/data/shelley_sample.json
+./bin/rosetta-cli check:data --configuration-file ./configuration/data/shelley_transition.json
 ```
 
 ## `construction`
 Run a testnet instance with the server exposed at `http://localhost:8081`
 ``` console
-rosetta-cli check:construction --configuration-file ./construction/configuration.json
+./bin/rosetta-cli check:construction --configuration-file ./configuration/construction/configuration.json
 ```
 
 See the [QA doc] for implementation detail.
