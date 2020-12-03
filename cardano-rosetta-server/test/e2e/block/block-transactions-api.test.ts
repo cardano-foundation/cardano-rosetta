@@ -5,8 +5,9 @@ import { Pool } from 'pg';
 import {
   block23236WithTransactions,
   transaction987aOnGenesis,
-  transactionBlock4876885WithWithdrawals,
-  transactionBlock4490558WithRegistrations
+  transactionBlock4597861WithWithdrawals,
+  transactionBlock4490558WithRegistrations,
+  transactionBlock4490559WithDelegation
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
@@ -179,12 +180,12 @@ describe('/block/transactions endpoint', () => {
   });
 
   test('should return transaction withdrawals', async () => {
-    const transaction = '8e071ca57cd7bc53fc333a26df09a2ae1016458a3ed2300699e6fb7608152a7e';
+    const transaction = '2974845ecc7e02e86285d32961c69f3945662a80d5e2caae8a1086e652936f42';
     const response = await server.inject({
       method: 'post',
       url: BLOCK_TRANSACTION_ENDPOINT,
       payload: {
-        ...generatePayload(4876885, '8633863f0fc42a0436c2754ce70684a902e2f7b2349a080321e5c3f5e11fd184'),
+        ...generatePayload(4597861, 'e73be90cd5e2b0bf3acb86e3bed575931ab0ff1e7d5bfca94cff6166ef010060'),
         // eslint-disable-next-line camelcase
         transaction_identifier: {
           hash: transaction
@@ -193,7 +194,7 @@ describe('/block/transactions endpoint', () => {
     });
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual(transactionBlock4876885WithWithdrawals);
+    expect(response.json()).toEqual(transactionBlock4597861WithWithdrawals);
   });
 
   test('should return transaction registrations', async () => {
@@ -212,5 +213,22 @@ describe('/block/transactions endpoint', () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(transactionBlock4490558WithRegistrations);
+  });
+
+  test('should return transaction delegations', async () => {
+    const transaction = 'f0024159d124a128db522031c4a3e7b255ee511600afa92ff52b2504702e4e1d';
+    const response = await server.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(4490559, 'd5c4088f55024cb5a087c1588ff362d6c5c1a95ada0608044192c320b41c5987'),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: transaction
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(transactionBlock4490559WithDelegation);
   });
 });

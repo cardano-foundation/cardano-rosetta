@@ -316,8 +316,8 @@ describe('/account/balance endpoint', () => {
       ]
     });
   });
-  // At this point the total amount of rewards is 112588803 (at block 4597956) + 111979582 (at block 4619398)
-  // and the total amount of withdrawals is 112588803 (at block 4598038)
+  // At this point the total amount of rewards is 112588803 (at block 4597779) + 111979582 (at block 4619221)
+  // and the total amount of withdrawals is 112588803 (at block 4597861)
   test('should sum all rewards and subtract all withdrawals till block 4876885', async () => {
     const response = await server.inject({
       method: 'post',
@@ -326,15 +326,15 @@ describe('/account/balance endpoint', () => {
         CARDANO,
         'mainnet',
         'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
-        4876885,
-        '8633863f0fc42a0436c2754ce70684a902e2f7b2349a080321e5c3f5e11fd184'
+        4853177,
+        '6713e3dbea2a037f0be9401744a8b2be4c6190294a23c496165c212972a82f61'
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       block_identifier: {
-        index: 4876885,
-        hash: '8633863f0fc42a0436c2754ce70684a902e2f7b2349a080321e5c3f5e11fd184'
+        index: 4853177,
+        hash: '6713e3dbea2a037f0be9401744a8b2be4c6190294a23c496165c212972a82f61'
       },
       balances: [
         {
