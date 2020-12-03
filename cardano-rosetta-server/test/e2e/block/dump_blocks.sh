@@ -23,7 +23,7 @@ DB='cexplorer'
 # Block Ids. Ideally we need to export them in batches of 3 as when we skip Epoch Boundary Blocks checking 3 blocks 
 # before the one we are interested, so, if you are willing to fetch a block, please state B-2, B-1, B
 # See: cardano-rosetta-server/src/server/db/queries/blockchain-queries.ts#findBlock
-BLOCKS_TO_EXPORT="4877060,4877061,4877062,4619398,4598038,4597956,4490735,4490736,4490737" 
+BLOCKS_TO_EXPORT="4877060,4877061,4877062,4621664,4621746,4643106,4514443,4514444,4514445" 
 echo "-- Dumping blocks with id $BLOCKS_TO_EXPORT" > $OUT_FILE;
 
 echo "ALTER TABLE public.block DISABLE TRIGGER ALL;" >> $OUT_FILE;
@@ -63,6 +63,16 @@ WHERE
 WITHDRAWAL_ADDRESSES_QUERY="
 SELECT addr_id 
 FROM withdrawal 
+WHERE tx_id IN $SELECT_TX_ID"
+
+DEREGISTRATION_ADDRESSES_QUERY="
+SELECT addr_id 
+FROM stake_deregistration 
+WHERE tx_id IN $SELECT_TX_ID"
+
+DELEGATIONS_ADDRESSES_QUERY="
+SELECT addr_id 
+FROM delegation 
 WHERE tx_id IN $SELECT_TX_ID"
 
 REGISTRATION_ADDRESSES_QUERY="
@@ -132,3 +142,27 @@ echo "-- Dumping Block rewards pool_hashes" >> $OUT_FILE;
 echo "ALTER TABLE public.pool_hash DISABLE TRIGGER ALL;" >> $OUT_FILE;
 echo 'COPY public.pool_hash (id, hash_raw, view) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from pool_hash WHERE id IN (SELECT pool_id FROM reward WHERE block_id in ($BLOCKS_TO_EXPORT))) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo "\." >> $OUT_FILE;
+
+echo "-- Dumping transactions deregistrations" >> $OUT_FILE;
+echo "ALTER TABLE public.stake_deregistration DISABLE TRIGGER ALL;" >> $OUT_FILE;
+echo 'COPY public.stake_deregistration (id, addr_id, cert_index, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * from stake_deregistration WHERE tx_id IN $SELECT_TX_ID) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo "\." >> $OUT_FILE;
+
+echo "-- Dumping Block transaction deregistrations stake addresses" >> $OUT_FILE;
+echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * from stake_address WHERE id IN ($DEREGISTRATION_ADDRESSES_QUERY) AND id NOT IN ($REWARD_ADDRESSES_QUERY) AND id NOT IN ($WITHDRAWAL_ADDRESSES_QUERY) AND id NOT IN ($REGISTRATION_ADDRESSES_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo "\." >> $OUT_FILE;
+
+echo "-- Dumping transactions delegations" >> $OUT_FILE;
+echo "ALTER TABLE public.delegation DISABLE TRIGGER ALL;" >> $OUT_FILE;
+echo 'COPY public.delegation (id, addr_id, cert_index, pool_hash_id, active_epoch_no, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * from delegation WHERE tx_id IN $SELECT_TX_ID) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo "\." >> $OUT_FILE;
+
+echo "-- Dumping Block transaction delegations stake addresses" >> $OUT_FILE;
+echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * from stake_address WHERE id IN ($DELEGATIONS_ADDRESSES_QUERY) AND id NOT IN ($DEREGISTRATION_ADDRESSES_QUERY) AND id NOT IN ($REWARD_ADDRESSES_QUERY) AND id NOT IN ($WITHDRAWAL_ADDRESSES_QUERY) AND id NOT IN ($REGISTRATION_ADDRESSES_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;

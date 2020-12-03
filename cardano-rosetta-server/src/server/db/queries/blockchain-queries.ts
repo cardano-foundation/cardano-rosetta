@@ -139,7 +139,7 @@ export interface FindTransactionDeregistrations extends FindTransactionFieldResu
 }
 export interface FindTransactionDelegations extends FindTransactionFieldResult {
   address: string;
-  poolHash: string;
+  poolHash: Buffer;
 }
 
 const findTransactionWithdrawals = `
@@ -169,7 +169,8 @@ WHERE
 const findTransactionDeregistrations = `
 SELECT 
   sa.view as "address",
-  tx.deposit as "amount"
+  tx.deposit as "amount",
+  tx.hash as "txHash"
 FROM stake_deregistration sd
 INNER JOIN stake_address sa
   ON sd.addr_id = sa.id
@@ -181,7 +182,8 @@ WHERE tx.hash = ANY($1)
 const findTransactionDelegations = `
 SELECT 
   sa.view as "address",
-  ph.hash_raw as "poolHash"
+  ph.hash_raw as "poolHash",
+  tx.hash as "txHash"
 FROM delegation d
 INNER JOIN stake_address sa
   ON d.addr_id = sa.id
