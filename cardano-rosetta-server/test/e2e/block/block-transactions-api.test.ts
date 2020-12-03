@@ -7,7 +7,8 @@ import {
   transaction987aOnGenesis,
   transactionBlock4597861WithWithdrawals,
   transactionBlock4490558WithRegistrations,
-  transactionBlock4490559WithDelegation
+  transactionBlock4490559WithDelegation,
+  transactionBlock4853177WithDeregistration
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
@@ -230,5 +231,22 @@ describe('/block/transactions endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(transactionBlock4490559WithDelegation);
+  });
+
+  test('should return transaction deregistrations', async () => {
+    const transaction = '5fe53eece38ff4eb102c33c6cbdf34947c8232eefaae0731fdf8f746b81763fc';
+    const response = await server.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(4853177, '6713e3dbea2a037f0be9401744a8b2be4c6190294a23c496165c212972a82f61'),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: transaction
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(transactionBlock4853177WithDeregistration);
   });
 });
