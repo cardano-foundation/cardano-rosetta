@@ -152,7 +152,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
     operation_identifier: {
       index: getOperationCurrentIndex(totalOperations, index)
     },
-    type: operationType.STAKE_KEY_REGISTRATION,
+    type: operationType.STAKE_DELEGATION,
     status: SUCCESS_STATUS,
     account: {
       address: delegation.stakeAddress

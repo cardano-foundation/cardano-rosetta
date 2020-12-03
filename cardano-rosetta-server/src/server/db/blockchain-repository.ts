@@ -229,7 +229,7 @@ const parseDelegationsRow = (
   ...transaction,
   delegations: transaction.delegations.concat({
     stakeAddress: delegation.address,
-    poolHash: delegation.poolHash
+    poolHash: hexFormatter(delegation.poolHash)
   })
 });
 
