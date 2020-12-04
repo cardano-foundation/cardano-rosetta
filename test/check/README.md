@@ -1,6 +1,6 @@
 # `rosetta-cli` checks
 
-Requires [rosetta-cli] `v0.5.8` or later
+Requires [rosetta-cli] `v0.6.2` or later
 
 ## `data`
 Run a mainnet instance with the server exposed at `http://localhost:8080`
