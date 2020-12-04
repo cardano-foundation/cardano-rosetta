@@ -1,16 +1,18 @@
 {
-  "online_url": "http://localhost:8081",
   "network": {
     "blockchain": "cardano",
     "network": "testnet"
   },
+  "online_url": "http://localhost:8081",
   "http_timeout": 300,
   "max_retries": 5,
   "retry_elapsed_time": 0,
   "max_online_connections": 0,
   "max_sync_concurrency": 0,
-  "tip_delay": 1800,
+  "tip_delay": 300,
   "log_configuration": false,
+  "compression_disabled": true,
+  "memory_limit_disabled": true,
   "construction": {
     "max_offline_connections": 0,
     "offline_url": "http://localhost:8081",
@@ -174,7 +176,7 @@
                 "output_path": "transfer_dry_run.dry_run"
               },
               {
-                "input": "[{\"operation_identifier\":{\"index\":0},\"type\":\"input\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{sender_amount}},\"currency\":{{currency}}}, \"coin_change\":{\"coin_action\":\"coin_spent\", \"coin_identifier\":{{sender.coin}}}},{\"operation_identifier\":{\"index\":1},\"type\":\"output\",\"account\":{{recipient.account_identifier}},\"amount\":{\"value\":{{recipient_amount}},\"currency\":{{currency}}}}, {\"operation_identifier\":{\"index\":2},\"type\":\"output\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{change_amount}},\"currency\":{{currency}}}}]",
+                "input": "[{\"operation_identifier\":{\"index\":0},\"type\":\"input\", \"status\":\"\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{sender_amount}},\"currency\":{{currency}}}, \"coin_change\":{\"coin_action\":\"coin_spent\", \"coin_identifier\":{{sender.coin}}}},{\"operation_identifier\":{\"index\":1},\"type\":\"output\", \"status\":\"\",\"account\":{{recipient.account_identifier}},\"amount\":{\"value\":{{recipient_amount}},\"currency\":{{currency}}}}, {\"operation_identifier\":{\"index\":2},\"type\":\"output\", \"status\":\"\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{change_amount}},\"currency\":{{currency}}}}]",
                 "type": "set_variable",
                 "output_path": "transfer_dry_run.operations"
               },
@@ -217,7 +219,7 @@
                 "output_path": "transfer.confirmation_depth"
               },
               {
-                "input": "[{\"operation_identifier\":{\"index\":0},\"type\":\"input\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{sender_amount}},\"currency\":{{currency}}}, \"coin_change\":{\"coin_action\":\"coin_spent\", \"coin_identifier\":{{sender.coin}}}},{\"operation_identifier\":{\"index\":1},\"type\":\"output\",\"account\":{{recipient.account_identifier}},\"amount\":{\"value\":{{recipient_amount}},\"currency\":{{currency}}}}, {\"operation_identifier\":{\"index\":2},\"type\":\"output\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{change_amount}},\"currency\":{{currency}}}}]",
+                "input": "[{\"operation_identifier\":{\"index\":0},\"type\":\"input\", \"status\":\"\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{sender_amount}},\"currency\":{{currency}}}, \"coin_change\":{\"coin_action\":\"coin_spent\", \"coin_identifier\":{{sender.coin}}}},{\"operation_identifier\":{\"index\":1},\"type\":\"output\", \"status\":\"\",\"account\":{{recipient.account_identifier}},\"amount\":{\"value\":{{recipient_amount}},\"currency\":{{currency}}}}, {\"operation_identifier\":{\"index\":2},\"type\":\"output\", \"status\":\"\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{change_amount}},\"currency\":{{currency}}}}]",
                 "type": "set_variable",
                 "output_path": "transfer.operations"
               },
@@ -291,7 +293,7 @@
                 "output_path": "recipient"
               },
               {
-                "input": "[{\"operation_identifier\":{\"index\":0},\"type\":\"input\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{sender_amount}},\"currency\":{{currency}}}, \"coin_change\":{\"coin_action\":\"coin_spent\", \"coin_identifier\":{{sender.coin}}}},{\"operation_identifier\":{\"index\":1},\"type\":\"output\",\"account\":{{recipient}},\"amount\":{\"value\":{{recipient_amount}},\"currency\":{{currency}}}}]",
+                "input": "[{\"operation_identifier\":{\"index\":0},\"type\":\"input\", \"status\":\"\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{sender_amount}},\"currency\":{{currency}}}, \"coin_change\":{\"coin_action\":\"coin_spent\", \"coin_identifier\":{{sender.coin}}}},{\"operation_identifier\":{\"index\":1},\"type\":\"output\", \"status\":\"\",\"account\":{{recipient}},\"amount\":{\"value\":{{recipient_amount}},\"currency\":{{currency}}}}]",
                 "type": "set_variable",
                 "output_path": "transfer_dry_run.operations"
               },
@@ -339,7 +341,7 @@
                 "output_path": "transfer.confirmation_depth"
               },
               {
-                "input": "[{\"operation_identifier\":{\"index\":0},\"type\":\"input\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{sender_amount}},\"currency\":{{currency}}}, \"coin_change\":{\"coin_action\":\"coin_spent\", \"coin_identifier\":{{sender.coin}}}},{\"operation_identifier\":{\"index\":1},\"type\":\"output\",\"account\":{{recipient}},\"amount\":{\"value\":{{recipient_amount}},\"currency\":{{currency}}}}]",
+                "input": "[{\"operation_identifier\":{\"index\":0},\"type\":\"input\", \"status\":\"\",\"account\":{{sender.account_identifier}},\"amount\":{\"value\":{{sender_amount}},\"currency\":{{currency}}}, \"coin_change\":{\"coin_action\":\"coin_spent\", \"coin_identifier\":{{sender.coin}}}},{\"operation_identifier\":{\"index\":1},\"type\":\"output\", \"status\":\"\",\"account\":{{recipient}},\"amount\":{\"value\":{{recipient_amount}},\"currency\":{{currency}}}}]",
                 "type": "set_variable",
                 "output_path": "transfer.operations"
               },
@@ -352,9 +354,13 @@
         ]
       }
     ],
+    "constructor_dsl_file": "",
     "end_conditions": {
       "create_account": 2,
       "transfer": 2
-    }
+    },
+    "status_port": 9091,
+    "results_output_file": "./result.json",
+    "initial_balance_fetch_disabled": false
   }
 }
