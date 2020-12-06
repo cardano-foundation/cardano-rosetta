@@ -220,7 +220,8 @@ const createTransactionBody = (
   outputs: CardanoWasm.TransactionOutputs,
   fee: BigInt,
   ttl: number
-): CardanoWasm.TransactionBody => CardanoWasm.TransactionBody.new(inputs, outputs, BigNum.new(fee), ttl);
+): CardanoWasm.TransactionBody =>
+  CardanoWasm.TransactionBody.new(inputs, outputs, BigNum.from_str(fee.toString()), ttl);
 
 const validateAndParseTransactionOutputs = (
   logger: Logger,

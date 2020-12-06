@@ -21,7 +21,7 @@ export const configure = (
   pageSize: number
 ): Controllers => ({
   ...blockController(services.blockService, pageSize, networkId),
-  ...accountController(services.blockService, networkId),
+  ...accountController(services.blockService, services.cardanoService, networkId),
   ...networkController(services.networkService, networkId, cardanoNode),
   ...constructionController(services.constructionService, services.cardanoService, cardanoCli, networkId)
 });

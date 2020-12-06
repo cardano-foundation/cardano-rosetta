@@ -23,7 +23,14 @@ describe('Cardano Service', () => {
     });
 
     it('Should detect a valid Byron address', () => {
-      const addressType = cardanoService.getAddressType('Ae2tdPwUPEYzjqSKk2YfU2ZZxdjDkMvn294ASnBNaFRmv4KX7zng7ZDTCEU');
+      const addressType = cardanoService.getAddressType(
+        'DdzFFzCqrht9fvu17fiXwiuP82kKEhiGsDByRE7PWfMktrd8Jc1jWqKxubpz21mWjUMh8bWsKuP5JUF9CgUefyABDBsq326ybHrEhB7M'
+      );
+      expect(addressType).toBe(AddressType.Byron);
+    });
+
+    it('Should detect a valid Icarus address', () => {
+      const addressType = cardanoService.getAddressType('Ae2tdPwUPEZGvXJ3ebp4LDgBhbxekAH2oKZgfahKq896fehv8oCJxmGJgLt');
       expect(addressType).toBe(AddressType.Byron);
     });
 
