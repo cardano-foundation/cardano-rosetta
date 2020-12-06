@@ -1,7 +1,7 @@
 # Cardano Rosetta
 [![CI][img_src_CI]][workflow_CI] [![Nightly][img_src_Nightly]][workflow_Nightly]
 
-An implementation of [Rosetta 1.4.1] for [Cardano].
+An implementation of [Rosetta 1.4.4] for [Cardano].
 
 ## Build
 
@@ -104,7 +104,7 @@ Progress will be logged by the new container.
 [workflow_CI]: https://github.com/input-output-hk/cardano-rosetta/actions?query=workflow%3ACI
 [img_src_Nightly]: https://github.com/input-output-hk/cardano-rosetta/workflows/Nightly/badge.svg
 [workflow_Nightly]: https://github.com/input-output-hk/cardano-rosetta/actions?query=workflow%3ANightly
-[Rosetta 1.4.1]: https://www.rosetta-api.org/docs/1.4.1/welcome.html
+[Rosetta 1.4.4]: https://www.rosetta-api.org/docs/1.4.4/welcome.html
 [Cardano]: https://cardano.org/
 [From anywhere]: https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere
 [network]: config/network
