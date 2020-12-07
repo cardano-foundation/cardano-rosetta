@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Bug Fixes
 
+* added an extra validation on `/account/balance` to fail if invalid addr ([c8acdfe](https://github.com/input-output-hk/cardano-rosetta/commit/c8acdfeb5a537c4da007a6649c1c924ce937df65))
 * bump cardano node to 1.20.0 & cardano-db-sync to 5.0.1 ([5fee129](https://github.com/input-output-hk/cardano-rosetta/commit/5fee129b51900a5fdffcc0ff847268b533beb0b4)), closes [#183](https://github.com/input-output-hk/cardano-rosetta/issues/183)
 * CARDANO_CLI_PATH var in ecosystem file ([2597ef1](https://github.com/input-output-hk/cardano-rosetta/commit/2597ef12c812c73f6e57df358e3a03779e01218f))
 * don't repeat witnesses if multiple inputs from the same address ([b671fef](https://github.com/input-output-hk/cardano-rosetta/commit/b671fef0406c4330e48e0682668f4eb05773252a)), closes [#184](https://github.com/input-output-hk/cardano-rosetta/issues/184)
