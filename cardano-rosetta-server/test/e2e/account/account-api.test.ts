@@ -23,16 +23,6 @@ const generatePayload = (
   block_identifier: { index: blockIndex, hash: blockHash }
 });
 
-const emptyBalances = [
-  {
-    currency: {
-      decimals: 6,
-      symbol: 'ADA'
-    },
-    value: '0'
-  }
-];
-
 const AE2HashAccountBalances = [
   {
     currency: {
@@ -212,14 +202,12 @@ describe('/account/balance endpoint', () => {
       payload: generatePayload(CARDANO, 'mainnet', 'fakeAddress', 44)
     });
 
-    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      balances: emptyBalances,
-      block_identifier: {
-        hash: 'f1c244bece74921b7aa85fc20f32f65ba17d9596eeb8ce4cf1152f67922e7b74',
-        index: 44
-      },
-      coins: []
+      code: 4015,
+      message: 'Provided address is invalid',
+      retriable: true,
+      details: { message: 'fakeAddress' }
     });
   });
 
