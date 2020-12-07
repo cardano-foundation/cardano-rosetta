@@ -32,7 +32,9 @@ describe('Cardano Service', () => {
     });
 
     it('Should detect a valid Icarus address', () => {
-      const addressType = cardanoService.getEraAddressType('Ae2tdPwUPEZGvXJ3ebp4LDgBhbxekAH2oKZgfahKq896fehv8oCJxmGJgLt');
+      const addressType = cardanoService.getEraAddressType(
+        'Ae2tdPwUPEZGvXJ3ebp4LDgBhbxekAH2oKZgfahKq896fehv8oCJxmGJgLt'
+      );
       expect(addressType).toBe(EraAddressType.Byron);
     });
 
