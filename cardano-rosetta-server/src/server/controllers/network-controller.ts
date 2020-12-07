@@ -25,15 +25,11 @@ const configure = (networkService: NetworkService, networkId: string, cardanoNod
   async networkList(request) {
     const logger = request.log;
     logger.info('[networkList] Looking for all supported networks');
-    const networkIdentifiers = await networkService.findAllNetworksSupported(logger);
-    if (networkIdentifiers !== null) {
-      logger.info(`[networkList] Found ${networkIdentifiers.length} networks supported`);
-      const response = mapToNetworkList(networkIdentifiers);
-      logger.debug({ response }, '[networkList] Returning response:');
-      return response;
-    }
-    logger.error('[networkList] There are no networks supported to list');
-    throw ErrorFactory.networkNotFoundError();
+    const networkIdentifier = await networkService.getSupportedNetwork();
+    logger.info(`[networkList] Found ${networkIdentifier} network supported`);
+    const response = mapToNetworkList(networkIdentifier);
+    logger.debug({ response }, '[networkList] Returning response:');
+    return response;
   },
   networkStatus: async request =>
     withNetworkValidation(

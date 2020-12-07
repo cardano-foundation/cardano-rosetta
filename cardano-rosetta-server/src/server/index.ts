@@ -32,6 +32,7 @@ const start = async (databaseInstance: Pool) => {
     const cardanoCli = CardanoCli.configure(environment.CARDANO_CLI_PATH, networkMagic);
     const services = Services.configure(
       repository,
+      networkId,
       environment.TOPOLOGY_FILE,
       environment.DEFAULT_RELATIVE_TTL,
       linearFeeParameters

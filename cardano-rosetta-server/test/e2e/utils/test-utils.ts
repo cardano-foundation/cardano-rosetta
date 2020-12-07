@@ -32,17 +32,20 @@ export const cardanoNodeMock: CardanoNode = {
 
 export const linearFeeParameters = { minFeeA: 44, minFeeB: 155381 };
 
+const NETWORK_ID = 'mainnet';
+
 export const setupServer = (database: Pool): FastifyInstance => {
   // let repositories;
   const repositories = Repositories.configure(database);
   const services = Services.configure(
     repositories,
+    NETWORK_ID,
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
     Number(process.env.DEFAULT_RELATIVE_TTL),
     linearFeeParameters
   );
   return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
-    networkId: 'mainnet',
+    networkId: NETWORK_ID,
     pageSize: Number(process.env.PAGE_SIZE) || DEFAULT_PAGE_SIZE
   });
 };

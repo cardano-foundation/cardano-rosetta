@@ -53,7 +53,7 @@ export interface TransactionWithInputsAndOutputs extends Transaction {
 }
 
 export interface Network {
-  networkName: string;
+  networkId: string;
 }
 
 export interface BlockUtxos {
