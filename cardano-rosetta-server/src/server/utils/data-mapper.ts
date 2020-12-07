@@ -168,11 +168,13 @@ export const mapToAccountBalanceResponse = (blockUtxos: BlockUtxos): Components.
   };
 };
 
-export const mapToNetworkList = (networkIdentifiers: Network[]): Components.Schemas.NetworkListResponse => ({
-  network_identifiers: networkIdentifiers.map(({ networkName }: Network) => ({
-    network: networkName,
-    blockchain: CARDANO
-  }))
+export const mapToNetworkList = (network: Network): Components.Schemas.NetworkListResponse => ({
+  network_identifiers: [
+    {
+      network: network.networkId,
+      blockchain: CARDANO
+    }
+  ]
 });
 
 export const mapToNetworkStatusResponse = (networkStatus: NetworkStatus): Components.Schemas.NetworkStatusResponse => {

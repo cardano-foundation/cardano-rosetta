@@ -1,7 +1,6 @@
 import { Logger } from 'fastify';
 import { Block, GenesisBlock, Network } from '../models';
 import { BlockService } from './block-service';
-import { NetworkRepository } from '../db/network-repository';
 
 export interface NetworkStatus {
   latestBlock: Block;
@@ -10,7 +9,7 @@ export interface NetworkStatus {
 }
 
 export interface NetworkService {
-  findAllNetworksSupported(logger: Logger): Promise<Network[] | null>;
+  getSupportedNetwork(): Network;
   getNetworkStatus(logger: Logger): Promise<NetworkStatus>;
 }
 
@@ -34,12 +33,12 @@ const getPeersFromConfig = (logger: Logger, topologyFile: TopologyConfig): Peer[
 };
 
 const configure = (
-  networkRepository: NetworkRepository,
+  networkId: string,
   blockchainService: BlockService,
   topologyFile: TopologyConfig
 ): NetworkService => ({
-  async findAllNetworksSupported(logger: Logger) {
-    return networkRepository.findAllSupportedNetworks(logger);
+  getSupportedNetwork() {
+    return { networkId };
   },
   getNetworkStatus: async logger => {
     logger.info('[networkStatus] Looking for latest block');

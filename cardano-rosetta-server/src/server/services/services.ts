@@ -18,6 +18,7 @@ export interface Services {
  */
 export const configure = (
   repositories: Repositories,
+  networkId: string,
   topologyFile: TopologyConfig,
   DEFAULT_RELATIVE_TTL: number,
   linearFeeParameters: LinearFeeParameters
@@ -27,7 +28,7 @@ export const configure = (
   return {
     blockService: blockServiceInstance,
     constructionService: constructionService(blockServiceInstance, DEFAULT_RELATIVE_TTL),
-    networkService: networkService(repositories.networkRepository, blockServiceInstance, topologyFile),
+    networkService: networkService(networkId, blockServiceInstance, topologyFile),
     cardanoService: cardanoServiceInstance
   };
 };
