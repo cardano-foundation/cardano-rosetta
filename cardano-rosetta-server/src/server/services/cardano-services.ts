@@ -406,7 +406,7 @@ const validateAndParseTransactionOutput = (
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
   }
   const value = output.amount?.value;
-  if (!value) {
+  if (!output.amount || !value) {
     logger.error('[validateAndParseTransactionOutput] Output has missing amount value field');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
   }
@@ -415,7 +415,7 @@ const validateAndParseTransactionOutput = (
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
   }
   try {
-    return CardanoWasm.TransactionOutput.new(address, BigNum.new(BigInt(output.amount?.value)));
+    return CardanoWasm.TransactionOutput.new(address, BigNum.from_str(output.amount?.value));
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(error.toString());
   }
@@ -545,7 +545,7 @@ const processOperations = (
         const rewardAddress = processWithdrawal(logger, network, operation);
         const withdrawalAmount = BigInt(operation.amount?.value);
         withdrawalAmounts.push(withdrawalAmount);
-        withdrawals.insert(rewardAddress, BigNum.new(withdrawalAmount));
+        withdrawals.insert(rewardAddress, BigNum.from_str(withdrawalAmount.toString()));
         break;
       }
       default: {

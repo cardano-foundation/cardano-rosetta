@@ -26,7 +26,7 @@ const configure = (
         const accountBalanceRequest = request.body;
         const accountAddress = accountBalanceRequest.account_identifier.address;
         logger.debug({ accountBalanceRequest: request.body }, '[accountBalance] Request received');
-        if (cardanoService.getAddressType(accountAddress) === null)
+        if (cardanoService.getEraAddressType(accountAddress) === null)
           throw ErrorFactory.invalidAddressError(accountAddress);
         logger.info(`[accountBalance] Looking for block: ${accountBalanceRequest.block_identifier || 'latest'}`);
         const blockUtxos = await blockService.findBalanceDataByAddressAndBlock(
