@@ -34,11 +34,13 @@ const getPeersFromConfig = (logger: Logger, topologyFile: TopologyConfig): Peer[
 
 const configure = (
   networkId: string,
+  networkMagic: number,
   blockchainService: BlockService,
   topologyFile: TopologyConfig
 ): NetworkService => ({
   getSupportedNetwork() {
-    return { networkId };
+    if (networkId === 'mainnet') return { networkId };
+    return { networkId: networkMagic.toString() };
   },
   getNetworkStatus: async logger => {
     logger.info('[networkStatus] Looking for latest block');

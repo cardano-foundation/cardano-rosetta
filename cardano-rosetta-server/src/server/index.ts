@@ -33,6 +33,7 @@ const start = async (databaseInstance: Pool) => {
     const services = Services.configure(
       repository,
       networkId,
+      networkMagic,
       environment.TOPOLOGY_FILE,
       environment.DEFAULT_RELATIVE_TTL,
       linearFeeParameters
