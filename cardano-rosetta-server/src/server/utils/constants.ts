@@ -24,6 +24,7 @@ export const SUCCESS_STATUS = 'success';
 
 export const MAINNET = 'mainnet';
 export const TESTNET = 'testnet';
+export const MAIN_TESTNET_NETWORK_MAGIC = 1097911063;
 
 export const SUCCESS_OPERATION_STATE = {
   status: operationTypeStatus.SUCCESS,
