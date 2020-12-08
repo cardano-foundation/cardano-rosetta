@@ -1,5 +1,6 @@
 import { Logger } from 'fastify';
 import { Block, GenesisBlock, Network } from '../models';
+import { MAIN_TESTNET_NETWORK_MAGIC } from '../utils/constants';
 import { BlockService } from './block-service';
 
 export interface NetworkStatus {
@@ -40,6 +41,7 @@ const configure = (
 ): NetworkService => ({
   getSupportedNetwork() {
     if (networkId === 'mainnet') return { networkId };
+    if (networkMagic === MAIN_TESTNET_NETWORK_MAGIC) return { networkId: 'testnet' };
     return { networkId: networkMagic.toString() };
   },
   getNetworkStatus: async logger => {
