@@ -19,16 +19,19 @@ export interface Services {
 export const configure = (
   repositories: Repositories,
   networkId: string,
+  networkMagic: number,
   topologyFile: TopologyConfig,
   DEFAULT_RELATIVE_TTL: number,
   linearFeeParameters: LinearFeeParameters
+  // FIXME: we can group networkId and networkMagic in a new type
+  // eslint-disable-next-line max-params
 ): Services => {
   const blockServiceInstance = blockService(repositories.blockchainRepository);
   const cardanoServiceInstance = cardanoService(linearFeeParameters);
   return {
     blockService: blockServiceInstance,
     constructionService: constructionService(blockServiceInstance, DEFAULT_RELATIVE_TTL),
-    networkService: networkService(networkId, blockServiceInstance, topologyFile),
+    networkService: networkService(networkId, networkMagic, blockServiceInstance, topologyFile),
     cardanoService: cardanoServiceInstance
   };
 };

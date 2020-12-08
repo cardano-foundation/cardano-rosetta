@@ -40,6 +40,8 @@ export const setupServer = (database: Pool): FastifyInstance => {
   const services = Services.configure(
     repositories,
     NETWORK_ID,
+    // eslint-disable-next-line no-magic-numbers
+    1097911063,
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
     Number(process.env.DEFAULT_RELATIVE_TTL),
     linearFeeParameters
