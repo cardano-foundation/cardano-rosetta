@@ -75,7 +75,7 @@ export interface CardanoService {
     publicKey: string,
     stakingCredential?: string,
     type?: AddressType
-  ): string | null;
+  ): string;
 
   /**
    * Returns the era address type (either Shelley or Byron) based on an encoded string
@@ -457,6 +457,14 @@ const validateAndParseTransactionInput = (
 
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
 
+const generateRewardAddress = (logger: Logger, network: NetworkIdentifier, payment: StakeCredential): string => {
+  logger.info('[generateRewardAddress] Deriving cardano reward address from valid public staking key');
+  const rewardAddress = CardanoWasm.RewardAddress.new(network, payment);
+  const bech32address = rewardAddress.to_address().to_bech32(getStakeAddressPrefix(network));
+  logger.info(`[generateRewardAddress] reward address is ${bech32address}`);
+  return bech32address;
+};
+
 const processStakeKeyRegistration = (
   logger: Logger,
   operation: Components.Schemas.Operation
@@ -468,34 +476,46 @@ const processStakeKeyRegistration = (
 
 const processStakeKeyDeRegistration = (
   logger: Logger,
+  network: NetworkIdentifier,
   operation: Components.Schemas.Operation
-): CardanoWasm.Certificate => {
+): { certificate: CardanoWasm.Certificate; address: string } => {
   logger.info('[processStakeKeyDeRegistration] About to process stake key deregistration');
   const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
-  return CardanoWasm.Certificate.new_stake_deregistration(StakeDeregistration.new(credential));
+  const address = generateRewardAddress(logger, network, credential);
+  return {
+    certificate: CardanoWasm.Certificate.new_stake_deregistration(StakeDeregistration.new(credential)),
+    address
+  };
 };
 
-const processStakeDelegation = (logger: Logger, operation: Components.Schemas.Operation): CardanoWasm.Certificate => {
+const processStakeDelegation = (
+  logger: Logger,
+  network: NetworkIdentifier,
+  operation: Components.Schemas.Operation
+): { certificate: CardanoWasm.Certificate; address: string } => {
   logger.info('[processStakeDelegation] About to process stake key delegation');
   const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  const address = generateRewardAddress(logger, network, credential);
   const poolKeyHash = operation.metadata?.pool_key_hash;
   if (!poolKeyHash) {
     logger.error('[processStakeDelegation] no pool key hash provided for stake delegation');
     throw ErrorFactory.missingPoolKeyError();
   }
-  return CardanoWasm.Certificate.new_stake_delegation(
+  const certificate = CardanoWasm.Certificate.new_stake_delegation(
     StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
   );
+  return { certificate, address };
 };
 
 const processWithdrawal = (
   logger: Logger,
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
-): CardanoWasm.RewardAddress => {
+): { reward: CardanoWasm.RewardAddress; address: string } => {
   logger.info('[processWithdrawal] About to process withdrawal');
   const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
-  return CardanoWasm.RewardAddress.new(network, credential);
+  const address = generateRewardAddress(logger, network, credential);
+  return { reward: CardanoWasm.RewardAddress.new(network, credential), address };
 };
 
 const processOperations = (
@@ -533,19 +553,24 @@ const processOperations = (
         break;
       }
       case operationType.STAKE_KEY_DEREGISTRATION: {
-        certificates.add(processStakeKeyDeRegistration(logger, operation));
+        const { certificate, address } = processStakeKeyDeRegistration(logger, network, operation);
+        certificates.add(certificate);
+        addresses.push(address);
         stakeKeyDeRegistrationsCount++;
         break;
       }
       case operationType.STAKE_DELEGATION: {
-        certificates.add(processStakeDelegation(logger, operation));
+        const { certificate, address } = processStakeDelegation(logger, network, operation);
+        certificates.add(certificate);
+        addresses.push(address);
         break;
       }
       case operationType.WITHDRAWAL: {
-        const rewardAddress = processWithdrawal(logger, network, operation);
+        const { reward, address } = processWithdrawal(logger, network, operation);
         const withdrawalAmount = BigInt(operation.amount?.value);
         withdrawalAmounts.push(withdrawalAmount);
-        withdrawals.insert(rewardAddress, BigNum.from_str(withdrawalAmount.toString()));
+        withdrawals.insert(reward, BigNum.from_str(withdrawalAmount.toString()));
+        addresses.push(address);
         break;
       }
       default: {
@@ -600,21 +625,17 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
 const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: number): CardanoService => ({
   generateAddress(logger, network, publicKey, stakingCredential, type = AddressType.ENTERPRISE) {
     logger.info(
-      `[generateAddress] About to generate address from public key ${publicKey} and network identifier ${network}`
+      `[generateAddress] About to generate address from public key ${JSON.stringify(
+        publicKey
+      )} and network identifier ${network}`
     );
 
     const publicKeyBuffer = Buffer.from(publicKey, 'hex');
-
     const pub = CardanoWasm.PublicKey.from_bytes(publicKeyBuffer);
-
     const payment = StakeCredential.from_keyhash(pub.hash());
 
     if (type === AddressType.REWARD) {
-      logger.info('[generateAddress] Deriving cardano enterprise address from valid public staking key');
-      const rewardAddress = CardanoWasm.RewardAddress.new(network, payment);
-      const bech32address = rewardAddress.to_address().to_bech32(getStakeAddressPrefix(network));
-      logger.info(`[generateAddress] reward address is ${bech32address}`);
-      return bech32address;
+      return generateRewardAddress(logger, network, payment);
     }
 
     if (type === AddressType.BASE) {
