@@ -60,6 +60,7 @@ const buildDelegationOperation = (
 });
 
 const doRun = async (): Promise<void> => {
+  const keyAddressMapper = {};
   const paymentKeys = generateKeys(PRIVATE_KEY);
   logger.info(
     `[doRun] payment secretKey ${Buffer.from(paymentKeys.secretKey).toString(
@@ -77,12 +78,16 @@ const doRun = async (): Promise<void> => {
   const stakingPublicKey = Buffer.from(stakingKeys.publicKey).toString("hex");
 
   const stakeAddress = await constructionDerive(stakingPublicKey, "Reward");
-  console.log(`[doRun] stake address is ${stakeAddress}`);
+  logger.info(`[doRun] stake address is ${stakeAddress}`);
+  keyAddressMapper[stakeAddress] = stakingKeys;
+
   const paymentAddress = await constructionDerive(
     paymentPublicKey,
     "Base",
     stakingPublicKey
   );
+  
+  keyAddressMapper[paymentAddress] = paymentKeys;
   const unspents = await waitForBalanceToBe(
     paymentAddress,
     (response) => response.coins.length !== 0
@@ -103,7 +108,7 @@ const doRun = async (): Promise<void> => {
     STAKE_POOL_KEY_HASH
   );
   builtOperations.operations.push(builtRegistrationOperation);
-  // builtOperations.operations.push(builtDelegationOperation);
+  builtOperations.operations.push(builtDelegationOperation);
   const preprocess = await constructionPreprocess(
     builtOperations.operations,
     1000
@@ -113,8 +118,7 @@ const doRun = async (): Promise<void> => {
     operations: builtOperations.operations,
     metadata,
   });
-  console.log(payloads);
-  const signatures = signPayloads(payloads.payloads, paymentKeys);
+  const signatures = signPayloads(payloads.payloads, keyAddressMapper);
   const combined = await constructionCombine(
     payloads.unsigned_transaction,
     signatures
