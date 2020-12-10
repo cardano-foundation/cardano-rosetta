@@ -12,9 +12,7 @@ import {
   signPayloads,
   waitForBalanceToBe,
   buildOperation,
-  generateKeys,
-  getStatus,
-  lookForTransaction,
+  generateKeys
 } from "./commons";
 
 const logger = console;
