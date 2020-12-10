@@ -82,7 +82,7 @@ docker stop cardano-rosetta && \
 docker rm cardano-rosetta && \
 docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql /data/db-sync
 ```
-Progress will be logged by the new container. 
+Now create a new container using the run instructions above. Sync progress will be logged by the new container. 
 
 ## Documentation
 
