@@ -12,7 +12,7 @@ import {
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
 import { CardanoCli } from '../utils/cardanonode-cli';
-
+import { NetworkService } from '../services/network-service';
 export interface ConstructionController {
   constructionDerive(
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.ConstructionDeriveRequest>
@@ -54,7 +54,7 @@ const configure = (
   constructionService: ConstructionService,
   cardanoService: CardanoService,
   cardanoCli: CardanoCli,
-  networkId: string
+  networkService: NetworkService
 ): ConstructionController => ({
   constructionDerive: async request =>
     withNetworkValidation(
@@ -85,7 +85,7 @@ const configure = (
         };
       },
       request.log,
-      networkId
+      networkService
     ),
   constructionHash: async request =>
     withNetworkValidation(
@@ -101,7 +101,7 @@ const configure = (
         return mapToConstructionHashResponse(transactionHash);
       },
       request.log,
-      networkId
+      networkService
     ),
   constructionPreprocess: async request =>
     withNetworkValidation(
@@ -115,7 +115,7 @@ const configure = (
         return { options: { relative_ttl: relativeTtl, transaction_size: transactionSize } };
       },
       request.log,
-      networkId
+      networkService
     ),
   constructionMetadata: async request =>
     withNetworkValidation(
@@ -139,7 +139,7 @@ const configure = (
         return { metadata: { ttl: ttl.toString() }, suggested_fee: [mapAmount(suggestedFee.toString())] };
       },
       request.log,
-      networkId
+      networkService
     ),
   constructionPayloads: async request =>
     withNetworkValidation(
@@ -159,7 +159,7 @@ const configure = (
         };
       },
       request.log,
-      networkId
+      networkService
     ),
   constructionCombine: async request =>
     withNetworkValidation(
@@ -182,7 +182,7 @@ const configure = (
         return { signed_transaction: await encodeExtraData(signedTransaction, extraData) };
       },
       request.log,
-      networkId
+      networkService
     ),
   constructionParse: async request =>
     withNetworkValidation(
@@ -209,7 +209,7 @@ const configure = (
         };
       },
       request.log,
-      networkId
+      networkService
     ),
   constructionSubmit: async request =>
     withNetworkValidation(
@@ -235,7 +235,7 @@ const configure = (
         }
       },
       request.log,
-      networkId
+      networkService
     )
 });
 

@@ -11,13 +11,13 @@ import {
   GENESIS_HASH,
   latestBlock
 } from '../fixture-data';
-import { setupDatabase, setupServer } from '../utils/test-utils';
+import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 
-const generatePayload = (index?: number, hash?: string) => ({
+const generatePayload = (index?: number, hash?: string, blockchain?: string, network?: string) => ({
   // eslint-disable-next-line camelcase
   network_identifier: {
-    blockchain: 'cardano',
-    network: 'mainnet'
+    blockchain: blockchain || 'cardano',
+    network: network || 'mainnet'
   },
   // eslint-disable-next-line camelcase
   block_identifier: {
@@ -155,4 +155,10 @@ describe('/block endpoint', () => {
     expect(response.json()).toEqual(block1);
     expect(response.json().block.parent_block_identifier.hash).toEqual(GENESIS_HASH);
   });
+
+  testInvalidNetworkParameters(
+    '/block',
+    (blockchain, network) => generatePayload(1000, undefined, blockchain, network),
+    () => server
+  );
 });

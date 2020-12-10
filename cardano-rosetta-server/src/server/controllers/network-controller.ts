@@ -21,7 +21,7 @@ export interface NetworkController {
   ): Promise<Components.Schemas.NetworkOptionsResponse | Components.Schemas.Error>;
 }
 
-const configure = (networkService: NetworkService, networkId: string, cardanoNode: CardanoNode): NetworkController => ({
+const configure = (networkService: NetworkService, cardanoNode: CardanoNode): NetworkController => ({
   async networkList(request) {
     const logger = request.log;
     logger.info('[networkList] Looking for all supported networks');
@@ -48,7 +48,7 @@ const configure = (networkService: NetworkService, networkId: string, cardanoNod
         return response;
       },
       request.log,
-      networkId
+      networkService
     ),
   networkOptions: async request =>
     withNetworkValidation(
@@ -80,7 +80,7 @@ const configure = (networkService: NetworkService, networkId: string, cardanoNod
         return response;
       },
       request.log,
-      networkId
+      networkService
     )
 });
 
