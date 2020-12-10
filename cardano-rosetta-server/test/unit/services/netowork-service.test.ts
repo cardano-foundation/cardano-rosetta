@@ -41,8 +41,6 @@ describe('Network Service', () => {
           () => {
             fail('It should have thrown an error');
           },
-          // eslint-disable-next-line no-console
-          // eslint-disable-next-line no-console
           logger,
           service
         );
