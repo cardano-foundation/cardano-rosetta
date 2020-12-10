@@ -44,12 +44,12 @@ Done in 6.14s
 ```
 
 ## Staking key registration and delegation
+
 Uses the staking credentials based on a predefined private key and generates an address from a different predefined private key, asks for funds and once found the address is drained and sent to a specific address.
+
 Important notes:
-- `PRIVATE_KEY` will be used to derive the address.
 - You can request for testnet funds using the following [faucet](https://testnets.cardano.org/en/cardano/tools/faucet/).
 - Funds will be sent to `SEND_FUNDS_ADDRESS` by default as it's the address where testnet funds should be returned.
-- `PRIVATE_STAKING_KEY` will be used to register the staking key.
 - `STAKE_POOL_KEY_HASH` will be used to delegate the staking key.
 
 In order to execute the example, run:
