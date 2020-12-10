@@ -1,8 +1,8 @@
 ARG UBUNTU_VERSION=20.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
 ARG CABAL_VERSION=3.2.0.0
-ARG CARDANO_NODE_VERSION=1.21.1
-ARG CARDANO_DB_SYNC_VERSION=6.0.1
+ARG CARDANO_NODE_VERSION=1.24.2
+ARG CARDANO_DB_SYNC_VERSION=7.1.0
 ARG GHC_VERSION=8.6.5
 ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
 ENV DEBIAN_FRONTEND=nonintercative
@@ -56,30 +56,23 @@ RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   git fetch --all --tags &&\
   git checkout ${CARDANO_NODE_VERSION}
 WORKDIR /app/src/cardano-node
-# https://github.com/input-output-hk/cardano-node/issues/1675
-#RUN cabal install cardano-node \
-#  --install-method=copy \
-#  --installdir=/usr/local/bin \
-#  -f -systemd
-#RUN cabal install cardano-cli \
-#  --install-method=copy \
-#  --installdir=/usr/local/bin \
-#  -f -systemd
-RUN cabal build cardano-node cardano-cli &&\
-  mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/ &&\
-  mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
+RUN cabal install cardano-node \
+  --install-method=copy \
+  --installdir=/usr/local/bin \
+  -f -systemd
+RUN cabal install cardano-cli \
+  --install-method=copy \
+  --installdir=/usr/local/bin \
+  -f -systemd
 WORKDIR /app/src
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
   git checkout ${CARDANO_DB_SYNC_VERSION}
 WORKDIR /app/src/cardano-db-sync
-# https://github.com/input-output-hk/iohk-monitoring-framework/issues/579
-#RUN cabal install cardano-db-sync \
-#  --install-method=copy \
-#  --installdir=/usr/local/bin
-RUN cabal build cardano-db-sync &&\
-  mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-db-sync-${CARDANO_DB_SYNC_VERSION}/x/cardano-db-sync/build/cardano-db-sync/cardano-db-sync /usr/local/bin/
+RUN cabal install cardano-db-sync \
+  --install-method=copy \
+  --installdir=/usr/local/bin
 # Cleanup for runtiume-base copy of /usr/local/lib
 RUN rm -rf /usr/local/lib/ghc-${GHC_VERSION} /usr/local/lib/pkgconfig
 
