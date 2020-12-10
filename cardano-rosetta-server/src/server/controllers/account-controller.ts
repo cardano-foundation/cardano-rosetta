@@ -2,6 +2,7 @@ import { FastifyRequest } from 'fastify';
 import { withNetworkValidation } from '../controllers/controllers-helper';
 import { BlockService } from '../services/block-service';
 import { CardanoService } from '../services/cardano-services';
+import { NetworkService } from '../services/network-service';
 import { mapToAccountBalanceResponse } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 
@@ -14,7 +15,7 @@ export interface AccountController {
 const configure = (
   blockService: BlockService,
   cardanoService: CardanoService,
-  networkId: string
+  networkService: NetworkService
 ): AccountController => ({
   accountBalance: async request =>
     withNetworkValidation(
@@ -39,7 +40,7 @@ const configure = (
         return toReturn;
       },
       request.log,
-      networkId
+      networkService
     )
 });
 

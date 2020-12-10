@@ -20,8 +20,8 @@ export const configure = (
   networkId: string,
   pageSize: number
 ): Controllers => ({
-  ...blockController(services.blockService, pageSize, networkId),
-  ...accountController(services.blockService, services.cardanoService, networkId),
-  ...networkController(services.networkService, networkId, cardanoNode),
-  ...constructionController(services.constructionService, services.cardanoService, cardanoCli, networkId)
+  ...blockController(services.blockService, pageSize, services.networkService),
+  ...accountController(services.blockService, services.cardanoService, services.networkService),
+  ...networkController(services.networkService, cardanoNode),
+  ...constructionController(services.constructionService, services.cardanoService, cardanoCli, services.networkService)
 });

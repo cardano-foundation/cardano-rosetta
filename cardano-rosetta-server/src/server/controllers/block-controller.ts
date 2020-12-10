@@ -3,6 +3,7 @@ import { BlockService } from '../services/block-service';
 import { ErrorFactory } from '../utils/errors';
 import { mapToRosettaBlock, mapToRosettaTransaction } from '../utils/data-mapper';
 import { withNetworkValidation } from './controllers-helper';
+import { NetworkService } from '../services/network-service';
 
 export interface BlockController {
   block(
@@ -13,36 +14,43 @@ export interface BlockController {
   ): Promise<Components.Schemas.BlockTransactionResponse | Components.Schemas.Error>;
 }
 
-const configure = (blockService: BlockService, PAGE_SIZE: number, networkId: string): BlockController => ({
-  async block(request) {
-    const { hash, index } = request.body.block_identifier;
+const configure = (blockService: BlockService, PAGE_SIZE: number, networkService: NetworkService): BlockController => ({
+  block: async request =>
+    withNetworkValidation(
+      request.body.network_identifier,
+      request.body,
+      async () => {
+        const { hash, index } = request.body.block_identifier;
 
-    const logger = request.log;
+        const logger = request.log;
 
-    logger.info({ hash, index }, '[block] Looking for block');
-    const block = await blockService.findBlock(logger, index, hash);
-    if (block !== null) {
-      logger.info('[block] Block was found');
-      const transactionsFound = await blockService.findTransactionsByBlock(logger, block);
-      if (transactionsFound.length > PAGE_SIZE) {
-        logger.info('[block] Returning only transactions hashes since the number of them is bigger than PAGE_SIZE');
-        return {
-          block: mapToRosettaBlock(block, []),
-          // eslint-disable-next-line camelcase
-          other_transactions: transactionsFound.map(transaction => ({
-            hash: transaction.hash
-          }))
-        };
-      }
-      logger.info('[block] Looking for blocks transactions full data');
-      const transactions = await blockService.fillTransactions(logger, transactionsFound);
-      return {
-        block: mapToRosettaBlock(block, transactions)
-      };
-    }
-    logger.error('[block] Block was not found');
-    throw ErrorFactory.blockNotFoundError();
-  },
+        logger.info({ hash, index }, '[block] Looking for block');
+        const block = await blockService.findBlock(logger, index, hash);
+        if (block !== null) {
+          logger.info('[block] Block was found');
+          const transactionsFound = await blockService.findTransactionsByBlock(logger, block);
+          if (transactionsFound.length > PAGE_SIZE) {
+            logger.info('[block] Returning only transactions hashes since the number of them is bigger than PAGE_SIZE');
+            return {
+              block: mapToRosettaBlock(block, []),
+              // eslint-disable-next-line camelcase
+              other_transactions: transactionsFound.map(transaction => ({
+                hash: transaction.hash
+              }))
+            };
+          }
+          logger.info('[block] Looking for blocks transactions full data');
+          const transactions = await blockService.fillTransactions(logger, transactionsFound);
+          return {
+            block: mapToRosettaBlock(block, transactions)
+          };
+        }
+        logger.error('[block] Block was not found');
+        throw ErrorFactory.blockNotFoundError();
+      },
+      request.log,
+      networkService
+    ),
 
   blockTransaction: async request =>
     withNetworkValidation(
@@ -73,7 +81,7 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkId: str
         };
       },
       request.log,
-      networkId
+      networkService
     )
 });
 
