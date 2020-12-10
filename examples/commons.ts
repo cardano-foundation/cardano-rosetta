@@ -168,8 +168,7 @@ const constructionPayloads = async (payload: any) => {
 const signPayloads = (payloads: any, keyAddressMapper: any) =>
   payloads.map((signing_payload: any) => {
     const publicKey = keyAddressMapper[signing_payload.address].publicKey;
-    const privateKey =
-      keyAddressMapper[signing_payload.address].secretKey;
+    const privateKey = keyAddressMapper[signing_payload.address].secretKey;
     return {
       signing_payload,
       public_key: {
