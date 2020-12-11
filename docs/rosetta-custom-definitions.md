@@ -8,15 +8,70 @@ Although `Cardano Rosetta` is compliant with [Rosetta Spec](https://rosetta-api.
 
 By default this endpoint creates an Enterprise address but Cardano Rosetta also allows the creation of Reward and Base addresses, which aren't supported in the Rosetta specification. Therefore, following optional parameters are sent as metadata:
 
-- `address_type`: either "Reward", "Base" or "Enterprise". It will default to "Enterprise" and will throw an error if any other value is provided.
+- `address_type`: either "Reward", "Base" or "Enterprise". It will default to "Enterprise" and will throw an error if any other value is provided. These types are explained in the section 4 of the [ledger specification](https://hydra.iohk.io/build/3671214/download/1/ledger-spec.pdf).
 - `staking_credential`: the public key that will be used for creating a Base address and the format will be the same as the public key. This field is only mandatory if the provided `address_type` is "Base". It's ignored in other cases since the Reward and the Enterprise addresses are created with the public key already included in the request.
+
+### Examples
+
+#### Base address
+
+```json
+{
+  "network_identifier": { "blockchain": "cardano", "network": "mainnet" },
+  "public_key": {
+    "hex_bytes": "159abeeecdf167ccc0ea60b30f9522154a0d74161aeb159fb43b6b0695f057b3",
+    "curve_type": "edwards25519"
+  },
+  "metadata": {
+    "address_type": "Base",
+    "staking_credential": {
+      "hex_bytes": "964774728c8306a42252adbfb07ccd6ef42399f427ade25a5933ce190c5a8760",
+      "curve_type": "edwards25519"
+    }
+  }
+}
+```
+
+#### Reward address
+
+```json
+{
+  "network_identifier": { "blockchain": "cardano", "network": "mainnet" },
+  "public_key": {
+    "hex_bytes": "964774728c8306a42252adbfb07ccd6ef42399f427ade25a5933ce190c5a8760",
+    "curve_type": "edwards25519"
+  },
+  "metadata": { "address_type": "Reward" }
+}
+```
+
+### Enterprise address
+
+In this case the metadata is optional. If it's provided, then the `address_type` should be "Enterprise" and the `staking_credential` could be anything since it will be ignored.
+
+```json
+{
+  "network_identifier": { "blockchain": "cardano", "network": "mainnet" },
+  "public_key": {
+    "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
+    "curve_type": "edwards25519"
+  },
+  "metadata": {
+    "address_type": "Enterprise",
+    "staking_credential": {
+      "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F__",
+      "curve_type": "edwards25519"
+    }
+  }
+}
+```
 
 ## `/block`
 
 The following metadata is also returned when querying for block information:
 
 ```typescript
-transactionsCount": { "type": "number" },  // amount of transactions in the block
+"transactionsCount": { "type": "number" }, // amount of transactions in the block
 "createdBy": { "type": "string" },         // block creation time in UTC expressed as linux timestamp
 "size": { "type": "number" },              // block size in bytes
 "epochNo": { "type": "number" },           // epoch where the block has been included
@@ -103,7 +158,8 @@ If no `relative_ttl` is sent, a default one, `DEFAULT_RELATIVE_TTL`, will be ret
 ```json
 {
   "options": {
-    "relative_ttl": 1000
+    "relative_ttl": 1000,
+    "transaction_size": 298
   }
 }
 ```
@@ -121,7 +177,8 @@ Metadata endpoint needs to receive the `relative_ttl` returned in process so it 
     "network": "mainnet"
   },
   "options": {
-    "relative_ttl": "1000"
+    "relative_ttl": 1000,
+    "transaction_size": 298
   }
 }
 ```
@@ -131,7 +188,16 @@ Metadata endpoint needs to receive the `relative_ttl` returned in process so it 
 ```json
 {
   "metadata": {
-    "ttl": "65294"
+    "ttl": "65294",
+    "suggested_fee": [
+      {
+        "currency": {
+          "decimals": 6,
+          "symbol": "ADA"
+        },
+        "value": "900000"
+      }
+    ]
   }
 }
 ```
@@ -170,7 +236,6 @@ Both `signed_unsigned` and `unsigned_transaction` don't correspond to a valid Ca
 The rationale behind that decision can be found [here](https://community.rosetta-api.org/t/implementing-the-construction-api-for-utxo-model-coins/100/3):
 
 > The best way to get around this is for /construction/payloads to return additional metadata about the transaction which you may need later on for combining & parsing and wrapping the raw unsigned/signed transaction with this metadata. For example, in the UnsignedTransaction field of ConstructionPayloadsResponse, you can return a “rich” Sia transaction, which has additional info you need in /construction/combine.
-
 
 > [..] There is no expectation that the transactions which are constructed in Rosetta can be parsed by network-specific tools or broadcast on a non-Rosetta node. All parsing and broadcast of these transactions will occur exclusively over the Rosetta API.
 
