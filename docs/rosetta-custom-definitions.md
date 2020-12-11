@@ -1,8 +1,15 @@
 # Introduction
 
-Even is `Cardano Rosetta` is compliant with [Rosetta Spec](https://rosetta-api.org/) some changed were added, mostly as metadata, as them contain Cardano specific information that needs to be either processed or returned.
+Although `Cardano Rosetta` is compliant with [Rosetta Spec](https://rosetta-api.org/), some changed were added, mostly as metadata, as they contain Cardano specific information that needs to be either processed or returned.
 
 # Endpoint specific changes
+
+## `/construction/derive`
+
+By default this endpoint creates an Enterprise address but Cardano Rosetta also allows the creation of Reward and Base addresses, which aren't supported in the Rosetta specification. Therefore, following optional parameters are sent as metadata:
+
+- `address_type`: either "Reward", "Base" or "Enterprise". It will default to "Enterprise" and will throw an error if any other value is provided.
+- `staking_credential`: the public key that will be used for creating a Base address and the format will be the same as the public key. This field is only mandatory if the provided `address_type` is "Base". It's ignored in other cases since the Reward and the Enterprise addresses are created with the public key already included in the request.
 
 ## `/block`
 
@@ -54,6 +61,8 @@ transactionsCount": { "type": "number" },  // amount of transactions in the bloc
 ```
 
 ## `/construction/preprocess`
+
+Not only input and output operations are allowed but also special staking operations as described in [here](./staking-support.md).
 
 Cardano transactions require a `ttl` to be defined. As it's explained [in the cardano docs](https://docs.cardano.org/projects/cardano-node/en/latest/reference/building-and-signing-tx.html):
 
@@ -112,7 +121,7 @@ Metadata endpoint needs to receive the `relative_ttl` returned in process so it 
     "network": "mainnet"
   },
   "options": {
-    "relative_ttl": 1000
+    "relative_ttl": "1000"
   }
 }
 ```
@@ -122,35 +131,41 @@ Metadata endpoint needs to receive the `relative_ttl` returned in process so it 
 ```json
 {
   "metadata": {
-    "ttl": 65294
+    "ttl": "65294"
   }
 }
 ```
 
 ## `/construction/payloads`
 
-In this endpoint, as metadata, transaction `ttl` needs to be sent.
+Not only input and output operations are allowed but also special staking operations as described in [here](./staking-support.md).
+
+Furthermore, transaction `ttl` needs to be sent as string in the metadata.
 
 ### Request
 
 ```json
 {
   "network_identifier": {
-    "blockchain": 'cardano',
-    "network": 'mainnet'
+    "blockchain": "cardano",
+    "network": "mainnet"
   },
   "operations": [...],
   "metadata": {
-    "ttl": 65294
+    "ttl": "65294"
   }
 }
 ```
+
+## `/construction/parse`
+
+The request of this endpoint has no specific change but the response will have the operations parsed in the same way as the ones that are used to send as payload in the `/construction/payloads` and `/construction/preprocess` endpoints. This means that if the order used in those two endpoints needs to be exactly the one specified [here](./staking-support.md). Otherwise the parse endpoint will not be able to reproduce the operations in the same order and the workflow will fail.
 
 # Other changes
 
 ## Encoded transactions
 
-Both `signed_unsigned` and `unsigned_transaction` don't correspond to a valid Cardano Transaction that can be forwarded to the network as they contain extra data required in the Rosetta workflow. This means, that such transactions cannot be decoded nor sent to a `cardano-node` as they are.
+Both `signed_unsigned` and `unsigned_transaction` don't correspond to a valid Cardano Transaction that can be forwarded to the network as they contain extra data required in the Rosetta workflow. This means that such transactions cannot be decoded nor sent directly to a `cardano-node`.
 
 The rationale behind that decision can be found [here](https://community.rosetta-api.org/t/implementing-the-construction-api-for-utxo-model-coins/100/3):
 
@@ -158,3 +173,5 @@ The rationale behind that decision can be found [here](https://community.rosetta
 
 
 > [..] There is no expectation that the transactions which are constructed in Rosetta can be parsed by network-specific tools or broadcast on a non-Rosetta node. All parsing and broadcast of these transactions will occur exclusively over the Rosetta API.
+
+The same approach has been used to encode the operations that contain a staking key, since they couldn't be decoded otherwise.
