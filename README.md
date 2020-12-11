@@ -8,7 +8,7 @@ An implementation of [Rosetta 1.4.4] for [Cardano].
 ### [From anywhere]
 
 ```console
-docker build -t cardano-rosetta:0.2.2 https://github.com/input-output-hk/cardano-rosetta.git#0.2.2
+docker build -t cardano-rosetta:1.0.0 https://github.com/input-output-hk/cardano-rosetta.git#1.0.0
 ```
 ### With local source code
 ```
@@ -28,8 +28,8 @@ export DOCKER_BUILDKIT=1
 docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --cache-from=inputoutput/cardano-rosetta:master \
-    -t cardano-rosetta:0.2.2 \
-    https://github.com/input-output-hk/cardano-rosetta.git#0.2.2
+    -t cardano-rosetta:1.0.0 \
+    https://github.com/input-output-hk/cardano-rosetta.git#1.0.0
 ```
 
 ## Run
@@ -44,7 +44,7 @@ docker run \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
   --shm-size=2g \
-  cardano-rosetta:0.2.2
+  cardano-rosetta:1.0.0
 ```
 ### Configuration
 
