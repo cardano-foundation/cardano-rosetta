@@ -29,12 +29,9 @@ module.exports = {
     },
     {
       name: 'cardano-db-sync',
-      script: '/usr/local/bin/cardano-db-sync',
+      script: '/scripts/start_cardano-db-sync.sh',
       args: [
-        '--config', '/config/cardano-db-sync/config.json',
-        '--schema-dir', '/cardano-db-sync/schema/',
-        '--socket-path', '/ipc/node.socket',
-        "--state-dir", "/data/db-sync"
+        '/usr/local/bin/cardano-db-sync'
       ],
       autorestart: true,
       env: {
