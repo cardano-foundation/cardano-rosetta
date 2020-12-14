@@ -181,15 +181,15 @@ describe('/account/balance endpoint', () => {
       coins: [
         {
           coin_identifier: {
-            identifier: 'bcc57134d1bd588b00f40142f0fdc17db5f35047e3196cdf26aa7319524c0014:1'
-          },
-          amount: { value: '999800000', currency: { decimals: 6, symbol: 'ADA' } }
-        },
-        {
-          coin_identifier: {
             identifier: '4bcf79c0c2967986749fd0ae03f5b54a712d51b35672a3d974707c060c4d8dac:1'
           },
           amount: { value: '10509579714', currency: { decimals: 6, symbol: 'ADA' } }
+        },
+        {
+          coin_identifier: {
+            identifier: 'bcc57134d1bd588b00f40142f0fdc17db5f35047e3196cdf26aa7319524c0014:1'
+          },
+          amount: { value: '999800000', currency: { decimals: 6, symbol: 'ADA' } }
         }
       ]
     });
