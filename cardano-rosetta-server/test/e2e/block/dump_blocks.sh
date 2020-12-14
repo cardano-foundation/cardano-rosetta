@@ -23,21 +23,27 @@ DB='cexplorer'
 # Block Ids. Ideally we need to export them in batches of 3 as when we skip Epoch Boundary Blocks checking 3 blocks 
 # before the one we are interested, so, if you are willing to fetch a block, please state B-2, B-1, B
 # See: cardano-rosetta-server/src/server/db/queries/blockchain-queries.ts#findBlock
-BLOCKS_TO_EXPORT="4877060,4877061,4877062,4621664,4621746,4643106,4514443,4514444,4514445" 
-echo "-- Dumping blocks with id $BLOCKS_TO_EXPORT" > $OUT_FILE;
+BLOCKS_TO_EXPORT="4490558,4490559,4490560,4597779,4597861,4619221,4853175,4853176,4853177"
+SELECT_BLOCK_ID="SELECT id FROM block WHERE block_no IN ($BLOCKS_TO_EXPORT)"
+
+echo "-- Dumping blocks $BLOCKS_TO_EXPORT" > $OUT_FILE;
+
+# Adding alter tables on TX table corresponding to db-sync v7.1.0 migrations
+echo "ALTER TABLE public.tx ADD COLUMN invalid_before word64type NULL;" >> $OUT_FILE;
+echo "ALTER TABLE public.tx ADD COLUMN invalid_hereafter word64type NULL;" >> $OUT_FILE;
 
 echo "ALTER TABLE public.block DISABLE TRIGGER ALL;" >> $OUT_FILE;
 echo 'COPY public.block (id, hash, epoch_no, slot_no, epoch_slot_no, block_no, previous_id, merkel_root, slot_leader_id, size, "time", tx_count, proto_major, proto_minor, vrf_key, op_cert) FROM stdin WITH CSV;' >> $OUT_FILE
-psql -c "\copy (SELECT * from block WHERE id in ($BLOCKS_TO_EXPORT)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+psql -c "\copy (SELECT * from block WHERE block_no in ($BLOCKS_TO_EXPORT)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
 echo "-- Dumping transactions" >> $OUT_FILE;
 echo "ALTER TABLE public.tx DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.tx (id, hash, block_id, block_index, out_sum, fee, deposit, size) FROM stdin WITH CSV;' >> $OUT_FILE;
-psql -c "\copy (SELECT * from tx WHERE block_id in ($BLOCKS_TO_EXPORT)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo 'COPY public.tx (id, hash, block_id, block_index, out_sum, fee, deposit, size, invalid_before, invalid_hereafter) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * from tx WHERE block_id in ($SELECT_BLOCK_ID)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
-SELECT_TX_ID="(SELECT id from tx WHERE block_id IN ($BLOCKS_TO_EXPORT))"
+SELECT_TX_ID="(SELECT id from tx WHERE block_id IN ($SELECT_BLOCK_ID))"
 
 echo "-- Dumping transaction inputs" >> $OUT_FILE;
 echo "ALTER TABLE public.tx_in DISABLE TRIGGER ALL;" >> $OUT_FILE;
@@ -83,10 +89,16 @@ WHERE tx_id IN $SELECT_TX_ID"
 REWARD_ADDRESSES_QUERY="
 SELECT addr_id
 FROM reward 
-WHERE block_id IN ($BLOCKS_TO_EXPORT)"
+WHERE block_id IN ($SELECT_BLOCK_ID)"
+
+REWARDS_POOL_HASH_QUERY="
+SELECT pool_id 
+FROM reward 
+WHERE block_id in ($SELECT_BLOCK_ID)
+"
 
 echo "-- Dumping transaction inputs references where spent outputs were defined" >> $OUT_FILE;
-echo 'COPY public.tx (id, hash, block_id, block_index, out_sum, fee, deposit, size) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.tx (id, hash, block_id, block_index, out_sum, fee, deposit, size, invalid_before, invalid_hereafter) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT source_tx.* FROM $INPUT_TX_QUERY) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -129,7 +141,7 @@ echo "\." >> $OUT_FILE;
 echo "-- Dumping Block rewards" >> $OUT_FILE;
 echo "ALTER TABLE public.reward DISABLE TRIGGER ALL;" >> $OUT_FILE;
 echo 'COPY public.reward (id, addr_id, amount, epoch_no, pool_id, block_id) FROM stdin WITH CSV;' >> $OUT_FILE;
-psql -c "\copy (SELECT * from reward WHERE block_id in ($BLOCKS_TO_EXPORT)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+psql -c "\copy (SELECT * from reward WHERE block_id in ($SELECT_BLOCK_ID)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
 echo "-- Dumping Block rewards stake_addresses" >> $OUT_FILE;
@@ -141,7 +153,7 @@ echo "\." >> $OUT_FILE;
 echo "-- Dumping Block rewards pool_hashes" >> $OUT_FILE;
 echo "ALTER TABLE public.pool_hash DISABLE TRIGGER ALL;" >> $OUT_FILE;
 echo 'COPY public.pool_hash (id, hash_raw, view) FROM stdin WITH CSV;' >> $OUT_FILE;
-psql -c "\copy (SELECT * from pool_hash WHERE id IN (SELECT pool_id FROM reward WHERE block_id in ($BLOCKS_TO_EXPORT))) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+psql -c "\copy (SELECT * from pool_hash WHERE id IN ($REWARDS_POOL_HASH_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
 echo "-- Dumping transactions deregistrations" >> $OUT_FILE;
@@ -160,6 +172,12 @@ echo "-- Dumping transactions delegations" >> $OUT_FILE;
 echo "ALTER TABLE public.delegation DISABLE TRIGGER ALL;" >> $OUT_FILE;
 echo 'COPY public.delegation (id, addr_id, cert_index, pool_hash_id, active_epoch_no, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from delegation WHERE tx_id IN $SELECT_TX_ID) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo "\." >> $OUT_FILE;
+
+echo "-- Dumping Block delegations pool_hashes" >> $OUT_FILE;
+echo "ALTER TABLE public.pool_hash DISABLE TRIGGER ALL;" >> $OUT_FILE;
+echo 'COPY public.pool_hash (id, hash_raw, view) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * from pool_hash WHERE id IN (SELECT pool_hash_id FROM delegation WHERE tx_id IN $SELECT_TX_ID) AND id NOT IN ($REWARDS_POOL_HASH_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
 echo "-- Dumping Block transaction delegations stake addresses" >> $OUT_FILE;

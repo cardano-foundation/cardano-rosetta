@@ -2,7 +2,7 @@ ARG UBUNTU_VERSION=20.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
 ARG CABAL_VERSION=3.2.0.0
 ARG CARDANO_NODE_VERSION=1.24.2
-ARG CARDANO_DB_SYNC_VERSION=7.1.1
+ARG CARDANO_DB_SYNC_VERSION=7.1.0
 ARG GHC_VERSION=8.10.2
 ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
 ENV DEBIAN_FRONTEND=nonintercative
@@ -164,6 +164,7 @@ ENV DEFAULT_RELATIVE_TTL=1000 LOGGER_MIN_SEVERITY=info PAGE_SIZE=25
 COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
 COPY config/ecosystem.config.js .
+COPY scripts/start_cardano-db-sync.sh /scripts/
 COPY config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
 COPY config/network/${NETWORK} /config/
 ENV PGPASSFILE=/config/cardano-db-sync/pgpass
