@@ -654,16 +654,12 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       return bech32address;
     }
 
-    if (type === AddressType.ENTERPRISE) {
-      logger.info('[generateAddress] Deriving cardano enterprise address from valid public key');
-      const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(network, payment);
-      const bech32address = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
-      logger.info(`[generateAddress] enterprise address is ${bech32address}`);
-      return bech32address;
-    }
-
-    logger.info('[generateAddress] Address type has an invalid value');
-    throw ErrorFactory.invalidAddressTypeError();
+    // Enterprise address - default scenario
+    logger.info('[generateAddress] Deriving cardano enterprise address from valid public key');
+    const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(network, payment);
+    const bech32enterpriseAddress = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
+    logger.info(`[generateAddress] enterprise address is ${bech32enterpriseAddress}`);
+    return bech32enterpriseAddress;
   },
 
   getEraAddressType(address) {
