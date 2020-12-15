@@ -29,6 +29,21 @@ import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
 const CONSTRUCTION_PAYLOADS_ENDPOINT = '/construction/payloads';
 
 const INVALID_STAKING_KEY_FORMAT = { message: 'Invalid staking key format', code: 4017, retriable: false };
+const MISSING_STAKING_KEY = {
+  message: 'Staking key is required for this type of address',
+  code: 4018,
+  retriable: false
+};
+const TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR = {
+  message: 'Transaction inputs parameters errors in operations array',
+  code: 4008,
+  retriable: false
+};
+const TRANSACTION_OUTPUT_PARAMETERS_MISSING_ERROR = {
+  message: 'Transaction outputs parameters errors in operations array',
+  code: 4009,
+  retriable: false
+};
 
 describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
   let database: Pool;
@@ -132,6 +147,105 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     });
   });
 
+  test('Should return an error when input operation has no coin change property', async () => {
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST;
+    const payload = {
+      operations: operations.map(({ coin_change, ...restOperation }) => ({
+        ...restOperation
+      })),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      ...TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR,
+      details: { message: 'Input has missing coin_change field' }
+    });
+  });
+
+  test('Should return an error when input operation has invalid coin identifier', async () => {
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST;
+    const payload = {
+      operations: operations.map(({ coin_change, ...restOperation }) => ({
+        coin_change: {
+          coin_identifier: {
+            identifier: 'invalid_coin_identifier'
+          },
+          coin_action: 'coin_spent'
+        },
+        ...restOperation
+      })),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      ...TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR,
+      details: { message: 'Input has invalid coin_identifier field' }
+    });
+  });
+
+  test('Should return an error when input operation has no amount property', async () => {
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST;
+    const payload = {
+      operations: operations.map(({ amount, type, ...restOperation }) => ({
+        amount: type === 'output' ? amount : undefined,
+        type,
+        ...restOperation
+      })),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      ...TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR,
+      details: { message: 'Input has missing amount value field' }
+    });
+  });
+
+  test('Should return an error when input operation has positive amount', async () => {
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST;
+    const payload = {
+      operations: operations.map(({ amount, type, ...restOperation }) => ({
+        amount:
+          type === 'input'
+            ? {
+                value: '90000',
+                currency: {
+                  symbol: 'ADA',
+                  decimals: 6
+                }
+              }
+            : amount,
+        type,
+        ...restOperation
+      })),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      ...TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR,
+      details: { message: 'Input has positive amount value' }
+    });
+  });
+
   test('Should throw an error when invalid transactionId is sent as input parameters', async () => {
     const response = await server.inject({
       method: 'post',
@@ -140,9 +254,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      code: 4008,
-      message: 'Transaction inputs parameters errors in operations array',
-      retriable: false,
+      ...TRANSACTION_INPUTS_PARAMETERS_MISSING_ERROR,
       details: { message: 'Input has invalid coin_identifier field' }
     });
   });
@@ -163,6 +275,59 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       code: 4010,
       message: 'The transaction you are trying to build has more outputs than inputs',
       retriable: false
+    });
+  });
+
+  test('Should return an error when output operation has no amount property', async () => {
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST;
+    const payload = {
+      operations: operations.map(({ amount, type, ...restOperation }) => ({
+        amount: type === 'input' ? amount : undefined,
+        type,
+        ...restOperation
+      })),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      ...TRANSACTION_OUTPUT_PARAMETERS_MISSING_ERROR,
+      details: { message: 'Output has missing amount value field' }
+    });
+  });
+
+  test('Should return an error when output operation has negative amount', async () => {
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST;
+    const payload = {
+      operations: operations.map(({ amount, type, ...restOperation }) => ({
+        amount:
+          type === 'output'
+            ? {
+                value: '-90000',
+                currency: {
+                  symbol: 'ADA',
+                  decimals: 6
+                }
+              }
+            : amount,
+        type,
+        ...restOperation
+      })),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      ...TRANSACTION_OUTPUT_PARAMETERS_MISSING_ERROR,
+      details: { message: 'Output has negative amount value' }
     });
   });
 
@@ -309,6 +474,27 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
         }
       ]
     });
+  });
+
+  test('Should return an error when no staking key is provided in staking key registration operation', async () => {
+    const { network_identifier, operations, metadata } = CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION;
+    const payload = {
+      network_identifier,
+      operations: operations.map(({ metadata: opMetadata, ...rest }) => ({
+        metadata: opMetadata && {
+          staking_credential: undefined
+        },
+        ...rest
+      })),
+      metadata
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual(MISSING_STAKING_KEY);
   });
 
   test('Should return an error when staking key in one operation has invalid format', async () => {
