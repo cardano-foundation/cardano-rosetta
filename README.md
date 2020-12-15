@@ -90,6 +90,7 @@ Now create a new container using the run instructions above. Sync progress will 
 | ---                                | ---                                                          |
 | [Construction API Documentation]   | Users of the Cardano Rosetta Construction API                |
 | [Data API Documentation]           | Users of the Cardano Rosetta Data API                        |
+| [Cardano Rosetta Docs]             | Cardano Rosetta specific documentation                       |
 | [Developer]                        | Core or external developers of cardano-rosetta-server        |
 | [Maintainer]                       | Solution maintainer                                          |
 | [QA]                               | Quality Assurance Engineers                                  |
@@ -114,6 +115,7 @@ Now create a new container using the run instructions above. Sync progress will 
 [docs]: cardano-rosetta-server/README.md
 [Construction API Documentation]: https://www.rosetta-api.org/docs/construction_api_introduction.html
 [Data API Documentation]: https://www.rosetta-api.org/docs/data_api_introduction.html
+[Cardano Rosetta Docs]: ./docs
 [Developer]: cardano-rosetta-server/README.md
 [Maintainer]: docs/MAINTAINER.md
 [QA]: docs/QA.md

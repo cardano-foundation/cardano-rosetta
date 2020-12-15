@@ -35,6 +35,7 @@ GENESIS_SHELLEY_PATH="/etc/node/testnet-genesis.json"
 CARDANO_NODE_SOCKET_PATH=/tmp/node.socket
 # max amount of transactions to be returned in `/block` endpoint. Otherwise only hashes will be sent
 PAGE_SIZE=25
+# relative ttl to be used if any is sent during the request
 DEFAULT_RELATIVE_TTL=1000
 ```
 
