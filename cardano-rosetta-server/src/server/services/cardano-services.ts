@@ -465,6 +465,16 @@ const generateRewardAddress = (logger: Logger, network: NetworkIdentifier, payme
   return bech32address;
 };
 
+const getSignerFromOperation = (
+  logger: Logger,
+  network: NetworkIdentifier,
+  operation: Components.Schemas.Operation
+): string => {
+  if (operation.account?.address) return operation.account?.address;
+  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  return generateRewardAddress(logger, network, credential);
+};
+
 const processStakeKeyRegistration = (
   logger: Logger,
   operation: Components.Schemas.Operation
@@ -778,7 +788,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       const operations = parseOperationsFromTransactionBody(logger, parsed.body(), extraData, networkId);
       logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
       logger.info(operations, '[parseSignedTransaction] Returning operations');
-      const signers = extraData.map(data => data.account?.address || '');
+      const signers = extraData.map(data => getSignerFromOperation(logger, networkId, data));
       return { operations, signers };
     } catch (error) {
       logger.error({ error }, '[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes');
