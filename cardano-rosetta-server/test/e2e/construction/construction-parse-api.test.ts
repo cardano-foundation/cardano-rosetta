@@ -20,6 +20,7 @@ import {
   CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
+  CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_EXTRA_DATA,
   CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA
 } from '../fixture-data';
 
@@ -52,6 +53,23 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST));
     expect(response.json().signers).toEqual([CONSTRUCTION_PAYLOADS_REQUEST.operations[0].account?.address]);
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return 1 input, 2 outputs, 1 stake key registration and signers with payment and stake addresses', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_EXTRA_DATA)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION)
+    );
+    expect(response.json().signers).toEqual([
+      CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION.operations[0].account?.address,
+      'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+    ]);
   });
 
   test('Should return 1 input, 2 outputs and empty signers if a valid unsigned transaction is set', async () => {
