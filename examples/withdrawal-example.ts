@@ -83,7 +83,7 @@ const doRun = async (): Promise<void> => {
   const payloads = await constructionPayloads({
     network_identifier,
     operations: builtOperations.operations,
-    metadata,
+    metadata
   });
   const signatures = signPayloads(payloads.payloads, keys);
   const combined = await constructionCombine(

@@ -24,7 +24,8 @@ const generateKeys = (secretKey?: string) =>
 
 const constructionDerive = async (
   publicKey: string,
-  addressType?: string
+  addressType?: string,
+  stakingKey?: string
 ): Promise<string> => {
   logger.info(
     `[constructionDerive] Fetching an address for pub key ${publicKey}`
@@ -37,7 +38,16 @@ const constructionDerive = async (
     },
     metadata: {},
   };
-  if (addressType) request.metadata = { address_type: addressType };
+  if (addressType) {
+    request.metadata = { address_type: addressType };
+    if (stakingKey)
+      request.metadata = Object.assign({}, request.metadata, {
+        staking_credential: {
+          hex_bytes: stakingKey,
+          curve_type: "edwards25519",
+        },
+      });
+  }
   const response = await httpClient.post("/construction/derive", request);
   const address = response.data.address;
   logger.debug(`[constructionDerive] Retrieved address ${address}`);
@@ -155,21 +165,25 @@ const constructionPayloads = async (payload: any) => {
   return response.data;
 };
 
-const signPayloads = (payloads: any, keys: NaCl.SignKeyPair) =>
-  payloads.map((signing_payload: any) => ({
-    signing_payload,
-    public_key: {
-      hex_bytes: Buffer.from(keys.publicKey).toString("hex"),
-      curve_type: "edwards25519",
-    },
-    signature_type: "ed25519",
-    hex_bytes: Buffer.from(
-      NaCl.sign.detached(
-        Buffer.from(signing_payload.hex_bytes, "hex"),
-        keys.secretKey
-      )
-    ).toString("hex"),
-  }));
+const signPayloads = (payloads: any, keyAddressMapper: any) =>
+  payloads.map((signing_payload: any) => {
+    const publicKey = keyAddressMapper[signing_payload.address].publicKey;
+    const privateKey = keyAddressMapper[signing_payload.address].secretKey;
+    return {
+      signing_payload,
+      public_key: {
+        hex_bytes: Buffer.from(publicKey).toString("hex"),
+        curve_type: "edwards25519",
+      },
+      signature_type: "ed25519",
+      hex_bytes: Buffer.from(
+        NaCl.sign.detached(
+          Buffer.from(signing_payload.hex_bytes, "hex"),
+          privateKey
+        )
+      ).toString("hex"),
+    };
+  });
 
 const constructionCombine = async (
   unsigned_transaction: any,
