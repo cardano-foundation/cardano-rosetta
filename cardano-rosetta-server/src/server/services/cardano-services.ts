@@ -320,9 +320,15 @@ const parseCertsToOperations = (
   return parsedOperations;
 };
 
-const parseWithdrawalToOperation = (value: string, hex: string, index: number): Components.Schemas.Operation => ({
+const parseWithdrawalToOperation = (
+  value: string,
+  hex: string,
+  index: number,
+  address: string
+): Components.Schemas.Operation => ({
   operation_identifier: { index },
   status: '',
+  account: { address },
   amount: {
     value,
     currency: {
@@ -340,15 +346,19 @@ const parseWithdrawalsToOperations = (
   logger: Logger,
   withdrawalOps: Components.Schemas.Operation[],
   withdrawalsCount: number,
-  operations: Components.Schemas.Operation[]
+  operations: Components.Schemas.Operation[],
+  network: number
 ) => {
   logger.info(`[parseWithdrawalsToOperations] About to parse ${withdrawalsCount} withdrawals`);
   for (let i = 0; i < withdrawalsCount; i++) {
     const withdrawalOperation = withdrawalOps[i];
+    const credential = getStakingCredentialFromHex(logger, withdrawalOperation.metadata!.staking_credential);
+    const address = generateRewardAddress(logger, network, credential);
     const parsedOperation = parseWithdrawalToOperation(
       withdrawalOperation.amount!.value,
       withdrawalOperation.metadata!.staking_credential!.hex_bytes,
-      withdrawalOperation.operation_identifier.index
+      withdrawalOperation.operation_identifier.index,
+      address
     );
     operations.push(parsedOperation);
   }
@@ -399,7 +409,7 @@ const parseOperationsFromTransactionBody = (
 
   const withdrawalOps = extraData.filter(({ type }) => type === operationType.WITHDRAWAL);
   const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
-  parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations);
+  parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations, network);
 
   return operations;
 };
