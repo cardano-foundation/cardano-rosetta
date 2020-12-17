@@ -788,7 +788,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       const operations = parseOperationsFromTransactionBody(logger, parsed.body(), extraData, networkId);
       logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
       logger.info(operations, '[parseSignedTransaction] Returning operations');
-      const signers = extraData.map(data => getSignerFromOperation(logger, networkId, data));
+      const signers = getUniqueAddresses(extraData.map(data => getSignerFromOperation(logger, networkId, data)));
       return { operations, signers };
     } catch (error) {
       logger.error({ error }, '[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes');
