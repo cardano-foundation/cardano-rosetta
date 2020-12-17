@@ -238,28 +238,16 @@ const populateTransactions = async (
   transactionsMap: TransactionsMap
 ): Promise<PopulatedTransaction[]> => {
   const transactionsHashes = Object.keys(transactionsMap).map(hashStringToBuffer);
-  // Look for inputs and outputs based on found tx hashes
-  const inputs: QueryResult<FindTransactionsInputs> = await databaseInstance.query(Queries.findTransactionsInputs, [
-    transactionsHashes
-  ]);
-  const outputs: QueryResult<FindTransactionsOutputs> = await databaseInstance.query(Queries.findTransactionsOutputs, [
-    transactionsHashes
-  ]);
-  const withdrawals: QueryResult<FindTransactionWithdrawals> = await databaseInstance.query(
+  const operationsQueries = [
+    Queries.findTransactionsInputs,
+    Queries.findTransactionsOutputs,
     Queries.findTransactionWithdrawals,
-    [transactionsHashes]
-  );
-  const registrations: QueryResult<FindTransactionRegistrations> = await databaseInstance.query(
     Queries.findTransactionRegistrations,
-    [transactionsHashes]
-  );
-  const deregistrations: QueryResult<FindTransactionDeregistrations> = await databaseInstance.query(
     Queries.findTransactionDeregistrations,
-    [transactionsHashes]
-  );
-  const delegations: QueryResult<FindTransactionDelegations> = await databaseInstance.query(
-    Queries.findTransactionDelegations,
-    [transactionsHashes]
+    Queries.findTransactionDelegations
+  ];
+  const [inputs, outputs, withdrawals, registrations, deregistrations, delegations] = await Promise.all(
+    operationsQueries.map(operationQuery => databaseInstance.query(operationQuery, [transactionsHashes]))
   );
   transactionsMap = populateTransactionField(transactionsMap, inputs.rows, parseInputsRow);
   transactionsMap = populateTransactionField(transactionsMap, outputs.rows, parseOutputsRow);
