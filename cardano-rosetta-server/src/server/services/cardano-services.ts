@@ -210,6 +210,34 @@ const getAddressPrefix = (network: number) =>
 const getStakeAddressPrefix = (network: number) =>
   network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'stake' : 'stake_test';
 
+const getStakingCredentialFromHex = (
+  logger: Logger,
+  staking_credential?: {
+    hex_bytes: string;
+    curve_type: string;
+  }
+): StakeCredential => {
+  if (!staking_credential?.hex_bytes) {
+    logger.error('[getStakingCredentialFromHex] Staking key not provided');
+    throw ErrorFactory.missingStakingKeyError();
+  }
+  if (!isKeyValid(staking_credential.hex_bytes, staking_credential.curve_type)) {
+    logger.info('[constructionPayloads] Staking key has an invalid format');
+    throw ErrorFactory.invalidStakingKeyFormat();
+  }
+  const stakingKeyBuffer = Buffer.from(staking_credential.hex_bytes, 'hex');
+  const stakingKey = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
+  return StakeCredential.from_keyhash(stakingKey.hash());
+};
+
+const generateRewardAddress = (logger: Logger, network: NetworkIdentifier, payment: StakeCredential): string => {
+  logger.info('[generateRewardAddress] Deriving cardano reward address from valid public staking key');
+  const rewardAddress = CardanoWasm.RewardAddress.new(network, payment);
+  const bech32address = rewardAddress.to_address().to_bech32(getStakeAddressPrefix(network));
+  logger.info(`[generateRewardAddress] reward address is ${bech32address}`);
+  return bech32address;
+};
+
 const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: number): Components.Schemas.Operation => ({
   operation_identifier: { index },
   coin_change: {
@@ -241,12 +269,14 @@ const parseCertToOperation = (
   cert: CardanoWasm.Certificate,
   index: number,
   hash: string,
-  type: string
+  type: string,
+  address: string
 ): Components.Schemas.Operation => {
   const operation: Components.Schemas.Operation = {
     operation_identifier: { index },
     status: '',
     type,
+    account: { address },
     metadata: {
       staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
     }
@@ -262,7 +292,8 @@ const parseCertsToOperations = (
   logger: Logger,
   transactionBody: CardanoWasm.TransactionBody,
   stakingOps: Components.Schemas.Operation[],
-  certsCount: number
+  certsCount: number,
+  network: number
 ): Components.Schemas.Operation[] => {
   const parsedOperations = [];
   logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
@@ -273,12 +304,15 @@ const parseCertsToOperations = (
       logger.error('[parseCertsToOperations] Staking key not provided');
       throw ErrorFactory.missingStakingKeyError();
     }
+    const credential = getStakingCredentialFromHex(logger, stakingOperation.metadata?.staking_credential);
+    const address = generateRewardAddress(logger, network, credential);
     const cert = transactionBody.certs()!.get(i);
     const parsedOperation = parseCertToOperation(
       cert,
       stakingOperation.operation_identifier.index,
       hex,
-      stakingOperation.type
+      stakingOperation.type,
+      address
     );
     parsedOperations.push(parsedOperation);
   }
@@ -286,9 +320,15 @@ const parseCertsToOperations = (
   return parsedOperations;
 };
 
-const parseWithdrawalToOperation = (value: string, hex: string, index: number): Components.Schemas.Operation => ({
+const parseWithdrawalToOperation = (
+  value: string,
+  hex: string,
+  index: number,
+  address: string
+): Components.Schemas.Operation => ({
   operation_identifier: { index },
   status: '',
+  account: { address },
   amount: {
     value,
     currency: {
@@ -306,15 +346,19 @@ const parseWithdrawalsToOperations = (
   logger: Logger,
   withdrawalOps: Components.Schemas.Operation[],
   withdrawalsCount: number,
-  operations: Components.Schemas.Operation[]
+  operations: Components.Schemas.Operation[],
+  network: number
 ) => {
   logger.info(`[parseWithdrawalsToOperations] About to parse ${withdrawalsCount} withdrawals`);
   for (let i = 0; i < withdrawalsCount; i++) {
     const withdrawalOperation = withdrawalOps[i];
+    const credential = getStakingCredentialFromHex(logger, withdrawalOperation.metadata!.staking_credential);
+    const address = generateRewardAddress(logger, network, credential);
     const parsedOperation = parseWithdrawalToOperation(
       withdrawalOperation.amount!.value,
       withdrawalOperation.metadata!.staking_credential!.hex_bytes,
-      withdrawalOperation.operation_identifier.index
+      withdrawalOperation.operation_identifier.index,
+      address
     );
     operations.push(parsedOperation);
   }
@@ -360,34 +404,14 @@ const parseOperationsFromTransactionBody = (
     ].includes(type as operationType)
   );
   const certsCount = transactionBody.certs()?.len() || 0;
-  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, stakingOps, certsCount);
+  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, stakingOps, certsCount, network);
   operations.push(...parsedCertOperations);
 
   const withdrawalOps = extraData.filter(({ type }) => type === operationType.WITHDRAWAL);
   const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
-  parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations);
+  parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations, network);
 
   return operations;
-};
-
-const getStakingCredentialFromHex = (
-  logger: Logger,
-  staking_credential?: {
-    hex_bytes: string;
-    curve_type: string;
-  }
-): StakeCredential => {
-  if (!staking_credential?.hex_bytes) {
-    logger.error('[getStakingCredentialFromHex] Staking key not provided');
-    throw ErrorFactory.missingStakingKeyError();
-  }
-  if (!isKeyValid(staking_credential.hex_bytes, staking_credential.curve_type)) {
-    logger.info('[constructionPayloads] Staking key has an invalid format');
-    throw ErrorFactory.invalidStakingKeyFormat();
-  }
-  const stakingKeyBuffer = Buffer.from(staking_credential.hex_bytes, 'hex');
-  const stakingKey = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
-  return StakeCredential.from_keyhash(stakingKey.hash());
 };
 
 const validateAndParseTransactionOutput = (
@@ -457,12 +481,14 @@ const validateAndParseTransactionInput = (
 
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
 
-const generateRewardAddress = (logger: Logger, network: NetworkIdentifier, payment: StakeCredential): string => {
-  logger.info('[generateRewardAddress] Deriving cardano reward address from valid public staking key');
-  const rewardAddress = CardanoWasm.RewardAddress.new(network, payment);
-  const bech32address = rewardAddress.to_address().to_bech32(getStakeAddressPrefix(network));
-  logger.info(`[generateRewardAddress] reward address is ${bech32address}`);
-  return bech32address;
+const getSignerFromOperation = (
+  logger: Logger,
+  network: NetworkIdentifier,
+  operation: Components.Schemas.Operation
+): string => {
+  if (operation.account?.address) return operation.account?.address;
+  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  return generateRewardAddress(logger, network, credential);
 };
 
 const processStakeKeyRegistration = (
@@ -778,7 +804,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       const operations = parseOperationsFromTransactionBody(logger, parsed.body(), extraData, networkId);
       logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
       logger.info(operations, '[parseSignedTransaction] Returning operations');
-      const signers = extraData.map(data => data.account?.address || '');
+      const signers = getUniqueAddresses(extraData.map(data => getSignerFromOperation(logger, networkId, data)));
       return { operations, signers };
     } catch (error) {
       logger.error({ error }, '[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes');

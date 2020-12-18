@@ -876,6 +876,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION: Components.Schem
       },
       type: operationType.STAKE_KEY_REGISTRATION,
       status: 'success',
+      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
         staking_credential: {
           hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
@@ -970,6 +971,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION: Components.Sch
       },
       type: operationType.STAKE_KEY_DEREGISTRATION,
       status: 'success',
+      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
         staking_credential: {
           hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
@@ -1064,6 +1066,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION: Components.Schemas.Con
       },
       type: operationType.STAKE_DELEGATION,
       status: 'success',
+      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
         staking_credential: {
           hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
@@ -1159,6 +1162,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION: Compo
       },
       type: operationType.STAKE_KEY_REGISTRATION,
       status: 'success',
+      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
         staking_credential: {
           hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
@@ -1172,6 +1176,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION: Compo
       },
       type: operationType.STAKE_DELEGATION,
       status: 'success',
+      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
         staking_credential: {
           hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
@@ -1375,6 +1380,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL: Components.Schemas.Construct
       },
       type: operationType.WITHDRAWAL,
       status: 'success',
+      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       amount: {
         value: '10000',
         currency: {
@@ -1597,6 +1603,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL: C
       },
       type: operationType.STAKE_KEY_REGISTRATION,
       status: 'success',
+      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
         staking_credential: {
           hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
@@ -1610,6 +1617,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL: C
       },
       type: operationType.WITHDRAWAL,
       status: 'success',
+      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       amount: {
         value: '10000',
         currency: {
@@ -2179,6 +2187,20 @@ export const TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL_SIZE_IN_BYTES =
 
 export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
   .encode([SIGNED_TRANSACTION, constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST)])
+  .toString('hex');
+
+export const CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_EXTRA_DATA = cbor
+  .encode([
+    SIGNED_TX_WITH_STAKE_KEY_REGISTRATION,
+    constructionExtraData(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION)
+  ])
+  .toString('hex');
+
+export const CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_WITHDRWAWAL_AND_EXTRA_DATA = cbor
+  .encode([
+    SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL,
+    constructionExtraData(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL)
+  ])
   .toString('hex');
 
 export const CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
