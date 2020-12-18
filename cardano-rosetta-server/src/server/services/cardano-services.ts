@@ -23,7 +23,8 @@ import {
   PUBLIC_KEY_BYTES_LENGTH,
   stakeType,
   PREFIX_LENGTH,
-  CurveType
+  CurveType,
+  EraAddressType
 } from '../utils/constants';
 import { isKeyValid } from '../utils/validations';
 
@@ -50,11 +51,6 @@ export interface TransactionParsed {
 export interface LinearFeeParameters {
   minFeeA: number;
   minFeeB: number;
-}
-
-export enum EraAddressType {
-  Shelley,
-  Byron
 }
 
 const SHELLEY_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
@@ -481,6 +477,13 @@ const validateAndParseTransactionInput = (
 
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
 
+const signatureProcessor: { [eraType: string]: Signatures } = {
+  [EraAddressType.Shelley]: {
+    signature: SHELLEY_DUMMY_SIGNATURE,
+    publicKey: SHELLEY_DUMMY_PUBKEY
+  } // FIXME: handle this properly when supporting byron in a separate PR
+};
+
 const getSignerFromOperation = (
   logger: Logger,
   network: NetworkIdentifier,
@@ -500,37 +503,29 @@ const processStakeKeyRegistration = (
   return CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
 };
 
-const processStakeKeyDeRegistration = (
+const processOperationCertification = (
   logger: Logger,
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
 ): { certificate: CardanoWasm.Certificate; address: string } => {
-  logger.info('[processStakeKeyDeRegistration] About to process stake key deregistration');
+  logger.info(`[processOperationCertification] About to process operation of type ${operation.type}`);
   const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
   const address = generateRewardAddress(logger, network, credential);
+  if (operation.type === operationType.STAKE_DELEGATION) {
+    const poolKeyHash = operation.metadata?.pool_key_hash;
+    if (!poolKeyHash) {
+      logger.error('[processOperationCertification] no pool key hash provided for stake delegation');
+      throw ErrorFactory.missingPoolKeyError();
+    }
+    const certificate = CardanoWasm.Certificate.new_stake_delegation(
+      StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
+    );
+    return { certificate, address };
+  }
   return {
     certificate: CardanoWasm.Certificate.new_stake_deregistration(StakeDeregistration.new(credential)),
     address
   };
-};
-
-const processStakeDelegation = (
-  logger: Logger,
-  network: NetworkIdentifier,
-  operation: Components.Schemas.Operation
-): { certificate: CardanoWasm.Certificate; address: string } => {
-  logger.info('[processStakeDelegation] About to process stake key delegation');
-  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
-  const address = generateRewardAddress(logger, network, credential);
-  const poolKeyHash = operation.metadata?.pool_key_hash;
-  if (!poolKeyHash) {
-    logger.error('[processStakeDelegation] no pool key hash provided for stake delegation');
-    throw ErrorFactory.missingPoolKeyError();
-  }
-  const certificate = CardanoWasm.Certificate.new_stake_delegation(
-    StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
-  );
-  return { certificate, address };
 };
 
 const processWithdrawal = (
@@ -560,50 +555,48 @@ const processOperations = (
   const withdrawalAmounts: bigint[] = [];
   let stakeKeyRegistrationsCount = 0;
   let stakeKeyDeRegistrationsCount = 0;
-  operations.forEach(operation => {
-    switch (operation.type) {
-      case operationType.INPUT: {
-        transactionInputs.add(validateAndParseTransactionInput(logger, operation));
-        addresses.push(operation.account!.address);
-        inputAmounts.push(operation.amount!.value);
-        break;
-      }
-      case operationType.OUTPUT: {
-        transactionOutputs.add(validateAndParseTransactionOutput(logger, operation));
-        outputAmounts.push(operation.amount!.value);
-        break;
-      }
-      case operationType.STAKE_KEY_REGISTRATION: {
-        certificates.add(processStakeKeyRegistration(logger, operation));
-        stakeKeyRegistrationsCount++;
-        break;
-      }
-      case operationType.STAKE_KEY_DEREGISTRATION: {
-        const { certificate, address } = processStakeKeyDeRegistration(logger, network, operation);
-        certificates.add(certificate);
-        addresses.push(address);
-        stakeKeyDeRegistrationsCount++;
-        break;
-      }
-      case operationType.STAKE_DELEGATION: {
-        const { certificate, address } = processStakeDelegation(logger, network, operation);
-        certificates.add(certificate);
-        addresses.push(address);
-        break;
-      }
-      case operationType.WITHDRAWAL: {
-        const { reward, address } = processWithdrawal(logger, network, operation);
-        const withdrawalAmount = BigInt(operation.amount?.value);
-        withdrawalAmounts.push(withdrawalAmount);
-        withdrawals.insert(reward, BigNum.from_str(withdrawalAmount.toString()));
-        addresses.push(address);
-        break;
-      }
-      default: {
-        logger.error(`[processOperations] Operation with id ${operation.operation_identifier} has invalid type`);
-        throw ErrorFactory.invalidOperationTypeError();
-      }
+
+  const operationProcessor: { [type: string]: (operation: Components.Schemas.Operation) => void } = {
+    [operationType.INPUT]: operation => {
+      transactionInputs.add(validateAndParseTransactionInput(logger, operation));
+      addresses.push(operation.account!.address);
+      inputAmounts.push(operation.amount!.value);
+    },
+    [operationType.OUTPUT]: operation => {
+      transactionOutputs.add(validateAndParseTransactionOutput(logger, operation));
+      outputAmounts.push(operation.amount!.value);
+    },
+    [operationType.STAKE_KEY_REGISTRATION]: operation => {
+      certificates.add(processStakeKeyRegistration(logger, operation));
+      stakeKeyRegistrationsCount++;
+    },
+    [operationType.STAKE_KEY_DEREGISTRATION]: operation => {
+      const { certificate, address } = processOperationCertification(logger, network, operation);
+      certificates.add(certificate);
+      addresses.push(address);
+      stakeKeyDeRegistrationsCount++;
+    },
+    [operationType.STAKE_DELEGATION]: operation => {
+      const { certificate, address } = processOperationCertification(logger, network, operation);
+      certificates.add(certificate);
+      addresses.push(address);
+    },
+    [operationType.WITHDRAWAL]: operation => {
+      const { reward, address } = processWithdrawal(logger, network, operation);
+      const withdrawalAmount = BigInt(operation.amount?.value);
+      withdrawalAmounts.push(withdrawalAmount);
+      withdrawals.insert(reward, BigNum.from_str(withdrawalAmount.toString()));
+      addresses.push(address);
     }
+  };
+
+  operations.forEach(operation => {
+    const type = operation.type;
+    if (!operationProcessor[type]) {
+      logger.error(`[processOperations] Operation with id ${operation.operation_identifier} has invalid type`);
+      throw ErrorFactory.invalidOperationTypeError();
+    }
+    operationProcessor[type](operation);
   });
   logger.info('[processOperations] About to calculate fee');
   const refundsSum = stakeKeyDeRegistrationsCount * minKeyDeposit;
@@ -771,16 +764,9 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
     const { bytes, addresses } = this.createUnsignedTransaction(logger, network, operations, ttl);
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
-      switch (this.getEraAddressType(address)) {
-        case EraAddressType.Shelley:
-          return {
-            signature: SHELLEY_DUMMY_SIGNATURE,
-            publicKey: SHELLEY_DUMMY_PUBKEY
-          };
-        case EraAddressType.Byron: // FIXME: handle this properly when supporting byron in a separate PR
-        case null:
-          throw ErrorFactory.invalidAddressError(address);
-      }
+      const eraAddressType = this.getEraAddressType(address);
+      if (eraAddressType === null) throw ErrorFactory.invalidAddressError(address);
+      return signatureProcessor[eraAddressType];
     });
     const transaction = this.buildTransaction(logger, bytes, signatures);
     // eslint-disable-next-line no-magic-numbers

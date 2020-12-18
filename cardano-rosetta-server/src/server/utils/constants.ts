@@ -66,3 +66,8 @@ export enum AddressType {
   BASE = 'Base',
   REWARD = 'Reward'
 }
+
+export enum EraAddressType {
+  Shelley,
+  Byron
+}
