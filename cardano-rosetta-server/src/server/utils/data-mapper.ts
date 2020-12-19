@@ -1,16 +1,16 @@
 /* eslint-disable camelcase */
 
 import cbor from 'cbor';
-import { NetworkIdentifier } from '../services/cardano-services';
 import { NetworkStatus } from '../services/network-service';
 import {
   ADA,
   ADA_DECIMALS,
   CARDANO,
   MAINNET,
-  operationType,
+  NetworkIdentifier,
+  OperationType,
   SIGNATURE_TYPE,
-  stakingOperations,
+  StakingOperations,
   SUCCESS_STATUS
 } from './constants';
 import { Block, BlockUtxos, BalanceAtBlock, Network, PopulatedTransaction, Utxo } from '../models';
@@ -92,7 +92,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
   const inputsAsOperations = transaction.inputs.map((input, index) =>
     createOperation(
       index,
-      operationType.INPUT,
+      OperationType.INPUT,
       SUCCESS_STATUS,
       input.address,
       `-${input.value}`,
@@ -106,7 +106,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
     operation_identifier: {
       index: getOperationCurrentIndex(totalOperations, index)
     },
-    type: operationType.WITHDRAWAL,
+    type: OperationType.WITHDRAWAL,
     status: SUCCESS_STATUS,
     account: {
       address: withdrawal.stakeAddress
@@ -121,7 +121,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
       operation_identifier: {
         index: getOperationCurrentIndex(totalOperations, index)
       },
-      type: operationType.STAKE_KEY_REGISTRATION,
+      type: OperationType.STAKE_KEY_REGISTRATION,
       status: SUCCESS_STATUS,
       account: {
         address: registration.stakeAddress
@@ -137,7 +137,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
       operation_identifier: {
         index: getOperationCurrentIndex(totalOperations, index)
       },
-      type: operationType.STAKE_KEY_DEREGISTRATION,
+      type: OperationType.STAKE_KEY_DEREGISTRATION,
       status: SUCCESS_STATUS,
       account: {
         address: deregistration.stakeAddress
@@ -152,7 +152,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
     operation_identifier: {
       index: getOperationCurrentIndex(totalOperations, index)
     },
-    type: operationType.STAKE_DELEGATION,
+    type: OperationType.STAKE_DELEGATION,
     status: SUCCESS_STATUS,
     account: {
       address: delegation.stakeAddress
@@ -172,7 +172,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
   const outputsAsOperations = transaction.outputs.map((output, index) =>
     createOperation(
       getOperationCurrentIndex(totalOperations, index),
-      operationType.OUTPUT,
+      OperationType.OUTPUT,
       SUCCESS_STATUS,
       output.address,
       output.value,
@@ -320,7 +320,7 @@ export const encodeExtraData = async (
     .filter(
       operation =>
         operation.coin_change?.coin_action === COIN_SPENT_ACTION ||
-        stakingOperations.includes(operation.type as operationType)
+        StakingOperations.includes(operation.type as OperationType)
     );
 
   return (await cbor.encodeAsync([transaction, extraData])).toString('hex');

@@ -1,7 +1,7 @@
 /* eslint-disable max-len */
 /* eslint-disable no-magic-numbers */
 import cbor from 'cbor';
-import { operationType, SIGNATURE_TYPE, stakingOperations } from '../../src/server/utils/constants';
+import { OperationType, SIGNATURE_TYPE, StakingOperations } from '../../src/server/utils/constants';
 
 /* eslint-disable camelcase */
 const slotLeader2b1 = 'ByronGenesis-52df0f2c5539b2b1';
@@ -62,7 +62,7 @@ export const block23236WithTransactions = {
             operation_identifier: {
               index: 0
             },
-            type: operationType.INPUT,
+            type: OperationType.INPUT,
             status: 'success',
             account: {
               address: 'Ae2tdPwUPEZH1TtKqx7VsvXUPAv2KaG7TkXJTfyb2bqFCctePknLVgVQyfn'
@@ -91,7 +91,7 @@ export const block23236WithTransactions = {
                 index: 0
               }
             ],
-            type: operationType.OUTPUT,
+            type: OperationType.OUTPUT,
             status: 'success',
             account: {
               address:
@@ -122,7 +122,7 @@ export const block23236WithTransactions = {
             operation_identifier: {
               index: 0
             },
-            type: operationType.INPUT,
+            type: OperationType.INPUT,
             status: 'success',
             account: {
               address: 'Ae2tdPwUPEZE74MFSWpMuXKTbh8uyc7GVXT8Rc4dk1kCUfVpX19jk1VW2CW'
@@ -151,7 +151,7 @@ export const block23236WithTransactions = {
                 index: 0
               }
             ],
-            type: operationType.OUTPUT,
+            type: OperationType.OUTPUT,
             status: 'success',
             account: {
               address:
@@ -205,7 +205,7 @@ export const block7134WithTxs = {
             operation_identifier: {
               index: 0
             },
-            type: operationType.INPUT,
+            type: OperationType.INPUT,
             status: 'success',
             account: {
               address:
@@ -236,7 +236,7 @@ export const block7134WithTxs = {
                 index: 0
               }
             ],
-            type: operationType.OUTPUT,
+            type: OperationType.OUTPUT,
             status: 'success',
             account: {
               address:
@@ -266,7 +266,7 @@ export const block7134WithTxs = {
                 index: 0
               }
             ],
-            type: operationType.OUTPUT,
+            type: OperationType.OUTPUT,
             status: 'success',
             account: {
               address:
@@ -685,7 +685,7 @@ export const transaction987aOnGenesis = {
         },
         related_operations: [],
         status: 'success',
-        type: operationType.OUTPUT,
+        type: OperationType.OUTPUT,
         coin_change: {
           coin_action: 'coin_created',
           coin_identifier: {
@@ -725,7 +725,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST: Components.Schemas.ConstructionPaylo
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -754,7 +754,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST: Components.Schemas.ConstructionPaylo
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -776,7 +776,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST: Components.Schemas.ConstructionPaylo
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -806,7 +806,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION: Components.Schem
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -835,7 +835,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION: Components.Schem
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -857,7 +857,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION: Components.Schem
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -874,7 +874,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION: Components.Schem
       operation_identifier: {
         index: 3
       },
-      type: operationType.STAKE_KEY_REGISTRATION,
+      type: OperationType.STAKE_KEY_REGISTRATION,
       status: 'success',
       account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
@@ -901,7 +901,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION: Components.Sch
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -930,7 +930,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION: Components.Sch
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -952,7 +952,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION: Components.Sch
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -969,7 +969,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION: Components.Sch
       operation_identifier: {
         index: 3
       },
-      type: operationType.STAKE_KEY_DEREGISTRATION,
+      type: OperationType.STAKE_KEY_DEREGISTRATION,
       status: 'success',
       account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
@@ -996,7 +996,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION: Components.Schemas.Con
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1025,7 +1025,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION: Components.Schemas.Con
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1047,7 +1047,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION: Components.Schemas.Con
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1064,7 +1064,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION: Components.Schemas.Con
       operation_identifier: {
         index: 3
       },
-      type: operationType.STAKE_DELEGATION,
+      type: OperationType.STAKE_DELEGATION,
       status: 'success',
       account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
@@ -1092,7 +1092,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION: Compo
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1121,7 +1121,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION: Compo
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1143,7 +1143,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION: Compo
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1160,7 +1160,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION: Compo
       operation_identifier: {
         index: 3
       },
-      type: operationType.STAKE_KEY_REGISTRATION,
+      type: OperationType.STAKE_KEY_REGISTRATION,
       status: 'success',
       account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
@@ -1174,7 +1174,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION: Compo
       operation_identifier: {
         index: 4
       },
-      type: operationType.STAKE_DELEGATION,
+      type: OperationType.STAKE_DELEGATION,
       status: 'success',
       account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
@@ -1202,7 +1202,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGAT
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1231,7 +1231,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGAT
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1253,7 +1253,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGAT
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1270,7 +1270,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGAT
       operation_identifier: {
         index: 3
       },
-      type: operationType.STAKE_KEY_REGISTRATION,
+      type: OperationType.STAKE_KEY_REGISTRATION,
       status: 'success',
       metadata: {
         staking_credential: {
@@ -1283,7 +1283,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGAT
       operation_identifier: {
         index: 3
       },
-      type: operationType.STAKE_DELEGATION,
+      type: OperationType.STAKE_DELEGATION,
       status: 'success',
       metadata: {
         staking_credential: {
@@ -1310,7 +1310,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL: Components.Schemas.Construct
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1339,7 +1339,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL: Components.Schemas.Construct
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1361,7 +1361,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL: Components.Schemas.Construct
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1378,7 +1378,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL: Components.Schemas.Construct
       operation_identifier: {
         index: 4
       },
-      type: operationType.WITHDRAWAL,
+      type: OperationType.WITHDRAWAL,
       status: 'success',
       account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       amount: {
@@ -1412,7 +1412,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS: Components.Schemas.Cons
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1441,7 +1441,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS: Components.Schemas.Cons
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1463,7 +1463,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS: Components.Schemas.Cons
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1480,7 +1480,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS: Components.Schemas.Cons
       operation_identifier: {
         index: 3
       },
-      type: operationType.WITHDRAWAL,
+      type: OperationType.WITHDRAWAL,
       status: 'success',
       amount: {
         value: '10000',
@@ -1500,7 +1500,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS: Components.Schemas.Cons
       operation_identifier: {
         index: 4
       },
-      type: operationType.WITHDRAWAL,
+      type: OperationType.WITHDRAWAL,
       status: 'success',
       amount: {
         value: '10000',
@@ -1533,7 +1533,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL: C
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1562,7 +1562,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL: C
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1584,7 +1584,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL: C
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1601,7 +1601,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL: C
       operation_identifier: {
         index: 3
       },
-      type: operationType.STAKE_KEY_REGISTRATION,
+      type: OperationType.STAKE_KEY_REGISTRATION,
       status: 'success',
       account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       metadata: {
@@ -1615,7 +1615,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL: C
       operation_identifier: {
         index: 4
       },
-      type: operationType.WITHDRAWAL,
+      type: OperationType.WITHDRAWAL,
       status: 'success',
       account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
       amount: {
@@ -1675,7 +1675,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS: Components.Schemas.Construct
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1700,7 +1700,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS: Components.Schemas.Construct
         index: 1,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1732,7 +1732,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS: Components.Schemas.Construct
           index: 1
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1757,7 +1757,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS: Components.Schemas.Construct
           index: 1
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1778,7 +1778,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS: Components.Schemas.Construct
 
 const constructionExtraData = (constructionPayloadsRequest: Components.Schemas.ConstructionPayloadsRequest) =>
   constructionPayloadsRequest.operations.filter(
-    op => op.coin_change?.coin_action === 'coin_spent' || stakingOperations.includes(op.type as operationType)
+    op => op.coin_change?.coin_action === 'coin_spent' || StakingOperations.includes(op.type as OperationType)
   );
 
 export const CONSTRUCTION_PAYLOADS_RESPONSE = cbor
@@ -1849,7 +1849,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
           }
         }
       ],
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1881,7 +1881,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
           }
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1913,7 +1913,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
           }
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1957,7 +1957,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
           }
         }
       ],
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -1989,7 +1989,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
           }
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
@@ -2022,7 +2022,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
           }
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -2067,7 +2067,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
         index: 0,
         network_index: 0
       },
-      type: operationType.INPUT,
+      type: OperationType.INPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
@@ -2097,7 +2097,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
@@ -2120,7 +2120,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
           index: 0
         }
       ],
-      type: operationType.OUTPUT,
+      type: OperationType.OUTPUT,
       status: 'success',
       account: {
         address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',

@@ -16,12 +16,12 @@ export const PREFIX_LENGTH = 10;
 export const SIGNATURE_LENGTH = 128;
 export const PUBLIC_KEY_BYTES_LENGTH = 64;
 
-export enum stakeType {
+export enum StakeType {
   STAKE = 'stake',
   STAKE_TEST = 'stake_test'
 }
 
-export enum operationType {
+export enum OperationType {
   INPUT = 'input',
   OUTPUT = 'output',
   STAKE_KEY_REGISTRATION = 'stakeKeyRegistration',
@@ -30,16 +30,16 @@ export enum operationType {
   STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration'
 }
 
-export const OPERATION_TYPES = Object.values(operationType);
+export const OPERATION_TYPES = Object.values(OperationType);
 
-export const stakingOperations = [
-  operationType.STAKE_DELEGATION,
-  operationType.STAKE_KEY_REGISTRATION,
-  operationType.STAKE_KEY_DEREGISTRATION,
-  operationType.WITHDRAWAL
+export const StakingOperations = [
+  OperationType.STAKE_DELEGATION,
+  OperationType.STAKE_KEY_REGISTRATION,
+  OperationType.STAKE_KEY_DEREGISTRATION,
+  OperationType.WITHDRAWAL
 ];
 
-enum operationTypeStatus {
+enum OperationTypeStatus {
   SUCCESS = 'success'
 }
 
@@ -57,7 +57,7 @@ export const TESTNET = 'testnet';
 export const MAIN_TESTNET_NETWORK_MAGIC = 1097911063;
 
 export const SUCCESS_OPERATION_STATE = {
-  status: operationTypeStatus.SUCCESS,
+  status: OperationTypeStatus.SUCCESS,
   successful: true
 };
 
@@ -65,6 +65,11 @@ export enum AddressType {
   ENTERPRISE = 'Enterprise',
   BASE = 'Base',
   REWARD = 'Reward'
+}
+
+export enum NetworkIdentifier {
+  CARDANO_TESTNET_NETWORK = 0,
+  CARDANO_MAINNET_NETWORK
 }
 
 export enum EraAddressType {

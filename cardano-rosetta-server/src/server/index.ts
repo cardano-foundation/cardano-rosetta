@@ -6,8 +6,8 @@ import createPool from './db/connection';
 import * as Repostories from './db/repositories';
 import buildServer from './server';
 import * as Services from './services/services';
-import * as CardanoCli from './utils/cardanonode-cli';
-import * as CardanoNode from './utils/cardano-node';
+import * as CardanoCli from './utils/cardano/cli/cardanonode-cli';
+import * as CardanoNode from './utils/cardano/cli/cardano-node';
 import { Environment, parseEnvironment } from './utils/environment-parser';
 import { LinearFeeParameters } from './services/cardano-services';
 
