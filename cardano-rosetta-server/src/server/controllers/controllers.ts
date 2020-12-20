@@ -3,8 +3,8 @@ import blockController, { BlockController } from './block-controller';
 import accountController, { AccountController } from './account-controller';
 import networkController, { NetworkController } from './network-controller';
 import constructionController, { ConstructionController } from './construction-controller';
-import { CardanoCli } from '../utils/cardanonode-cli';
-import { CardanoNode } from '../utils/cardano-node';
+import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
+import { CardanoNode } from '../utils/cardano/cli/cardano-node';
 
 export interface Controllers extends BlockController, AccountController, NetworkController, ConstructionController {}
 

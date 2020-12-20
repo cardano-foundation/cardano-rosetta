@@ -4,7 +4,7 @@ import { MIDDLEWARE_VERSION, OPERATION_TYPES, ROSETTA_VERSION, SUCCESS_OPERATION
 import { mapToNetworkList, mapToNetworkStatusResponse } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
-import { CardanoNode } from '../utils/cardano-node';
+import { CardanoNode } from '../utils/cardano/cli/cardano-node';
 
 /* eslint-disable camelcase */
 export interface NetworkController {

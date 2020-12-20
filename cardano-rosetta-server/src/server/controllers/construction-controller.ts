@@ -11,7 +11,7 @@ import {
 } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
-import { CardanoCli } from '../utils/cardanonode-cli';
+import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
 import { NetworkService } from '../services/network-service';
 import { AddressType } from '../utils/constants';
 import { isAddressTypeValid, isKeyValid } from '../utils/validations';

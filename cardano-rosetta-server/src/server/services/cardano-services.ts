@@ -5,32 +5,26 @@ import CardanoWasm, {
   Ed25519Signature,
   PublicKey,
   StakeCredential,
-  StakeRegistration,
-  StakeDeregistration,
-  StakeDelegation,
   Vkey
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
+import { generateBaseAddress, generateEnterpriseAddress, generateRewardAddress } from '../utils/cardano/addresses';
+import * as OperationsProcessor from '../utils/cardano/operations-processor';
+import { getStakingCredentialFromHex } from '../utils/cardano/staking-credentials';
+import * as TransactionProcessor from '../utils/cardano/transactions-processor';
+import {
+  AddressType,
+  CurveType,
+  EraAddressType,
+  NetworkIdentifier,
+  PREFIX_LENGTH,
+  PUBLIC_KEY_BYTES_LENGTH,
+  SIGNATURE_LENGTH,
+  StakeType
+} from '../utils/constants';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
-import {
-  ADA,
-  ADA_DECIMALS,
-  operationType,
-  AddressType,
-  SIGNATURE_LENGTH,
-  PUBLIC_KEY_BYTES_LENGTH,
-  stakeType,
-  PREFIX_LENGTH,
-  CurveType
-} from '../utils/constants';
-import { isKeyValid } from '../utils/validations';
-
-export enum NetworkIdentifier {
-  CARDANO_TESTNET_NETWORK = 0,
-  CARDANO_MAINNET_NETWORK
-}
 
 export interface Signatures {
   signature: string;
@@ -50,11 +44,6 @@ export interface TransactionParsed {
 export interface LinearFeeParameters {
   minFeeA: number;
   minFeeB: number;
-}
-
-export enum EraAddressType {
-  Shelley,
-  Byron
 }
 
 const SHELLEY_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
@@ -203,283 +192,14 @@ const calculateFee = (
   return fee;
 };
 
-const getAddressPrefix = (network: number) =>
-  network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'addr' : 'addr_test';
-
-// Prefix according to: https://github.com/cardano-foundation/CIPs/tree/master/CIP5#specification
-const getStakeAddressPrefix = (network: number) =>
-  network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'stake' : 'stake_test';
-
-const getStakingCredentialFromHex = (
-  logger: Logger,
-  staking_credential?: {
-    hex_bytes: string;
-    curve_type: string;
-  }
-): StakeCredential => {
-  if (!staking_credential?.hex_bytes) {
-    logger.error('[getStakingCredentialFromHex] Staking key not provided');
-    throw ErrorFactory.missingStakingKeyError();
-  }
-  if (!isKeyValid(staking_credential.hex_bytes, staking_credential.curve_type)) {
-    logger.info('[constructionPayloads] Staking key has an invalid format');
-    throw ErrorFactory.invalidStakingKeyFormat();
-  }
-  const stakingKeyBuffer = Buffer.from(staking_credential.hex_bytes, 'hex');
-  const stakingKey = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
-  return StakeCredential.from_keyhash(stakingKey.hash());
-};
-
-const generateRewardAddress = (logger: Logger, network: NetworkIdentifier, payment: StakeCredential): string => {
-  logger.info('[generateRewardAddress] Deriving cardano reward address from valid public staking key');
-  const rewardAddress = CardanoWasm.RewardAddress.new(network, payment);
-  const bech32address = rewardAddress.to_address().to_bech32(getStakeAddressPrefix(network));
-  logger.info(`[generateRewardAddress] reward address is ${bech32address}`);
-  return bech32address;
-};
-
-const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: number): Components.Schemas.Operation => ({
-  operation_identifier: { index },
-  coin_change: {
-    coin_identifier: {
-      identifier: `${hexFormatter(Buffer.from(input.transaction_id().to_bytes()))}:${input.index()}`
-    },
-    // FIXME: we have this as a constant in `block-service`. We should move to a conversation module.
-    coin_action: 'coin_spent'
-  },
-  status: '',
-  type: operationType.INPUT
-});
-
-const parseOutputToOperation = (
-  output: CardanoWasm.TransactionOutput,
-  index: number,
-  relatedOperations: Components.Schemas.OperationIdentifier[],
-  addressPrefix: string
-): Components.Schemas.Operation => ({
-  operation_identifier: { index },
-  related_operations: relatedOperations,
-  account: { address: output.address().to_bech32(addressPrefix) },
-  amount: { value: output.amount().to_str(), currency: { symbol: ADA, decimals: ADA_DECIMALS } },
-  status: '',
-  type: operationType.OUTPUT
-});
-
-const parseCertToOperation = (
-  cert: CardanoWasm.Certificate,
-  index: number,
-  hash: string,
-  type: string,
-  address: string
-): Components.Schemas.Operation => {
-  const operation: Components.Schemas.Operation = {
-    operation_identifier: { index },
-    status: '',
-    type,
-    account: { address },
-    metadata: {
-      staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
-    }
-  };
-  const delegationCert = cert.as_stake_delegation();
-  if (delegationCert) {
-    operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
-  }
-  return operation;
-};
-
-const parseCertsToOperations = (
-  logger: Logger,
-  transactionBody: CardanoWasm.TransactionBody,
-  stakingOps: Components.Schemas.Operation[],
-  certsCount: number,
-  network: number
-): Components.Schemas.Operation[] => {
-  const parsedOperations = [];
-  logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
-  for (let i = 0; i < certsCount; i++) {
-    const stakingOperation = stakingOps[i];
-    const hex = stakingOperation.metadata?.staking_credential?.hex_bytes;
-    if (!hex) {
-      logger.error('[parseCertsToOperations] Staking key not provided');
-      throw ErrorFactory.missingStakingKeyError();
-    }
-    const credential = getStakingCredentialFromHex(logger, stakingOperation.metadata?.staking_credential);
-    const address = generateRewardAddress(logger, network, credential);
-    const cert = transactionBody.certs()!.get(i);
-    const parsedOperation = parseCertToOperation(
-      cert,
-      stakingOperation.operation_identifier.index,
-      hex,
-      stakingOperation.type,
-      address
-    );
-    parsedOperations.push(parsedOperation);
-  }
-
-  return parsedOperations;
-};
-
-const parseWithdrawalToOperation = (
-  value: string,
-  hex: string,
-  index: number,
-  address: string
-): Components.Schemas.Operation => ({
-  operation_identifier: { index },
-  status: '',
-  account: { address },
-  amount: {
-    value,
-    currency: {
-      symbol: ADA,
-      decimals: ADA_DECIMALS
-    }
-  },
-  type: operationType.WITHDRAWAL,
-  metadata: {
-    staking_credential: { hex_bytes: hex, curve_type: CurveType.edwards25519 }
-  }
-});
-
-const parseWithdrawalsToOperations = (
-  logger: Logger,
-  withdrawalOps: Components.Schemas.Operation[],
-  withdrawalsCount: number,
-  operations: Components.Schemas.Operation[],
-  network: number
-) => {
-  logger.info(`[parseWithdrawalsToOperations] About to parse ${withdrawalsCount} withdrawals`);
-  for (let i = 0; i < withdrawalsCount; i++) {
-    const withdrawalOperation = withdrawalOps[i];
-    const credential = getStakingCredentialFromHex(logger, withdrawalOperation.metadata!.staking_credential);
-    const address = generateRewardAddress(logger, network, credential);
-    const parsedOperation = parseWithdrawalToOperation(
-      withdrawalOperation.amount!.value,
-      withdrawalOperation.metadata!.staking_credential!.hex_bytes,
-      withdrawalOperation.operation_identifier.index,
-      address
-    );
-    operations.push(parsedOperation);
-  }
-};
-
-const getRelatedOperationsFromInputs = (
-  inputs: Components.Schemas.Operation[]
-): Components.Schemas.OperationIdentifier[] => inputs.map(input => ({ index: input.operation_identifier.index }));
-
-const parseOperationsFromTransactionBody = (
-  logger: Logger,
-  transactionBody: CardanoWasm.TransactionBody,
-  extraData: Components.Schemas.Operation[],
-  network: number
-): Components.Schemas.Operation[] => {
-  const operations = [];
-  const inputsCount = transactionBody.inputs().len();
-  const outputsCount = transactionBody.outputs().len();
-  logger.info(`[parseOperationsFromTransactionBody] About to parse ${inputsCount} inputs`);
-  for (let i = 0; i < inputsCount; i++) {
-    const input = transactionBody.inputs().get(i);
-    const inputParsed = parseInputToOperation(input, operations.length);
-    operations.push({ ...inputParsed, ...extraData[i], status: '' });
-  }
-  // till this line operations only contains inputs
-  const relatedOperations = getRelatedOperationsFromInputs(operations);
-  logger.info(`[parseOperationsFromTransactionBody] About to parse ${outputsCount} outputs`);
-  for (let i = 0; i < outputsCount; i++) {
-    const output = transactionBody.outputs().get(i);
-    const outputParsed = parseOutputToOperation(
-      output,
-      operations.length,
-      relatedOperations,
-      getAddressPrefix(network)
-    );
-    operations.push(outputParsed);
-  }
-  const stakingOps = extraData.filter(({ type }) =>
-    [
-      operationType.STAKE_KEY_REGISTRATION,
-      operationType.STAKE_KEY_DEREGISTRATION,
-      operationType.STAKE_DELEGATION
-    ].includes(type as operationType)
-  );
-  const certsCount = transactionBody.certs()?.len() || 0;
-  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, stakingOps, certsCount, network);
-  operations.push(...parsedCertOperations);
-
-  const withdrawalOps = extraData.filter(({ type }) => type === operationType.WITHDRAWAL);
-  const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
-  parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations, network);
-
-  return operations;
-};
-
-const validateAndParseTransactionOutput = (
-  logger: Logger,
-  output: Components.Schemas.Operation
-): CardanoWasm.TransactionOutput => {
-  // eslint-disable-next-line camelcase
-  let address;
-  try {
-    address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
-  } catch (error) {
-    throw ErrorFactory.transactionOutputDeserializationError(error.toString());
-  }
-  if (!address) {
-    logger.error('[validateAndParseTransactionOutput] Output has missing address field');
-    throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
-  }
-  const value = output.amount?.value;
-  if (!output.amount || !value) {
-    logger.error('[validateAndParseTransactionOutput] Output has missing amount value field');
-    throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
-  }
-  if (/^-\d+/.test(value)) {
-    logger.error('[validateAndParseTransactionOutput] Output has negative value');
-    throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
-  }
-  try {
-    return CardanoWasm.TransactionOutput.new(address, BigNum.from_str(output.amount?.value));
-  } catch (error) {
-    throw ErrorFactory.transactionOutputDeserializationError(error.toString());
-  }
-};
-
-const validateAndParseTransactionInput = (
-  logger: Logger,
-  input: Components.Schemas.Operation
-): CardanoWasm.TransactionInput => {
-  if (!input.coin_change) {
-    logger.error('[validateAndParseTransactionInput] Input has missing coin_change');
-    throw ErrorFactory.transactionInputsParametersMissingError('Input has missing coin_change field');
-  }
-  const [transactionId, index] = input.coin_change && input.coin_change.coin_identifier.identifier.split(':');
-  if (!(transactionId && index)) {
-    logger.error('[validateAndParseTransactionInput] Input has missing transactionId and index');
-    throw ErrorFactory.transactionInputsParametersMissingError('Input has invalid coin_identifier field');
-  }
-  const value = input.amount?.value;
-  if (!value) {
-    logger.error('[validateAndParseTransactionInput] Input has missing amount value field');
-    throw ErrorFactory.transactionInputsParametersMissingError('Input has missing amount value field');
-  }
-  if (/^\+?\d+/.test(value)) {
-    logger.error('[validateAndParseTransactionInput] Input has positive value');
-    throw ErrorFactory.transactionInputsParametersMissingError('Input has positive amount value');
-  }
-  try {
-    return CardanoWasm.TransactionInput.new(
-      CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
-      Number(index)
-    );
-  } catch (error) {
-    throw ErrorFactory.transactionInputDeserializationError(
-      'There was an error deserializating transaction input: '.concat(error)
-    );
-  }
-};
-
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
+
+const signatureProcessor: { [eraType: string]: Signatures } = {
+  [EraAddressType.Shelley]: {
+    signature: SHELLEY_DUMMY_SIGNATURE,
+    publicKey: SHELLEY_DUMMY_PUBKEY
+  } // FIXME: handle this properly when supporting byron in a separate PR
+};
 
 const getSignerFromOperation = (
   logger: Logger,
@@ -491,142 +211,33 @@ const getSignerFromOperation = (
   return generateRewardAddress(logger, network, credential);
 };
 
-const processStakeKeyRegistration = (
-  logger: Logger,
-  operation: Components.Schemas.Operation
-): CardanoWasm.Certificate => {
-  logger.info('[processStakeKeyRegistration] About to process stake key registration');
-  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
-  return CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
-};
-
-const processStakeKeyDeRegistration = (
-  logger: Logger,
-  network: NetworkIdentifier,
-  operation: Components.Schemas.Operation
-): { certificate: CardanoWasm.Certificate; address: string } => {
-  logger.info('[processStakeKeyDeRegistration] About to process stake key deregistration');
-  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
-  const address = generateRewardAddress(logger, network, credential);
-  return {
-    certificate: CardanoWasm.Certificate.new_stake_deregistration(StakeDeregistration.new(credential)),
-    address
-  };
-};
-
-const processStakeDelegation = (
-  logger: Logger,
-  network: NetworkIdentifier,
-  operation: Components.Schemas.Operation
-): { certificate: CardanoWasm.Certificate; address: string } => {
-  logger.info('[processStakeDelegation] About to process stake key delegation');
-  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
-  const address = generateRewardAddress(logger, network, credential);
-  const poolKeyHash = operation.metadata?.pool_key_hash;
-  if (!poolKeyHash) {
-    logger.error('[processStakeDelegation] no pool key hash provided for stake delegation');
-    throw ErrorFactory.missingPoolKeyError();
-  }
-  const certificate = CardanoWasm.Certificate.new_stake_delegation(
-    StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
-  );
-  return { certificate, address };
-};
-
-const processWithdrawal = (
-  logger: Logger,
-  network: NetworkIdentifier,
-  operation: Components.Schemas.Operation
-): { reward: CardanoWasm.RewardAddress; address: string } => {
-  logger.info('[processWithdrawal] About to process withdrawal');
-  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
-  const address = generateRewardAddress(logger, network, credential);
-  return { reward: CardanoWasm.RewardAddress.new(network, credential), address };
-};
-
 const processOperations = (
   logger: Logger,
   network: NetworkIdentifier,
   operations: Components.Schemas.Operation[],
   minKeyDeposit: number
 ) => {
-  const transactionInputs = CardanoWasm.TransactionInputs.new();
-  const transactionOutputs = CardanoWasm.TransactionOutputs.new();
-  const certificates = CardanoWasm.Certificates.new();
-  const withdrawals = CardanoWasm.Withdrawals.new();
-  const addresses: string[] = [];
-  const inputAmounts: string[] = [];
-  const outputAmounts: string[] = [];
-  const withdrawalAmounts: bigint[] = [];
-  let stakeKeyRegistrationsCount = 0;
-  let stakeKeyDeRegistrationsCount = 0;
-  operations.forEach(operation => {
-    switch (operation.type) {
-      case operationType.INPUT: {
-        transactionInputs.add(validateAndParseTransactionInput(logger, operation));
-        addresses.push(operation.account!.address);
-        inputAmounts.push(operation.amount!.value);
-        break;
-      }
-      case operationType.OUTPUT: {
-        transactionOutputs.add(validateAndParseTransactionOutput(logger, operation));
-        outputAmounts.push(operation.amount!.value);
-        break;
-      }
-      case operationType.STAKE_KEY_REGISTRATION: {
-        certificates.add(processStakeKeyRegistration(logger, operation));
-        stakeKeyRegistrationsCount++;
-        break;
-      }
-      case operationType.STAKE_KEY_DEREGISTRATION: {
-        const { certificate, address } = processStakeKeyDeRegistration(logger, network, operation);
-        certificates.add(certificate);
-        addresses.push(address);
-        stakeKeyDeRegistrationsCount++;
-        break;
-      }
-      case operationType.STAKE_DELEGATION: {
-        const { certificate, address } = processStakeDelegation(logger, network, operation);
-        certificates.add(certificate);
-        addresses.push(address);
-        break;
-      }
-      case operationType.WITHDRAWAL: {
-        const { reward, address } = processWithdrawal(logger, network, operation);
-        const withdrawalAmount = BigInt(operation.amount?.value);
-        withdrawalAmounts.push(withdrawalAmount);
-        withdrawals.insert(reward, BigNum.from_str(withdrawalAmount.toString()));
-        addresses.push(address);
-        break;
-      }
-      default: {
-        logger.error(`[processOperations] Operation with id ${operation.operation_identifier} has invalid type`);
-        throw ErrorFactory.invalidOperationTypeError();
-      }
-    }
-  });
   logger.info('[processOperations] About to calculate fee');
-  const refundsSum = stakeKeyDeRegistrationsCount * minKeyDeposit;
-  const depositsSum = stakeKeyRegistrationsCount * minKeyDeposit;
-  const fee = calculateFee(inputAmounts, outputAmounts, BigInt(refundsSum), BigInt(depositsSum), withdrawalAmounts);
+  const result = OperationsProcessor.convert(logger, network, operations);
+  const refundsSum = result.stakeKeyDeRegistrationsCount * minKeyDeposit;
+  const depositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
+  const fee = calculateFee(
+    result.inputAmounts,
+    result.outputAmounts,
+    BigInt(refundsSum),
+    BigInt(depositsSum),
+    result.withdrawalAmounts
+  );
   logger.info(`[processOperations] Calculated fee: ${fee}`);
   return {
-    transactionInputs,
-    transactionOutputs,
-    certificates,
-    withdrawals,
-    addresses: getUniqueAddresses(addresses),
+    transactionInputs: result.transactionInputs,
+    transactionOutputs: result.transactionOutputs,
+    certificates: result.certificates,
+    withdrawals: result.withdrawals,
+    addresses: getUniqueAddresses(result.addresses),
     fee
   };
 };
-
-const createTransactionBody = (
-  inputs: CardanoWasm.TransactionInputs,
-  outputs: CardanoWasm.TransactionOutputs,
-  fee: BigInt,
-  ttl: number
-): CardanoWasm.TransactionBody =>
-  CardanoWasm.TransactionBody.new(inputs, outputs, BigNum.from_str(fee.toString()), ttl);
 
 const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): CardanoWasm.TransactionWitnessSet => {
   try {
@@ -649,43 +260,35 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
 };
 
 const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: number): CardanoService => ({
-  generateAddress(logger, network, publicKey, stakingCredential, type = AddressType.ENTERPRISE) {
+  generateAddress(logger, network, publicKeyString, stakingCredentialString, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${JSON.stringify(
-        publicKey
+        publicKeyString
       )} and network identifier ${network}`
     );
 
-    const publicKeyBuffer = Buffer.from(publicKey, 'hex');
+    const publicKeyBuffer = Buffer.from(publicKeyString, 'hex');
     const pub = CardanoWasm.PublicKey.from_bytes(publicKeyBuffer);
-    const payment = StakeCredential.from_keyhash(pub.hash());
+    const paymentCredential = StakeCredential.from_keyhash(pub.hash());
 
     if (type === AddressType.REWARD) {
-      return generateRewardAddress(logger, network, payment);
+      return generateRewardAddress(logger, network, paymentCredential);
     }
 
     if (type === AddressType.BASE) {
-      if (!stakingCredential) {
+      if (!stakingCredentialString) {
         logger.error('[constructionDerive] No staking key was provided for base address creation');
         throw ErrorFactory.missingStakingKeyError();
       }
-      const stakingKeyBuffer = Buffer.from(stakingCredential, 'hex');
+      const stakingCredential = getStakingCredentialFromHex(logger, {
+        hex_bytes: stakingCredentialString,
+        curve_type: CurveType.edwards25519
+      });
 
-      const staking = CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
-
-      logger.info('[generateAddress] Deriving cardano address from valid public key and staking key');
-      const baseAddress = CardanoWasm.BaseAddress.new(network, payment, StakeCredential.from_keyhash(staking.hash()));
-      const bech32address = baseAddress.to_address().to_bech32(getAddressPrefix(network));
-      logger.info(`[generateAddress] base address is ${bech32address}`);
-      return bech32address;
+      return generateBaseAddress(logger, network, paymentCredential, stakingCredential);
     }
 
-    // Enterprise address - default scenario
-    logger.info('[generateAddress] Deriving cardano enterprise address from valid public key');
-    const enterpriseAddress = CardanoWasm.EnterpriseAddress.new(network, payment);
-    const bech32enterpriseAddress = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
-    logger.info(`[generateAddress] enterprise address is ${bech32enterpriseAddress}`);
-    return bech32enterpriseAddress;
+    return generateEnterpriseAddress(logger, network, paymentCredential);
   },
 
   getEraAddressType(address) {
@@ -704,7 +307,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
   },
   isStakeAddress(address) {
     const addressPrefix = this.getPrefixFromAddress(address);
-    return [stakeType.STAKE as string, stakeType.STAKE_TEST as string].some(type => addressPrefix.includes(type));
+    return [StakeType.STAKE as string, StakeType.STAKE_TEST as string].some(type => addressPrefix.includes(type));
   },
   getHashOfSignedTransaction(logger, signedTransaction) {
     try {
@@ -747,7 +350,12 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
     );
 
     logger.info('[createUnsignedTransaction] About to create transaction body');
-    const transactionBody = createTransactionBody(transactionInputs, transactionOutputs, fee, ttl);
+    const transactionBody = CardanoWasm.TransactionBody.new(
+      transactionInputs,
+      transactionOutputs,
+      BigNum.from_str(fee.toString()),
+      ttl
+    );
 
     if (certificates.len() > 0) transactionBody.set_certs(certificates);
     if (withdrawals.len() > 0) transactionBody.set_withdrawals(withdrawals);
@@ -771,16 +379,9 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
     const { bytes, addresses } = this.createUnsignedTransaction(logger, network, operations, ttl);
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
-      switch (this.getEraAddressType(address)) {
-        case EraAddressType.Shelley:
-          return {
-            signature: SHELLEY_DUMMY_SIGNATURE,
-            publicKey: SHELLEY_DUMMY_PUBKEY
-          };
-        case EraAddressType.Byron: // FIXME: handle this properly when supporting byron in a separate PR
-        case null:
-          throw ErrorFactory.invalidAddressError(address);
-      }
+      const eraAddressType = this.getEraAddressType(address);
+      if (eraAddressType === null) throw ErrorFactory.invalidAddressError(address);
+      return signatureProcessor[eraAddressType];
     });
     const transaction = this.buildTransaction(logger, bytes, signatures);
     // eslint-disable-next-line no-magic-numbers
@@ -801,7 +402,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       logger.info('[parseSignedTransaction] About to create signed transaction from bytes');
       const parsed = CardanoWasm.Transaction.from_bytes(transactionBuffer);
       logger.info('[parseSignedTransaction] About to parse operations from transaction body');
-      const operations = parseOperationsFromTransactionBody(logger, parsed.body(), extraData, networkId);
+      const operations = TransactionProcessor.convert(logger, parsed.body(), extraData, networkId);
       logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
       logger.info(operations, '[parseSignedTransaction] Returning operations');
       const signers = getUniqueAddresses(extraData.map(data => getSignerFromOperation(logger, networkId, data)));
@@ -817,7 +418,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       const transactionBuffer = Buffer.from(transaction, 'hex');
       const parsed = CardanoWasm.TransactionBody.from_bytes(transactionBuffer);
       logger.info(extraData, '[parseUnsignedTransaction] About to parse operations from transaction body');
-      const operations = parseOperationsFromTransactionBody(logger, parsed, extraData, networkId);
+      const operations = TransactionProcessor.convert(logger, parsed, extraData, networkId);
       logger.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
       return { operations, signers: [] };
     } catch (error) {

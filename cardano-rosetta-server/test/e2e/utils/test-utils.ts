@@ -7,8 +7,8 @@ import * as Services from '../../../src/server/services/services';
 import createPool from '../../../src/server/db/connection';
 import buildServer from '../../../src/server/server';
 import { Pool } from 'pg';
-import { CardanoCli } from '../../../src/server/utils/cardanonode-cli';
-import { CardanoNode } from '../../../src/server/utils/cardano-node';
+import { CardanoCli } from '../../../src/server/utils/cardano/cli/cardanonode-cli';
+import { CardanoNode } from '../../../src/server/utils/cardano/cli/cardano-node';
 
 const DEFAULT_PAGE_SIZE = 5;
 

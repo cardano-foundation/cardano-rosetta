@@ -6,8 +6,8 @@ import ApiError from './api-error';
 import { Services } from './services/services';
 import * as Controllers from './controllers/controllers';
 import { IncomingMessage, Server, ServerResponse } from 'http';
-import { CardanoCli } from './utils/cardanonode-cli';
-import { CardanoNode } from './utils/cardano-node';
+import { CardanoCli } from './utils/cardano/cli/cardanonode-cli';
+import { CardanoNode } from './utils/cardano/cli/cardano-node';
 import { ErrorFactory } from './utils/errors';
 
 interface ExtraParams {

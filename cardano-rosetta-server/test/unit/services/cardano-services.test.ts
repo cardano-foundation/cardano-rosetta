@@ -1,5 +1,5 @@
-import configure, { EraAddressType, CardanoService } from '../../../src/server/services/cardano-services';
-
+import configure, { CardanoService } from '../../../src/server/services/cardano-services';
+import { EraAddressType } from '../../../src/server/utils/constants';
 const minKeyDeposit = 2000000;
 
 describe('Cardano Service', () => {
