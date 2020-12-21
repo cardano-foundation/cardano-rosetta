@@ -62,3 +62,18 @@ In order to execute the example, run:
 ```javascript
 $ yarn delegate-stake-example
 ```
+
+## Withdrawals
+
+Uses predefined payment and staking keys to send a transaction with inputs, outputs, and withdrawal operations. To make withdrawals work previously has to be delegated and earned rewards with the specified staking account.
+
+Important notes:
+- `PAYMENT_ADDRESS` is the Base address based on payment keys and `STAKE_ADDRESS` is the Reward address based on stake keys and they are both used to sign the transaction. 
+- Funds will be sent to `SEND_FUNDS_ADDRESS` by default as it's the address where testnet funds should be returned.
+- `WITHDRAWAL_AMOUNT` will be used to define withdrawal operation's amount. It has to be the total balance at the staking account. 
+
+In order to execute the example, run:
+
+```javascript
+$ yarn withdrawal-example
+```
