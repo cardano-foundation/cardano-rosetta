@@ -78,3 +78,43 @@ To do so, the following steps are required:
 2. Place them `src/server/openApi.json`
 3. Introduce as many changes as you need (`metadata` fields need to be populated manually to allow Fastify to return the fields)
 4. Execute `yarn generate-rosetta-types`
+
+## Generating test data
+
+In order to execute e2e tests a postgres docker container is started and a DB is populated with real mainnet data. This way, we can count on real data that will require too much effort to be populated. There are two ways to import it.
+
+**⚠ IMPORTANT NOTE: If `cardano-db-sync` is updated and it introduces a new schema, tests will still work as they were created with previous one. A manual update following the steps described below is required.**
+
+### 1. DB dump
+
+In order to populate a large dataset, `pg_dump` can be used. Our current test cases require `[Genesis, ~65k]` block range. Not all blocks are used although different checks find it very useful, for example, when checking account balance up to certain block.
+
+Steps to generate and use a new snapshot are:
+
+1. Run a mainnet node (it could be Cardano Rosetta)
+2. When the node has reached the block you wish to export, execute `pg_dump $DB > db.bak`. For example, if you are using default Cardano Rosetta db, you can run `pg_dump -U postgres cexplorer > db.bak`.
+3. Generate a `tar` file for `db.bak` and place it in `/cardano-rosetta-server/test/e2e/jest-setup/db-snapshot.tar`
+4. Jest, before running will [pick up the file and load it into the container](./test/e2e/jest-setup/docker.ts).
+
+### 2. Import specific blocks
+
+After introducing staking, it has been realized that it would be impossible to import a mainnet dump as staking operations where introduced after block 4M leading to a `db-snapshot.tar` that is +3.5GB. To avoid such thing which is not practical, a new way to import data has been introduced that helps importing specific blocks. 
+
+Steps to do so:
+
+1. Run a mainnet node
+2. Edit [dump block script](./test/e2e/block/dump_blocks.sh) and specify the block ids to be exported
+3. Change the credentials if needed, current default ones don't require any password and connect to a db named `cexplorer`
+4. A file will stored at `/tmp/fixture_data.sql` containing some sql statements (basically the same ones as `pg_dump` creates)
+5. Generate a `tar` file for `fixture_data.sql` and place it in `/cardano-rosetta-server/test/e2e/jest-setup/fixture_data.tar`
+6. Jest wil pick it up as with the full snapshot db.
+
+Two things are worth mentioning:
+
+1. Data to be exported needs to be defined in the `dump_blocks.sh` script. If a new table is needed, the script needs to be updated.
+2. In order to be able to selectively import data some constraints had to be disabled.
+
+### Improvements
+
+- Introduce a way to check current schema in order to throw an error if `cardano-db-sync` is updated but it doesn't match the snapshot.
+- Automate snapshots generation as it currently is a semi-manual process.
