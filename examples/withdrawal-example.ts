@@ -11,28 +11,43 @@ import {
   constructionSubmit,
   signPayloads,
   waitForBalanceToBe,
-  buildOperation,
-  generateKeys,
+  buildOperation
 } from "./commons";
 const logger = console;
 
-const PRIVATE_KEY =
-  "41d9523b87b9bd89a4d07c9b957ae68a7472d8145d7956a692df1a8ad91957a2c117d9dd874447f47306f50a650f1e08bf4bec2cfcb2af91660f23f2db912977";
+const PAYMENT_ADDRESS =
+  "addr_test1qpzu48r4qv85a4meuxjjentanh4389cuefx07uqdvyq0lmg85v9kxr57rn7fy0jvlte69gjekwlu74240lxgpatsegjsa93kqf";
 const SEND_FUNDS_ADDRESS =
   "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
-const PRIVATE_STAKING_KEY =
-  "nqDmxvW0ytblMFnEbMFO8rVgl5V/pYnso/TPOyWz3vylms3kaRPDAg49S/rYyJh+eb+e0X3jeqCBhXgAHNjLCA==";
-const WITHDRAWAL_AMOUNT = 10000;
+const WITHDRAWAL_AMOUNT = "513664403";
 
-const network_identifier = {
-  blockchain: "cardano",
-  network: "testnet",
+const PAYMENT_KEYS = {
+  secretKey: Buffer.from(
+    "a25e7990c35b84ee4ef8dbfa2fabab6f7a39c0424ca0b8aaf0e26af50b0f3218bd3a406e3d5d6bdde69de1b19b14305b87378aba3525dfe14f49620900bbd7a7",
+    "hex"
+  ),
+  publicKey: Buffer.from(
+    "bd3a406e3d5d6bdde69de1b19b14305b87378aba3525dfe14f49620900bbd7a7",
+    "hex"
+  ),
 };
+
+const STAKING_KEYS = {
+  secretKey: Buffer.from(
+    "5279a3b4697bd4ddb9255ba7f03fad5556f18a134ad4564baac693a4a4939003ab872cec116c85468bb12d78629e2190dc8a014447907f9669601d9669a81333",
+    "hex"
+  ),
+  publicKey: Buffer.from(
+    "ab872cec116c85468bb12d78629e2190dc8a014447907f9669601d9669a81333",
+    "hex"
+  ),
+};
+const STAKE_ADDRESS =
+  "stake_test1uqr6xzmrp60pelyj8ex04uaz5fvm8070242hlnyq74cv5fgvvwrpp";
 
 const buildWithdrawalOperation = (
   stakingKey: string,
-  currentIndex: number,
-  withdrawalAmount: number
+  currentIndex: number
 ) => ({
   operation_identifier: {
     index: currentIndex + 1,
@@ -40,7 +55,7 @@ const buildWithdrawalOperation = (
   type: "withdrawal",
   status: "success",
   amount: {
-    value: withdrawalAmount,
+    value: WITHDRAWAL_AMOUNT,
     currency: {
       symbol: "ADA",
       decimals: 6,
@@ -55,48 +70,53 @@ const buildWithdrawalOperation = (
 });
 
 const doRun = async (): Promise<void> => {
-  const keys = generateKeys(PRIVATE_KEY);
-  logger.info(
-    `[doRun] secretKey ${Buffer.from(keys.secretKey).toString("hex")}`
-  );
-  const publicKey = Buffer.from(keys.publicKey).toString("hex");
+  logger.info(`[doRun] payment address is ${PAYMENT_ADDRESS}`);
+  logger.info(`[doRun] staking address is ${STAKE_ADDRESS}`);
 
-  const stakingKey = Buffer.from(
-    generateKeys(PRIVATE_STAKING_KEY).publicKey
-  ).toString("hex");
-  logger.info(`[doRun] secretKey ${stakingKey}`);
-  const address = await constructionDerive(publicKey);
+  const keyAddressMapper = {};
+  const stakingPublicKey = Buffer.from(STAKING_KEYS.publicKey).toString("hex");
+  keyAddressMapper[STAKE_ADDRESS] = STAKING_KEYS;
+  keyAddressMapper[PAYMENT_ADDRESS] = PAYMENT_KEYS;
   const unspents = await waitForBalanceToBe(
-    address,
+    PAYMENT_ADDRESS,
     (response) => response.coins.length !== 0
   );
-  const builtOperations = buildOperation(unspents, address, SEND_FUNDS_ADDRESS);
-  const totalOperations = builtOperations.operations.length;
-  const builtDelegationOperation = buildWithdrawalOperation(
-    stakingKey,
-    totalOperations,
-    WITHDRAWAL_AMOUNT
+  const builtOperations = buildOperation(
+    unspents,
+    PAYMENT_ADDRESS,
+    SEND_FUNDS_ADDRESS
   );
-  builtOperations.operations.push(builtDelegationOperation);
-  const preprocess = await constructionPreprocess(builtOperations, 1000);
+  const currentIndex = builtOperations.operations.length - 1;
+  const builtWithdrawalOperation = buildWithdrawalOperation(
+    stakingPublicKey,
+    currentIndex
+  );
+  builtOperations.operations.push(builtWithdrawalOperation);
+  logger.info(
+    `[doRun] operations to be sent are ${JSON.stringify(
+      builtOperations.operations
+    )}`
+  );
+  const preprocess = await constructionPreprocess(
+    builtOperations.operations,
+    1000
+  );
   const metadata = await constructionMetadata(preprocess);
   const payloads = await constructionPayloads({
-    network_identifier,
     operations: builtOperations.operations,
-    metadata
+    metadata,
   });
-  const signatures = signPayloads(payloads.payloads, keys);
+  const signatures = signPayloads(payloads.payloads, keyAddressMapper);
   const combined = await constructionCombine(
     payloads.unsigned_transaction,
     signatures
   );
   logger.info(`[doRun] signed transaction is ${combined.signed_transaction}`);
   const hashResponse = await constructionSubmit(combined.signed_transaction);
-  logger.info(
-    `[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent`
-  );
+  const transactionHash = hashResponse.transaction_identifier.hash;
+  logger.info(`[doRun] transaction with hash ${transactionHash} sent`);
 };
 
 doRun()
-  .then(() => logger.info("Stake Registration finished"))
+  .then(() => logger.info("Withdrawal finished"))
   .catch(console.error);
