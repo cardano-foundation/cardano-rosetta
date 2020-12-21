@@ -1,5 +1,7 @@
 request_funds(1){
+
   find_account{
+
     currency = {"symbol":"ADA", "decimals":6};
     random_account = find_balance({
       "minimum_balance":{
@@ -50,12 +52,12 @@ transfer(10){
     // We set the max_fee_amount to know how much buffer we should
     // leave for fee payment when selecting a sender account.
     dust_amount = "1000000";
-    max_fee_amount = "1000000";
+    max_fee_amount = "10000000";
     send_buffer = {{dust_amount}} + {{max_fee_amount}};
 
     // We look for a coin of value >= the reserved_amount to create
     // a transfer with change (reserved_amount is max_fee_amount + dust_amount x 2).
-    reserved_amount = "2400";
+    reserved_amount = "12000000";
     sender = find_balance({
       "minimum_balance":{
         "value": {{reserved_amount}},
@@ -74,7 +76,7 @@ transfer(10){
       "maximum": {{receivable_amount}}
     });
     print_message({
-      "recipient_amount": {{recipient_amount}}
+      "recipient_amount":{{recipient_amount}}
     });
 
     // The change amount is what we aren't sending to the recipient
@@ -84,22 +86,16 @@ transfer(10){
     raw_change_amount = {{sender.balance.value}} - {{recipient_amount}};
     change_amount = {{raw_change_amount}} - {{max_fee_amount}};
     print_message({
-      "change_amount": {{change_amount}}
+      "change_amount":{{change_amount}}
     });
 
-    // The last thing we need to do before creating the transaction
-    // is to find a recipient with a *types.AccountIdentifier that
-    // is not equal to the sender.
-    recipient = find_balance({
-      "not_account_identifier":[{{sender.account_identifier}}],
-      "not_coins":[{{sender.coin}}],
-      "minimum_balance":{
-        "value": "0",
-        "currency": {{currency}}
-      },
-      "create_limit": 100,
-      "create_probability": 50
+    // We load the recipient address from an ENV.
+    // Faucet return address is `addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3`
+    recipient_address = load_env("RECIPIENT");
+    print_message({
+      "refund recipient address": {{recipient_address}}
     });
+    recipient = {"address": {{recipient_address}}};
 
     sender_amount = 0 - {{sender.balance.value}};
     transfer_dry_run.confirmation_depth = "1";
@@ -116,7 +112,7 @@ transfer(10){
       {
         "operation_identifier":{"index":1},
         "type":"output",
-        "account":{{recipient.account_identifier}},
+        "account":{{recipient}},
         "amount":{"value":{{recipient_amount}},"currency":{{currency}}},
         "status": "" // to be removed in 1.4.8
       },
@@ -154,7 +150,7 @@ transfer(10){
       {
         "operation_identifier":{"index":1},
         "type":"output",
-        "account":{{recipient.account_identifier}},
+        "account": {{recipient}},
         "amount":{"value":{{recipient_amount}},"currency":{{currency}}},
         "status": "" // to be removed in 1.4.8
       },
@@ -169,87 +165,91 @@ transfer(10){
   }
 }
 
-//return_funds(10){
-  //transfer_dry_run{
-    //transfer_dry_run.network = {"network":"testnet", "blockchain":"cardano"};
-    //currency = {"symbol":"ADA", "decimals":6};
+return_funds(10){
+  transfer_dry_run{
+    transfer_dry_run.network = {"network":"testnet", "blockchain":"cardano"};
+    currency = {"symbol":"ADA", "decimals":6};
 
-    //We look for a sender that is able to pay the 
-    //max_fee_amount + min_utxo size (reserved_amount is max_fee_amount + min_utxo size).
-    //max_fee_amount = "1200";
-    //reserved_amount = "1800";
-    //sender = find_balance({
-      //"minimum_balance":{
-        //"value": {{reserved_amount}},
-        //"currency": {{currency}}
-      //},
-      //"require_coin": true
-    //});
+    // We look for a sender that is able to pay the 
+    max_fee_amount = "1000000";
+    reserved_amount = "1000000";
+    sender = find_balance({
+      "minimum_balance":{
+        "value": {{reserved_amount}},
+        "currency": {{currency}}
+      },
+      "require_coin": true
+    });
 
     // We send the maximum amount available to the recipient. Don't worry
     // we will modify this after the dry run to make sure we don't overpay.
-    //recipient_amount = {{sender.balance.value}} - {{max_fee_amount}};
-    //print_message({"recipient_amount": {{recipient_amount}}});
+    recipient_amount = {{sender.balance.value}} - {{max_fee_amount}};
+    print_message({
+      "recipient_amount":{{recipient_amount}}
+    });
 
     // We load the recipient address from an ENV.
-    // recipient_address = load_env("RECIPIENT");
-    //recipient = {"address": {{recipient_address}}};
+    // Faucet return address is `addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3`
+    recipient_address = load_env("RECIPIENT");
+    print_message({
+      "refund recipient address": {{recipient_address}}
+    });
+    recipient = {"address": {{recipient_address}}};
 
-    //sender_amount = 0 - {{sender.balance.value}};
-    //transfer_dry_run.confirmation_depth = "1";
-    //transfer_dry_run.dry_run = true;
-    //transfer_dry_run.operations = [
-      //{
-        //"operation_identifier":{"index":0},
-        //"type":"input",
-        //"account":{{sender.account_identifier}},
-        //"amount":{"value":{{sender_amount}},"currency":{{currency}}},
-        //"coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}},
-        //"status": "" // to be removed in 1.4.8
-      //},
-      //{
-        //"operation_identifier":{"index":1},
-        //"type":"output",
-        //"account":{{recipient}},
-        //"amount":{"value":{{recipient_amount}},"currency":{{currency}}},
-        //"status": "" // to be removed in 1.4.8
-      //}
-    //];
-  //},
-  //transfer{
+    sender_amount = 0 - {{sender.balance.value}};
+    transfer_dry_run.confirmation_depth = "1";
+    transfer_dry_run.dry_run = true;
+    transfer_dry_run.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"input",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{sender_amount}},"currency":{{currency}}},
+        "coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}},
+        "status": "" // to be removed in 1.4.8
+      },
+      {
+        "operation_identifier":{"index":1},
+        "type":"output",
+        "account":{{recipient}},
+        "amount":{"value":{{recipient_amount}},"currency":{{currency}}},
+        "status": "" // to be removed in 1.4.8
+      }
+    ];
+  },
+  transfer{
     // The suggested_fee is returned in the /construction/metadata
     // response and saved to transfer_dry_run.suggested_fee.
-    //suggested_fee = find_currency_amount({
-      //"currency":{{currency}},
-      //"amounts":{{transfer_dry_run.suggested_fee}}
-    //});
+    suggested_fee = find_currency_amount({
+      "currency":{{currency}},
+      "amounts":{{transfer_dry_run.suggested_fee}}
+    });
 
-    //print_message({"Suggested fee": {{suggested_fee.value}}});
     // We calculate the recipient_amount using the new suggested_fee
     // and assert that it is above the minimum UTXO size.
-    //recipient_amount = {{sender.balance.value}} - {{suggested_fee.value}};
-    //dust_amount = "1000000";
-    //recipient_minus_dust = {{recipient_amount}} - {{dust_amount}};
-    //assert({{recipient_minus_dust}});
+    recipient_amount = {{sender.balance.value}} - {{suggested_fee.value}};
+    dust_amount = "1000000";
+    recipient_minus_dust = {{recipient_amount}} - {{dust_amount}};
+    assert({{recipient_minus_dust}});
 
-    //transfer.network = {{transfer_dry_run.network}};
-    //transfer.confirmation_depth = {{transfer_dry_run.confirmation_depth}};
-    //transfer.operations = [
-      //{
-        //"operation_identifier":{"index":0},
-        //"type":"input",
-        //"account":{{sender.account_identifier}},
-        //"amount":{"value":{{sender_amount}},"currency":{{currency}}},
-        //"coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}},
-        //"status": "" // to be removed in 1.4.8
-      //},
-     //{
-       //"operation_identifier":{"index":1},
-        //"type":"output",
-        //"account":{{recipient}},
-        //"amount":{"value":{{recipient_amount}},"currency":{{currency}}},
-        //"status": "" // to be removed in 1.4.8
-      //}
-    //];
- //}
-//}
+    transfer.network = {{transfer_dry_run.network}};
+    transfer.confirmation_depth = {{transfer_dry_run.confirmation_depth}};
+    transfer.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"input",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{sender_amount}},"currency":{{currency}}},
+        "coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}},
+        "status": "" // to be removed in 1.4.8
+      },
+      {
+        "operation_identifier":{"index":1},
+        "type":"output",
+        "account":{{recipient}},
+        "amount":{"value":{{recipient_amount}},"currency":{{currency}}},
+        "status": "" // to be removed in 1.4.8
+      }
+    ];
+  }
+}
