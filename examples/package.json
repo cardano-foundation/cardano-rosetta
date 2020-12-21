@@ -3,7 +3,8 @@
   "license": "Apache-2.0",
   "scripts": {
     "send-transactions-example": "ts-node ./send-transaction-example.ts",
-    "delegate-stake-example": "ts-node ./delegate-stake-example.ts"
+    "delegate-stake-example": "ts-node ./delegate-stake-example.ts",
+    "withdrawal-example": "ts-node ./withdrawal-example.ts"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "2.0.0",
