@@ -19,7 +19,7 @@ request_funds(1){
     loaded_account = find_balance({
       "account_identifier": {{random_account.account_identifier}},
       "minimum_balance":{
-        "value": "1000000",
+        "value": "10000000",
         "currency": {{currency}}
       },
       "require_coin":true
@@ -52,12 +52,12 @@ transfer(10){
     // We set the max_fee_amount to know how much buffer we should
     // leave for fee payment when selecting a sender account.
     dust_amount = "1000000";
-    max_fee_amount = "10000000";
+    max_fee_amount = "5000000";
     send_buffer = {{dust_amount}} + {{max_fee_amount}};
 
     // We look for a coin of value >= the reserved_amount to create
     // a transfer with change (reserved_amount is max_fee_amount + dust_amount x 2).
-    reserved_amount = "12000000";
+    reserved_amount = "7000000";
     sender = find_balance({
       "minimum_balance":{
         "value": {{reserved_amount}},
