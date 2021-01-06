@@ -10,7 +10,7 @@
     "@emurgo/cardano-serialization-lib-nodejs": "2.0.0",
     "@types/node": "14.14.10",
     "@types/temp-write": "4.0.0",
-    "axios": "0.19.2",
+    "axios": "0.21.1",
     "delay": "4.4.0",
     "ts-node": "8.10.2",
     "tweetnacl": "1.0.3",
