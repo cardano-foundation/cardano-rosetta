@@ -26,8 +26,6 @@ request_funds(1){
       "key":"payment_account_identifier"
     });
 
-    print_message({"DEBUG!!": {{payment_account_identifier}}});
-
     loaded_account = find_balance({
       "account_identifier": {{payment_account_identifier}},
       "minimum_balance":{
