@@ -90,7 +90,8 @@ const doRun = async (): Promise<void> => {
   const builtOperations = buildOperation(
     unspents,
     paymentAddress,
-    SEND_FUNDS_ADDRESS
+    SEND_FUNDS_ADDRESS,
+    true
   );
   const currentIndex = builtOperations.operations.length - 1;
   const builtRegistrationOperation = buildRegistrationOperation(

@@ -102,7 +102,8 @@ const constructionMetadata = async (options: any) => {
 const buildOperation = (
   unspents: any,
   address: string,
-  destination: string
+  destination: string,
+  staking: boolean
 ) => {
   const inputs = unspents.coins.map((coin: any, index: number) => {
     const operation = {
@@ -128,7 +129,17 @@ const buildOperation = (
   });
   // TODO: No proper fees estimation is being done (it should be transaction size based)
   const totalBalance = BigInt(unspents.balances[0].value);
-  const outputAmount = (totalBalance * BigInt(95)) / BigInt(100);
+  if (staking) {
+    var outputAmount;
+    var i = 0;
+    do {
+      var dividend = 95 - i;
+      outputAmount = (totalBalance * BigInt(dividend)) / BigInt(100);
+      i += 5;
+      if (outputAmount < 2500000) throw new Error(`outputAmount=${outputAmount} is too low. Try with more funds.`);
+    }
+    while (totalBalance - outputAmount <= 2000000)
+  }
   const outputs = [
     {
       operation_identifier: {
