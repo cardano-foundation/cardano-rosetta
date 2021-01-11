@@ -2,9 +2,9 @@
 /* eslint-disable camelcase */
 /* eslint-disable new-cap */
 /* eslint-disable no-console */
-import delay from "delay";
-import * as NaCl from "tweetnacl";
-import axios from "axios";
+import delay from 'delay';
+import * as NaCl from 'tweetnacl';
+import axios from 'axios';
 
 const logger = console;
 
@@ -102,7 +102,8 @@ const constructionMetadata = async (options: any) => {
 const buildOperation = (
   unspents: any,
   address: string,
-  destination: string
+  destination: string,
+  isRegisteringStakeKey: boolean
 ) => {
   const inputs = unspents.coins.map((coin: any, index: number) => {
     const operation = {
@@ -128,7 +129,17 @@ const buildOperation = (
   });
   // TODO: No proper fees estimation is being done (it should be transaction size based)
   const totalBalance = BigInt(unspents.balances[0].value);
-  const outputAmount = (totalBalance * BigInt(95)) / BigInt(100);
+  let outputAmount = (totalBalance * BigInt(95)) / BigInt(100);
+  if (isRegisteringStakeKey) {
+    let i = 0;
+    do {
+      let dividend = 95 - i;
+      outputAmount = (totalBalance * BigInt(dividend)) / BigInt(100);
+      i += 5;
+      if (outputAmount < 2500000) throw new Error(`outputAmount=${outputAmount} is too low. Try with more funds.`);
+    }
+    while (totalBalance - outputAmount <= 2000000)
+  }
   const outputs = [
     {
       operation_identifier: {
