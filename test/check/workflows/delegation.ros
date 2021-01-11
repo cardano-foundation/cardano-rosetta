@@ -26,12 +26,10 @@ request_funds(1){
       "key":"payment_account_identifier"
     });
 
-    print_message({"DEBUG!!": {{payment_account_identifier}}});
-
     loaded_account = find_balance({
       "account_identifier": {{payment_account_identifier}},
       "minimum_balance":{
-        "value": "1000000",
+        "value": "10000000",
         "currency": {{currency}}
       },
       "require_coin":true
@@ -109,15 +107,20 @@ delegate(10){
     // We set the max_fee_amount to know how much buffer we should
     // leave for fee payment when selecting a sender account.
     dust_amount = "1000000";
-    max_fee_amount = "1000000000";
+    max_fee_amount = "5000000";
+    stake_key_registration = "2000000";
     send_buffer = {{dust_amount}} + {{max_fee_amount}};
+    send_buffer = {{send_buffer}} + {{stake_key_registration}};
+    print_message({
+      "send buffer is": {{send_buffer}}
+    });
 
     // We look for a coin of value >= the reserved_amount to create
-    // a transfer with change (reserved_amount is max_fee_amount + dust_amount x 2).
-    reserved_amount = "1000000000";
+    // a transfer with change (reserved_amount is max_fee_amount + dust_amount x 2 + stake registration payment 2 ADA).
+    transfer_dry_run.reserved_amount = "9000000";
     sender = find_balance({
       "minimum_balance":{
-        "value": {{reserved_amount}},
+        "value": {{transfer_dry_run.reserved_amount}},
         "currency": {{currency}}
       },
       "require_coin": true
@@ -140,6 +143,8 @@ delegate(10){
     // amount to avoid overpaying the fee after the dry run
     // completes.
     raw_change_amount = {{sender.balance.value}} - {{recipient_amount}};
+    // stake registration
+    raw_change_amount = {{raw_change_amount}} - {{stake_key_registration}}; 
     change_amount = {{raw_change_amount}} - {{max_fee_amount}};
     print_message({
       "change_amount":{{change_amount}}
@@ -211,9 +216,28 @@ delegate(10){
         }
       }
     ];
+
+    print_message({
+      "transfer dry run operations": {{transfer_dry_run.operations}}
+    });
   },
   transfer{
-    transfer.network = {"network":"testnet", "blockchain":"cardano"};
+    // The suggested_fee is returned in the /construction/metadata
+    // response and saved to transfer_dry_run.suggested_fee.
+    suggested_fee = find_currency_amount({
+      "currency":{{currency}},
+      "amounts":{{transfer_dry_run.suggested_fee}}
+    });
+
+    print_message({
+      "suggested fee": {{suggested_fee}}
+    });
+
+    // We can access the variables of other scenarios, so we don't
+    // need to recalculate raw_change_amount.
+    change_amount = {{raw_change_amount}} - {{suggested_fee.value}};
+    transfer.network = {{transfer_dry_run.network}};
+    transfer.confirmation_depth = {{transfer_dry_run.confirmation_depth}};
     staking_credential = get_blob({
       "key":"staking_key"
     });
@@ -221,60 +245,9 @@ delegate(10){
       "staking_credential":{{staking_credential}}
     });
     
-    currency = {"symbol":"ADA", "decimals":6};
-
-    // We set the max_fee_amount to know how much buffer we should
-    // leave for fee payment when selecting a sender account.
-    dust_amount = "1000000";
-    max_fee_amount = "1000000000";
-    send_buffer = {{dust_amount}} + {{max_fee_amount}};
-
-    // We look for a coin of value >= the reserved_amount to create
-    // a transfer with change (reserved_amount is max_fee_amount + dust_amount x 2).
-    reserved_amount = "1000000000";
-    sender = find_balance({
-      "minimum_balance":{
-        "value": {{reserved_amount}},
-        "currency": {{currency}}
-      },
-      "require_coin": true
-    });
-    // The amount we send to the recipient is a random value
-    // between the dust_amount and the value of the entire coin (minus
-    // the amount reserved for fee payment and covering the dust minimum
-    // of the change UTXO).
-    receivable_amount = {{sender.balance.value}} - {{send_buffer}};
-    recipient_amount = random_number({
-      "minimum": {{dust_amount}},
-      "maximum": {{receivable_amount}}
-    });
-    print_message({
-      "recipient_amount":{{recipient_amount}}
-    });
-
-    // The change amount is what we aren't sending to the recipient
-    // minus the maximum fee. Don't worry, we will adjust this
-    // amount to avoid overpaying the fee after the dry run
-    // completes.
-    raw_change_amount = {{sender.balance.value}} - {{recipient_amount}};
-    change_amount = {{raw_change_amount}} - {{max_fee_amount}};
-    print_message({
-      "change_amount":{{change_amount}}
-    });
-
-    // The last thing we need to do before creating the transaction
-    // is to find a recipient with a *types.AccountIdentifier that
-    // is not equal to the sender.
-    // We load the recipient address from an ENV.
-    // Faucet return address is `addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3`
-    recipient_address = load_env("RECIPIENT");
-    print_message({
-      "refund recipient address": {{recipient_address}}
-    });
+    // recipient_address = transfer_dry_run.recipient_address;
     recipient = {"address": {{recipient_address}}};
 
-    sender_amount = 0 - {{sender.balance.value}};
-    transfer.confirmation_depth = "1";
     transfer.operations = [
       {
         "operation_identifier":{"index":0},
@@ -323,10 +296,10 @@ delegate(10){
           "pool_key_hash": {{transfer_dry_run.pool_key_hash}}
         }
       }
-    ];
+    ]; 
 
     print_message({
-      "OPERATIONS!": {{transfer.operations}}
+      "transfer operations": {{transfer.operations}}
     });
   }
 }
