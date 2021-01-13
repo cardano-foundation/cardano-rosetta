@@ -3,7 +3,13 @@
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
-import { linearFeeParameters, setupDatabase, setupOfflineDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import {
+  linearFeeParameters,
+  setupDatabase,
+  setupOfflineDatabase,
+  setupServer,
+  testInvalidNetworkParameters
+} from '../utils/test-utils';
 import { latestBlockSlot, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
