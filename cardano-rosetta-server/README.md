@@ -81,7 +81,9 @@ To do so, the following steps are required:
 
 ## Generating test data
 
-In order to execute e2e tests a postgres docker container is started and a DB is populated with real mainnet data. This way, we can count on real data that will require too much effort to be populated. There are two ways to import it.
+In order to execute e2e tests a postgres docker container is started and a DB is populated with real mainnet data. This way, we can count on real data that will require too much effort to be populated (lots of inserts and data thats liked and it might take too much time to generate interesting scenarios).
+
+There are two ways to import it and both are described below. It's worth mentioning that we rely upon naming convention so please pay attention to it.
 
 **⚠ IMPORTANT NOTE: If `cardano-db-sync` is updated and it introduces a new schema, tests will still work as they were created with previous one. A manual update following the steps described below is required.**
 
@@ -91,10 +93,10 @@ In order to populate a large dataset, `pg_dump` can be used. Our current test ca
 
 Steps to generate and use a new snapshot are:
 
-1. Run a mainnet node (it could be Cardano Rosetta)
-2. When the node has reached the block you wish to export, execute `pg_dump $DB > db.bak`. For example, if you are using default Cardano Rosetta db, you can run `pg_dump -U postgres cexplorer > db.bak`.
-3. Generate a `tar` file for `db.bak` and place it in `/cardano-rosetta-server/test/e2e/jest-setup/db-snapshot.tar`
-4. Jest, before running will [pick up the file and load it into the container](./test/e2e/jest-setup/docker.ts).
+1. Run a cardano node (it could be Cardano Rosetta)
+2. When the node has reached the block you wish to export, execute `pg_dump $DB > network.bak`. For example, if you are using default Cardano Rosetta db running a mainnet node, you can run `pg_dump -U postgres cexplorer > mainnet.bak`.
+3. Generate a `tar` file for `mainnet.bak` and place it in `/cardano-rosetta-server/test/e2e/jest-setup/mainnet-db-snapshot.tar`.
+4. Jest, before running will [pick up the file and load it into the container](./test/e2e/jest-setup/docker.ts). It will load the snapshot based on the network name.
 
 ### 2. Import specific blocks
 
@@ -106,13 +108,45 @@ Steps to do so:
 2. Edit [dump block script](./test/e2e/block/dump_blocks.sh) and specify the block ids to be exported
 3. Change the credentials if needed, current default ones don't require any password and connect to a db named `cexplorer`
 4. A file will stored at `/tmp/fixture_data.sql` containing some sql statements (basically the same ones as `pg_dump` creates)
-5. Generate a `tar` file for `fixture_data.sql` and place it in `/cardano-rosetta-server/test/e2e/jest-setup/fixture_data.tar`
-6. Jest wil pick it up as with the full snapshot db.
+5. Rename `/tmp/fixture_data.sql` to `/tmp/network-fixture-data.sql`, for example, if running for launchpad it will end up being `/tmp/launchpad-fixture-data.sql`
+6. Generate a `tar` file for `network-fixture-data.sql` and place it in `/cardano-rosetta-server/test/e2e/jest-setup/network-fixture-data.tar`, for example `launchpad-fixture-data.tar`
+7. Jest wil pick it up as with the full snapshot db.
 
 Two things are worth mentioning:
 
 1. Data to be exported needs to be defined in the `dump_blocks.sh` script. If a new table is needed, the script needs to be updated.
 2. In order to be able to selectively import data some constraints had to be disabled.
+
+## Using different snapshots when running tests
+
+A new db will be created for each snapshot (See [this file](./test/e2e/jest-setup/docker.ts) for details). You can use any of them when running e2e tests. Default is `mainnet` and can be used like:
+
+```typescript
+beforeAll(async () => {
+  database = setupDatabase();
+  server = setupServer(database);
+});
+afterAll(async () => {
+  await database.end();
+});
+```
+
+If a different snapshot needs to be used (`mainnet` being the default), a db connection based on snapshot name can be created:
+
+```typescript
+test('Launchpad', async () => {
+  const launchpad = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
+  const launchpadServer = setupServer(launchpad);
+
+  const response = await launchpadServer.inject({
+    method: 'post',
+    url: '/block',
+    payload: generatePayload(1)
+  });
+  expect(response.statusCode).toEqual(StatusCodes.OK);
+  expect(response.json().block.block_identifier.hash).toEqual("da5cfaff39fde97c797cf5a6c3657d10b603cea1daa830f9a83b3a5cc62e4e8a");
+});
+```
 
 ### Improvements
 
