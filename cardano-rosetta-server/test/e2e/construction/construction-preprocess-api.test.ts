@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import StatusCodes from 'http-status-codes';
-import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import { setupOfflineDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import {
@@ -54,7 +54,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupDatabase(true);
+    database = setupOfflineDatabase();
     server = setupServer(database);
   });
 

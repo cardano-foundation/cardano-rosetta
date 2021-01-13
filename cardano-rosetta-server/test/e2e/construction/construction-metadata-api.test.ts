@@ -3,7 +3,7 @@
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
-import { linearFeeParameters, setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import { linearFeeParameters, setupDatabase, setupOfflineDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 import { latestBlockSlot, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
@@ -24,7 +24,7 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupDatabase(true);
+    database = setupOfflineDatabase();
     server = setupServer(database);
   });
 
@@ -33,7 +33,7 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
   });
 
   beforeAll(async () => {
-    database = setupDatabase(false);
+    database = setupDatabase();
     server = setupServer(database);
   });
 

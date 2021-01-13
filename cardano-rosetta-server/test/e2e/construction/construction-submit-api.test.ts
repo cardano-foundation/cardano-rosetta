@@ -3,7 +3,7 @@
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
-import { cardanoCliMock, setupDatabase, setupServer } from '../utils/test-utils';
+import { cardanoCliMock, setupOfflineDatabase, setupServer } from '../utils/test-utils';
 import { Errors } from '../../../src/server/utils/errors';
 import { CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA } from '../fixture-data';
 
@@ -19,7 +19,7 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupDatabase(true);
+    database = setupOfflineDatabase();
     server = setupServer(database);
   });
 
