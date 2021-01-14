@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 import fs from 'fs';
 import path from 'path';
 import StatusCodes from 'http-status-codes';
+import PgConnectionString from 'pg-connection-string';
 import * as Repositories from '../../../src/server/db/repositories';
 import * as Services from '../../../src/server/services/services';
 import createPool from '../../../src/server/db/connection';
@@ -12,13 +13,26 @@ import { CardanoNode } from '../../../src/server/utils/cardano/cli/cardano-node'
 
 const DEFAULT_PAGE_SIZE = 5;
 
-export const setupDatabase = (offline: boolean): Pool => {
-  if (offline) {
-    const poolMock = new Pool();
-    poolMock.query = jest.fn();
-    return poolMock;
-  }
-  return createPool(process.env.DB_CONNECTION_STRING);
+/**
+ * Setups a database connection that will fail if invoked.
+ * This is useful to test offline methods
+ */
+export const setupOfflineDatabase = () => {
+  const poolMock = new Pool();
+  poolMock.query = jest.fn();
+  return poolMock;
+};
+
+/**
+ * This function setups the database connection to be used when testing.
+ * If database is received, connection string value will be overridden.
+ *
+ * @param connectionString to connect to the db
+ * @param database this value can be used to override connection string Database
+ */
+export const setupDatabase = (connectionString = process.env.DB_CONNECTION_STRING, database = 'mainnet'): Pool => {
+  const { user, password, host, port } = PgConnectionString.parse(connectionString);
+  return createPool(`postgresql://${user}:${password}@${host}:${port}/${database}`);
 };
 
 export const cardanoCliMock: CardanoCli = {

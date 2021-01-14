@@ -2,7 +2,7 @@
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
-import { setupDatabase, setupServer } from '../utils/test-utils';
+import { setupOfflineDatabase, setupServer } from '../utils/test-utils';
 import {
   CONSTRUCTION_COMBINE_PAYLOAD,
   CONSTRUCTION_INVALID_TRANSACTION,
@@ -17,7 +17,7 @@ describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupDatabase(true);
+    database = setupOfflineDatabase();
     server = setupServer(database);
   });
 

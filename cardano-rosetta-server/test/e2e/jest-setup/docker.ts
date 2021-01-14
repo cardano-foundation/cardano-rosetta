@@ -13,12 +13,45 @@ export const removePostgresContainer = async (): Promise<void> => {
   await container.remove();
 };
 
-export const setupPostgresContainer = async (
-  database: string,
-  user: string,
-  password: string,
-  port: string
-): Promise<void> => {
+interface DatabaseConfig {
+  database: string;
+  snapshot: boolean;
+  fixture: boolean;
+}
+
+const setupDBData = async (databaseConfig: DatabaseConfig, user: string, container: Docker.Container) => {
+  const database = databaseConfig.database;
+
+  await containerExec(container, ['bash', '-c', `psql -U ${user} -c "CREATE DATABASE ${database}"`]);
+
+  if (databaseConfig.snapshot) {
+    await container.putArchive(path.join(__dirname, `${database}-db-snapshot.tar`), {
+      path: CONTAINER_TEMP_DIR,
+      User: 'root'
+    });
+    // Execute backup restore
+    await containerExec(container, [
+      'bash',
+      '-c',
+      `cat ${CONTAINER_TEMP_DIR}/${database}.bak | psql -U ${user} ${database}`
+    ]);
+  }
+
+  if (databaseConfig.fixture) {
+    await container.putArchive(path.join(__dirname, `${database}-fixture-data.tar`), {
+      path: CONTAINER_TEMP_DIR,
+      User: 'root'
+    });
+
+    await containerExec(container, [
+      'bash',
+      '-c',
+      `cat ${CONTAINER_TEMP_DIR}/${database}-fixture-data.sql | psql -U ${user} ${database}`
+    ]);
+  }
+};
+
+export const setupPostgresContainer = async (user: string, password: string, port: string): Promise<void> => {
   const docker = new Docker();
 
   const needsToPull = !(await imageExists(docker, CONTAINER_IMAGE));
@@ -26,7 +59,7 @@ export const setupPostgresContainer = async (
 
   const container = await docker.createContainer({
     Image: CONTAINER_IMAGE,
-    Env: [`POSTGRES_DB=${database}`, `POSTGRES_PASSWORD=${password}`, `POSTGRES_USER=${user}`],
+    Env: [`POSTGRES_PASSWORD=${password}`, `POSTGRES_USER=${user}`],
     HostConfig: {
       PortBindings: {
         '5432/tcp': [
@@ -40,29 +73,27 @@ export const setupPostgresContainer = async (
   });
   await container.start();
 
-  await container.putArchive(path.join(__dirname, 'db-snapshot.tar'), {
-    path: CONTAINER_TEMP_DIR,
-    User: 'root'
-  });
-
-  await container.putArchive(path.join(__dirname, 'fixture_data.tar'), {
-    path: CONTAINER_TEMP_DIR,
-    User: 'root'
-  });
-
   // Wait for the db service to be running (container started event is not enough)
   await containerExec(container, [
     'bash',
     '-c',
-    `until psql -U ${user} -d ${database} -c "select 1" > /dev/null 2>&1 ; do sleep 1; done`
+    `until psql -U ${user} -c "select 1" > /dev/null 2>&1 ; do sleep 1; done`
   ]);
 
-  // Execute backup restore
-  await containerExec(container, ['bash', '-c', `cat ${CONTAINER_TEMP_DIR}/db.bak | psql -U ${user} ${database}`]);
+  const databaseConfigs = [
+    {
+      snapshot: true,
+      fixture: true,
+      database: 'mainnet'
+    },
+    {
+      snapshot: true,
+      fixture: false,
+      database: 'launchpad'
+    }
+  ];
 
-  await containerExec(container, [
-    'bash',
-    '-c',
-    `cat ${CONTAINER_TEMP_DIR}/fixture_data.sql | psql -U ${user} ${database}`
-  ]);
+  for (const databaseConfig of databaseConfigs) {
+    await setupDBData(databaseConfig, user, container);
+  }
 };

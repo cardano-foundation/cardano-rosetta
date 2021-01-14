@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
-import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
-import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import { Pool } from 'pg';
+import { setupOfflineDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 
 const CONSTRUCTION_DERIVE_ENDPOINT = '/construction/derive';
 const INVALID_PUBLIC_KEY_FORMAT = 'Invalid public key format';
@@ -73,7 +73,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupDatabase(true);
+    database = setupOfflineDatabase();
     server = setupServer(database);
   });
 

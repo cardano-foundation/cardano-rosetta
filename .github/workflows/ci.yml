@@ -28,7 +28,7 @@ jobs:
           LOGGER_LEVEL: debug
           LOGGER_ENABLED: true
           BIND_ADDRESS: 127.0.0.1
-          DB_CONNECTION_STRING: postgresql://postgres:notForProduction!@127.0.0.1:5432/cexplorer
+          DB_CONNECTION_STRING: postgresql://postgres:notForProduction!@127.0.0.1:5432/mainnet
           TOPOLOGY_FILE_PATH: test/e2e/utils/topology-test.json
           # PATHs should be strings and must exist
           CARDANO_CLI_PATH: /tmp
