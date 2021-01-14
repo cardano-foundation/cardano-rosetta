@@ -30,12 +30,9 @@ export const setupOfflineDatabase = () => {
  * @param connectionString to connect to the db
  * @param database this value can be used to override connection string Database
  */
-export const setupDatabase = (connectionString = process.env.DB_CONNECTION_STRING, database?: string): Pool => {
-  if (database) {
-    const { user, password, host, port } = PgConnectionString.parse(connectionString);
-    return createPool(`postgresql://${user}:${password}@${host}:${port}/${database}`);
-  }
-  return createPool(connectionString);
+export const setupDatabase = (connectionString = process.env.DB_CONNECTION_STRING, database = 'mainnet'): Pool => {
+  const { user, password, host, port } = PgConnectionString.parse(connectionString);
+  return createPool(`postgresql://${user}:${password}@${host}:${port}/${database}`);
 };
 
 export const cardanoCliMock: CardanoCli = {
