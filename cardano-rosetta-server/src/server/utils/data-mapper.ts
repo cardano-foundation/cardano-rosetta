@@ -14,6 +14,7 @@ import {
   StakingOperations,
   SUCCESS_STATUS
 } from './constants';
+import { Block, BlockUtxos, BalanceAtBlock, Network, PopulatedTransaction, Utxo } from '../models';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
@@ -23,6 +24,17 @@ export const mapAmount = (lovelace: string): Components.Schemas.Amount => ({
   currency: {
     symbol: ADA,
     decimals: ADA_DECIMALS
+  }
+});
+
+export const mapMaAmount = (maUtxo: Utxo): Components.Schemas.Amount => ({
+  value: maUtxo.quantity.toString(),
+  currency: {
+    symbol: maUtxo.maName,
+    decimals: 0,
+    metadata: {
+      policy: maUtxo.maPolicy
+    }
   }
 });
 
@@ -243,11 +255,45 @@ export const mapToRosettaBlock = (block: Block, transactions: PopulatedTransacti
  * Processes AccountBalance response utxo section
  * @param utxoDetails
  */
-const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] =>
-  utxoDetails.map(utxoDetail => ({
-    amount: mapAmount(utxoDetail.value),
-    coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
-  }));
+const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] => {
+  const coinList: Components.Schemas.Coin[] = [];
+  utxoDetails.forEach(utxoDetail => {
+    coinList.push({
+      amount: mapAmount(utxoDetail.value),
+      coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
+    });
+    if (utxoDetail.maName && utxoDetail.maPolicy) {
+      coinList.push({
+        amount: mapMaAmount(utxoDetail),
+        coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
+      });
+    }
+  });
+  return coinList;
+};
+
+/**
+ * Generates an Amount list for multi assets utxos
+ * @param multiAssetsUtxo multi assets utxos
+ */
+const convertToMultiAssetBalances = (multiAssetsUtxo: Utxo[]): Components.Schemas.Amount[] => {
+  const multiAssetsAmounts: Utxo[] = [];
+  multiAssetsUtxo.forEach(maUtxo => {
+    multiAssetsAmounts.push({
+      ...maUtxo,
+      quantity: multiAssetsUtxo.reduce(
+        (accum, current) =>
+          current.maPolicy === maUtxo.maPolicy &&
+          current.maName === maUtxo.maName &&
+          current.transactionHash !== maUtxo.transactionHash
+            ? accum + current.quantity
+            : accum,
+        maUtxo.quantity
+      )
+    });
+  });
+  return [...new Set(multiAssetsAmounts)].map(mapMaAmount);
+};
 
 /**
  * Generates an AccountBalance response object
@@ -260,14 +306,21 @@ export const mapToAccountBalanceResponse = (
   // FIXME: handle this in a better way
   if (blockBalanceData.hasOwnProperty('utxos')) {
     const balanceForAddress = (blockBalanceData as BlockUtxos).utxos
-      .reduce((acum, current) => acum + BigInt(current.value), BigInt(0))
+      .reduce((acum, current, index) => {
+        const previousValue = (blockBalanceData as BlockUtxos).utxos[index - 1];
+        const amountToSum =
+          index === 0 || current.transactionHash !== previousValue.transactionHash ? BigInt(current.value) : BigInt(0);
+        return acum + amountToSum;
+      }, BigInt(0))
       .toString();
+    const multiAssetUtxo = (blockBalanceData as BlockUtxos).utxos.filter(utxo => utxo.maPolicy && utxo.maName);
+    const multiAssetsBalance = convertToMultiAssetBalances(multiAssetUtxo);
     return {
       block_identifier: {
         index: blockBalanceData.block.number,
         hash: blockBalanceData.block.hash
       },
-      balances: [mapAmount(balanceForAddress)],
+      balances: [mapAmount(balanceForAddress), ...multiAssetsBalance],
       coins: parseUtxoDetails((blockBalanceData as BlockUtxos).utxos)
     };
   }

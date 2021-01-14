@@ -229,7 +229,7 @@ export interface FindUtxo {
   txHash: Buffer;
   index: number;
   maPolicy: Buffer;
-  maName: Buffer;
+  maName: string;
   quantity: number;
 }
 
@@ -256,7 +256,7 @@ const selectUtxoDetail = `SELECT
   tx_out.value as value,
   tx_out_tx.hash as "txHash",
   tx_out.index as index,
-  ma_tx_out.name as "maName",
+  ENCODE(ma_tx_out.name, 'escape') as "maName",
   ma_tx_out.policy as "maPolicy",
   ma_tx_out.quantity`;
 
