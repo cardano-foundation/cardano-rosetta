@@ -44,6 +44,9 @@ export interface Utxo {
   value: string;
   transactionHash: string;
   index: number;
+  maName: string;
+  maPolicy: string;
+  quantity: number;
 }
 
 export interface TransactionInOut {

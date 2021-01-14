@@ -228,6 +228,9 @@ export interface FindUtxo {
   value: string;
   txHash: Buffer;
   index: number;
+  maPolicy: Buffer;
+  maName: Buffer;
+  quantity: number;
 }
 
 const findUtxoFieldsByAddressAndBlock = (selectFields: string): string => `
@@ -241,7 +244,9 @@ ${selectFields}
     tx_in_tx.block_id <= (select id from block where hash = $2)	
 	JOIN tx AS tx_out_tx ON
 	  tx_out_tx.id = tx_out.tx_id AND
-    tx_out_tx.block_id <= (select id from block where hash = $2)	
+    tx_out_tx.block_id <= (select id from block where hash = $2)
+  LEFT JOIN ma_tx_out ON
+  ma_tx_out.tx_out_id = tx_out.id	
   WHERE 
 	  tx_out.address = $1 AND
 	  tx_in_tx.id IS NULL
@@ -250,7 +255,10 @@ ${selectFields}
 const selectUtxoDetail = `SELECT
   tx_out.value as value,
   tx_out_tx.hash as "txHash",
-  tx_out.index as index`;
+  tx_out.index as index,
+  ma_tx_out.name as "maName",
+  ma_tx_out.policy as "maPolicy",
+  ma_tx_out.quantity`;
 
 const findUtxoByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectUtxoDetail);
 
