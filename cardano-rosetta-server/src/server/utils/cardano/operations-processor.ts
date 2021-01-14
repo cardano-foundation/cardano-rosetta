@@ -3,8 +3,9 @@ import CardanoWasm, {
   BigNum,
   StakeDelegation,
   StakeDeregistration,
-  StakeRegistration
-} from '@emurgo/cardano-serialization-lib-nodejs';
+  StakeRegistration,
+  Value
+} from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
 import { NetworkIdentifier, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
@@ -26,17 +27,18 @@ const validateAndParseTransactionOutput = (
     logger.error('[validateAndParseTransactionOutput] Output has missing address field');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
   }
-  const value = output.amount?.value;
-  if (!output.amount || !value) {
+  const outputValue = output.amount?.value;
+  if (!output.amount || !outputValue) {
     logger.error('[validateAndParseTransactionOutput] Output has missing amount value field');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
   }
-  if (/^-\d+/.test(value)) {
+  if (/^-\d+/.test(outputValue)) {
     logger.error('[validateAndParseTransactionOutput] Output has negative value');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
   }
   try {
-    return CardanoWasm.TransactionOutput.new(address, BigNum.from_str(output.amount?.value));
+    const value = Value.new(BigNum.from_str(output.amount?.value));
+    return CardanoWasm.TransactionOutput.new(address, value);
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(error.toString());
   }
