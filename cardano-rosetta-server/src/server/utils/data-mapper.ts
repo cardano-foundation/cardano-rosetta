@@ -6,6 +6,7 @@ import { NetworkStatus } from '../services/network-service';
 import {
   ADA,
   ADA_DECIMALS,
+  MULTI_ASSET_DECIMALS,
   CARDANO,
   MAINNET,
   NetworkIdentifier,
@@ -31,7 +32,7 @@ export const mapMaAmount = (maUtxo: Utxo): Components.Schemas.Amount => ({
   value: maUtxo.quantity.toString(),
   currency: {
     symbol: maUtxo.maName,
-    decimals: 0,
+    decimals: MULTI_ASSET_DECIMALS,
     metadata: {
       policy: maUtxo.maPolicy
     }
@@ -257,20 +258,35 @@ export const mapToRosettaBlock = (block: Block, transactions: PopulatedTransacti
  */
 const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] => {
   const coinList: Components.Schemas.Coin[] = [];
-  utxoDetails.forEach(utxoDetail => {
-    coinList.push({
-      amount: mapAmount(utxoDetail.value),
-      coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
-    });
+  utxoDetails.forEach((utxoDetail, index) => {
+    const coinId = { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` };
+    if (index === 0 || utxoDetails[index - 1].transactionHash !== utxoDetail.transactionHash)
+      coinList.push({
+        amount: mapAmount(utxoDetail.value),
+        coin_identifier: coinId
+      });
     if (utxoDetail.maName && utxoDetail.maPolicy) {
       coinList.push({
         amount: mapMaAmount(utxoDetail),
-        coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
+        coin_identifier: coinId
       });
     }
   });
   return coinList;
 };
+
+const calculateTotalMaAmount = (multiAssetsUtxo: Utxo[], maUtxo: Utxo): string =>
+  multiAssetsUtxo
+    .reduce(
+      (accum, current) =>
+        current.maPolicy === maUtxo.maPolicy &&
+        current.maName === maUtxo.maName &&
+        current.transactionHash !== maUtxo.transactionHash
+          ? accum + BigInt(current.quantity)
+          : accum,
+      BigInt(maUtxo.quantity)
+    )
+    .toString();
 
 /**
  * Generates an Amount list for multi assets utxos
@@ -278,21 +294,20 @@ const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] => {
  */
 const convertToMultiAssetBalances = (multiAssetsUtxo: Utxo[]): Components.Schemas.Amount[] => {
   const multiAssetsAmounts: Utxo[] = [];
-  multiAssetsUtxo.forEach(maUtxo => {
-    multiAssetsAmounts.push({
-      ...maUtxo,
-      quantity: multiAssetsUtxo.reduce(
-        (accum, current) =>
-          current.maPolicy === maUtxo.maPolicy &&
-          current.maName === maUtxo.maName &&
-          current.transactionHash !== maUtxo.transactionHash
-            ? accum + current.quantity
-            : accum,
-        maUtxo.quantity
-      )
-    });
-  });
-  return [...new Set(multiAssetsAmounts)].map(mapMaAmount);
+  for (let i = 0; i < multiAssetsUtxo.length; i++) {
+    const maUtxo = multiAssetsUtxo[i];
+    if (
+      !multiAssetsAmounts.some(maAmount => maAmount.maPolicy === maUtxo.maPolicy && maAmount.maName === maUtxo.maName)
+    ) {
+      const totalMaAmount = calculateTotalMaAmount(multiAssetsUtxo, maUtxo);
+
+      multiAssetsAmounts.push({
+        ...maUtxo,
+        quantity: totalMaAmount
+      });
+    }
+  }
+  return multiAssetsAmounts.map(mapMaAmount);
 };
 
 /**

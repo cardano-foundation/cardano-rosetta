@@ -7,6 +7,7 @@ export const MIDDLEWARE_VERSION = packageJson.version;
 export const CARDANO = 'cardano';
 export const ADA = 'ADA';
 export const ADA_DECIMALS = 6;
+export const MULTI_ASSET_DECIMALS = 0;
 export const VIN = 'Vin';
 export const VOUT = 'Vout';
 export const SIGNATURE_TYPE = 'ed25519';

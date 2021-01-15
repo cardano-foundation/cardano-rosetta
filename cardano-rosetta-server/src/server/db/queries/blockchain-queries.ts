@@ -230,7 +230,7 @@ export interface FindUtxo {
   index: number;
   maPolicy: Buffer;
   maName: string;
-  quantity: number;
+  quantity: string;
 }
 
 const findUtxoFieldsByAddressAndBlock = (selectFields: string): string => `
