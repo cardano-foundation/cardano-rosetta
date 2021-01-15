@@ -361,19 +361,7 @@ declare namespace Components {
        * 8
        */
       decimals: number; // int32
-      /**
-       * Any additional information related to the currency itself. For example, it would be useful to populate this object with the contract address of an ERC-20 token.
-       * example:
-       * {
-       *   "policy": "deadbeef"
-       * }
-       */
-      metadata?: {
-        /**
-         * Policy Id hex string
-         */
-        policy?: string;
-      };
+      metadata?: any;
     }
     /**
      * CurveType is the type of cryptographic curve associated with a PublicKey. * secp256k1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * secp256r1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * edwards25519: `y (255-bits) || x-sign-bit (1-bit)` - `32 bytes` (https://ed25519.cr.yp.to/ed25519-20110926.pdf) * tweedle: 1st pk : Fq.t (32 bytes) || 2nd pk : Fq.t (32 bytes) (https://github.com/CodaProtocol/coda/blob/develop/rfcs/0038-rosetta-construction-api.md#marshal-keys)
@@ -585,7 +573,7 @@ declare namespace Components {
       /**
        * All the multiassets for the given unspent
        */
-      multiassets?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount[];
+      tokenBundle?: /* A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain. */ TokenBundleItem[];
     }
     /**
      * OperationStatus is utilized to indicate which Operation status are considered successful.
@@ -727,6 +715,16 @@ declare namespace Components {
      * 1582833600000
      */
     export type Timestamp = number; // int64
+    /**
+     * A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.
+     */
+    export interface TokenBundleItem {
+      /**
+       * Policy Id hex string
+       */
+      policyId: string;
+      tokens: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount[];
+    }
     /**
      * Transactions contain an array of Operations that are attributable to the same TransactionIdentifier.
      */
