@@ -1,20 +1,33 @@
-import { Pool, QueryResult } from 'pg';
+import { Logger } from 'fastify';
 import moment from 'moment';
+import { Pool, QueryResult } from 'pg';
+import {
+  Block,
+  FindTransactionWithToken,
+  GenesisBlock,
+  PolicyId,
+  PopulatedTransaction,
+  Token,
+  Transaction,
+  TransactionInput,
+  TransactionIO,
+  TransactionOutput,
+  Utxo
+} from '../models';
 import { hashStringToBuffer, hexFormatter } from '../utils/formatters';
 import Queries, {
+  FindBalance,
   FindTransaction,
+  FindTransactionDelegations,
+  FindTransactionDeregistrations,
   FindTransactionFieldResult,
+  FindTransactionIOResult,
+  FindTransactionRegistrations,
   FindTransactionsInputs,
   FindTransactionsOutputs,
   FindTransactionWithdrawals,
-  FindTransactionRegistrations,
-  FindTransactionDeregistrations,
-  FindTransactionDelegations,
-  FindUtxo,
-  FindBalance
+  FindUtxo
 } from './queries/blockchain-queries';
-import { Logger } from 'fastify';
-import { Block, GenesisBlock, Transaction, PopulatedTransaction, Utxo } from '../models';
 
 export interface BlockchainRepository {
   /**
@@ -135,20 +148,63 @@ const populateTransactionField = <T extends FindTransactionFieldResult>(
   }, transactionsMap);
 
 /**
+ * Finds or creates a transaction input or output in given transaction
+ * @param  {T[]} transactions
+ * @param  {number} id
+ * @param  {()=>T} create
+ * @returns T
+ */
+const findOrCreateTransactionIO = <T extends TransactionIO>(transactions: T[], id: number, create: () => T): T => {
+  let transaction = transactions.find(t => t.id === id);
+  if (!transaction) {
+    transaction = create();
+    transactions.push();
+  }
+  return transaction;
+};
+/**
+ * Checks if operation has a token
+ * @param  {FindTransactionIOResult} operation
+ * @returns operationisFindTransactionWithToken
+ */
+const hasToken = (operation: FindTransactionIOResult): operation is FindTransactionWithToken =>
+  operation.policy !== undefined && operation.name !== undefined && operation.quantity !== undefined;
+
+/**
+ * Add token to token bundle of given transaction operation
+ * @param  {TransactionIO} transaction
+ * @param  {string} policy
+ * @param  {string} name
+ * @param  {number} quantity
+ * @returns void
+ */
+const addToken = (transaction: TransactionIO, policy: string, name: string, quantity: number): void => {
+  const tokenBundle = transaction.tokenBundle ?? { tokens: new Map<PolicyId, Token[]>() };
+  if (!tokenBundle.tokens.has(policy)) {
+    tokenBundle.tokens.set(policy, []);
+  }
+  tokenBundle.tokens.get(policy)?.push({ name, quantity });
+};
+
+/**
  * Updates the transaction inputs
  *
  * @param transaction
  * @param input
  */
-const parseInputsRow = (transaction: PopulatedTransaction, input: FindTransactionsInputs): PopulatedTransaction => ({
-  ...transaction,
-  inputs: transaction.inputs.concat({
+const parseInputsRow = (transaction: PopulatedTransaction, input: FindTransactionsInputs): PopulatedTransaction => {
+  const transactionInput: TransactionInput = findOrCreateTransactionIO(transaction.inputs, input.id, () => ({
+    id: input.id,
     address: input.address,
     value: input.value,
     sourceTransactionHash: hexFormatter(input.sourceTxHash),
     sourceTransactionIndex: input.sourceTxIndex
-  })
-});
+  }));
+  if (hasToken(input)) {
+    addToken(transactionInput, input.policy, input.name, input.quantity);
+  }
+  return transaction;
+};
 
 /**
  * Updates the transaction appending outputs
@@ -156,14 +212,18 @@ const parseInputsRow = (transaction: PopulatedTransaction, input: FindTransactio
  * @param transaction
  * @param output
  */
-const parseOutputsRow = (transaction: PopulatedTransaction, output: FindTransactionsOutputs): PopulatedTransaction => ({
-  ...transaction,
-  outputs: transaction.outputs.concat({
+const parseOutputsRow = (transaction: PopulatedTransaction, output: FindTransactionsOutputs): PopulatedTransaction => {
+  const transactionOutput: TransactionOutput = findOrCreateTransactionIO(transaction.outputs, output.id, () => ({
+    id: output.id,
     address: output.address,
     value: output.value,
     index: output.index
-  })
-});
+  }));
+  if (hasToken(output)) {
+    addToken(transactionOutput, output.policy, output.name, output.quantity);
+  }
+  return transaction;
+};
 
 /**
  * Updates the transaction appending withdrawals
