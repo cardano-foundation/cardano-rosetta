@@ -1,22 +1,21 @@
 import CardanoWasm, { Address, ByronAddress, StakeCredential } from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
-import { NetworkIdentifier, EraAddressType } from '../constants';
+import {
+  NetworkIdentifier,
+  EraAddressType,
+  AddressPrefix,
+  StakeAddressPrefix,
+  NonStakeAddressPrefix
+} from '../constants';
 
 /**
- * Returns the bech-32 address prefix based on the netowrkId acording to
- * Prefix according to: https://github.com/cardano-foundation/CIPs/tree/master/CIP5#specification
+ * Returns the bech-32 address prefix based on the netowrkId
+ * Prefix according to: https://github.com/cardano-foundation/CIPs/blob/master/CIP-0005/CIP-0005.md
  * @param network number
+ * @param addressPrefix the corresponding prefix enum. Defaults to non stake address prefixes
  */
-export const getAddressPrefix = (network: number) =>
-  network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'addr' : 'addr_test';
-
-/**
- * Returns the bech-32 stake address prefix based on the netowrkId acording to
- * Prefix according to: https://github.com/cardano-foundation/CIPs/tree/master/CIP5#specification
- * @param network number
- */
-export const getStakeAddressPrefix = (network: number) =>
-  network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? 'stake' : 'stake_test';
+export const getAddressPrefix = (network: number, addressPrefix: AddressPrefix = NonStakeAddressPrefix): string =>
+  network === NetworkIdentifier.CARDANO_MAINNET_NETWORK ? addressPrefix.MAIN : addressPrefix.TEST;
 
 /**
  * Creates a new Reward address
@@ -31,7 +30,7 @@ export const generateRewardAddress = (
 ): string => {
   logger.info('[generateRewardAddress] Deriving cardano reward address from valid public staking key');
   const rewardAddress = CardanoWasm.RewardAddress.new(network, paymentCredential);
-  const bech32address = rewardAddress.to_address().to_bech32(getStakeAddressPrefix(network));
+  const bech32address = rewardAddress.to_address().to_bech32(getAddressPrefix(network, StakeAddressPrefix));
   logger.info(`[generateRewardAddress] reward address is ${bech32address}`);
   return bech32address;
 };

@@ -196,6 +196,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     // Address generated locally with following command (using private keys attached to issue #198):
+    // eslint-disable-next-line max-len
     // cat addr.prv | ./cardano-address key public | ./cardano-address address payment  --network-tag 1 | ./cardano-address address delegation $(cat stake.prv | ./cardano-address key public)
     expect(response.json().address).toEqual(
       'addr1q9dhy809valxaer3nlvg2h5nudd62pxp6lu0cs36zczhfr98y6pah6lvppk8xft57nef6yexqh6rr204yemcmm3emhzsgg4fg0'
@@ -230,6 +231,7 @@ describe(CONSTRUCTION_DERIVE_ENDPOINT, () => {
       })
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
+    // eslint-disable-next-line max-len
     // https://cardanoscan.io/address/015b721de5677e6ee4719fd8855e93e35ba504c1d7f8fc423a1605748ca72683dbebec086c732574f4f29d132605f431a9f526778dee39ddc5
     expect(response.json().address).toEqual('stake1uxnjdq7ma0kqsmrny460fu5azvnqtap3486jvaudacuam3g3yc4nu');
   });
