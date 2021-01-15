@@ -1087,6 +1087,119 @@ export const CONSTRUCTION_PAYLOADS_REQUEST: Components.Schemas.ConstructionPaylo
   }
 };
 
+export const CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA: Components.Schemas.ConstructionPayloadsRequest = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: OperationType.INPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      },
+      metadata: {
+        tokenBundle: [
+          {
+            policyId: 'b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7',
+            tokens: [
+              {
+                value: '10000',
+                currency: {
+                  symbol: '6e7574636f696e',
+                  decimals: 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: OperationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '10000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      metadata: {
+        tokenBundle: [
+          {
+            policyId: 'b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7',
+            tokens: [
+              {
+                value: '10000',
+                currency: {
+                  symbol: '6e7574636f696e',
+                  decimals: 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      operation_identifier: {
+        index: 2
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: OperationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '40000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    }
+  ],
+  metadata: {
+    ttl: '1000'
+  }
+};
+
 export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION: Components.Schemas.ConstructionPayloadsRequest = {
   network_identifier: {
     blockchain: 'cardano',
@@ -2440,6 +2553,7 @@ export const SIGNED_TRANSACTION =
 export const TRANSACTION_SIZE_IN_BYTES = SIGNED_TRANSACTION.length / 2 - 2;
 
 // These transactions were signed using a dummy signature, so there's no need to substract 2 bytes
+
 export const SIGNED_TX_WITH_STAKE_KEY_REGISTRATION =
   '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c40021a006a0c700300048182008200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fba100818258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
 

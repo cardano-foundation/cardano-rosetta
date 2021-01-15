@@ -19,7 +19,8 @@ import {
   TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION_SIZE_IN_BYTES,
   TX_WITH_WITHDRAWAL_SIZE_IN_BYTES,
   TX_WITH_TWO_WITHDRAWALS_SIZE_IN_BYTES,
-  TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL_SIZE_IN_BYTES
+  TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL_SIZE_IN_BYTES,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA
 } from '../fixture-data';
 
 const CONSTRUCTION_PREPROCESS_ENDPOINT = '/construction/preprocess';
@@ -228,5 +229,24 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({ options: { relative_ttl: 1000, transaction_size: TRANSACTION_SIZE_IN_BYTES } });
+  });
+
+  test('Should properly process MultiAssets transactions', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        relativeTtl: 100,
+        operations: CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: { relative_ttl: 100, transaction_size: TRANSACTION_SIZE_IN_BYTES }
+    });
   });
 });

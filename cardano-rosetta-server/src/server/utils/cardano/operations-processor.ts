@@ -1,6 +1,10 @@
 /* eslint-disable wrap-regex */
 import CardanoWasm, {
+  AssetName,
+  Assets,
   BigNum,
+  MultiAsset,
+  ScriptHash,
   StakeDelegation,
   StakeDeregistration,
   StakeRegistration,
@@ -9,8 +13,31 @@ import CardanoWasm, {
 import { Logger } from 'fastify';
 import { NetworkIdentifier, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
+import { isPolictyIdValid, isTokenNameValid } from '../validations';
 import { generateRewardAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
+
+/**
+ * This function validates and parses token bundles that might be attached to unspents
+ *
+ * @param tokenBundle bundle to be parsed
+ */
+const validateAndParseTokenBundle = (tokenBundle: Components.Schemas.TokenBundleItem[]): CardanoWasm.MultiAsset =>
+  tokenBundle.reduce((multiAssets, multiAsset) => {
+    const polictyId = multiAsset.policyId;
+    if (!isPolictyIdValid(polictyId))
+      throw ErrorFactory.transactionOutputsParametersMissingError(`PolictyId ${polictyId} is not valid`);
+    const policy = ScriptHash.from_bytes(Buffer.from(multiAsset.policyId, 'hex'));
+    const assetsToAdd = multiAsset.tokens.reduce((assets, asset) => {
+      const tokenName = asset.currency.symbol;
+      if (!isTokenNameValid(asset.currency.symbol))
+        throw ErrorFactory.transactionOutputsParametersMissingError(`Token name ${tokenName} is not valid`);
+      assets.insert(AssetName.new(Buffer.from(tokenName, 'hex')), BigNum.from_str(asset.value));
+      return assets;
+    }, Assets.new());
+    multiAssets.insert(policy, assetsToAdd);
+    return multiAssets;
+  }, MultiAsset.new());
 
 const validateAndParseTransactionOutput = (
   logger: Logger,
@@ -38,6 +65,7 @@ const validateAndParseTransactionOutput = (
   }
   try {
     const value = Value.new(BigNum.from_str(output.amount?.value));
+    if (output.metadata?.tokenBundle) value.set_multiasset(validateAndParseTokenBundle(output.metadata.tokenBundle));
     return CardanoWasm.TransactionOutput.new(address, value);
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(error.toString());
