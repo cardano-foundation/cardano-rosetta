@@ -2529,3 +2529,406 @@ export const CONSTRUCTION_COMBINE_PAYLOAD = {
     }
   ]
 };
+
+export const vpfHashAccountBalances = [
+  {
+    value: '639308468',
+    currency: {
+      decimals: 6,
+      symbol: 'ADA'
+    }
+  },
+  {
+    value: '10',
+    currency: {
+      decimals: 0,
+      symbol: 'BNB',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '2',
+    currency: {
+      decimals: 0,
+      symbol: 'BTC',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '321',
+    currency: {
+      decimals: 0,
+      symbol: 'DOT',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '17',
+    currency: {
+      decimals: 0,
+      symbol: 'ETH',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '42',
+    currency: {
+      decimals: 0,
+      symbol: 'LINK',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '5',
+    currency: {
+      decimals: 0,
+      symbol: 'LTC',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '38',
+    currency: {
+      decimals: 0,
+      symbol: 'XRP',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '25',
+    currency: {
+      decimals: 0,
+      symbol: 'ATADAcoin',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '1',
+    currency: {
+      decimals: 0,
+      symbol: 'nutcoin',
+      metadata: {
+        policy: 'b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7'
+      }
+    }
+  },
+  {
+    value: '1',
+    currency: {
+      decimals: 0,
+      symbol: 'PEACEtoken',
+      metadata: {
+        policy: 'dabee8ee0f3f0906ba0542b06924c3e9c477a013cfe7d326a8ea9beb'
+      }
+    }
+  },
+  {
+    value: '10',
+    currency: {
+      decimals: 0,
+      symbol: 'machtl2coin',
+      metadata: {
+        policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+      }
+    }
+  },
+  {
+    value: '700',
+    currency: {
+      decimals: 0,
+      symbol: 'adosia',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  }
+];
+
+const coinId6c18 = { identifier: '6c181e6875eb4e24e9b05b26e2361790a4e5d65cd4d63d68cce40eb9098ce847:0' };
+export const vpfHashCoins = [
+  {
+    coin_identifier: coinId6c18,
+    amount: {
+      value: '100558468',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: coinId6c18,
+    amount: {
+      value: '10',
+      currency: {
+        decimals: 0,
+        symbol: 'BNB',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId6c18,
+    amount: {
+      value: '2',
+      currency: {
+        decimals: 0,
+        symbol: 'BTC',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId6c18,
+    amount: {
+      value: '321',
+      currency: {
+        decimals: 0,
+        symbol: 'DOT',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId6c18,
+    amount: {
+      value: '17',
+      currency: {
+        decimals: 0,
+        symbol: 'ETH',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId6c18,
+    amount: {
+      value: '42',
+      currency: {
+        decimals: 0,
+        symbol: 'LINK',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId6c18,
+    amount: {
+      value: '5',
+      currency: {
+        decimals: 0,
+        symbol: 'LTC',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId6c18,
+    amount: {
+      value: '38',
+      currency: {
+        decimals: 0,
+        symbol: 'XRP',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: 'f68b466c8873b756098d94f46da3f2748cdf971bee068e04c253f660625da33b:0' },
+    amount: {
+      value: '2000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: 'f68b466c8873b756098d94f46da3f2748cdf971bee068e04c253f660625da33b:0' },
+    amount: {
+      value: '13',
+      currency: {
+        decimals: 0,
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        },
+        symbol: 'ATADAcoin'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '95758b3c75e46d998c0159f62b92864b94a0e71ff29d958e7a1a41351ad18bc7:0' },
+    amount: {
+      value: '3500000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '95758b3c75e46d998c0159f62b92864b94a0e71ff29d958e7a1a41351ad18bc7:0' },
+    amount: {
+      value: '1',
+      currency: {
+        decimals: 0,
+        symbol: 'nutcoin',
+        metadata: {
+          policy: 'b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '2265ee9cccf30aa90df90402da5f18d7da46f7aa3022aea14be1a11cc073424f:0' },
+    amount: {
+      value: '7250000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '2265ee9cccf30aa90df90402da5f18d7da46f7aa3022aea14be1a11cc073424f:0' },
+    amount: {
+      value: '1',
+      currency: {
+        decimals: 0,
+        symbol: 'PEACEtoken',
+        metadata: {
+          policy: 'dabee8ee0f3f0906ba0542b06924c3e9c477a013cfe7d326a8ea9beb'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '751f974a93b68b2a1a8aa7c3614e8147ef013e1bae34a3785c17964f4a020977:0' },
+    amount: {
+      value: '2000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '751f974a93b68b2a1a8aa7c3614e8147ef013e1bae34a3785c17964f4a020977:0' },
+    amount: {
+      value: '10',
+      currency: {
+        decimals: 0,
+        symbol: 'machtl2coin',
+        metadata: {
+          policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: 'd0fed5077f62f47b221505ce841b39076629fd605d07473e15103a352bd99c5b:0' },
+    amount: {
+      value: '2000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: 'd0fed5077f62f47b221505ce841b39076629fd605d07473e15103a352bd99c5b:0' },
+    amount: {
+      value: '700',
+      currency: {
+        decimals: 0,
+        symbol: 'adosia',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '2fa8260315c4a15a396f96cac777c64b717c36d1da0c15a4a12ed4106ee48760:0' },
+    amount: {
+      value: '2000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '2fa8260315c4a15a396f96cac777c64b717c36d1da0c15a4a12ed4106ee48760:0' },
+    amount: {
+      value: '12',
+      currency: {
+        decimals: 0,
+        symbol: 'ATADAcoin',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '715679011c18981599fba6e11c532072f2910db1e2f190d001ce3cc2804feed7:0' },
+    amount: {
+      value: '10000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '0f7dbb3d72d0487fd003887c7bc6960164c1b461fcda4c503fab80cc5b1fab0c:1' },
+    amount: {
+      value: '500000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: 'f2fb83c5ad47a80f932c046f8ad624d90a3d83686c36c3cbdb888ea6c38cc9eb:0' },
+    amount: {
+      value: '10000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  }
+];

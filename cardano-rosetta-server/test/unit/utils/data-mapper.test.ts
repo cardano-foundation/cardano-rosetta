@@ -25,7 +25,10 @@ describe('Data Mapper', () => {
           {
             value: '37999999989620601',
             transactionHash: 'c09c523b0a94837dacf08e30f8cc6d5915786b883f822981ea2012551f8699ce',
-            index: 1
+            index: 1,
+            quantity: '',
+            maName: '',
+            maPolicy: ''
           }
         ]
       };

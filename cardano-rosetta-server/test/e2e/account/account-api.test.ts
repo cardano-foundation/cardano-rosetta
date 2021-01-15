@@ -4,7 +4,7 @@ import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { CARDANO } from '../../../src/server/utils/constants';
-import { latestBlockIdentifier } from '../fixture-data';
+import { latestBlockIdentifier, vpfHashAccountBalances, vpfHashCoins } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
 const generatePayload = (
@@ -410,6 +410,31 @@ describe('/account/balance endpoint', () => {
           coin_identifier: { identifier: '6f85c5723abe2ec362e942823c0911e5fdc054970ba941a461ff446637d8f1e1:1' }
         }
       ]
+    });
+  });
+  // should return a list of ma utxos and sum the corresponding ones to obtain the balances
+  test('should return payment balance and list of ma balances', async () => {
+    const launchpad = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
+    const launchpadServer = setupServer(launchpad);
+    const response = await launchpadServer.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
+        347898,
+        '1f391a9c0d5799e96aae4df2b22c361346bc98d3e46a2c3496632fdcae52f65b'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: {
+        index: 347898,
+        hash: '1f391a9c0d5799e96aae4df2b22c361346bc98d3e46a2c3496632fdcae52f65b'
+      },
+      balances: vpfHashAccountBalances,
+      coins: vpfHashCoins
     });
   });
 });
