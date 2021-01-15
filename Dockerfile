@@ -135,6 +135,13 @@ COPY cardano-rosetta-server/package.json \
   cardano-rosetta-server/yarn.lock \
   cardano-rosetta-server/.yarnrc \
   /app/
+  
+FROM nodejs-builder as cardano-db-sync-manager-base
+RUN mkdir -p /app/src
+WORKDIR /app
+COPY cardano-db-sync-manager/package.json \
+  cardano-db-sync-manager/yarn.lock \
+  /app/
 
 FROM rosetta-server-base as rosetta-server-builder
 COPY cardano-rosetta-server/tsconfig-dist.json \
@@ -144,8 +151,18 @@ RUN yarn --offline --frozen-lockfile --non-interactive
 COPY cardano-rosetta-server/src /app/src
 RUN yarn build
 
+FROM cardano-db-sync-manager-base as cardano-db-sync-manager-builder
+COPY cardano-db-sync-manager/src/tsconfig.json \
+  /app/
+RUN yarn --frozen-lockfile --non-interactive
+COPY cardano-db-sync-manager/src /app/src
+RUN yarn build
+
 FROM rosetta-server-base as rosetta-server-production-deps
 RUN yarn --offline --frozen-lockfile --non-interactive --production
+
+FROM cardano-db-sync-manager-base as cardano-db-sync-manager-production-deps
+RUN yarn --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
 ARG NETWORK=mainnet
@@ -162,9 +179,10 @@ FROM runtime-base
 ARG NETWORK=mainnet
 ENV DEFAULT_RELATIVE_TTL=1000 LOGGER_MIN_SEVERITY=info PAGE_SIZE=25
 COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
+COPY --from=cardano-db-sync-manager-builder /app/dist /cardano-db-sync-manager/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
+COPY --from=cardano-db-sync-manager-production-deps /app/node_modules /cardano-db-sync-manager/node_modules
 COPY config/ecosystem.config.js .
-COPY scripts/start_cardano-db-sync.sh /scripts/
 COPY config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
 COPY config/network/${NETWORK} /config/
 ENV PGPASSFILE=/config/cardano-db-sync/pgpass

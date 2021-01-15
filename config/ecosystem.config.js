@@ -29,12 +29,17 @@ module.exports = {
     },
     {
       name: 'cardano-db-sync',
-      script: '/scripts/start_cardano-db-sync.sh',
+      script: '/cardano-db-sync-manager/dist/index.js',
       args: [
-        '/usr/local/bin/cardano-db-sync'
+        '/usr/local/bin/cardano-db-sync',
+        '/usr/local/bin/cardano-cli',
+        require('/config/genesis/shelley.json').networkMagic,
+        require('/config/cardano-node/config.json')['LastKnownBlockVersion-Major'],
+        process.env.LOGGER_MIN_SEVERITY
       ],
       autorestart: true,
       env: {
+        CARDANO_NODE_SOCKET_PATH: '/ipc/node.socket',
         PGPASSFILE: '/config/cardano-db-sync/pgpass'
       },
       exec_mode: 'fork_mode',
