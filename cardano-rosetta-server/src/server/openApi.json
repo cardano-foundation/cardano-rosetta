@@ -930,8 +930,24 @@
           "pool_key_hash": {
             "type": "string"
           },
-          "multiassets": {
-            "description": "All the multiassets for the given unspent",
+          "tokenBundle": {
+            "description": "A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TokenBundleItem"
+            }
+          }
+        }
+      },
+      "TokenBundleItem": {
+        "type": "object",
+        "required": ["policyId", "tokens"],
+        "properties": {
+          "policyId": {
+            "description": "Policy Id hex string",
+            "type": "string"
+          },
+          "tokens": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Amount"
@@ -984,19 +1000,7 @@
             "minimum": 0,
             "example": 8
           },
-          "metadata": {
-            "description": "Any additional information related to the currency itself. For example, it would be useful to populate this object with the contract address of an ERC-20 token.",
-            "type": "object",
-            "properties": {
-              "policy": {
-                "description": "Policy Id hex string",
-                "type": "string"
-              }
-            },
-            "example": {
-              "policy": "deadbeef"
-            }
-          }
+          "metadata": {}
         }
       },
       "SyncStatus": {
