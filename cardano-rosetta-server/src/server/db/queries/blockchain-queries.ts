@@ -55,12 +55,12 @@ export interface FindTransactionFieldResult {
   txHash: Buffer;
 }
 
-export interface FindTransactionIOResult extends FindTransactionFieldResult {
+export interface FindTransactionInOutResult extends FindTransactionFieldResult {
   id: number;
   address: string;
   value: string;
-  policy?: string;
-  name?: string;
+  policy?: Buffer;
+  name?: Buffer;
   quantity?: number;
 }
 
@@ -79,7 +79,7 @@ AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
 AND block.hash = $3
 `;
 
-export interface FindTransactionsInputs extends FindTransactionIOResult {
+export interface FindTransactionsInputs extends FindTransactionInOutResult {
   sourceTxHash: Buffer;
   sourceTxIndex: number;
 }
@@ -118,7 +118,7 @@ WHERE
   previous_id IS NULL
 LIMIT 1`;
 
-export interface FindTransactionsOutputs extends FindTransactionIOResult {
+export interface FindTransactionsOutputs extends FindTransactionInOutResult {
   index: number;
 }
 
