@@ -33,7 +33,7 @@ const mapTokenBundle = (tokenBundle: TokenBundle, spent: boolean): Components.Sc
     policyId,
     tokens: tokens.map(t => ({
       currency: { symbol: t.name, decimals: 0 },
-      value: mapValue(t.quantity.toString(), spent)
+      value: mapValue(t.quantity, spent)
     }))
   }));
 

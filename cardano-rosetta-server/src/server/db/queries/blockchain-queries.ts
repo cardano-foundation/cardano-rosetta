@@ -61,7 +61,7 @@ export interface FindTransactionInOutResult extends FindTransactionFieldResult {
   value: string;
   policy?: Buffer;
   name?: Buffer;
-  quantity?: number;
+  quantity?: string;
 }
 
 // AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))

@@ -26,14 +26,14 @@ export interface BlockIdentifier {
 export interface FindTransactionWithToken extends FindTransactionInOutResult {
   policy: Buffer;
   name: Buffer;
-  quantity: number;
+  quantity: string;
 }
 
 export type PolicyId = string;
 
 export interface Token {
   name: string;
-  quantity: number;
+  quantity: string;
 }
 
 export interface TokenBundle {
