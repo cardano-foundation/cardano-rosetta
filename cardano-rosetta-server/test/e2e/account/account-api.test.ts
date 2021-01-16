@@ -45,13 +45,18 @@ const ACCOUNT_BALANCE_ENDPOINT = '/account/balance';
 describe('/account/balance endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
+  let multiassetsDatabase: Pool;
+  let serverWithMultiassetsSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
+    multiassetsDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
+    serverWithMultiassetsSupport = setupServer(multiassetsDatabase);
   });
 
   afterAll(async () => {
     await database.end();
+    await multiassetsDatabase.end();
   });
 
   test('should return all utxos until last block if no block number is specified', async () => {
@@ -414,9 +419,7 @@ describe('/account/balance endpoint', () => {
   });
   // should return a list of ma utxos and sum the corresponding ones to obtain the balances
   test('should return payment balance and list of ma balances', async () => {
-    const launchpad = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
-    const launchpadServer = setupServer(launchpad);
-    const response = await launchpadServer.inject({
+    const response = await serverWithMultiassetsSupport.inject({
       method: 'post',
       url: ACCOUNT_BALANCE_ENDPOINT,
       payload: generatePayload(
