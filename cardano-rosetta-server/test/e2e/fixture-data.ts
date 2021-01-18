@@ -2542,7 +2542,7 @@ export const address1vpfAccountBalances = [
     value: '10',
     currency: {
       decimals: 0,
-      symbol: 'BNB',
+      symbol: '424e42',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2552,7 +2552,7 @@ export const address1vpfAccountBalances = [
     value: '2',
     currency: {
       decimals: 0,
-      symbol: 'BTC',
+      symbol: '425443',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2562,7 +2562,7 @@ export const address1vpfAccountBalances = [
     value: '321',
     currency: {
       decimals: 0,
-      symbol: 'DOT',
+      symbol: '444f54',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2572,7 +2572,7 @@ export const address1vpfAccountBalances = [
     value: '17',
     currency: {
       decimals: 0,
-      symbol: 'ETH',
+      symbol: '455448',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2582,7 +2582,7 @@ export const address1vpfAccountBalances = [
     value: '42',
     currency: {
       decimals: 0,
-      symbol: 'LINK',
+      symbol: '4c494e4b',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2592,7 +2592,7 @@ export const address1vpfAccountBalances = [
     value: '5',
     currency: {
       decimals: 0,
-      symbol: 'LTC',
+      symbol: '4c5443',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2602,7 +2602,7 @@ export const address1vpfAccountBalances = [
     value: '38',
     currency: {
       decimals: 0,
-      symbol: 'XRP',
+      symbol: '585250',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2612,7 +2612,7 @@ export const address1vpfAccountBalances = [
     value: '25',
     currency: {
       decimals: 0,
-      symbol: 'ATADAcoin',
+      symbol: '4154414441636f696e',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2622,7 +2622,7 @@ export const address1vpfAccountBalances = [
     value: '1',
     currency: {
       decimals: 0,
-      symbol: 'nutcoin',
+      symbol: '6e7574636f696e',
       metadata: {
         policy: 'b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7'
       }
@@ -2632,7 +2632,7 @@ export const address1vpfAccountBalances = [
     value: '1',
     currency: {
       decimals: 0,
-      symbol: 'PEACEtoken',
+      symbol: '5045414345746f6b656e',
       metadata: {
         policy: 'dabee8ee0f3f0906ba0542b06924c3e9c477a013cfe7d326a8ea9beb'
       }
@@ -2642,7 +2642,7 @@ export const address1vpfAccountBalances = [
     value: '10',
     currency: {
       decimals: 0,
-      symbol: 'machtl2coin',
+      symbol: '6d616368746c32636f696e',
       metadata: {
         policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
       }
@@ -2652,7 +2652,7 @@ export const address1vpfAccountBalances = [
     value: '700',
     currency: {
       decimals: 0,
-      symbol: 'adosia',
+      symbol: '61646f736961',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2678,7 +2678,7 @@ export const address1vpfCoins = [
       value: '10',
       currency: {
         decimals: 0,
-        symbol: 'BNB',
+        symbol: '424e42',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -2691,7 +2691,7 @@ export const address1vpfCoins = [
       value: '2',
       currency: {
         decimals: 0,
-        symbol: 'BTC',
+        symbol: '425443',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -2704,7 +2704,7 @@ export const address1vpfCoins = [
       value: '321',
       currency: {
         decimals: 0,
-        symbol: 'DOT',
+        symbol: '444f54',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -2717,7 +2717,7 @@ export const address1vpfCoins = [
       value: '17',
       currency: {
         decimals: 0,
-        symbol: 'ETH',
+        symbol: '455448',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -2730,7 +2730,7 @@ export const address1vpfCoins = [
       value: '42',
       currency: {
         decimals: 0,
-        symbol: 'LINK',
+        symbol: '4c494e4b',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -2743,7 +2743,7 @@ export const address1vpfCoins = [
       value: '5',
       currency: {
         decimals: 0,
-        symbol: 'LTC',
+        symbol: '4c5443',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -2756,7 +2756,7 @@ export const address1vpfCoins = [
       value: '38',
       currency: {
         decimals: 0,
-        symbol: 'XRP',
+        symbol: '585250',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -2782,7 +2782,7 @@ export const address1vpfCoins = [
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         },
-        symbol: 'ATADAcoin'
+        symbol: '4154414441636f696e'
       }
     }
   },
@@ -2802,7 +2802,7 @@ export const address1vpfCoins = [
       value: '1',
       currency: {
         decimals: 0,
-        symbol: 'nutcoin',
+        symbol: '6e7574636f696e',
         metadata: {
           policy: 'b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7'
         }
@@ -2825,7 +2825,7 @@ export const address1vpfCoins = [
       value: '1',
       currency: {
         decimals: 0,
-        symbol: 'PEACEtoken',
+        symbol: '5045414345746f6b656e',
         metadata: {
           policy: 'dabee8ee0f3f0906ba0542b06924c3e9c477a013cfe7d326a8ea9beb'
         }
@@ -2848,7 +2848,7 @@ export const address1vpfCoins = [
       value: '10',
       currency: {
         decimals: 0,
-        symbol: 'machtl2coin',
+        symbol: '6d616368746c32636f696e',
         metadata: {
           policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
         }
@@ -2871,7 +2871,7 @@ export const address1vpfCoins = [
       value: '700',
       currency: {
         decimals: 0,
-        symbol: 'adosia',
+        symbol: '61646f736961',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -2894,7 +2894,7 @@ export const address1vpfCoins = [
       value: '12',
       currency: {
         decimals: 0,
-        symbol: 'ATADAcoin',
+        symbol: '4154414441636f696e',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -2945,7 +2945,7 @@ export const balancesAtBlock213891 = [
     value: '10',
     currency: {
       decimals: 0,
-      symbol: 'testtoken',
+      symbol: '74657374746f6b656e',
       metadata: {
         policy: '06e5f0ade7121aaefa0e7ec53cac61820d774de0c12c83e8597627ff'
       }
@@ -2955,7 +2955,7 @@ export const balancesAtBlock213891 = [
     value: '95',
     currency: {
       decimals: 0,
-      symbol: 'ATADAcoin',
+      symbol: '4154414441636f696e',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2965,7 +2965,7 @@ export const balancesAtBlock213891 = [
     value: '2500',
     currency: {
       decimals: 0,
-      symbol: 'machtlcoin',
+      symbol: '6d616368746c636f696e',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -2975,7 +2975,7 @@ export const balancesAtBlock213891 = [
     value: '500',
     currency: {
       decimals: 0,
-      symbol: 'machtl2coin',
+      symbol: '6d616368746c32636f696e',
       metadata: {
         policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
       }
@@ -3001,7 +3001,7 @@ export const coinsAtBlock213891 = [
       value: '10',
       currency: {
         decimals: 0,
-        symbol: 'testtoken',
+        symbol: '74657374746f6b656e',
         metadata: {
           policy: '06e5f0ade7121aaefa0e7ec53cac61820d774de0c12c83e8597627ff'
         }
@@ -3014,7 +3014,7 @@ export const coinsAtBlock213891 = [
       value: '95',
       currency: {
         decimals: 0,
-        symbol: 'ATADAcoin',
+        symbol: '4154414441636f696e',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -3027,7 +3027,7 @@ export const coinsAtBlock213891 = [
       value: '2500',
       currency: {
         decimals: 0,
-        symbol: 'machtlcoin',
+        symbol: '6d616368746c636f696e',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -3040,7 +3040,7 @@ export const coinsAtBlock213891 = [
       value: '500',
       currency: {
         decimals: 0,
-        symbol: 'machtl2coin',
+        symbol: '6d616368746c32636f696e',
         metadata: {
           policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
         }
@@ -3060,7 +3060,7 @@ export const balancesAtBlock213892 = [
     value: '95',
     currency: {
       decimals: 0,
-      symbol: 'ATADAcoin',
+      symbol: '4154414441636f696e',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -3070,7 +3070,7 @@ export const balancesAtBlock213892 = [
     value: '2500',
     currency: {
       decimals: 0,
-      symbol: 'machtlcoin',
+      symbol: '6d616368746c636f696e',
       metadata: {
         policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
       }
@@ -3080,7 +3080,7 @@ export const balancesAtBlock213892 = [
     value: '500',
     currency: {
       decimals: 0,
-      symbol: 'machtl2coin',
+      symbol: '6d616368746c32636f696e',
       metadata: {
         policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
       }
@@ -3106,7 +3106,7 @@ export const coinsAtBlock213892 = [
       value: '500',
       currency: {
         decimals: 0,
-        symbol: 'machtl2coin',
+        symbol: '6d616368746c32636f696e',
         metadata: {
           policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
         }
@@ -3119,7 +3119,7 @@ export const coinsAtBlock213892 = [
       value: '2500',
       currency: {
         decimals: 0,
-        symbol: 'machtlcoin',
+        symbol: '6d616368746c636f696e',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }
@@ -3132,7 +3132,7 @@ export const coinsAtBlock213892 = [
       value: '95',
       currency: {
         decimals: 0,
-        symbol: 'ATADAcoin',
+        symbol: '4154414441636f696e',
         metadata: {
           policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
         }

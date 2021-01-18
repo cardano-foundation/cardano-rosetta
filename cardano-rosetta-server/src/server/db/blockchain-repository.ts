@@ -490,7 +490,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       value: utxo.value,
       transactionHash: hexFormatter(utxo.txHash),
       index: utxo.index,
-      maName: utxo.maName ? utxo.maName.toString() : utxo.maName,
+      maName: utxo.maName ? hexFormatter(utxo.maName) : utxo.maName,
       maPolicy: utxo.maPolicy ? hexFormatter(utxo.maPolicy) : utxo.maPolicy,
       quantity: utxo.quantity
     }));
