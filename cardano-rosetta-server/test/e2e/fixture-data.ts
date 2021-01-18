@@ -2530,7 +2530,7 @@ export const CONSTRUCTION_COMBINE_PAYLOAD = {
   ]
 };
 
-export const vpfHashAccountBalances = [
+export const address1vpfAccountBalances = [
   {
     value: '639308468',
     currency: {
@@ -2661,7 +2661,7 @@ export const vpfHashAccountBalances = [
 ];
 
 const coinId6c18 = { identifier: '6c181e6875eb4e24e9b05b26e2361790a4e5d65cd4d63d68cce40eb9098ce847:0' };
-export const vpfHashCoins = [
+export const address1vpfCoins = [
   {
     coin_identifier: coinId6c18,
     amount: {
@@ -2928,6 +2928,214 @@ export const vpfHashCoins = [
       currency: {
         decimals: 6,
         symbol: 'ADA'
+      }
+    }
+  }
+];
+
+export const balancesAtBlock213891 = [
+  {
+    value: '299994729944',
+    currency: {
+      decimals: 6,
+      symbol: 'ADA'
+    }
+  },
+  {
+    value: '10',
+    currency: {
+      decimals: 0,
+      symbol: 'testtoken',
+      metadata: {
+        policy: '06e5f0ade7121aaefa0e7ec53cac61820d774de0c12c83e8597627ff'
+      }
+    }
+  },
+  {
+    value: '95',
+    currency: {
+      decimals: 0,
+      symbol: 'ATADAcoin',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '2500',
+    currency: {
+      decimals: 0,
+      symbol: 'machtlcoin',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '500',
+    currency: {
+      decimals: 0,
+      symbol: 'machtl2coin',
+      metadata: {
+        policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+      }
+    }
+  }
+];
+
+const coinId30d9 = { identifier: '30d97e64d1892ed7e03faf544318f167443a0153c244305df9b0f796a0386c8b:0' };
+export const coinsAtBlock213891 = [
+  {
+    coin_identifier: coinId30d9,
+    amount: {
+      value: '299994729944',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: coinId30d9,
+    amount: {
+      value: '10',
+      currency: {
+        decimals: 0,
+        symbol: 'testtoken',
+        metadata: {
+          policy: '06e5f0ade7121aaefa0e7ec53cac61820d774de0c12c83e8597627ff'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId30d9,
+    amount: {
+      value: '95',
+      currency: {
+        decimals: 0,
+        symbol: 'ATADAcoin',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId30d9,
+    amount: {
+      value: '2500',
+      currency: {
+        decimals: 0,
+        symbol: 'machtlcoin',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId30d9,
+    amount: {
+      value: '500',
+      currency: {
+        decimals: 0,
+        symbol: 'machtl2coin',
+        metadata: {
+          policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+        }
+      }
+    }
+  }
+];
+export const balancesAtBlock213892 = [
+  {
+    value: '299994547239',
+    currency: {
+      decimals: 6,
+      symbol: 'ADA'
+    }
+  },
+  {
+    value: '95',
+    currency: {
+      decimals: 0,
+      symbol: 'ATADAcoin',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '2500',
+    currency: {
+      decimals: 0,
+      symbol: 'machtlcoin',
+      metadata: {
+        policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '500',
+    currency: {
+      decimals: 0,
+      symbol: 'machtl2coin',
+      metadata: {
+        policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+      }
+    }
+  }
+];
+
+const coinId1a04 = { identifier: '1a04005e5459b07a6353f5c1a9b1066d5969638b681923af6cb0601cf8c57495:0' };
+export const coinsAtBlock213892 = [
+  {
+    coin_identifier: coinId1a04,
+    amount: {
+      value: '299994547239',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: coinId1a04,
+    amount: {
+      value: '500',
+      currency: {
+        decimals: 0,
+        symbol: 'machtl2coin',
+        metadata: {
+          policy: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId1a04,
+    amount: {
+      value: '2500',
+      currency: {
+        decimals: 0,
+        symbol: 'machtlcoin',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
+      }
+    }
+  },
+  {
+    coin_identifier: coinId1a04,
+    amount: {
+      value: '95',
+      currency: {
+        decimals: 0,
+        symbol: 'ATADAcoin',
+        metadata: {
+          policy: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+        }
       }
     }
   }
