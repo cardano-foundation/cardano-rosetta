@@ -114,6 +114,8 @@ const getOperationCurrentIndex = (
 ): number =>
   operationsList.reduce((accumulator, currentOperations) => accumulator + currentOperations.length, relativeIndex);
 
+const isBlockUtxos = (block: BlockUtxos | BalanceAtBlock): block is BlockUtxos => block.hasOwnProperty('utxos');
+
 /**
  * Converts a Cardano Transaction into a Rosetta one
  *
@@ -317,16 +319,16 @@ export const mapToAccountBalanceResponse = (
   blockBalanceData: BlockUtxos | BalanceAtBlock
 ): Components.Schemas.AccountBalanceResponse => {
   // FIXME: handle this in a better way
-  if (blockBalanceData.hasOwnProperty('utxos')) {
-    const balanceForAddress = (blockBalanceData as BlockUtxos).utxos
+  if (isBlockUtxos(blockBalanceData)) {
+    const balanceForAddress = blockBalanceData.utxos
       .reduce((acum, current, index) => {
-        const previousValue = (blockBalanceData as BlockUtxos).utxos[index - 1];
+        const previousValue = blockBalanceData.utxos[index - 1];
         const amountToSum =
           index === 0 || current.transactionHash !== previousValue.transactionHash ? BigInt(current.value) : BigInt(0);
         return acum + amountToSum;
       }, BigInt(0))
       .toString();
-    const multiAssetUtxo = (blockBalanceData as BlockUtxos).utxos.filter(utxo => utxo.maPolicy && utxo.maName);
+    const multiAssetUtxo = blockBalanceData.utxos.filter(utxo => utxo.maPolicy && utxo.maName);
     const multiAssetsBalance = convertToMultiAssetBalances(multiAssetUtxo);
     return {
       block_identifier: {
@@ -334,7 +336,7 @@ export const mapToAccountBalanceResponse = (
         hash: blockBalanceData.block.hash
       },
       balances: [mapAmount(balanceForAddress), ...multiAssetsBalance],
-      coins: parseUtxoDetails((blockBalanceData as BlockUtxos).utxos)
+      coins: parseUtxoDetails(blockBalanceData.utxos)
     };
   }
   return {
