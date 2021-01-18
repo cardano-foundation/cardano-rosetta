@@ -29,7 +29,7 @@ export const mapAmount = (lovelace: string): Components.Schemas.Amount => ({
 });
 
 export const mapMaAmount = (maUtxo: Utxo): Components.Schemas.Amount => ({
-  value: maUtxo.quantity.toString(),
+  value: maUtxo.quantity,
   currency: {
     symbol: maUtxo.maName,
     decimals: MULTI_ASSET_DECIMALS,
@@ -294,8 +294,7 @@ const calculateTotalMaAmount = (multiAssetsUtxo: Utxo[], maUtxo: Utxo): string =
  */
 const convertToMultiAssetBalances = (multiAssetsUtxo: Utxo[]): Components.Schemas.Amount[] => {
   const multiAssetsAmounts: Utxo[] = [];
-  for (let i = 0; i < multiAssetsUtxo.length; i++) {
-    const maUtxo = multiAssetsUtxo[i];
+  multiAssetsUtxo.forEach(maUtxo => {
     if (
       !multiAssetsAmounts.some(maAmount => maAmount.maPolicy === maUtxo.maPolicy && maAmount.maName === maUtxo.maName)
     ) {
@@ -306,7 +305,7 @@ const convertToMultiAssetBalances = (multiAssetsUtxo: Utxo[]): Components.Schema
         quantity: totalMaAmount
       });
     }
-  }
+  });
   return multiAssetsAmounts.map(mapMaAmount);
 };
 
