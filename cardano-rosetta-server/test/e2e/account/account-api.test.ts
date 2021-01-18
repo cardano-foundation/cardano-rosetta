@@ -349,6 +349,27 @@ describe('/account/balance endpoint', () => {
     });
   });
 
+  test('should properly count ADA value if there are two new UTXO to the same address', async () => {
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
+        197619
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().balances[0]).toEqual({
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      },
+      value: '199999482509'
+    });
+  });
+
   // should return a list of ma utxos and sum the corresponding ones to obtain the balances
   test('should return payment balance and list of ma balances', async () => {
     const response = await serverWithMultiassetsSupport.inject({

@@ -323,9 +323,13 @@ export const mapToAccountBalanceResponse = (
     const balanceForAddress = blockBalanceData.utxos
       .reduce((acum, current, index) => {
         const previousValue = blockBalanceData.utxos[index - 1];
-        const amountToSum =
-          index === 0 || current.transactionHash !== previousValue.transactionHash ? BigInt(current.value) : BigInt(0);
-        return acum + amountToSum;
+        if (index === 0) return acum + BigInt(current.value);
+        // This function accumulates ADA value. As there might be several, one for each multi-asset, we need to
+        // avoid counting them twice
+        const isTheSameUnspent =
+          current.transactionHash === previousValue.transactionHash && current.index === previousValue.index;
+        if (isTheSameUnspent) return acum;
+        return acum + BigInt(current.value);
       }, BigInt(0))
       .toString();
     const multiAssetUtxo = blockBalanceData.utxos.filter(utxo => utxo.maPolicy && utxo.maName);
