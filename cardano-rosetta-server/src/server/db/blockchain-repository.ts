@@ -1,20 +1,31 @@
-import { Pool, QueryResult } from 'pg';
+import { Logger } from 'fastify';
 import moment from 'moment';
+import { Pool, QueryResult } from 'pg';
+import {
+  Block,
+  FindTransactionWithToken,
+  GenesisBlock,
+  PolicyId,
+  PopulatedTransaction,
+  Token,
+  Transaction,
+  TransactionInOut,
+  Utxo
+} from '../models';
 import { hashStringToBuffer, hexFormatter } from '../utils/formatters';
 import Queries, {
+  FindBalance,
   FindTransaction,
+  FindTransactionDelegations,
+  FindTransactionDeregistrations,
   FindTransactionFieldResult,
+  FindTransactionInOutResult,
+  FindTransactionRegistrations,
   FindTransactionsInputs,
   FindTransactionsOutputs,
   FindTransactionWithdrawals,
-  FindTransactionRegistrations,
-  FindTransactionDeregistrations,
-  FindTransactionDelegations,
-  FindUtxo,
-  FindBalance
+  FindUtxo
 } from './queries/blockchain-queries';
-import { Logger } from 'fastify';
-import { Block, GenesisBlock, Transaction, PopulatedTransaction, Utxo } from '../models';
 
 export interface BlockchainRepository {
   /**
@@ -135,35 +146,129 @@ const populateTransactionField = <T extends FindTransactionFieldResult>(
   }, transactionsMap);
 
 /**
+ * Checks if operation has a token
+ * @param  {FindTransactionInOutResult} operation
+ * @returns operationisFindTransactionWithToken
+ */
+const hasToken = (operation: FindTransactionInOutResult): operation is FindTransactionWithToken =>
+  operation.policy !== null && operation.name !== null && operation.quantity !== null;
+
+const tryAddToken = <T extends TransactionInOut>(inOut: T, findResult: FindTransactionInOutResult): T => {
+  if (hasToken(findResult)) {
+    const { policy, name, quantity } = findResult;
+    const policyAsHex = hexFormatter(policy);
+    const nameAsHex = hexFormatter(name);
+    const tokenBundle = inOut.tokenBundle ?? { tokens: new Map<PolicyId, Token[]>() };
+    if (!tokenBundle.tokens.has(policyAsHex)) {
+      tokenBundle.tokens.set(policyAsHex, []);
+    }
+    tokenBundle.tokens.get(policyAsHex)!.push({ name: nameAsHex, quantity });
+
+    return {
+      ...inOut,
+      tokenBundle
+    };
+  }
+  return inOut;
+};
+
+/**
+ * Input and output information to be queries from the db is quite similar and,
+ * in both cases, multi assets needs to processed.
+ *
+ * This function, if properly configured, processes both cases and updates the
+ * proper collection accordingly.
+ *
+ * @param row query result row to be processed
+ * @param transaction to be populated
+ * @param getCollection returns the input or output collection
+ * @param createInstance created a new instance of TransactionInput or TransactionOutput
+ * @param updateCollection properly sets the collection into the PopulatedTransactionObject
+ */
+const parseInOutRow = <T extends TransactionInOut, F extends FindTransactionInOutResult>(
+  row: F,
+  transaction: PopulatedTransaction,
+  getCollection: (transaction: PopulatedTransaction) => T[],
+  createInstance: (queryResult: F) => T,
+  updateCollection: (populatedTransaction: PopulatedTransaction, collection: T[]) => PopulatedTransaction
+): PopulatedTransaction => {
+  // Get the collection where the input or output is stored
+  const collection = getCollection(transaction);
+  // Look for it in case it already exists. This is the case when there are multi-assets associated
+  // to the same output so several rows will be returned for the same input or output
+  const index = collection.findIndex(i => i.id === row.id);
+  if (index !== -1) {
+    // If it exists, it means that several MA were returned so we need to try to add the token
+    const updated = tryAddToken(collection[index], row);
+    // Proper item is updated in a copy of he collection
+    const newCollection = [...collection];
+    newCollection[index] = updated;
+    // Collection is updated in the PopulatedTransaction and then returned
+    return updateCollection(
+      {
+        ...transaction
+      },
+      newCollection
+    );
+  }
+  // If it's a new input or output create an instance
+  const newInstance = createInstance(row);
+  // Then we try to populate it's token if any
+  const newInOut = tryAddToken(newInstance, row);
+  return updateCollection(
+    {
+      ...transaction
+    },
+    collection.concat(newInOut)
+  );
+};
+
+/**
  * Updates the transaction inputs
  *
- * @param transaction
+ * @param populatedTransaction
  * @param input
  */
-const parseInputsRow = (transaction: PopulatedTransaction, input: FindTransactionsInputs): PopulatedTransaction => ({
-  ...transaction,
-  inputs: transaction.inputs.concat({
-    address: input.address,
-    value: input.value,
-    sourceTransactionHash: hexFormatter(input.sourceTxHash),
-    sourceTransactionIndex: input.sourceTxIndex
-  })
-});
+const parseInputsRow = (
+  populatedTransaction: PopulatedTransaction,
+  input: FindTransactionsInputs
+): PopulatedTransaction =>
+  parseInOutRow(
+    input,
+    populatedTransaction,
+    transaction => transaction.inputs,
+    queryResult => ({
+      id: queryResult.id,
+      address: queryResult.address,
+      value: queryResult.value,
+      sourceTransactionHash: hexFormatter(queryResult.sourceTxHash),
+      sourceTransactionIndex: queryResult.sourceTxIndex
+    }),
+    (updatedTransaction, updatedCollection) => ({ ...updatedTransaction, inputs: updatedCollection })
+  );
 
 /**
  * Updates the transaction appending outputs
  *
- * @param transaction
+ * @param populatedTransaction
  * @param output
  */
-const parseOutputsRow = (transaction: PopulatedTransaction, output: FindTransactionsOutputs): PopulatedTransaction => ({
-  ...transaction,
-  outputs: transaction.outputs.concat({
-    address: output.address,
-    value: output.value,
-    index: output.index
-  })
-});
+const parseOutputsRow = (
+  populatedTransaction: PopulatedTransaction,
+  output: FindTransactionsOutputs
+): PopulatedTransaction =>
+  parseInOutRow(
+    output,
+    populatedTransaction,
+    transaction => transaction.outputs,
+    queryResult => ({
+      id: queryResult.id,
+      address: queryResult.address,
+      value: queryResult.value,
+      index: queryResult.index
+    }),
+    (updatedTransaction, updatedCollection) => ({ ...updatedTransaction, outputs: updatedCollection })
+  );
 
 /**
  * Updates the transaction appending withdrawals

@@ -55,6 +55,15 @@ export interface FindTransactionFieldResult {
   txHash: Buffer;
 }
 
+export interface FindTransactionInOutResult extends FindTransactionFieldResult {
+  id: number;
+  address: string;
+  value: string;
+  policy?: Buffer;
+  name?: Buffer;
+  quantity?: string;
+}
+
 // AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
 // This condition is made because genesis block has block_no = null
 // Also, genesis number is 0, thats why $2 = 0.
@@ -70,19 +79,21 @@ AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
 AND block.hash = $3
 `;
 
-export interface FindTransactionsInputs extends FindTransactionFieldResult {
-  address: string;
-  value: string;
+export interface FindTransactionsInputs extends FindTransactionInOutResult {
   sourceTxHash: Buffer;
   sourceTxIndex: number;
 }
 
 const findTransactionsInputs = `SELECT
+  tx_in.id as id,
   source_tx_out.address as address,
   source_tx_out.value as value,
   tx.hash as "txHash",
   source_tx.hash as "sourceTxHash",
-  tx_in.tx_out_index as "sourceTxIndex"
+  tx_in.tx_out_index as "sourceTxIndex",
+  source_ma_tx_out.policy as policy,
+  source_ma_tx_out.name as name,
+  source_ma_tx_out.quantity as quantity
 FROM
   tx
 JOIN tx_in
@@ -92,6 +103,8 @@ JOIN tx_out as source_tx_out
   AND tx_in.tx_out_index = source_tx_out.index
 JOIN tx as source_tx
   ON source_tx_out.tx_id = source_tx.id
+LEFT JOIN ma_tx_out as source_ma_tx_out
+  ON source_ma_tx_out.tx_out_id = source_tx_out.id
 WHERE
   tx.hash = ANY ($1)`;
 
@@ -105,21 +118,25 @@ WHERE
   previous_id IS NULL
 LIMIT 1`;
 
-export interface FindTransactionsOutputs extends FindTransactionFieldResult {
-  address: string;
-  value: string;
+export interface FindTransactionsOutputs extends FindTransactionInOutResult {
   index: number;
 }
 
 const findTransactionsOutputs = `
 SELECT
+  tx_out.id as id,
   address,
   value,
   tx.hash as "txHash",
-  index
+  index,
+  ma_tx_out.policy as policy,
+  ma_tx_out.name as name,
+  ma_tx_out.quantity as quantity
 FROM tx
 JOIN tx_out
   ON tx.id = tx_out.tx_id
+LEFT JOIN ma_tx_out
+  ON ma_tx_out.tx_out_id = tx_out.id
 WHERE
   tx.hash = ANY ($1)
 `;

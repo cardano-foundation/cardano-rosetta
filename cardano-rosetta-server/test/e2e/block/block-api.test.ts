@@ -9,7 +9,8 @@ import {
   block7134WithTxs,
   blockWith8Txs,
   GENESIS_HASH,
-  latestBlockIdentifier
+  latestBlockIdentifier,
+  launchpadBlock344050
 } from '../fixture-data';
 import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 
@@ -29,13 +30,19 @@ const generatePayload = (index?: number, hash?: string, blockchain?: string, net
 describe('/block endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
+  let multiassetsDatabase: Pool;
+  let serverWithMultiassetsSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
+
+    multiassetsDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
+    serverWithMultiassetsSupport = setupServer(multiassetsDatabase);
   });
 
   afterAll(async () => {
     await database.end();
+    await multiassetsDatabase.end();
   });
 
   test('should return an error if block not found', async () => {
@@ -154,6 +161,19 @@ describe('/block endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(block1);
     expect(response.json().block.parent_block_identifier.hash).toEqual(GENESIS_HASH);
+  });
+
+  test('should be able to return multiasset token transactions with several tokens in the bundle', async () => {
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: '/block',
+      payload: generatePayload(344050)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().block.block_identifier.hash).toEqual(
+      '50dfb1d3d82d89d392d3c5118e43d60146a37eea0d6fe81bf475133e21b6d82f'
+    );
+    expect(response.json()).toEqual(launchpadBlock344050);
   });
 
   testInvalidNetworkParameters(

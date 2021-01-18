@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 
 import cbor from 'cbor';
+import { BalanceAtBlock, Block, BlockUtxos, Network, PopulatedTransaction, TokenBundle, Utxo } from '../models';
 import { NetworkStatus } from '../services/network-service';
 import {
   ADA,
@@ -13,7 +14,6 @@ import {
   StakingOperations,
   SUCCESS_STATUS
 } from './constants';
-import { Block, BlockUtxos, BalanceAtBlock, Network, PopulatedTransaction, Utxo } from '../models';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
@@ -25,6 +25,23 @@ export const mapAmount = (lovelace: string): Components.Schemas.Amount => ({
     decimals: ADA_DECIMALS
   }
 });
+
+const mapValue = (value: string, spent: boolean): string => (spent ? `-${value}` : value);
+
+const mapTokenBundle = (tokenBundle: TokenBundle, spent: boolean): Components.Schemas.TokenBundleItem[] =>
+  [...tokenBundle.tokens.entries()].map(([policyId, tokens]) => ({
+    policyId,
+    tokens: tokens.map(t => ({
+      currency: { symbol: t.name, decimals: 0 },
+      value: mapValue(t.quantity, spent)
+    }))
+  }));
+
+const mapTokenBundleToMetadata = (
+  spent: boolean,
+  tokenBundle?: TokenBundle
+): Components.Schemas.OperationMetadata | undefined =>
+  tokenBundle ? { tokenBundle: mapTokenBundle(tokenBundle, spent) } : undefined;
 
 /**
  * Creates a Rosetta operation for the given information ready to be consumed by clients
@@ -44,7 +61,8 @@ const createOperation = (
   value: string,
   relatedOperations?: Components.Schemas.OperationIdentifier[],
   network_index?: number,
-  coin_change?: Components.Schemas.CoinChange
+  coin_change?: Components.Schemas.CoinChange,
+  tokenBundleMetadata?: Components.Schemas.OperationMetadata
   // eslint-disable-next-line max-params
 ): Components.Schemas.Operation => ({
   operation_identifier: {
@@ -58,7 +76,8 @@ const createOperation = (
   },
   amount: mapAmount(value),
   coin_change,
-  related_operations: relatedOperations
+  related_operations: relatedOperations,
+  metadata: tokenBundleMetadata
 });
 
 const getCoinChange = (
@@ -95,10 +114,11 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
       OperationType.INPUT,
       SUCCESS_STATUS,
       input.address,
-      `-${input.value}`,
+      mapValue(input.value, true),
       undefined,
       undefined,
-      getCoinChange(input.sourceTransactionIndex, input.sourceTransactionHash, COIN_SPENT_ACTION)
+      getCoinChange(input.sourceTransactionIndex, input.sourceTransactionHash, COIN_SPENT_ACTION),
+      mapTokenBundleToMetadata(true, input.tokenBundle)
     )
   );
   const totalOperations = [inputsAsOperations];
@@ -178,7 +198,8 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
       output.value,
       relatedOperations,
       output.index,
-      getCoinChange(output.index, transaction.hash, COIN_CREATED_ACTION)
+      getCoinChange(output.index, transaction.hash, COIN_CREATED_ACTION),
+      mapTokenBundleToMetadata(false, output.tokenBundle)
     )
   );
   totalOperations.push(outputsAsOperations);

@@ -1,3 +1,5 @@
+import { FindTransactionInOutResult } from './db/queries/blockchain-queries';
+
 export interface Block {
   hash: string;
   number: number;
@@ -21,22 +23,42 @@ export interface BlockIdentifier {
   hash: string;
 }
 
+export interface FindTransactionWithToken extends FindTransactionInOutResult {
+  policy: Buffer;
+  name: Buffer;
+  quantity: string;
+}
+
+export type PolicyId = string;
+
+export interface Token {
+  name: string;
+  quantity: string;
+}
+
+export interface TokenBundle {
+  tokens: Map<PolicyId, Token[]>;
+}
+
 export interface Utxo {
   value: string;
   transactionHash: string;
   index: number;
 }
 
-export interface TransactionInput {
+export interface TransactionInOut {
+  id: number;
   address: string;
   value: string;
+  tokenBundle?: TokenBundle;
+}
+
+export interface TransactionInput extends TransactionInOut {
   sourceTransactionHash: string;
   sourceTransactionIndex: number;
 }
 
-export interface TransactionOutput {
-  address: string;
-  value: string;
+export interface TransactionOutput extends TransactionInOut {
   index: number;
 }
 
