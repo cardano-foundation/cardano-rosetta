@@ -431,13 +431,13 @@ describe('/account/balance endpoint', () => {
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual({
-      block_identifier: {
-        index: 347898,
-        hash: '1f391a9c0d5799e96aae4df2b22c361346bc98d3e46a2c3496632fdcae52f65b'
-      },
-      balances: vpfHashAccountBalances,
-      coins: vpfHashCoins
+    expect(response.json().block_identifier).toEqual({
+      index: 347898,
+      hash: '1f391a9c0d5799e96aae4df2b22c361346bc98d3e46a2c3496632fdcae52f65b'
     });
+    expect(response.json().balances.length).toEqual(vpfHashAccountBalances.length);
+    vpfHashAccountBalances.forEach(accountBalance => expect(response.json().balances).toContainEqual(accountBalance));
+    expect(response.json().coins.length).toEqual(vpfHashCoins.length);
+    vpfHashCoins.forEach(vpfHashCoin => expect(response.json().coins).toContainEqual(vpfHashCoin));
   });
 });
