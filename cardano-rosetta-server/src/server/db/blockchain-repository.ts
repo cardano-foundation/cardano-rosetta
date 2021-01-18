@@ -9,9 +9,7 @@ import {
   PopulatedTransaction,
   Token,
   Transaction,
-  TransactionInput,
   TransactionInOut,
-  TransactionOutput,
   Utxo
 } from '../models';
 import { hashStringToBuffer, hexFormatter } from '../utils/formatters';

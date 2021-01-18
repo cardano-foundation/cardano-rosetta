@@ -4,21 +4,22 @@ import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import {
   block23236WithTransactions,
+  transaction344050WithTokenBundle,
   transaction987aOnGenesis,
-  transactionBlock4597861WithWithdrawals,
   transactionBlock4490558WithRegistrations,
   transactionBlock4490559WithDelegation,
+  transactionBlock4597861WithWithdrawals,
   transactionBlock4853177WithDeregistration
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
 const TRANSACTION_NOT_FOUND = 'Transaction not found';
 
-const generatePayload = (index?: number, hash?: string) => ({
+const generatePayload = (index?: number, hash?: string, blockchain?: string, network?: string) => ({
   // eslint-disable-next-line camelcase
   network_identifier: {
-    blockchain: 'cardano',
-    network: 'mainnet'
+    blockchain: blockchain || 'cardano',
+    network: network || 'mainnet'
   },
   // eslint-disable-next-line camelcase
   block_identifier: {
@@ -30,9 +31,14 @@ const generatePayload = (index?: number, hash?: string) => ({
 describe('/block/transactions endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
+  let multiassetsDatabase: Pool;
+  let serverWithMultiassetsSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
+
+    multiassetsDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
+    serverWithMultiassetsSupport = setupServer(multiassetsDatabase);
   });
 
   afterAll(async () => {
@@ -248,5 +254,22 @@ describe('/block/transactions endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(transactionBlock4853177WithDeregistration);
+  });
+
+  test('should be able to return multiasset token transactions with several tokens in the bundle', async () => {
+    const transaction = '863783d4460647b8227411eb7b0cf8fac82c29f6f4ac52baf7e4d74fabb7884b';
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(344050, '50dfb1d3d82d89d392d3c5118e43d60146a37eea0d6fe81bf475133e21b6d82f'),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: transaction
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({ transaction: transaction344050WithTokenBundle });
   });
 });
