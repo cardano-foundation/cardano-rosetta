@@ -44,8 +44,8 @@ export interface Utxo {
   value: string;
   transactionHash: string;
   index: number;
-  maName: string;
-  maPolicy: string;
+  name: string;
+  policy: string;
   quantity: string;
 }
 

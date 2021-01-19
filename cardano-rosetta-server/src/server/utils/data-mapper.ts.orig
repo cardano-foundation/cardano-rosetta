@@ -47,10 +47,10 @@ const mapTokenBundleToMetadata = (
 export const mapMaAmount = (maUtxo: Utxo): Components.Schemas.Amount => ({
   value: maUtxo.quantity.toString(),
   currency: {
-    symbol: maUtxo.maName,
+    symbol: maUtxo.name,
     decimals: 0,
     metadata: {
-      policy: maUtxo.maPolicy
+      policy: maUtxo.policy
     }
   }
 });
@@ -263,7 +263,7 @@ const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] => {
       amount: mapAmount(utxoDetail.value),
       coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
     });
-    if (utxoDetail.maName && utxoDetail.maPolicy) {
+    if (utxoDetail.name && utxoDetail.policy) {
       coinList.push({
         amount: mapMaAmount(utxoDetail),
         coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
@@ -284,8 +284,8 @@ const convertToMultiAssetBalances = (multiAssetsUtxo: Utxo[]): Components.Schema
       ...maUtxo,
       quantity: multiAssetsUtxo.reduce(
         (accum, current) =>
-          current.maPolicy === maUtxo.maPolicy &&
-          current.maName === maUtxo.maName &&
+          current.policy === maUtxo.policy &&
+          current.name === maUtxo.name &&
           current.transactionHash !== maUtxo.transactionHash
             ? accum + current.quantity
             : accum,
@@ -314,7 +314,7 @@ export const mapToAccountBalanceResponse = (
         return acum + amountToSum;
       }, BigInt(0))
       .toString();
-    const multiAssetUtxo = (blockBalanceData as BlockUtxos).utxos.filter(utxo => utxo.maPolicy && utxo.maName);
+    const multiAssetUtxo = (blockBalanceData as BlockUtxos).utxos.filter(utxo => utxo.policy && utxo.name);
     const multiAssetsBalance = convertToMultiAssetBalances(multiAssetUtxo);
     return {
       block_identifier: {
