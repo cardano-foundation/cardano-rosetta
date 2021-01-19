@@ -172,6 +172,7 @@ declare namespace Components {
     export interface Coin {
       coin_identifier: /* CoinIdentifier uniquely identifies a Coin. */ CoinIdentifier;
       amount: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
+      metadata?: any;
     }
     /**
      * CoinActions are different state changes that a Coin can undergo. When a Coin is created, it is coin_created. When a Coin is spent, it is coin_spent. It is assumed that a single Coin cannot be created or spent more than once.

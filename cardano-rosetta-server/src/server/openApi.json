@@ -1230,6 +1230,15 @@
           },
           "amount": {
             "$ref": "#/components/schemas/Amount"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/TokenBundleItem"
+              }
+            }
           }
         }
       },
