@@ -68,6 +68,7 @@
     "lint-staged": "10.2.11",
     "pg-connection-string": "2.3.0",
     "prettier": "1.19.1",
+    "shades": "2.1.0",
     "ts-jest": "26.1.1",
     "ts-node-dev": "1.0.0-pre.50",
     "typescript": "3.9.5"

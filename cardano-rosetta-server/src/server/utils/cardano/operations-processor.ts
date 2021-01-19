@@ -63,9 +63,9 @@ const validateAndParseTransactionOutput = (
     logger.error('[validateAndParseTransactionOutput] Output has negative value');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
   }
+  const value = Value.new(BigNum.from_str(output.amount?.value));
+  if (output.metadata?.tokenBundle) value.set_multiasset(validateAndParseTokenBundle(output.metadata.tokenBundle));
   try {
-    const value = Value.new(BigNum.from_str(output.amount?.value));
-    if (output.metadata?.tokenBundle) value.set_multiasset(validateAndParseTokenBundle(output.metadata.tokenBundle));
     return CardanoWasm.TransactionOutput.new(address, value);
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(error.toString());
