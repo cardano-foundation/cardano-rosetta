@@ -967,9 +967,6 @@
           },
           "currency": {
             "$ref": "#/components/schemas/Currency"
-          },
-          "metadata": {
-            "type": "object"
           }
         }
       },

@@ -19,18 +19,24 @@ import { Block, BlockUtxos, BalanceAtBlock, Network, PopulatedTransaction, Utxo,
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
 
-export const mapAmount = (lovelace: string): Components.Schemas.Amount => ({
-  value: lovelace,
+export const mapAmount = (
+  value: string,
+  symbol = ADA,
+  decimals = ADA_DECIMALS,
+  metadata?: any
+): Components.Schemas.Amount => ({
+  value,
   currency: {
-    symbol: ADA,
-    decimals: ADA_DECIMALS
+    symbol,
+    decimals,
+    metadata
   }
 });
 
 export const mapMaAmount = (maUtxo: Utxo): Components.Schemas.Amount => ({
-  value: maUtxo.quantity,
+  value: maUtxo.quantity || '',
   currency: {
-    symbol: maUtxo.name,
+    symbol: maUtxo.name || '',
     decimals: MULTI_ASSET_DECIMALS,
     metadata: {
       policy: maUtxo.policy
@@ -254,61 +260,6 @@ export const mapToRosettaBlock = (block: Block, transactions: PopulatedTransacti
 });
 
 /**
- * Processes AccountBalance response utxo section
- * @param utxoDetails
- */
-const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] => {
-  const coinList: Components.Schemas.Coin[] = [];
-  utxoDetails.forEach((utxoDetail, index) => {
-    const coinId = { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` };
-    if (index === 0 || utxoDetails[index - 1].transactionHash !== utxoDetail.transactionHash)
-      coinList.push({
-        amount: mapAmount(utxoDetail.value),
-        coin_identifier: coinId
-      });
-    if (utxoDetail.name && utxoDetail.policy) {
-      coinList.push({
-        amount: mapMaAmount(utxoDetail),
-        coin_identifier: coinId
-      });
-    }
-  });
-  return coinList;
-};
-
-const calculateTotalMaAmount = (multiAssetsUtxo: Utxo[], maUtxo: Utxo): string =>
-  multiAssetsUtxo
-    .reduce(
-      (accum, current) =>
-        current.policy === maUtxo.policy &&
-        current.name === maUtxo.name &&
-        current.transactionHash !== maUtxo.transactionHash
-          ? accum + BigInt(current.quantity)
-          : accum,
-      BigInt(maUtxo.quantity)
-    )
-    .toString();
-
-/**
- * Generates an Amount list for multi assets utxos
- * @param multiAssetsUtxo multi assets utxos
- */
-const convertToMultiAssetBalances = (multiAssetsUtxo: Utxo[]): Components.Schemas.Amount[] => {
-  const multiAssetsAmounts: Utxo[] = [];
-  multiAssetsUtxo.forEach(maUtxo => {
-    if (!multiAssetsAmounts.some(maAmount => maAmount.policy === maUtxo.policy && maAmount.name === maUtxo.name)) {
-      const totalMaAmount = calculateTotalMaAmount(multiAssetsUtxo, maUtxo);
-
-      multiAssetsAmounts.push({
-        ...maUtxo,
-        quantity: totalMaAmount
-      });
-    }
-  });
-  return multiAssetsAmounts.map(mapMaAmount);
-};
-
-/**
  * Generates an AccountBalance response object
  * @param blockBalanceData
  * @param accountAddress
@@ -318,27 +269,56 @@ export const mapToAccountBalanceResponse = (
 ): Components.Schemas.AccountBalanceResponse => {
   // FIXME: handle this in a better way
   if (isBlockUtxos(blockBalanceData)) {
-    const balanceForAddress = blockBalanceData.utxos
-      .reduce((acum, current, index) => {
+    const balanceForAddress = blockBalanceData.utxos.reduce(
+      ({ balances, adaCoins }, current, index) => {
         const previousValue = blockBalanceData.utxos[index - 1];
-        if (index === 0) return acum + BigInt(current.value);
         // This function accumulates ADA value. As there might be several, one for each multi-asset, we need to
         // avoid counting them twice
-        const isTheSameUnspent =
-          current.transactionHash === previousValue.transactionHash && current.index === previousValue.index;
-        if (isTheSameUnspent) return acum;
-        return acum + BigInt(current.value);
-      }, BigInt(0))
-      .toString();
-    const multiAssetUtxo = blockBalanceData.utxos.filter(utxo => utxo.policy && utxo.name);
-    const multiAssetsBalance = convertToMultiAssetBalances(multiAssetUtxo);
+        if (
+          !previousValue ||
+          current.transactionHash !== previousValue.transactionHash ||
+          current.index !== previousValue.index
+        ) {
+          const key = ADA;
+          const entry = balances.get(key) ?? mapAmount('0');
+          balances.set(key, {
+            ...entry,
+            value: (BigInt(entry.value) + BigInt(current.value)).toString()
+          });
+          const coinId = `${current.transactionHash}:${current.index}`;
+          adaCoins.push({
+            coin_identifier: {
+              identifier: coinId
+            },
+            amount: mapAmount(current.value)
+          });
+        }
+        if (current.policy && current.name && current.quantity) {
+          // MultiAsset
+          const key = current.policy + current.name;
+          const entry =
+            balances.get(key) ?? mapAmount('0', current.name, MULTI_ASSET_DECIMALS, { policyId: current.policy });
+          balances.set(key, {
+            ...entry,
+            value: (BigInt(entry.value) + BigInt(current.quantity)).toString()
+          });
+          // coins.set()
+        }
+        return { balances, adaCoins };
+      },
+      {
+        balances: new Map<string, Components.Schemas.Amount>(),
+        adaCoins: new Array<Components.Schemas.Coin>()
+      }
+    );
+    const { balances, adaCoins } = balanceForAddress;
     return {
       block_identifier: {
         index: blockBalanceData.block.number,
         hash: blockBalanceData.block.hash
       },
-      balances: [mapAmount(balanceForAddress), ...multiAssetsBalance],
-      coins: parseUtxoDetails(blockBalanceData.utxos)
+      balances: balances.size === 0 ? [mapAmount('0')] : [...balances.values()],
+      coins: [...adaCoins.values()]
     };
   }
   return {
