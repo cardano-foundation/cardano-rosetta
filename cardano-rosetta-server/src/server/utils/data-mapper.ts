@@ -259,6 +259,43 @@ export const mapToRosettaBlock = (block: Block, transactions: PopulatedTransacti
   transactions: transactions.map(mapToRosettaTransaction)
 });
 
+const updateMetadataCoin = (
+  coin: Components.Schemas.Coin,
+  policy: string,
+  quality: string,
+  name: string
+): Components.Schemas.Coin => {
+  const updatedCoin: Components.Schemas.Coin = coin;
+  const coinId = coin.coin_identifier.identifier;
+  if (updatedCoin.metadata && updatedCoin.metadata[coinId]) {
+    const existsPolicyId = updatedCoin.metadata[coinId].find(
+      (tokenBundle: Components.Schemas.TokenBundleItem) => tokenBundle.policyId === policy
+    );
+    if (existsPolicyId) {
+      const policyIndx = updatedCoin.metadata[coinId]
+        .map((c: Components.Schemas.TokenBundleItem) => c.policyId)
+        .indexOf(policy);
+      updatedCoin.metadata[coinId][policyIndx].tokens.push(
+        mapAmount(quality, name, MULTI_ASSET_DECIMALS, { policyId: policy })
+      );
+    } else {
+      const tokenBundle: Components.Schemas.TokenBundleItem = {
+        policyId: policy,
+        tokens: [mapAmount(quality, name, MULTI_ASSET_DECIMALS, { policyId: policy })]
+      };
+      updatedCoin.metadata[coinId].push(tokenBundle);
+    }
+  } else {
+    const tokenBundle: Components.Schemas.TokenBundleItem = {
+      policyId: policy,
+      tokens: [mapAmount(quality, name, MULTI_ASSET_DECIMALS, { policyId: policy })]
+    };
+    updatedCoin.metadata = {
+      [coinId]: [tokenBundle]
+    };
+  }
+  return updatedCoin;
+};
 /**
  * Generates an AccountBalance response object
  * @param blockBalanceData
@@ -266,14 +303,15 @@ export const mapToRosettaBlock = (block: Block, transactions: PopulatedTransacti
  */
 export const mapToAccountBalanceResponse = (
   blockBalanceData: BlockUtxos | BalanceAtBlock
+  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Components.Schemas.AccountBalanceResponse => {
-  // FIXME: handle this in a better way
   if (isBlockUtxos(blockBalanceData)) {
     const balanceForAddress = blockBalanceData.utxos.reduce(
       ({ balances, adaCoins }, current, index) => {
         const previousValue = blockBalanceData.utxos[index - 1];
         // This function accumulates ADA value. As there might be several, one for each multi-asset, we need to
         // avoid counting them twice
+        const coinId = `${current.transactionHash}:${current.index}`;
         if (
           !previousValue ||
           current.transactionHash !== previousValue.transactionHash ||
@@ -285,8 +323,7 @@ export const mapToAccountBalanceResponse = (
             ...entry,
             value: (BigInt(entry.value) + BigInt(current.value)).toString()
           });
-          const coinId = `${current.transactionHash}:${current.index}`;
-          adaCoins.push({
+          adaCoins.set(coinId, {
             coin_identifier: {
               identifier: coinId
             },
@@ -302,13 +339,17 @@ export const mapToAccountBalanceResponse = (
             ...entry,
             value: (BigInt(entry.value) + BigInt(current.quantity)).toString()
           });
-          // coins.set()
+          const relatedCoin = adaCoins.get(coinId);
+          if (relatedCoin) {
+            const updatedCoin = updateMetadataCoin(relatedCoin, current.policy, current.quantity, current.name);
+            adaCoins.set(coinId, updatedCoin);
+          }
         }
         return { balances, adaCoins };
       },
       {
         balances: new Map<string, Components.Schemas.Amount>(),
-        adaCoins: new Array<Components.Schemas.Coin>()
+        adaCoins: new Map<string, Components.Schemas.Coin>()
       }
     );
     const { balances, adaCoins } = balanceForAddress;
