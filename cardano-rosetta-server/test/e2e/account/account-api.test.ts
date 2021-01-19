@@ -388,13 +388,14 @@ describe('/account/balance endpoint', () => {
       index: 347898,
       hash: '1f391a9c0d5799e96aae4df2b22c361346bc98d3e46a2c3496632fdcae52f65b'
     });
-    expect(response.json().balances.length).toEqual(address1vpfAccountBalances.length);
+    expect(response.json().balances).toHaveLength(address1vpfAccountBalances.length);
     address1vpfAccountBalances.forEach(accountBalance =>
       expect(response.json().balances).toContainEqual(accountBalance)
     );
-    expect(response.json().coins.length).toEqual(address1vpfCoins.length);
+    expect(response.json().coins).toHaveLength(address1vpfCoins.length);
     address1vpfCoins.forEach(address1vpfCoin => expect(response.json().coins).toContainEqual(address1vpfCoin));
   });
+
   // eslint-disable-next-line max-len
   test('given a block with ma balances and the total amount of one of them are transferred in the current block, that token balance should not be seen at the address balance for the next block', async () => {
     const responseAtBlock213891 = await serverWithMultiassetsSupport.inject({
@@ -430,7 +431,7 @@ describe('/account/balance endpoint', () => {
     balancesAtBlock213891.forEach(accountBalance =>
       expect(responseAtBlock213891.json().balances).toContainEqual(accountBalance)
     );
-    expect(responseAtBlock213891.json().coins.length).toEqual(coinsAtBlock213891.length);
+    expect(responseAtBlock213891.json().coins).toHaveLength(coinsAtBlock213891.length);
     coinsAtBlock213891.forEach(coin => expect(responseAtBlock213891.json().coins).toContainEqual(coin));
     expect(responseAtBlock213892.statusCode).toEqual(StatusCodes.OK);
     expect(responseAtBlock213892.json().block_identifier).toEqual({
@@ -440,7 +441,7 @@ describe('/account/balance endpoint', () => {
     balancesAtBlock213892.forEach(accountBalance =>
       expect(responseAtBlock213892.json().balances).toContainEqual(accountBalance)
     );
-    expect(responseAtBlock213892.json().coins.length).toEqual(coinsAtBlock213892.length);
+    expect(responseAtBlock213892.json().coins).toHaveLength(coinsAtBlock213892.length);
     coinsAtBlock213892.forEach(coin => expect(responseAtBlock213892.json().coins).toContainEqual(coin));
   });
 });
