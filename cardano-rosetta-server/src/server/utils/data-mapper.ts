@@ -305,6 +305,7 @@ export const mapToAccountBalanceResponse = (
   blockBalanceData: BlockUtxos | BalanceAtBlock
   // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Components.Schemas.AccountBalanceResponse => {
+  // FIXME: handle this in a better way
   if (isBlockUtxos(blockBalanceData)) {
     const balanceForAddress = blockBalanceData.utxos.reduce(
       ({ balances, adaCoins }, current, index) => {
