@@ -30,10 +30,10 @@ export const mapAmount = (lovelace: string): Components.Schemas.Amount => ({
 export const mapMaAmount = (maUtxo: Utxo): Components.Schemas.Amount => ({
   value: maUtxo.quantity,
   currency: {
-    symbol: maUtxo.maName,
+    symbol: maUtxo.name,
     decimals: MULTI_ASSET_DECIMALS,
     metadata: {
-      policy: maUtxo.maPolicy
+      policy: maUtxo.policy
     }
   }
 });
@@ -266,7 +266,7 @@ const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] => {
         amount: mapAmount(utxoDetail.value),
         coin_identifier: coinId
       });
-    if (utxoDetail.maName && utxoDetail.maPolicy) {
+    if (utxoDetail.name && utxoDetail.policy) {
       coinList.push({
         amount: mapMaAmount(utxoDetail),
         coin_identifier: coinId
@@ -280,8 +280,8 @@ const calculateTotalMaAmount = (multiAssetsUtxo: Utxo[], maUtxo: Utxo): string =
   multiAssetsUtxo
     .reduce(
       (accum, current) =>
-        current.maPolicy === maUtxo.maPolicy &&
-        current.maName === maUtxo.maName &&
+        current.policy === maUtxo.policy &&
+        current.name === maUtxo.name &&
         current.transactionHash !== maUtxo.transactionHash
           ? accum + BigInt(current.quantity)
           : accum,
@@ -296,9 +296,7 @@ const calculateTotalMaAmount = (multiAssetsUtxo: Utxo[], maUtxo: Utxo): string =
 const convertToMultiAssetBalances = (multiAssetsUtxo: Utxo[]): Components.Schemas.Amount[] => {
   const multiAssetsAmounts: Utxo[] = [];
   multiAssetsUtxo.forEach(maUtxo => {
-    if (
-      !multiAssetsAmounts.some(maAmount => maAmount.maPolicy === maUtxo.maPolicy && maAmount.maName === maUtxo.maName)
-    ) {
+    if (!multiAssetsAmounts.some(maAmount => maAmount.policy === maUtxo.policy && maAmount.name === maUtxo.name)) {
       const totalMaAmount = calculateTotalMaAmount(multiAssetsUtxo, maUtxo);
 
       multiAssetsAmounts.push({
@@ -332,7 +330,7 @@ export const mapToAccountBalanceResponse = (
         return acum + BigInt(current.value);
       }, BigInt(0))
       .toString();
-    const multiAssetUtxo = blockBalanceData.utxos.filter(utxo => utxo.maPolicy && utxo.maName);
+    const multiAssetUtxo = blockBalanceData.utxos.filter(utxo => utxo.policy && utxo.name);
     const multiAssetsBalance = convertToMultiAssetBalances(multiAssetUtxo);
     return {
       block_identifier: {
