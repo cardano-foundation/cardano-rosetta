@@ -164,7 +164,10 @@ export const convert = (
   for (let i = 0; i < inputsCount; i++) {
     const input = transactionBody.inputs().get(i);
     const inputParsed = parseInputToOperation(input, operations.length);
-    operations.push({ ...inputParsed, ...extraData[i], status: '' });
+    const inputExtraData = extraData.find(
+      data => data.operation_identifier.index === inputParsed.operation_identifier.index
+    );
+    operations.push({ ...inputParsed, ...inputExtraData, status: '' });
   }
   // till this line operations only contains inputs
   const relatedOperations = getRelatedOperationsFromInputs(operations);
@@ -177,7 +180,10 @@ export const convert = (
       relatedOperations,
       getAddressPrefix(network)
     );
-    operations.push(outputParsed);
+    const outputExtraData = extraData.find(
+      data => data.operation_identifier.index === outputParsed.operation_identifier.index
+    );
+    operations.push({ ...outputParsed, ...outputExtraData, status: '' });
   }
   const stakingOps = extraData.filter(({ type }) =>
     [

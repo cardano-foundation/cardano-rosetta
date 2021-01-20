@@ -433,6 +433,7 @@ export const encodeExtraData = async (
     .filter(
       operation =>
         operation.coin_change?.coin_action === COIN_SPENT_ACTION ||
+        operation.metadata?.tokenBundle !== undefined ||
         StakingOperations.includes(operation.type as OperationType)
     );
 
