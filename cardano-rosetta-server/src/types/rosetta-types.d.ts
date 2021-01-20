@@ -90,7 +90,6 @@ declare namespace Components {
        */
       value: string;
       currency: /* Currency is composed of a canonical Symbol and Decimals. This Decimals value is used to convert an Amount.Value from atomic units (Satoshis) to standard units (Bitcoins). */ Currency;
-      metadata?: {};
     }
     /**
      * Blocks contain an array of Transactions that occurred at a particular BlockIdentifier. A hard requirement for blocks returned by Rosetta implementations is that they MUST be _inalterable_: once a client has requested and received a block identified by a specific BlockIndentifier, all future calls for that same BlockIdentifier must return the same block contents.
@@ -173,6 +172,7 @@ declare namespace Components {
     export interface Coin {
       coin_identifier: /* CoinIdentifier uniquely identifies a Coin. */ CoinIdentifier;
       amount: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
+      metadata?: any;
     }
     /**
      * CoinActions are different state changes that a Coin can undergo. When a Coin is created, it is coin_created. When a Coin is spent, it is coin_spent. It is assumed that a single Coin cannot be created or spent more than once.
@@ -571,9 +571,9 @@ declare namespace Components {
       staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
       pool_key_hash?: string;
       /**
-       * All the multiassets for the given unspent
+       * A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.
        */
-      tokenBundle?: /* A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain. */ TokenBundleItem[];
+      tokenBundle?: TokenBundleItem[];
     }
     /**
      * OperationStatus is utilized to indicate which Operation status are considered successful.
@@ -715,9 +715,6 @@ declare namespace Components {
      * 1582833600000
      */
     export type Timestamp = number; // int64
-    /**
-     * A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.
-     */
     export interface TokenBundleItem {
       /**
        * Policy Id hex string

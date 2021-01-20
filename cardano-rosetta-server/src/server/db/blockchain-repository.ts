@@ -489,7 +489,10 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     return result.rows.map(utxo => ({
       value: utxo.value,
       transactionHash: hexFormatter(utxo.txHash),
-      index: utxo.index
+      index: utxo.index,
+      name: utxo.name ? hexFormatter(utxo.name) : utxo.name,
+      policy: utxo.policy ? hexFormatter(utxo.policy) : utxo.policy,
+      quantity: utxo.quantity
     }));
   },
   async findBalanceByAddressAndBlock(logger: Logger, address, blockHash): Promise<string> {

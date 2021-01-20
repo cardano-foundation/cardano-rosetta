@@ -228,10 +228,19 @@ export interface FindUtxo {
   value: string;
   txHash: Buffer;
   index: number;
+  policy: Buffer;
+  name: Buffer;
+  quantity: string;
 }
 
-const findUtxoFieldsByAddressAndBlock = (selectFields: string): string => `
-${selectFields}
+const findUtxoByAddressAndBlock = `
+  SELECT
+    tx_out.value as value,
+    tx_out_tx.hash as "txHash",
+    tx_out.index as index,
+    ma_tx_out.name as "name",
+    ma_tx_out.policy as "policy",
+    ma_tx_out.quantity
   FROM tx_out
   LEFT JOIN tx_in ON 
 		tx_out.tx_id = tx_in.tx_out_id AND 
@@ -241,18 +250,15 @@ ${selectFields}
     tx_in_tx.block_id <= (select id from block where hash = $2)	
 	JOIN tx AS tx_out_tx ON
 	  tx_out_tx.id = tx_out.tx_id AND
-    tx_out_tx.block_id <= (select id from block where hash = $2)	
+    tx_out_tx.block_id <= (select id from block where hash = $2)
+  LEFT JOIN ma_tx_out ON
+  ma_tx_out.tx_out_id = tx_out.id	
   WHERE 
 	  tx_out.address = $1 AND
-	  tx_in_tx.id IS NULL
+    tx_in_tx.id IS NULL
+  ORDER BY
+    tx_out_tx.hash, tx_out.index, ma_tx_out.policy, ma_tx_out.name
 `;
-
-const selectUtxoDetail = `SELECT
-  tx_out.value as value,
-  tx_out_tx.hash as "txHash",
-  tx_out.index as index`;
-
-const findUtxoByAddressAndBlock = findUtxoFieldsByAddressAndBlock(selectUtxoDetail);
 
 const findBalanceByAddressAndBlock = `SELECT (SELECT COALESCE(SUM(r.amount),0) 
   FROM reward r

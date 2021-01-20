@@ -1,11 +1,11 @@
 /* eslint-disable camelcase */
 
 import cbor from 'cbor';
+import { BalanceAtBlock, Block, BlockUtxos, Network, PopulatedTransaction, TokenBundle, Utxo } from '../models';
 import { NetworkStatus } from '../services/network-service';
 import {
   ADA,
   ADA_DECIMALS,
-  MULTI_ASSET_DECIMALS,
   CARDANO,
   MAINNET,
   NetworkIdentifier,
@@ -14,36 +14,19 @@ import {
   StakingOperations,
   SUCCESS_STATUS
 } from './constants';
-import { Block, BlockUtxos, BalanceAtBlock, Network, PopulatedTransaction, Utxo, TokenBundle } from '../models';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
 
-export const mapAmount = (
-  value: string,
-  symbol = ADA,
-  decimals = ADA_DECIMALS,
-  metadata?: any
-): Components.Schemas.Amount => ({
-  value,
+export const mapAmount = (lovelace: string): Components.Schemas.Amount => ({
+  value: lovelace,
   currency: {
-    symbol,
-    decimals,
-    metadata
+    symbol: ADA,
+    decimals: ADA_DECIMALS
   }
 });
 
-export const mapMaAmount = (maUtxo: Utxo): Components.Schemas.Amount => ({
-  value: maUtxo.quantity || '',
-  currency: {
-    symbol: maUtxo.name || '',
-    decimals: MULTI_ASSET_DECIMALS,
-    metadata: {
-      policy: maUtxo.policy
-    }
-  }
-});
-
+<<<<<<< HEAD
 const mapValue = (value: string, spent: boolean): string => (spent ? `-${value}` : value);
 
 const mapTokenBundle = (tokenBundle: TokenBundle, spent: boolean): Components.Schemas.TokenBundleItem[] =>
@@ -60,6 +43,18 @@ const mapTokenBundleToMetadata = (
   tokenBundle?: TokenBundle
 ): Components.Schemas.OperationMetadata | undefined =>
   tokenBundle ? { tokenBundle: mapTokenBundle(tokenBundle, spent) } : undefined;
+=======
+export const mapMaAmount = (maUtxo: Utxo): Components.Schemas.Amount => ({
+  value: maUtxo.quantity.toString(),
+  currency: {
+    symbol: maUtxo.name,
+    decimals: 0,
+    metadata: {
+      policy: maUtxo.policy
+    }
+  }
+});
+>>>>>>> 4ae2ef6 (feat: add parsers for ma address balance)
 
 /**
  * Creates a Rosetta operation for the given information ready to be consumed by clients
@@ -119,8 +114,6 @@ const getOperationCurrentIndex = (
   relativeIndex: number
 ): number =>
   operationsList.reduce((accumulator, currentOperations) => accumulator + currentOperations.length, relativeIndex);
-
-const isBlockUtxos = (block: BlockUtxos | BalanceAtBlock): block is BlockUtxos => block.hasOwnProperty('utxos');
 
 /**
  * Converts a Cardano Transaction into a Rosetta one
@@ -259,43 +252,50 @@ export const mapToRosettaBlock = (block: Block, transactions: PopulatedTransacti
   transactions: transactions.map(mapToRosettaTransaction)
 });
 
-const updateMetadataCoin = (
-  coin: Components.Schemas.Coin,
-  policy: string,
-  quality: string,
-  name: string
-): Components.Schemas.Coin => {
-  const updatedCoin: Components.Schemas.Coin = coin;
-  const coinId = coin.coin_identifier.identifier;
-  if (updatedCoin.metadata && updatedCoin.metadata[coinId]) {
-    const existsPolicyId = updatedCoin.metadata[coinId].find(
-      (tokenBundle: Components.Schemas.TokenBundleItem) => tokenBundle.policyId === policy
-    );
-    if (existsPolicyId) {
-      const policyIndx = updatedCoin.metadata[coinId]
-        .map((c: Components.Schemas.TokenBundleItem) => c.policyId)
-        .indexOf(policy);
-      updatedCoin.metadata[coinId][policyIndx].tokens.push(
-        mapAmount(quality, name, MULTI_ASSET_DECIMALS, { policyId: policy })
-      );
-    } else {
-      const tokenBundle: Components.Schemas.TokenBundleItem = {
-        policyId: policy,
-        tokens: [mapAmount(quality, name, MULTI_ASSET_DECIMALS, { policyId: policy })]
-      };
-      updatedCoin.metadata[coinId].push(tokenBundle);
+/**
+ * Processes AccountBalance response utxo section
+ * @param utxoDetails
+ */
+const parseUtxoDetails = (utxoDetails: Utxo[]): Components.Schemas.Coin[] => {
+  const coinList: Components.Schemas.Coin[] = [];
+  utxoDetails.forEach(utxoDetail => {
+    coinList.push({
+      amount: mapAmount(utxoDetail.value),
+      coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
+    });
+    if (utxoDetail.name && utxoDetail.policy) {
+      coinList.push({
+        amount: mapMaAmount(utxoDetail),
+        coin_identifier: { identifier: `${utxoDetail.transactionHash}:${utxoDetail.index}` }
+      });
     }
-  } else {
-    const tokenBundle: Components.Schemas.TokenBundleItem = {
-      policyId: policy,
-      tokens: [mapAmount(quality, name, MULTI_ASSET_DECIMALS, { policyId: policy })]
-    };
-    updatedCoin.metadata = {
-      [coinId]: [tokenBundle]
-    };
-  }
-  return updatedCoin;
+  });
+  return coinList;
 };
+
+/**
+ * Generates an Amount list for multi assets utxos
+ * @param multiAssetsUtxo multi assets utxos
+ */
+const convertToMultiAssetBalances = (multiAssetsUtxo: Utxo[]): Components.Schemas.Amount[] => {
+  const multiAssetsAmounts: Utxo[] = [];
+  multiAssetsUtxo.forEach(maUtxo => {
+    multiAssetsAmounts.push({
+      ...maUtxo,
+      quantity: multiAssetsUtxo.reduce(
+        (accum, current) =>
+          current.policy === maUtxo.policy &&
+          current.name === maUtxo.name &&
+          current.transactionHash !== maUtxo.transactionHash
+            ? accum + current.quantity
+            : accum,
+        maUtxo.quantity
+      )
+    });
+  });
+  return [...new Set(multiAssetsAmounts)].map(mapMaAmount);
+};
+
 /**
  * Generates an AccountBalance response object
  * @param blockBalanceData
@@ -303,64 +303,26 @@ const updateMetadataCoin = (
  */
 export const mapToAccountBalanceResponse = (
   blockBalanceData: BlockUtxos | BalanceAtBlock
-  // eslint-disable-next-line sonarjs/cognitive-complexity
 ): Components.Schemas.AccountBalanceResponse => {
   // FIXME: handle this in a better way
-  if (isBlockUtxos(blockBalanceData)) {
-    const balanceForAddress = blockBalanceData.utxos.reduce(
-      ({ balances, adaCoins }, current, index) => {
-        const previousValue = blockBalanceData.utxos[index - 1];
-        // This function accumulates ADA value. As there might be several, one for each multi-asset, we need to
-        // avoid counting them twice
-        const coinId = `${current.transactionHash}:${current.index}`;
-        if (
-          !previousValue ||
-          current.transactionHash !== previousValue.transactionHash ||
-          current.index !== previousValue.index
-        ) {
-          const key = ADA;
-          const entry = balances.get(key) ?? mapAmount('0');
-          balances.set(key, {
-            ...entry,
-            value: (BigInt(entry.value) + BigInt(current.value)).toString()
-          });
-          adaCoins.set(coinId, {
-            coin_identifier: {
-              identifier: coinId
-            },
-            amount: mapAmount(current.value)
-          });
-        }
-        if (current.policy && current.name && current.quantity) {
-          // MultiAsset
-          const key = current.policy + current.name;
-          const entry =
-            balances.get(key) ?? mapAmount('0', current.name, MULTI_ASSET_DECIMALS, { policyId: current.policy });
-          balances.set(key, {
-            ...entry,
-            value: (BigInt(entry.value) + BigInt(current.quantity)).toString()
-          });
-          const relatedCoin = adaCoins.get(coinId);
-          if (relatedCoin) {
-            const updatedCoin = updateMetadataCoin(relatedCoin, current.policy, current.quantity, current.name);
-            adaCoins.set(coinId, updatedCoin);
-          }
-        }
-        return { balances, adaCoins };
-      },
-      {
-        balances: new Map<string, Components.Schemas.Amount>(),
-        adaCoins: new Map<string, Components.Schemas.Coin>()
-      }
-    );
-    const { balances, adaCoins } = balanceForAddress;
+  if (blockBalanceData.hasOwnProperty('utxos')) {
+    const balanceForAddress = (blockBalanceData as BlockUtxos).utxos
+      .reduce((acum, current, index) => {
+        const previousValue = (blockBalanceData as BlockUtxos).utxos[index - 1];
+        const amountToSum =
+          index === 0 || current.transactionHash !== previousValue.transactionHash ? BigInt(current.value) : BigInt(0);
+        return acum + amountToSum;
+      }, BigInt(0))
+      .toString();
+    const multiAssetUtxo = (blockBalanceData as BlockUtxos).utxos.filter(utxo => utxo.policy && utxo.name);
+    const multiAssetsBalance = convertToMultiAssetBalances(multiAssetUtxo);
     return {
       block_identifier: {
         index: blockBalanceData.block.number,
         hash: blockBalanceData.block.hash
       },
-      balances: balances.size === 0 ? [mapAmount('0')] : [...balances.values()],
-      coins: [...adaCoins.values()]
+      balances: [mapAmount(balanceForAddress), ...multiAssetsBalance],
+      coins: parseUtxoDetails((blockBalanceData as BlockUtxos).utxos)
     };
   }
   return {

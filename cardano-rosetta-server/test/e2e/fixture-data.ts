@@ -2529,3 +2529,650 @@ export const CONSTRUCTION_COMBINE_PAYLOAD = {
     }
   ]
 };
+
+export const address1vpfAccountBalances = [
+  {
+    value: '639308468',
+    currency: {
+      decimals: 6,
+      symbol: 'ADA'
+    }
+  },
+  {
+    value: '10',
+    currency: {
+      decimals: 0,
+      symbol: '424e42',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '2',
+    currency: {
+      decimals: 0,
+      symbol: '425443',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '321',
+    currency: {
+      decimals: 0,
+      symbol: '444f54',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '17',
+    currency: {
+      decimals: 0,
+      symbol: '455448',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '42',
+    currency: {
+      decimals: 0,
+      symbol: '4c494e4b',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '5',
+    currency: {
+      decimals: 0,
+      symbol: '4c5443',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '38',
+    currency: {
+      decimals: 0,
+      symbol: '585250',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '25',
+    currency: {
+      decimals: 0,
+      symbol: '4154414441636f696e',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '1',
+    currency: {
+      decimals: 0,
+      symbol: '6e7574636f696e',
+      metadata: {
+        policyId: 'b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7'
+      }
+    }
+  },
+  {
+    value: '1',
+    currency: {
+      decimals: 0,
+      symbol: '5045414345746f6b656e',
+      metadata: {
+        policyId: 'dabee8ee0f3f0906ba0542b06924c3e9c477a013cfe7d326a8ea9beb'
+      }
+    }
+  },
+  {
+    value: '10',
+    currency: {
+      decimals: 0,
+      symbol: '6d616368746c32636f696e',
+      metadata: {
+        policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+      }
+    }
+  },
+  {
+    value: '700',
+    currency: {
+      decimals: 0,
+      symbol: '61646f736961',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  }
+];
+
+const coinId6c18 = { identifier: '6c181e6875eb4e24e9b05b26e2361790a4e5d65cd4d63d68cce40eb9098ce847:0' };
+export const address1vpfCoins = [
+  {
+    coin_identifier: coinId6c18,
+    amount: {
+      value: '100558468',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    },
+    metadata: {
+      '6c181e6875eb4e24e9b05b26e2361790a4e5d65cd4d63d68cce40eb9098ce847:0': [
+        {
+          policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+          tokens: [
+            {
+              value: '10',
+              currency: {
+                decimals: 0,
+                symbol: '424e42',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            },
+            {
+              value: '2',
+              currency: {
+                decimals: 0,
+                symbol: '425443',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            },
+            {
+              value: '321',
+              currency: {
+                decimals: 0,
+                symbol: '444f54',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            },
+            {
+              value: '17',
+              currency: {
+                decimals: 0,
+                symbol: '455448',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            },
+            {
+              value: '42',
+              currency: {
+                decimals: 0,
+                symbol: '4c494e4b',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            },
+            {
+              value: '5',
+              currency: {
+                decimals: 0,
+                symbol: '4c5443',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            },
+            {
+              value: '38',
+              currency: {
+                decimals: 0,
+                symbol: '585250',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    coin_identifier: { identifier: 'f68b466c8873b756098d94f46da3f2748cdf971bee068e04c253f660625da33b:0' },
+    amount: {
+      value: '2000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    },
+    metadata: {
+      'f68b466c8873b756098d94f46da3f2748cdf971bee068e04c253f660625da33b:0': [
+        {
+          policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+          tokens: [
+            {
+              value: '13',
+              currency: {
+                decimals: 0,
+                symbol: '4154414441636f696e',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    coin_identifier: { identifier: '95758b3c75e46d998c0159f62b92864b94a0e71ff29d958e7a1a41351ad18bc7:0' },
+    amount: {
+      value: '3500000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    },
+    metadata: {
+      '95758b3c75e46d998c0159f62b92864b94a0e71ff29d958e7a1a41351ad18bc7:0': [
+        {
+          policyId: 'b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7',
+          tokens: [
+            {
+              value: '1',
+              currency: {
+                decimals: 0,
+                symbol: '6e7574636f696e',
+                metadata: {
+                  policyId: 'b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    coin_identifier: { identifier: '2265ee9cccf30aa90df90402da5f18d7da46f7aa3022aea14be1a11cc073424f:0' },
+    amount: {
+      value: '7250000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    },
+    metadata: {
+      '2265ee9cccf30aa90df90402da5f18d7da46f7aa3022aea14be1a11cc073424f:0': [
+        {
+          policyId: 'dabee8ee0f3f0906ba0542b06924c3e9c477a013cfe7d326a8ea9beb',
+          tokens: [
+            {
+              value: '1',
+              currency: {
+                decimals: 0,
+                symbol: '5045414345746f6b656e',
+                metadata: {
+                  policyId: 'dabee8ee0f3f0906ba0542b06924c3e9c477a013cfe7d326a8ea9beb'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    coin_identifier: { identifier: '751f974a93b68b2a1a8aa7c3614e8147ef013e1bae34a3785c17964f4a020977:0' },
+    amount: {
+      value: '2000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    },
+    metadata: {
+      '751f974a93b68b2a1a8aa7c3614e8147ef013e1bae34a3785c17964f4a020977:0': [
+        {
+          policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db',
+          tokens: [
+            {
+              value: '10',
+              currency: {
+                decimals: 0,
+                symbol: '6d616368746c32636f696e',
+                metadata: {
+                  policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    coin_identifier: { identifier: 'd0fed5077f62f47b221505ce841b39076629fd605d07473e15103a352bd99c5b:0' },
+    amount: {
+      value: '2000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    },
+    metadata: {
+      'd0fed5077f62f47b221505ce841b39076629fd605d07473e15103a352bd99c5b:0': [
+        {
+          policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+          tokens: [
+            {
+              value: '700',
+              currency: {
+                decimals: 0,
+                symbol: '61646f736961',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    coin_identifier: { identifier: '2fa8260315c4a15a396f96cac777c64b717c36d1da0c15a4a12ed4106ee48760:0' },
+    amount: {
+      value: '2000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    },
+    metadata: {
+      '2fa8260315c4a15a396f96cac777c64b717c36d1da0c15a4a12ed4106ee48760:0': [
+        {
+          policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+          tokens: [
+            {
+              value: '12',
+              currency: {
+                decimals: 0,
+                symbol: '4154414441636f696e',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    coin_identifier: { identifier: '715679011c18981599fba6e11c532072f2910db1e2f190d001ce3cc2804feed7:0' },
+    amount: {
+      value: '10000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: '0f7dbb3d72d0487fd003887c7bc6960164c1b461fcda4c503fab80cc5b1fab0c:1' },
+    amount: {
+      value: '500000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  },
+  {
+    coin_identifier: { identifier: 'f2fb83c5ad47a80f932c046f8ad624d90a3d83686c36c3cbdb888ea6c38cc9eb:0' },
+    amount: {
+      value: '10000000',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    }
+  }
+];
+
+export const balancesAtBlock213891 = [
+  {
+    value: '299994729944',
+    currency: {
+      decimals: 6,
+      symbol: 'ADA'
+    }
+  },
+  {
+    value: '10',
+    currency: {
+      decimals: 0,
+      symbol: '74657374746f6b656e',
+      metadata: {
+        policyId: '06e5f0ade7121aaefa0e7ec53cac61820d774de0c12c83e8597627ff'
+      }
+    }
+  },
+  {
+    value: '95',
+    currency: {
+      decimals: 0,
+      symbol: '4154414441636f696e',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '2500',
+    currency: {
+      decimals: 0,
+      symbol: '6d616368746c636f696e',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '500',
+    currency: {
+      decimals: 0,
+      symbol: '6d616368746c32636f696e',
+      metadata: {
+        policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+      }
+    }
+  }
+];
+
+const coinId30d9 = { identifier: '30d97e64d1892ed7e03faf544318f167443a0153c244305df9b0f796a0386c8b:0' };
+export const coinsAtBlock213891 = [
+  {
+    coin_identifier: coinId30d9,
+    amount: {
+      value: '299994729944',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    },
+    metadata: {
+      '30d97e64d1892ed7e03faf544318f167443a0153c244305df9b0f796a0386c8b:0': [
+        {
+          policyId: '06e5f0ade7121aaefa0e7ec53cac61820d774de0c12c83e8597627ff',
+          tokens: [
+            {
+              value: '10',
+              currency: {
+                decimals: 0,
+                symbol: '74657374746f6b656e',
+                metadata: {
+                  policyId: '06e5f0ade7121aaefa0e7ec53cac61820d774de0c12c83e8597627ff'
+                }
+              }
+            }
+          ]
+        },
+        {
+          policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+          tokens: [
+            {
+              value: '95',
+              currency: {
+                decimals: 0,
+                symbol: '4154414441636f696e',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            },
+            {
+              value: '2500',
+              currency: {
+                decimals: 0,
+                symbol: '6d616368746c636f696e',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            }
+          ]
+        },
+        {
+          policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db',
+          tokens: [
+            {
+              value: '500',
+              currency: {
+                decimals: 0,
+                symbol: '6d616368746c32636f696e',
+                metadata: {
+                  policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+];
+export const balancesAtBlock213892 = [
+  {
+    value: '299994547239',
+    currency: {
+      decimals: 6,
+      symbol: 'ADA'
+    }
+  },
+  {
+    value: '95',
+    currency: {
+      decimals: 0,
+      symbol: '4154414441636f696e',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '2500',
+    currency: {
+      decimals: 0,
+      symbol: '6d616368746c636f696e',
+      metadata: {
+        policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      }
+    }
+  },
+  {
+    value: '500',
+    currency: {
+      decimals: 0,
+      symbol: '6d616368746c32636f696e',
+      metadata: {
+        policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+      }
+    }
+  }
+];
+
+const coinId1a04 = { identifier: '1a04005e5459b07a6353f5c1a9b1066d5969638b681923af6cb0601cf8c57495:0' };
+export const coinsAtBlock213892 = [
+  {
+    coin_identifier: coinId1a04,
+    amount: {
+      value: '299994547239',
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      }
+    },
+    metadata: {
+      '1a04005e5459b07a6353f5c1a9b1066d5969638b681923af6cb0601cf8c57495:0': [
+        {
+          policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+          tokens: [
+            {
+              value: '95',
+              currency: {
+                decimals: 0,
+                symbol: '4154414441636f696e',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            },
+            {
+              value: '2500',
+              currency: {
+                decimals: 0,
+                symbol: '6d616368746c636f696e',
+                metadata: {
+                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+                }
+              }
+            }
+          ]
+        },
+        {
+          policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db',
+          tokens: [
+            {
+              value: '500',
+              currency: {
+                decimals: 0,
+                symbol: '6d616368746c32636f696e',
+                metadata: {
+                  policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+];

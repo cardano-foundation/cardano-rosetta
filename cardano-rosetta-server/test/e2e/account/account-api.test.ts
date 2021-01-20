@@ -4,7 +4,15 @@ import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { CARDANO } from '../../../src/server/utils/constants';
-import { latestBlockIdentifier } from '../fixture-data';
+import {
+  latestBlockIdentifier,
+  address1vpfAccountBalances,
+  address1vpfCoins,
+  balancesAtBlock213891,
+  balancesAtBlock213892,
+  coinsAtBlock213891,
+  coinsAtBlock213892
+} from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
 const generatePayload = (
@@ -45,13 +53,18 @@ const ACCOUNT_BALANCE_ENDPOINT = '/account/balance';
 describe('/account/balance endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
+  let multiassetsDatabase: Pool;
+  let serverWithMultiassetsSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
+    multiassetsDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
+    serverWithMultiassetsSupport = setupServer(multiassetsDatabase);
   });
 
   afterAll(async () => {
     await database.end();
+    await multiassetsDatabase.end();
   });
 
   test('should return all utxos until last block if no block number is specified', async () => {
@@ -334,5 +347,101 @@ describe('/account/balance endpoint', () => {
         }
       ]
     });
+  });
+
+  test('should properly count ADA value if there are two new UTXO to the same address', async () => {
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
+        197619
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().balances[0]).toEqual({
+      currency: {
+        decimals: 6,
+        symbol: 'ADA'
+      },
+      value: '199999482509'
+    });
+  });
+
+  // should return a list of ma utxos and sum the corresponding ones to obtain the balances
+  test('should return payment balance and list of ma balances', async () => {
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
+        347898,
+        '1f391a9c0d5799e96aae4df2b22c361346bc98d3e46a2c3496632fdcae52f65b'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().block_identifier).toEqual({
+      index: 347898,
+      hash: '1f391a9c0d5799e96aae4df2b22c361346bc98d3e46a2c3496632fdcae52f65b'
+    });
+    expect(response.json().balances).toHaveLength(address1vpfAccountBalances.length);
+    address1vpfAccountBalances.forEach(accountBalance =>
+      expect(response.json().balances).toContainEqual(accountBalance)
+    );
+    expect(response.json().coins).toHaveLength(address1vpfCoins.length);
+    address1vpfCoins.forEach(address1vpfCoin => expect(response.json().coins).toContainEqual(address1vpfCoin));
+  });
+
+  // eslint-disable-next-line max-len
+  test('given a block with ma balances and the total amount of one of them are transferred in the current block, that token balance should not be seen at the address balance for the next block', async () => {
+    const responseAtBlock213891 = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
+        213891,
+        'ee0c724096119dd8a1feda1c528ca3c3e54b875bbdc67def25b6a244dab43099'
+      )
+    });
+    const responseAtBlock213892 = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
+        213892,
+        'f2a86b45724e1d6e37796abca3dce176ba817537b7f15a477bf4bd5927d24e1e'
+      )
+    });
+
+    expect(responseAtBlock213891.statusCode).toEqual(StatusCodes.OK);
+    expect(responseAtBlock213891.json().block_identifier).toEqual({
+      index: 213891,
+      hash: 'ee0c724096119dd8a1feda1c528ca3c3e54b875bbdc67def25b6a244dab43099'
+    });
+
+    expect(responseAtBlock213891.json().balances.length).toEqual(balancesAtBlock213891.length);
+    balancesAtBlock213891.forEach(accountBalance =>
+      expect(responseAtBlock213891.json().balances).toContainEqual(accountBalance)
+    );
+    expect(responseAtBlock213891.json().coins).toHaveLength(coinsAtBlock213891.length);
+    coinsAtBlock213891.forEach(coin => expect(responseAtBlock213891.json().coins).toContainEqual(coin));
+    expect(responseAtBlock213892.statusCode).toEqual(StatusCodes.OK);
+    expect(responseAtBlock213892.json().block_identifier).toEqual({
+      index: 213892,
+      hash: 'f2a86b45724e1d6e37796abca3dce176ba817537b7f15a477bf4bd5927d24e1e'
+    });
+    balancesAtBlock213892.forEach(accountBalance =>
+      expect(responseAtBlock213892.json().balances).toContainEqual(accountBalance)
+    );
+    expect(responseAtBlock213892.json().coins).toHaveLength(coinsAtBlock213892.length);
+    coinsAtBlock213892.forEach(coin => expect(responseAtBlock213892.json().coins).toContainEqual(coin));
   });
 });
