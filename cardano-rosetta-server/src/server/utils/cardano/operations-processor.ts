@@ -13,7 +13,7 @@ import CardanoWasm, {
 import { Logger } from 'fastify';
 import { NetworkIdentifier, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
-import { isPolictyIdValid, isTokenNameValid } from '../validations';
+import { isPolicyIdValid, isTokenNameValid } from '../validations';
 import { generateRewardAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
@@ -25,7 +25,7 @@ import { getStakingCredentialFromHex } from './staking-credentials';
 const validateAndParseTokenBundle = (tokenBundle: Components.Schemas.TokenBundleItem[]): CardanoWasm.MultiAsset =>
   tokenBundle.reduce((multiAssets, multiAsset) => {
     const polictyId = multiAsset.policyId;
-    if (!isPolictyIdValid(polictyId))
+    if (!isPolicyIdValid(polictyId))
       throw ErrorFactory.transactionOutputsParametersMissingError(`PolictyId ${polictyId} is not valid`);
     const policy = ScriptHash.from_bytes(Buffer.from(multiAsset.policyId, 'hex'));
     const assetsToAdd = multiAsset.tokens.reduce((assets, asset) => {

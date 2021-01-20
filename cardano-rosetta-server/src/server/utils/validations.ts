@@ -10,4 +10,4 @@ export const isAddressTypeValid = (type: string): boolean =>
 
 export const isTokenNameValid = (name: string): boolean => name.length <= ASSET_NAME_LENGTH;
 
-export const isPolictyIdValid = (policyId: string): boolean => policyId.length === POLICY_ID_LENGTH;
+export const isPolicyIdValid = (policyId: string): boolean => policyId.length === POLICY_ID_LENGTH;
