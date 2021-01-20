@@ -22,7 +22,9 @@ import {
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_DELEGATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
-  CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE
+  CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE
 } from '../fixture-data';
 import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
 
@@ -584,6 +586,26 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       code: 4020,
       message: 'Pool key hash is required for stake delegation',
       retriable: false
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including ma amount', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE,
+      payloads: [
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          hex_bytes: '3a4e241fe0c56f8001cb2e71ffdf10e2804437b4159930c32d59e3b4469203d6',
+          signature_type: SIGNATURE_TYPE
+        }
+      ]
     });
   });
 });
