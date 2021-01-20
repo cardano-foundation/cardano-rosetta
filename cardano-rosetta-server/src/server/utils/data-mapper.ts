@@ -331,7 +331,7 @@ export const mapToAccountBalanceResponse = (
             amount: mapAmount(current.value)
           });
         }
-        if (current.policy && current.name && current.quantity) {
+        if (current.policy && current.name !== undefined && current.quantity) {
           // MultiAsset
           const key = current.policy + current.name;
           const entry =
