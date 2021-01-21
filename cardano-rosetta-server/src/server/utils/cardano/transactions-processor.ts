@@ -1,4 +1,5 @@
 import CardanoWasm from 'cardano-serialization-lib';
+import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ADA, ADA_DECIMALS, CurveType, OperationType } from '../constants';
 import { mapAmount } from '../data-mapper';
@@ -23,7 +24,9 @@ const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: numbe
 
 const parseAsset = (logger: Logger, assets: CardanoWasm.Assets, index: number): Components.Schemas.Amount => {
   const assetKey = assets.keys().get(index);
-  const assetSymbol = hexFormatter(Buffer.from(assetKey.to_bytes()));
+  // Using cbor here because asset name serialization is being done differently than for policy id.
+  // Just doing Buffer.from would include bytes used by cbor for optimization and end up with unexpected symbol parsing
+  const assetSymbol = hexFormatter(cbor.decode(Buffer.from(assetKey.to_bytes())));
   const assetValue = assets.get(assetKey);
   if (!assetValue) {
     logger.error(`[parseTokenBundle] asset value for symbol: '${assetSymbol}' not provided`);
