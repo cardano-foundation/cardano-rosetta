@@ -128,7 +128,7 @@ const invalidOperationTypeError: CreateErrorFunction = type => buildApiError(Err
 const tokenBundleAssetsMissingError: CreateErrorFunction = type =>
   buildApiError(Errors.TOKEN_BUNDLE_ASSETS_MISSING, false, type);
 const tokenAssetValueMissingError: CreateErrorFunction = type =>
-  buildApiError(Errors.TOKEN_BUNDLE_ASSETS_MISSING, false, type);
+  buildApiError(Errors.TOKEN_ASSET_VALUE_MISSING, false, type);
 
 export const ErrorFactory = {
   blockNotFoundError,
