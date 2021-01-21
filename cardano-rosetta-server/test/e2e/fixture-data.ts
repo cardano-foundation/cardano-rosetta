@@ -2310,10 +2310,7 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS: Components.Schemas.Construct
 
 const constructionExtraData = (constructionPayloadsRequest: Components.Schemas.ConstructionPayloadsRequest) =>
   constructionPayloadsRequest.operations.filter(
-    op =>
-      op.coin_change?.coin_action === 'coin_spent' ||
-      op.metadata?.tokenBundle !== undefined ||
-      StakingOperations.includes(op.type as OperationType)
+    op => op.coin_change?.coin_action === 'coin_spent' || StakingOperations.includes(op.type as OperationType)
   );
 
 export const CONSTRUCTION_PAYLOADS_RESPONSE = cbor

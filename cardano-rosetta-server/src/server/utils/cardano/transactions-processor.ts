@@ -1,6 +1,7 @@
 import CardanoWasm from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
 import { ADA, ADA_DECIMALS, CurveType, OperationType } from '../constants';
+import { mapAmount } from '../data-mapper';
 import { ErrorFactory } from '../errors';
 import { hexFormatter } from '../formatters';
 import { generateRewardAddress, getAddressPrefix } from './addresses';
@@ -20,7 +21,56 @@ const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: numbe
   type: OperationType.INPUT
 });
 
+const parseAsset = (logger: Logger, assets: CardanoWasm.Assets, index: number): Components.Schemas.Amount => {
+  const assetKey = assets.keys().get(index);
+  const assetSymbol = hexFormatter(Buffer.from(assetKey.to_bytes()));
+  const assetValue = assets.get(assetKey);
+  if (!assetValue) {
+    logger.error(`[parseTokenBundle] asset value for symbol: '${assetSymbol}' not provided`);
+    throw ErrorFactory.tokenAssetValueMissingError();
+  }
+  return mapAmount(assetValue.to_str(), assetSymbol, 0);
+};
+
+const parseTokenAsset = (
+  logger: Logger,
+  multiassets: CardanoWasm.MultiAsset,
+  index: number
+): Components.Schemas.TokenBundleItem => {
+  const tokens = [];
+  const multiAssetKey = multiassets.keys().get(index);
+  const policyId = hexFormatter(Buffer.from(multiAssetKey.to_bytes()));
+  const assets = multiassets.get(multiAssetKey);
+  if (!assets) {
+    logger.error(`[parseTokenBundle] assets for policyId: '${policyId}' not provided`);
+    throw ErrorFactory.tokenBundleAssetsMissingError();
+  }
+  for (let j = 0; j < assets.len(); j++) {
+    tokens.push(parseAsset(logger, assets, j));
+  }
+  return {
+    policyId,
+    tokens
+  };
+};
+
+const parseTokenBundle = (
+  logger: Logger,
+  output: CardanoWasm.TransactionOutput
+): Components.Schemas.OperationMetadata | undefined => {
+  const multiassets = output.amount().multiasset();
+  const tokenBundle = [];
+  if (multiassets) {
+    logger.info(`[parseTokenBundle] About to parse ${multiassets.len()} multiassets from token bundle`);
+    for (let i = 0; i < multiassets.len(); i++) {
+      tokenBundle.push(parseTokenAsset(logger, multiassets, i));
+    }
+  }
+  return multiassets ? { tokenBundle } : undefined;
+};
+
 const parseOutputToOperation = (
+  logger: Logger,
   output: CardanoWasm.TransactionOutput,
   index: number,
   relatedOperations: Components.Schemas.OperationIdentifier[],
@@ -37,7 +87,8 @@ const parseOutputToOperation = (
     currency: { symbol: ADA, decimals: ADA_DECIMALS }
   },
   status: '',
-  type: OperationType.OUTPUT
+  type: OperationType.OUTPUT,
+  metadata: parseTokenBundle(logger, output)
 });
 
 const parseCertToOperation = (
@@ -164,10 +215,7 @@ export const convert = (
   for (let i = 0; i < inputsCount; i++) {
     const input = transactionBody.inputs().get(i);
     const inputParsed = parseInputToOperation(input, operations.length);
-    const inputExtraData = extraData.find(
-      data => data.operation_identifier.index === inputParsed.operation_identifier.index
-    );
-    operations.push({ ...inputParsed, ...inputExtraData, status: '' });
+    operations.push({ ...inputParsed, ...extraData[i], status: '' });
   }
   // till this line operations only contains inputs
   const relatedOperations = getRelatedOperationsFromInputs(operations);
@@ -175,15 +223,13 @@ export const convert = (
   for (let i = 0; i < outputsCount; i++) {
     const output = transactionBody.outputs().get(i);
     const outputParsed = parseOutputToOperation(
+      logger,
       output,
       operations.length,
       relatedOperations,
       getAddressPrefix(network)
     );
-    const outputExtraData = extraData.find(
-      data => data.operation_identifier.index === outputParsed.operation_identifier.index
-    );
-    operations.push({ ...outputParsed, ...outputExtraData, status: '' });
+    operations.push(outputParsed);
   }
   const stakingOps = extraData.filter(({ type }) =>
     [

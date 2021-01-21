@@ -67,6 +67,8 @@ export const Errors = {
     code: 4019
   },
   POOL_KEY_MISSING: { message: 'Pool key hash is required for stake delegation', code: 4020 },
+  TOKEN_BUNDLE_ASSETS_MISSING: { message: 'Assets are required for output operation token bundle', code: 4021 },
+  TOKEN_ASSET_VALUE_MISSING: { message: 'Asset value is required for token asset', code: 4022 },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -123,6 +125,10 @@ const transactionOutputDeserializationError: CreateErrorFunction = (details?: st
 const invalidAddressError: CreateErrorFunction = address => buildApiError(Errors.INVALID_ADDRESS, true, address);
 const invalidAddressTypeError: CreateErrorFunction = type => buildApiError(Errors.INVALID_ADDRESS_TYPE, true, type);
 const invalidOperationTypeError: CreateErrorFunction = type => buildApiError(Errors.INVALID_OPERATION_TYPE, true, type);
+const tokenBundleAssetsMissingError: CreateErrorFunction = type =>
+  buildApiError(Errors.TOKEN_BUNDLE_ASSETS_MISSING, false, type);
+const tokenAssetValueMissingError: CreateErrorFunction = type =>
+  buildApiError(Errors.TOKEN_BUNDLE_ASSETS_MISSING, false, type);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -151,7 +157,9 @@ export const ErrorFactory = {
   transactionOutputDeserializationError,
   invalidAddressError,
   invalidAddressTypeError,
-  invalidOperationTypeError
+  invalidOperationTypeError,
+  tokenBundleAssetsMissingError,
+  tokenAssetValueMissingError
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>
