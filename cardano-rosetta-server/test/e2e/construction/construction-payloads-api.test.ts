@@ -2,7 +2,12 @@
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
-import { setupOfflineDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import {
+  setupOfflineDatabase,
+  setupServer,
+  testInvalidNetworkParameters,
+  modifyMAOperation
+} from '../utils/test-utils';
 import {
   CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
@@ -22,9 +27,11 @@ import {
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_DELEGATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
-  CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE
+  CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE
 } from '../fixture-data';
-import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
+import { SIGNATURE_TYPE, POLICY_ID_LENGTH, ASSET_NAME_LENGTH } from '../../../src/server/utils/constants';
 
 const CONSTRUCTION_PAYLOADS_ENDPOINT = '/construction/payloads';
 
@@ -583,6 +590,113 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     expect(response.json()).toEqual({
       code: 4020,
       message: 'Pool key hash is required for stake delegation',
+      retriable: false
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including ma amount', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE,
+      payloads: [
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          hex_bytes: '3a4e241fe0c56f8001cb2e71ffdf10e2804437b4159930c32d59e3b4469203d6',
+          signature_type: SIGNATURE_TYPE
+        }
+      ]
+    });
+  });
+});
+
+describe('Invalid request with MultiAssets', () => {
+  let database: Pool;
+  let server: FastifyInstance;
+
+  beforeAll(async () => {
+    database = setupOfflineDatabase();
+    server = setupServer(database);
+  });
+
+  afterAll(async () => {
+    await database.end();
+  });
+  const invalidOperationErrorMessage = 'Transaction outputs parameters errors in operations array';
+
+  test('Should fail if MultiAsset policy id is shorter than expected', async () => {
+    const invalidPolicy = new Array(POLICY_ID_LENGTH).join('0');
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
+    const payload = {
+      operations: modifyMAOperation(invalidPolicy)(operations),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4009,
+      details: {
+        message: `PolicyId ${invalidPolicy} is not valid`
+      },
+      message: invalidOperationErrorMessage,
+      retriable: false
+    });
+  });
+
+  test('Should fail if MultiAsset policy id is longer than expected', async () => {
+    // eslint-disable-next-line no-magic-numbers
+    const invalidPolicy = new Array(POLICY_ID_LENGTH + 2).join('0');
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
+    const payload = {
+      operations: modifyMAOperation(invalidPolicy)(operations),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4009,
+      details: {
+        message: `PolicyId ${invalidPolicy} is not valid`
+      },
+      message: invalidOperationErrorMessage,
+      retriable: false
+    });
+  });
+
+  test('Should fail if MultiAsset symbol longer than expected', async () => {
+    // eslint-disable-next-line no-magic-numbers
+    const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
+    const payload = {
+      operations: modifyMAOperation(undefined, invalidSymbol)(operations),
+      ...restPayload
+    };
+
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4009,
+      details: {
+        message: `Token name ${invalidSymbol} is not valid`
+      },
+      message: invalidOperationErrorMessage,
       retriable: false
     });
   });
