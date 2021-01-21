@@ -24,7 +24,9 @@ import {
   SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
   SIGNED_TX_WITH_MA,
-  CONSTRUCTION_COMBINE_PAYLOAD
+  CONSTRUCTION_COMBINE_PAYLOAD,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
+  SIGNED_TX_WITH_MULTIPLE_MA
 } from '../fixture-data';
 import { ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from '../../../src/server/utils/constants';
 
@@ -260,6 +262,25 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
   });
 
+  test('Should properly process MultiAssets transactions with several tokens', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        relativeTtl: 100,
+        operations: CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA.operations
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_MULTIPLE_MA) }
+    });
+  });
+
   describe('Invalid request with MultiAssets', () => {
     const invalidOperationErrorMessage = 'Transaction outputs parameters errors in operations array';
     // eslint-disable-next-line unicorn/consistent-function-scoping
@@ -349,6 +370,57 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
         code: 4009,
         details: {
           message: `Token name ${invalidSymbol} is not valid`
+        },
+        message: invalidOperationErrorMessage,
+        retriable: false
+      });
+    });
+
+    test('Should fail if MultiAsset symbol longer than expected', async () => {
+      const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
+
+      const operations = mod(
+        1,
+        'metadata',
+        'tokenBundle',
+        0
+      )((tokenBundleItem: Components.Schemas.TokenBundleItem) => ({
+        ...tokenBundleItem,
+        tokens: [
+          {
+            value: '10000',
+            currency: {
+              symbol: '6e7574636f696e',
+              decimals: 0
+            }
+          },
+          {
+            value: '10000',
+            currency: {
+              symbol: '6e7574636f696e',
+              decimals: 0
+            }
+          }
+        ]
+      }))(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA.operations);
+
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4009,
+        details: {
+          message:
+            'Token name 6e7574636f696e has already been added for policy b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7 and will be overriden'
         },
         message: invalidOperationErrorMessage,
         retriable: false

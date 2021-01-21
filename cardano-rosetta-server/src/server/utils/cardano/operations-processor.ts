@@ -32,7 +32,13 @@ const validateAndParseTokenBundle = (tokenBundle: Components.Schemas.TokenBundle
       const tokenName = asset.currency.symbol;
       if (!isTokenNameValid(asset.currency.symbol))
         throw ErrorFactory.transactionOutputsParametersMissingError(`Token name ${tokenName} is not valid`);
-      assets.insert(AssetName.new(Buffer.from(tokenName, 'hex')), BigNum.from_str(asset.value));
+      const assetName = AssetName.new(Buffer.from(tokenName, 'hex'));
+      if (assets.get(assetName) !== undefined) {
+        throw ErrorFactory.transactionOutputsParametersMissingError(
+          `Token name ${tokenName} has already been added for policy ${multiAsset.policyId} and will be overriden`
+        );
+      }
+      assets.insert(assetName, BigNum.from_str(asset.value));
       return assets;
     }, Assets.new());
     multiAssets.insert(policy, assetsToAdd);
