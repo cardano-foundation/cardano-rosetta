@@ -1,9 +1,13 @@
 /* eslint-disable camelcase */
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { mod } from 'shades';
 import { FastifyInstance } from 'fastify';
-import { setupOfflineDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import {
+  setupOfflineDatabase,
+  setupServer,
+  testInvalidNetworkParameters,
+  modifyMAOperation
+} from '../utils/test-utils';
 import {
   CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
@@ -619,18 +623,6 @@ describe('Invalid request with MultiAssets', () => {
     database = setupOfflineDatabase();
     server = setupServer(database);
   });
-  // eslint-disable-next-line unicorn/consistent-function-scoping
-  const modifyMAOperation = (policyId?: string, symbol?: string) =>
-    mod(
-      1,
-      'metadata',
-      'tokenBundle',
-      0
-    )((tokenBundleItem: Components.Schemas.TokenBundleItem) => ({
-      ...tokenBundleItem,
-      policyId: policyId ?? tokenBundleItem.policyId,
-      tokens: mod(0, 'currency', 'symbol')((v: string) => symbol || v)(tokenBundleItem.tokens)
-    }));
 
   afterAll(async () => {
     await database.end();
@@ -639,7 +631,6 @@ describe('Invalid request with MultiAssets', () => {
 
   test('Should fail if MultiAsset policy id is shorter than expected', async () => {
     const invalidPolicy = new Array(POLICY_ID_LENGTH).join('0');
-
     const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
     const payload = {
       operations: modifyMAOperation(invalidPolicy)(operations),
@@ -664,7 +655,6 @@ describe('Invalid request with MultiAssets', () => {
   test('Should fail if MultiAsset policy id is longer than expected', async () => {
     // eslint-disable-next-line no-magic-numbers
     const invalidPolicy = new Array(POLICY_ID_LENGTH + 2).join('0');
-
     const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
     const payload = {
       operations: modifyMAOperation(invalidPolicy)(operations),
@@ -689,7 +679,6 @@ describe('Invalid request with MultiAssets', () => {
   test('Should fail if MultiAsset symbol longer than expected', async () => {
     // eslint-disable-next-line no-magic-numbers
     const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
-
     const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
     const payload = {
       operations: modifyMAOperation(undefined, invalidSymbol)(operations),

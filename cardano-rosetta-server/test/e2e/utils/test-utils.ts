@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import fs from 'fs';
+import { mod } from 'shades';
 import path from 'path';
 import StatusCodes from 'http-status-codes';
 import PgConnectionString from 'pg-connection-string';
@@ -102,3 +103,15 @@ export const testInvalidNetworkParameters = (
     });
   });
 };
+
+export const modifyMAOperation = (policyId?: string, symbol?: string) =>
+  mod(
+    1,
+    'metadata',
+    'tokenBundle',
+    0
+  )((tokenBundleItem: Components.Schemas.TokenBundleItem) => ({
+    ...tokenBundleItem,
+    policyId: policyId ?? tokenBundleItem.policyId,
+    tokens: mod(0, 'currency', 'symbol')((v: string) => symbol || v)(tokenBundleItem.tokens)
+  }));

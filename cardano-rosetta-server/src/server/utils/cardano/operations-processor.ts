@@ -26,7 +26,7 @@ const validateAndParseTokenBundle = (tokenBundle: Components.Schemas.TokenBundle
   tokenBundle.reduce((multiAssets, multiAsset) => {
     const polictyId = multiAsset.policyId;
     if (!isPolicyIdValid(polictyId))
-      throw ErrorFactory.transactionOutputsParametersMissingError(`PolictyId ${polictyId} is not valid`);
+      throw ErrorFactory.transactionOutputsParametersMissingError(`PolicyId ${polictyId} is not valid`);
     const policy = ScriptHash.from_bytes(Buffer.from(multiAsset.policyId, 'hex'));
     const assetsToAdd = multiAsset.tokens.reduce((assets, asset) => {
       const tokenName = asset.currency.symbol;

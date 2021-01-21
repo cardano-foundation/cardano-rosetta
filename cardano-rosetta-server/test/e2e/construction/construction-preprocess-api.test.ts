@@ -1,8 +1,12 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-magic-numbers */
 import StatusCodes from 'http-status-codes';
-import { mod } from 'shades';
-import { setupOfflineDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import {
+  setupOfflineDatabase,
+  setupServer,
+  testInvalidNetworkParameters,
+  modifyMAOperation
+} from '../utils/test-utils';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import {
@@ -283,18 +287,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
 
   describe('Invalid request with MultiAssets', () => {
     const invalidOperationErrorMessage = 'Transaction outputs parameters errors in operations array';
-    // eslint-disable-next-line unicorn/consistent-function-scoping
-    const modifyMAOperation = (policyId?: string, symbol?: string) =>
-      mod(
-        1,
-        'metadata',
-        'tokenBundle',
-        0
-      )((tokenBundleItem: Components.Schemas.TokenBundleItem) => ({
-        ...tokenBundleItem,
-        policyId: policyId ?? tokenBundleItem.policyId,
-        tokens: mod(0, 'currency', 'symbol')((v: string) => symbol || v)(tokenBundleItem.tokens)
-      }));
+
     test('Should fail if MultiAsset policy id is shorter than expected', async () => {
       const invalidPolicy = new Array(POLICY_ID_LENGTH).join('0');
 
