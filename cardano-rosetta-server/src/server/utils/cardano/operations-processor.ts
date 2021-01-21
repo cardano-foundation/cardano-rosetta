@@ -23,16 +23,18 @@ import { getStakingCredentialFromHex } from './staking-credentials';
  * @param tokenBundle bundle to be parsed
  */
 const validateAndParseTokenBundle = (tokenBundle: Components.Schemas.TokenBundleItem[]): CardanoWasm.MultiAsset =>
-  tokenBundle.reduce((multiAssets, multiAsset) => {
-    const polictyId = multiAsset.policyId;
-    if (!isPolicyIdValid(polictyId))
-      throw ErrorFactory.transactionOutputsParametersMissingError(`PolictyId ${polictyId} is not valid`);
-    const policy = ScriptHash.from_bytes(Buffer.from(multiAsset.policyId, 'hex'));
-    const assetsToAdd = multiAsset.tokens.reduce((assets, asset) => {
-      const tokenName = asset.currency.symbol;
-      if (!isTokenNameValid(asset.currency.symbol))
+  tokenBundle.reduce((multiAssets, { policyId, tokens }) => {
+    if (!isPolicyIdValid(policyId))
+      throw ErrorFactory.transactionOutputsParametersMissingError(`PolicyId ${policyId} is not valid`);
+    const policy = ScriptHash.from_bytes(Buffer.from(policyId, 'hex'));
+    const assetsToAdd = tokens.reduce((assets, asset) => {
+      const {
+        currency: { symbol: tokenName },
+        value: assetValue
+      } = asset;
+      if (!isTokenNameValid(tokenName))
         throw ErrorFactory.transactionOutputsParametersMissingError(`Token name ${tokenName} is not valid`);
-      assets.insert(AssetName.new(Buffer.from(tokenName, 'hex')), BigNum.from_str(asset.value));
+      assets.insert(AssetName.new(Buffer.from(tokenName, 'hex')), BigNum.from_str(assetValue));
       return assets;
     }, Assets.new());
     multiAssets.insert(policy, assetsToAdd);
