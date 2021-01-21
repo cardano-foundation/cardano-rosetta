@@ -315,7 +315,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
       expect(response.json()).toEqual({
         code: 4009,
         details: {
-          message: `PolictyId ${invalidPolicy} is not valid`
+          message: `PolicyId ${invalidPolicy} is not valid`
         },
         message: invalidOperationErrorMessage,
         retriable: false
@@ -342,7 +342,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
       expect(response.json()).toEqual({
         code: 4009,
         details: {
-          message: `PolictyId ${invalidPolicy} is not valid`
+          message: `PolicyId ${invalidPolicy} is not valid`
         },
         message: invalidOperationErrorMessage,
         retriable: false

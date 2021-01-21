@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
+import { mod } from 'shades';
 import { FastifyInstance } from 'fastify';
 import { setupOfflineDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 import {
@@ -26,7 +27,7 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE
 } from '../fixture-data';
-import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
+import { SIGNATURE_TYPE, POLICY_ID_LENGTH, ASSET_NAME_LENGTH } from '../../../src/server/utils/constants';
 
 const CONSTRUCTION_PAYLOADS_ENDPOINT = '/construction/payloads';
 
@@ -606,6 +607,108 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
           signature_type: SIGNATURE_TYPE
         }
       ]
+    });
+  });
+});
+
+describe('Invalid request with MultiAssets', () => {
+  let database: Pool;
+  let server: FastifyInstance;
+
+  beforeAll(async () => {
+    database = setupOfflineDatabase();
+    server = setupServer(database);
+  });
+  // eslint-disable-next-line unicorn/consistent-function-scoping
+  const modifyMAOperation = (policyId?: string, symbol?: string) =>
+    mod(
+      1,
+      'metadata',
+      'tokenBundle',
+      0
+    )((tokenBundleItem: Components.Schemas.TokenBundleItem) => ({
+      ...tokenBundleItem,
+      policyId: policyId ?? tokenBundleItem.policyId,
+      tokens: mod(0, 'currency', 'symbol')((v: string) => symbol || v)(tokenBundleItem.tokens)
+    }));
+
+  afterAll(async () => {
+    await database.end();
+  });
+  const invalidOperationErrorMessage = 'Transaction outputs parameters errors in operations array';
+
+  test('Should fail if MultiAsset policy id is shorter than expected', async () => {
+    const invalidPolicy = new Array(POLICY_ID_LENGTH).join('0');
+
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
+    const payload = {
+      operations: modifyMAOperation(invalidPolicy)(operations),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4009,
+      details: {
+        message: `PolicyId ${invalidPolicy} is not valid`
+      },
+      message: invalidOperationErrorMessage,
+      retriable: false
+    });
+  });
+
+  test('Should fail if MultiAsset policy id is longer than expected', async () => {
+    // eslint-disable-next-line no-magic-numbers
+    const invalidPolicy = new Array(POLICY_ID_LENGTH + 2).join('0');
+
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
+    const payload = {
+      operations: modifyMAOperation(invalidPolicy)(operations),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4009,
+      details: {
+        message: `PolicyId ${invalidPolicy} is not valid`
+      },
+      message: invalidOperationErrorMessage,
+      retriable: false
+    });
+  });
+
+  test('Should fail if MultiAsset symbol longer than expected', async () => {
+    // eslint-disable-next-line no-magic-numbers
+    const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
+
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
+    const payload = {
+      operations: modifyMAOperation(undefined, invalidSymbol)(operations),
+      ...restPayload
+    };
+
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4009,
+      details: {
+        message: `Token name ${invalidSymbol} is not valid`
+      },
+      message: invalidOperationErrorMessage,
+      retriable: false
     });
   });
 });
