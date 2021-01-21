@@ -9,6 +9,10 @@ Run a mainnet instance with the server exposed at `http://localhost:8080`
 ./bin/rosetta-cli check:data --configuration-file ./configuration/data/shelley_sample.json
 ./bin/rosetta-cli check:data --configuration-file ./configuration/data/shelley_transition.json
 ```
+Run a launchpad instance with the server exposed at `http://localhost:8082`
+``` console
+./bin/rosetta-cli check:data --configuration-file ./configuration/data/mary_sample.json
+```
 
 ## `construction`
 

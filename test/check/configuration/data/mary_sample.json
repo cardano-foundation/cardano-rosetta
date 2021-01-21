@@ -1,0 +1,16 @@
+{
+  "online_url": "http://localhost:8082",
+  "data": {
+    "start_index":  382301,
+    "end_conditions": {
+      "index":  382400
+    }
+  },
+  "network": {
+    "blockchain": "cardano",
+    "network": "3"
+  },
+  "http_timeout": 100000,
+  "tip_delay": 10000,
+  "max_sync_concurrency": 32
+}
