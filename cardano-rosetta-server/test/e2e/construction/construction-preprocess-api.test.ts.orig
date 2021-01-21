@@ -27,13 +27,16 @@ import {
   SIGNED_TX_WITH_TWO_WITHDRAWALS,
   SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
+<<<<<<< HEAD
   SIGNED_TX_WITH_MA,
   CONSTRUCTION_COMBINE_PAYLOAD,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
   SIGNED_TX_WITH_MULTIPLE_MA
+=======
+  SIGNED_TX_WITH_MA
+>>>>>>> 406d330 (refactor: fix policy msg typo and abstract commons test functions)
 } from '../fixture-data';
 import { ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from '../../../src/server/utils/constants';
-import { mod } from 'shades';
 
 const CONSTRUCTION_PREPROCESS_ENDPOINT = '/construction/preprocess';
 
