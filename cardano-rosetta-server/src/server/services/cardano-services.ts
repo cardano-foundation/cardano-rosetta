@@ -1,12 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable wrap-regex */
-import CardanoWasm, {
-  BigNum,
-  Ed25519Signature,
-  PublicKey,
-  StakeCredential,
-  Vkey
-} from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm, { BigNum, Ed25519Signature, PublicKey, StakeCredential, Vkey } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { generateBaseAddress, generateEnterpriseAddress, generateRewardAddress } from '../utils/cardano/addresses';
@@ -250,7 +244,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
       const ed25519Signature: Ed25519Signature = Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'));
       vkeyWitnesses.add(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature));
     });
-    logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len} witnesses were extracted to sign transaction`);
+    logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len()} witnesses were extracted to sign transaction`);
     witnesses.set_vkeys(vkeyWitnesses);
     return witnesses;
   } catch (error) {

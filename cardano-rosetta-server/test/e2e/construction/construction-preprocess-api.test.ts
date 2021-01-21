@@ -1,5 +1,7 @@
 /* eslint-disable camelcase */
+/* eslint-disable no-magic-numbers */
 import StatusCodes from 'http-status-codes';
+import { mod } from 'shades';
 import { setupOfflineDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
@@ -12,17 +14,23 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
   CONSTRUCTION_PAYLOADS_REQUEST,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION,
+  SIGNED_TX_WITH_STAKE_KEY_DEREGISTRATION,
   TRANSACTION_SIZE_IN_BYTES,
-  TX_WITH_STAKE_KEY_REGISTRATION_SIZE_IN_BYTES,
-  TX_WITH_STAKE_KEY_DEREGISTRATION_SIZE_IN_BYTES,
-  TX_WITH_STAKE_DELEGATION_SIZE_IN_BYTES,
-  TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION_SIZE_IN_BYTES,
-  TX_WITH_WITHDRAWAL_SIZE_IN_BYTES,
-  TX_WITH_TWO_WITHDRAWALS_SIZE_IN_BYTES,
-  TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL_SIZE_IN_BYTES
+  SIGNED_TX_WITH_STAKE_DELEGATION,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION,
+  SIGNED_TX_WITH_WITHDRAWAL,
+  SIGNED_TX_WITH_TWO_WITHDRAWALS,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
+  SIGNED_TX_WITH_MA,
+  CONSTRUCTION_COMBINE_PAYLOAD
 } from '../fixture-data';
+import { ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from '../../../src/server/utils/constants';
 
 const CONSTRUCTION_PREPROCESS_ENDPOINT = '/construction/preprocess';
+
+const sizeInBytes = (hex: string) => hex.length / 2;
 
 type ProcessPayloadType = {
   blockchain?: string;
@@ -98,7 +106,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      options: { relative_ttl: 100, transaction_size: TX_WITH_STAKE_KEY_REGISTRATION_SIZE_IN_BYTES }
+      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_KEY_REGISTRATION) }
     });
   });
 
@@ -117,7 +125,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      options: { relative_ttl: 100, transaction_size: TX_WITH_STAKE_KEY_DEREGISTRATION_SIZE_IN_BYTES }
+      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_KEY_DEREGISTRATION) }
     });
   });
 
@@ -136,7 +144,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      options: { relative_ttl: 100, transaction_size: TX_WITH_STAKE_DELEGATION_SIZE_IN_BYTES }
+      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_DELEGATION) }
     });
   });
 
@@ -158,7 +166,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     expect(response.json()).toEqual({
       options: {
         relative_ttl: 100,
-        transaction_size: TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION_SIZE_IN_BYTES
+        transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION)
       }
     });
   });
@@ -178,7 +186,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      options: { relative_ttl: 100, transaction_size: TX_WITH_WITHDRAWAL_SIZE_IN_BYTES }
+      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_WITHDRAWAL) }
     });
   });
 
@@ -197,7 +205,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      options: { relative_ttl: 100, transaction_size: TX_WITH_TWO_WITHDRAWALS_SIZE_IN_BYTES }
+      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_TWO_WITHDRAWALS) }
     });
   });
 
@@ -216,7 +224,10 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      options: { relative_ttl: 100, transaction_size: TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL_SIZE_IN_BYTES }
+      options: {
+        relative_ttl: 100,
+        transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL)
+      }
     });
   });
 
@@ -228,5 +239,120 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({ options: { relative_ttl: 1000, transaction_size: TRANSACTION_SIZE_IN_BYTES } });
+  });
+
+  test('Should properly process MultiAssets transactions', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        relativeTtl: 100,
+        operations: CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_MA) }
+    });
+  });
+
+  describe('Invalid request with MultiAssets', () => {
+    const invalidOperationErrorMessage = 'Transaction outputs parameters errors in operations array';
+    // eslint-disable-next-line unicorn/consistent-function-scoping
+    const modifyMAOperation = (policyId?: string, symbol?: string) =>
+      mod(
+        1,
+        'metadata',
+        'tokenBundle',
+        0
+      )((tokenBundleItem: Components.Schemas.TokenBundleItem) => ({
+        ...tokenBundleItem,
+        policyId: policyId ?? tokenBundleItem.policyId,
+        tokens: mod(0, 'currency', 'symbol')((v: string) => symbol || v)(tokenBundleItem.tokens)
+      }));
+    test('Should fail if MultiAsset policy id is shorter than expected', async () => {
+      const invalidPolicy = new Array(POLICY_ID_LENGTH).join('0');
+
+      const operations = modifyMAOperation(invalidPolicy)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
+
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4009,
+        details: {
+          message: `PolictyId ${invalidPolicy} is not valid`
+        },
+        message: invalidOperationErrorMessage,
+        retriable: false
+      });
+    });
+
+    test('Should fail if MultiAsset policy id is longer than expected', async () => {
+      const invalidPolicy = new Array(POLICY_ID_LENGTH + 2).join('0');
+
+      const operations = modifyMAOperation(invalidPolicy)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
+
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4009,
+        details: {
+          message: `PolictyId ${invalidPolicy} is not valid`
+        },
+        message: invalidOperationErrorMessage,
+        retriable: false
+      });
+    });
+
+    test('Should fail if MultiAsset symbol longer than expected', async () => {
+      const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
+
+      const operations = modifyMAOperation(undefined, invalidSymbol)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
+
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4009,
+        details: {
+          message: `Token name ${invalidSymbol} is not valid`
+        },
+        message: invalidOperationErrorMessage,
+        retriable: false
+      });
+    });
   });
 });

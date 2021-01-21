@@ -1,15 +1,43 @@
 /* eslint-disable wrap-regex */
 import CardanoWasm, {
+  AssetName,
+  Assets,
   BigNum,
+  MultiAsset,
+  ScriptHash,
   StakeDelegation,
   StakeDeregistration,
-  StakeRegistration
-} from '@emurgo/cardano-serialization-lib-nodejs';
+  StakeRegistration,
+  Value
+} from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
 import { NetworkIdentifier, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
+import { isPolicyIdValid, isTokenNameValid } from '../validations';
 import { generateRewardAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
+
+/**
+ * This function validates and parses token bundles that might be attached to unspents
+ *
+ * @param tokenBundle bundle to be parsed
+ */
+const validateAndParseTokenBundle = (tokenBundle: Components.Schemas.TokenBundleItem[]): CardanoWasm.MultiAsset =>
+  tokenBundle.reduce((multiAssets, multiAsset) => {
+    const polictyId = multiAsset.policyId;
+    if (!isPolicyIdValid(polictyId))
+      throw ErrorFactory.transactionOutputsParametersMissingError(`PolictyId ${polictyId} is not valid`);
+    const policy = ScriptHash.from_bytes(Buffer.from(multiAsset.policyId, 'hex'));
+    const assetsToAdd = multiAsset.tokens.reduce((assets, asset) => {
+      const tokenName = asset.currency.symbol;
+      if (!isTokenNameValid(asset.currency.symbol))
+        throw ErrorFactory.transactionOutputsParametersMissingError(`Token name ${tokenName} is not valid`);
+      assets.insert(AssetName.new(Buffer.from(tokenName, 'hex')), BigNum.from_str(asset.value));
+      return assets;
+    }, Assets.new());
+    multiAssets.insert(policy, assetsToAdd);
+    return multiAssets;
+  }, MultiAsset.new());
 
 const validateAndParseTransactionOutput = (
   logger: Logger,
@@ -26,17 +54,19 @@ const validateAndParseTransactionOutput = (
     logger.error('[validateAndParseTransactionOutput] Output has missing address field');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing address field');
   }
-  const value = output.amount?.value;
-  if (!output.amount || !value) {
+  const outputValue = output.amount?.value;
+  if (!output.amount || !outputValue) {
     logger.error('[validateAndParseTransactionOutput] Output has missing amount value field');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
   }
-  if (/^-\d+/.test(value)) {
+  if (/^-\d+/.test(outputValue)) {
     logger.error('[validateAndParseTransactionOutput] Output has negative value');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
   }
+  const value = Value.new(BigNum.from_str(output.amount?.value));
+  if (output.metadata?.tokenBundle) value.set_multiasset(validateAndParseTokenBundle(output.metadata.tokenBundle));
   try {
-    return CardanoWasm.TransactionOutput.new(address, BigNum.from_str(output.amount?.value));
+    return CardanoWasm.TransactionOutput.new(address, value);
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(error.toString());
   }

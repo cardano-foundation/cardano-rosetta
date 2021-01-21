@@ -1,4 +1,4 @@
-import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
 import { ADA, ADA_DECIMALS, CurveType, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
@@ -29,7 +29,13 @@ const parseOutputToOperation = (
   operation_identifier: { index },
   related_operations: relatedOperations,
   account: { address: output.address().to_bech32(addressPrefix) },
-  amount: { value: output.amount().to_str(), currency: { symbol: ADA, decimals: ADA_DECIMALS } },
+  amount: {
+    value: output
+      .amount()
+      .coin()
+      .to_str(),
+    currency: { symbol: ADA, decimals: ADA_DECIMALS }
+  },
   status: '',
   type: OperationType.OUTPUT
 });

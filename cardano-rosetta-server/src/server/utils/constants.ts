@@ -16,6 +16,8 @@ export const PREFIX_LENGTH = 10;
 // Nibbles
 export const SIGNATURE_LENGTH = 128;
 export const PUBLIC_KEY_BYTES_LENGTH = 64;
+export const POLICY_ID_LENGTH = 56;
+export const ASSET_NAME_LENGTH = 64;
 
 export enum StakeType {
   STAKE = 'stake',

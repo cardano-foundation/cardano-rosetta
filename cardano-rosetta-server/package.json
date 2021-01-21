@@ -68,12 +68,13 @@
     "lint-staged": "10.2.11",
     "pg-connection-string": "2.3.0",
     "prettier": "1.19.1",
+    "shades": "2.1.0",
     "ts-jest": "26.1.1",
     "ts-node-dev": "1.0.0-pre.50",
     "typescript": "3.9.5"
   },
   "dependencies": {
-    "@emurgo/cardano-serialization-lib-nodejs": "4.3.0",
+    "cardano-serialization-lib": "file:./packages-cache/cardano-serialization-lib-5.0.0-98fdbfacef9e24dfb90b955dfadb1a3ff8e1425d-rc.0.tgz",
     "cbor": "5.1.0",
     "dotenv": "8.2.0",
     "envalid": "6.0.2",
