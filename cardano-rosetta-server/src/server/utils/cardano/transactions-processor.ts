@@ -22,12 +22,30 @@ const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: numbe
   type: OperationType.INPUT
 });
 
-const parseAsset = (logger: Logger, assets: CardanoWasm.Assets, index: number): Components.Schemas.Amount => {
-  const assetKey = assets.keys().get(index);
-  // Using cbor here because asset name serialization is being done differently than for policy id.
-  // Just doing Buffer.from would include bytes used by cbor for optimization and end up with unexpected symbol parsing
-  const assetSymbol = hexFormatter(cbor.decode(Buffer.from(assetKey.to_bytes())));
-  const assetValue = assets.get(assetKey);
+/**
+ * Create policy id or asset name keys array
+ * @param  {CardanoWasm.Assets|CardanoWasm.MultiAsset} collection
+ * @returns CardanoWasm
+ */
+const keys = (
+  collection: CardanoWasm.Assets | CardanoWasm.MultiAsset
+): CardanoWasm.AssetName[] | CardanoWasm.ScriptHash[] => {
+  const keysArray = [];
+  for (let j = 0; j < collection.len(); j++) {
+    keysArray.push(collection.keys().get(j));
+  }
+  return keysArray;
+};
+
+const parseAsset = (
+  logger: Logger,
+  assets: CardanoWasm.Assets,
+  key: CardanoWasm.AssetName
+): Components.Schemas.Amount => {
+  // When getting the key we are obtaining a cbor encoded string instead of the actual name.
+  // This might need to be changed in the serialization lib in the future
+  const assetSymbol = hexFormatter(cbor.decode(Buffer.from(key.to_bytes())));
+  const assetValue = assets.get(key);
   if (!assetValue) {
     logger.error(`[parseTokenBundle] asset value for symbol: '${assetSymbol}' not provided`);
     throw ErrorFactory.tokenAssetValueMissingError();
@@ -38,22 +56,20 @@ const parseAsset = (logger: Logger, assets: CardanoWasm.Assets, index: number): 
 const parseTokenAsset = (
   logger: Logger,
   multiassets: CardanoWasm.MultiAsset,
-  index: number
+  multiassetKey: CardanoWasm.ScriptHash
 ): Components.Schemas.TokenBundleItem => {
-  const tokens = [];
-  const multiAssetKey = multiassets.keys().get(index);
-  const policyId = hexFormatter(Buffer.from(multiAssetKey.to_bytes()));
-  const assets = multiassets.get(multiAssetKey);
+  const policyId = hexFormatter(Buffer.from(multiassetKey.to_bytes()));
+  const assets = multiassets.get(multiassetKey);
   if (!assets) {
     logger.error(`[parseTokenBundle] assets for policyId: '${policyId}' not provided`);
     throw ErrorFactory.tokenBundleAssetsMissingError();
   }
-  for (let j = 0; j < assets.len(); j++) {
-    tokens.push(parseAsset(logger, assets, j));
-  }
+
   return {
     policyId,
-    tokens
+    tokens: (keys(assets) as CardanoWasm.AssetName[])
+      .map(key => parseAsset(logger, assets, key))
+      .sort((assetA, assetB) => assetA.currency.symbol.localeCompare(assetB.currency.symbol))
   };
 };
 
@@ -62,12 +78,12 @@ const parseTokenBundle = (
   output: CardanoWasm.TransactionOutput
 ): Components.Schemas.OperationMetadata | undefined => {
   const multiassets = output.amount().multiasset();
-  const tokenBundle = [];
+  let tokenBundle: Components.Schemas.TokenBundleItem[] = [];
   if (multiassets) {
     logger.info(`[parseTokenBundle] About to parse ${multiassets.len()} multiassets from token bundle`);
-    for (let i = 0; i < multiassets.len(); i++) {
-      tokenBundle.push(parseTokenAsset(logger, multiassets, i));
-    }
+    tokenBundle = (keys(multiassets) as CardanoWasm.ScriptHash[])
+      .map(key => parseTokenAsset(logger, multiassets, key))
+      .sort((tokenA, tokenB) => tokenA.policyId.localeCompare(tokenB.policyId));
   }
   return multiassets ? { tokenBundle } : undefined;
 };

@@ -7,6 +7,8 @@ import {
   CONSTRUCTION_INVALID_TRANSACTION,
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_SEVERAL_MA,
   CONSTRUCTION_PAYLOADS_STAKE_DELEGATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_DELEGATION_RESPONSE,
@@ -21,6 +23,8 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_MA,
+  CONSTRUCTION_SIGNED_TRANSACTION_WITH_MULTIPLE_MA,
+  CONSTRUCTION_SIGNED_TRANSACTION_WITH_SEVERAL_MA,
   CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_EXTRA_DATA,
   CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_WITHDRWAWAL_AND_EXTRA_DATA,
   CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA
@@ -266,5 +270,35 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA));
     expect(response.json().signers).toEqual([CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations[0].account?.address]);
+  });
+
+  test('Should correctly parse operations with two MultiAssets', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TRANSACTION_WITH_MULTIPLE_MA)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA)
+    );
+    expect(response.json().signers).toEqual([
+      CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA.operations[0].account?.address
+    ]);
+  });
+
+  test('Should correctly parse operations with several MultiAssets ', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TRANSACTION_WITH_SEVERAL_MA)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_SEVERAL_MA)
+    );
+    expect(response.json().signers).toEqual([
+      CONSTRUCTION_PAYLOADS_REQUEST_WITH_SEVERAL_MA.operations[0].account?.address
+    ]);
   });
 });
