@@ -25,7 +25,7 @@ export const configure = (cardanoCliPath: string, networkMagic: number): Cardano
     try {
       // `--testnet-magic` flag is used even if it's mainnet as we are using the proper networkMagic
       logger.info(`[submitTransaction] Invoking cardano-cli at ${cardanoCliPath} using ${networkMagic} networkMagic`);
-      const commonParameters = ['shelley', 'transaction', 'submit', '--tx-file', file];
+      const commonParameters = ['transaction', 'submit', '--tx-file', file];
       const parameters = isMainnet
         ? commonParameters.concat('--mainnet')
         : commonParameters.concat('--testnet-magic', networkMagic.toString());
