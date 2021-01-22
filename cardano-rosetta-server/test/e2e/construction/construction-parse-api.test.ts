@@ -269,7 +269,6 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA));
-    expect(response.json().signers).toEqual([CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations[0].account?.address]);
   });
 
   test('Should correctly parse operations with two MultiAssets', async () => {
@@ -282,9 +281,6 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA)
     );
-    expect(response.json().signers).toEqual([
-      CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA.operations[0].account?.address
-    ]);
   });
 
   test('Should correctly parse operations with several MultiAssets ', async () => {
@@ -297,8 +293,5 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_SEVERAL_MA)
     );
-    expect(response.json().signers).toEqual([
-      CONSTRUCTION_PAYLOADS_REQUEST_WITH_SEVERAL_MA.operations[0].account?.address
-    ]);
   });
 });
