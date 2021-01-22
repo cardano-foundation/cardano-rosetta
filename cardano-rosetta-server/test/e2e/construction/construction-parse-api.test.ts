@@ -1,29 +1,35 @@
 /* eslint-disable camelcase */
+import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { FastifyInstance } from 'fastify';
-import { setupOfflineDatabase, setupServer } from '../utils/test-utils';
 import {
-  CONSTRUCTION_INVALID_TRANSACTION,
   constructionParseOperations,
+  CONSTRUCTION_INVALID_TRANSACTION,
   CONSTRUCTION_PAYLOADS_REQUEST,
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
-  CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_WITHDRWAWAL_AND_EXTRA_DATA,
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION,
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
-  CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
-  CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_RESPONSE,
-  CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_SEVERAL_MA,
   CONSTRUCTION_PAYLOADS_STAKE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_DELEGATION_RESPONSE,
-  CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
+  CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
+  CONSTRUCTION_SIGNED_TRANSACTION_WITH_MA,
+  CONSTRUCTION_SIGNED_TRANSACTION_WITH_MULTIPLE_MA,
+  CONSTRUCTION_SIGNED_TRANSACTION_WITH_SEVERAL_MA,
   CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_EXTRA_DATA,
+  CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_WITHDRWAWAL_AND_EXTRA_DATA,
   CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA
 } from '../fixture-data';
+import { setupOfflineDatabase, setupServer } from '../utils/test-utils';
 
 const CONSTRUCTION_PARSE_ENDPOINT = '/construction/parse';
 
@@ -253,5 +259,39 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       message: 'Cant create unsigned transaction from transaction bytes',
       retriable: false
     });
+  });
+
+  test('Should return 1 input and 2 ouput, first input and ouput with MultiAssets', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TRANSACTION_WITH_MA)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA));
+  });
+
+  test('Should correctly parse operations with two MultiAssets', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TRANSACTION_WITH_MULTIPLE_MA)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA)
+    );
+  });
+
+  test('Should correctly parse operations with several MultiAssets ', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TRANSACTION_WITH_SEVERAL_MA)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_SEVERAL_MA)
+    );
   });
 });

@@ -1,11 +1,11 @@
 /* eslint-disable camelcase */
-import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
-import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
-import { CARDANO, MAINNET, OPERATION_TYPES } from '../../../src/server/utils/constants';
-import { generateNetworkPayload } from './common';
+import { Pool } from 'pg';
 import packageJson from '../../../package.json';
+import { CARDANO, MAINNET, OPERATION_TYPES } from '../../../src/server/utils/constants';
+import { setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
+import { generateNetworkPayload } from './common';
 
 const NETWORK_OPTIONS_ENDPOINT = '/network/options';
 
@@ -92,6 +92,16 @@ const allow = {
     {
       code: 4020,
       message: 'Pool key hash is required for stake delegation',
+      retriable: false
+    },
+    {
+      code: 4021,
+      message: 'Assets are required for output operation token bundle',
+      retriable: false
+    },
+    {
+      code: 4022,
+      message: 'Asset value is required for token asset',
       retriable: false
     },
     {

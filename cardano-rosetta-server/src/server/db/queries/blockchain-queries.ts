@@ -106,7 +106,8 @@ JOIN tx as source_tx
 LEFT JOIN ma_tx_out as source_ma_tx_out
   ON source_ma_tx_out.tx_out_id = source_tx_out.id
 WHERE
-  tx.hash = ANY ($1)`;
+  tx.hash = ANY ($1)
+ORDER BY policy, name`;
 
 const findGenesisBlock = `
 SELECT
@@ -139,6 +140,7 @@ LEFT JOIN ma_tx_out
   ON ma_tx_out.tx_out_id = tx_out.id
 WHERE
   tx.hash = ANY ($1)
+ORDER BY policy, name
 `;
 
 export interface FindTransactionWithdrawals extends FindTransactionFieldResult {

@@ -1,20 +1,20 @@
 /* eslint-disable camelcase */
 
 import cbor from 'cbor';
+import { BalanceAtBlock, Block, BlockUtxos, Network, PopulatedTransaction, TokenBundle, Utxo } from '../models';
 import { NetworkStatus } from '../services/network-service';
 import {
   ADA,
   ADA_DECIMALS,
-  MULTI_ASSET_DECIMALS,
   CARDANO,
   MAINNET,
+  MULTI_ASSET_DECIMALS,
   NetworkIdentifier,
   OperationType,
   SIGNATURE_TYPE,
   StakingOperations,
   SUCCESS_STATUS
 } from './constants';
-import { Block, BlockUtxos, BalanceAtBlock, Network, PopulatedTransaction, Utxo, TokenBundle } from '../models';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';

@@ -1,10 +1,10 @@
 import { FastifyRequest } from 'fastify';
 import { NetworkService } from '../services/network-service';
+import { CardanoNode } from '../utils/cardano/cli/cardano-node';
 import { MIDDLEWARE_VERSION, OPERATION_TYPES, ROSETTA_VERSION, SUCCESS_OPERATION_STATE } from '../utils/constants';
 import { mapToNetworkList, mapToNetworkStatusResponse } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
-import { CardanoNode } from '../utils/cardano/cli/cardano-node';
 
 /* eslint-disable camelcase */
 export interface NetworkController {
