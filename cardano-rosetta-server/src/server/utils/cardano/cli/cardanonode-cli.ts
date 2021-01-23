@@ -17,7 +17,7 @@ export const configure = (cardanoCliPath: string, networkMagic: number): Cardano
   async submitTransaction(logger, signedTransaction, isMainnet): Promise<void> {
     logger.info(`[submitTransaction] About to create temp file for transaction ${signedTransaction}`);
     const file = await tempWrite(`{
-      "type": "TxSignedShelley",
+      "type": "Tx MaryEra",
       "description": "",
       "cborHex": "${signedTransaction}"
     }`);
