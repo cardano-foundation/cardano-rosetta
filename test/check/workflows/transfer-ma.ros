@@ -1,0 +1,296 @@
+request_funds(1){
+
+  find_account{
+
+    currency = {"symbol":"ADA", "decimals":6};
+    random_account = find_balance({
+      "minimum_balance":{
+        "value": "0",
+        "currency": {{currency}}
+      },
+      "create_limit":1
+    });
+  },
+
+  // Create a separate scenario to request funds so that
+  // the address we are using to request funds does not
+  // get rolled back if funds do not yet exist.
+  request{
+    loaded_account = find_balance({
+      "account_identifier": {{random_account.account_identifier}},
+      "minimum_balance":{
+        "value": "10000000",
+        "currency": {{currency}}
+      },
+      "require_coin":true
+    });
+  }
+}
+
+create_account(1){
+  create{
+    network = {"network":"3", "blockchain":"cardano"};
+    key = generate_key({"curve_type": "edwards25519"});
+    account = derive({
+      "network_identifier": {{network}},
+      "public_key": {{key.public_key}}
+    });
+
+    // If the account is not saved, the key will be lost!
+    save_account({
+      "account_identifier": {{account.account_identifier}},
+      "keypair": {{key}}
+    });
+  }
+}
+
+transfer(10){
+  transfer_dry_run{
+    transfer_dry_run.network = {"network":"3", "blockchain":"cardano"};
+    currency = {"symbol":"ADA", "decimals":6};
+
+    // We set the max_fee_amount to know how much buffer we should
+    // leave for fee payment when selecting a sender account.
+    token_bundle_min_ADA = "5000000"; // we will generate two outputs
+    dust_amount = "1000000";
+    max_fee_amount = "5000000";
+    send_buffer = {{dust_amount}} + {{max_fee_amount}};
+    send_buffer = {{send_buffer}} + 10000000 // Bundle ADAs
+
+    sender = find_balance({
+      "minimum_balance":{
+        "value": {{send_buffer}},
+        "currency": {{currency}}
+      },
+      "require_coin": true
+    });
+
+    receivable_amount = {{sender.balance.value}} - {{send_buffer}};
+
+    // The change amount is what we aren't sending to the recipient
+    // minus the maximum fee. Don't worry, we will adjust this
+    // amount to avoid overpaying the fee after the dry run
+    // completes.
+    raw_change_amount = {{sender.balance.value}} - {{send_buffer}};
+    change_amount = {{raw_change_amount}};
+    print_message({
+      "change_amount":{{change_amount}}
+    });
+
+    // We load the recipient address from an ENV.
+    // Faucet return address is `addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3`
+    recipient_address = load_env("RECIPIENT");
+    print_message({
+      "refund recipient address": {{recipient_address}}
+    });
+    recipient = {"address": {{recipient_address}}};
+
+    ma_recipient_1_address = load_env("MA_RECIPIENT_1");
+    print_message({
+      "MA recipient #1": {{ma_recipient_1_address}}
+    });
+
+    ma_recipient_1 = {"address": {{ma_recipient_1_address}}};
+
+    ma_recipient_2_address = load_env("MA_RECIPIENT_2");
+    print_message({
+      "MA recipient #2": {{ma_recipient_2_address}}
+    });
+    ma_recipient_2 = {"address": {{ma_recipient_2_address}}};
+
+    token_to_receive_amount = load_env("TOKENS_TO_RECEIVE_AMOUNT");
+    print_message({
+      "Tokens to receive": {{token_to_receive_amount}}
+    });
+    
+    policy_id = load_env("POLICY_ID");
+    print_message({
+      "Policy Id": {{policy_id}}
+    });
+
+    token_name = load_env("TOKEN_NAME");
+    print_message({
+      "Token Name": {{token_name}}
+    });
+
+    tokens_to_send_1 = {{token_to_receive_amount}} - 1;
+    tokens_to_send_2 = "1";
+    
+    sender_amount = 0 - {{sender.balance.value}};
+    transfer_dry_run.confirmation_depth = "1";
+    transfer_dry_run.dry_run = true;
+
+    transfer_dry_run.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"input",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{sender_amount}},"currency":{{currency}}},
+        "coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}},
+        "status": "", // to be removed in 1.4.8,
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": {{policy_id}},
+              "tokens": [
+                {
+                  "value": {{token_to_receive_amount}},
+                  "currency": {
+                    "symbol": {{token_name}},
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "operation_identifier":{"index":1},
+        "type":"output",
+        "account":{{ma_recipient_1}},
+        "amount":{"value":{{token_bundle_min_ADA}},"currency":{{currency}}},
+        "status": "",
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": {{policy_id}},
+              "tokens": [
+                {
+                  "value": {{tokens_to_send_1}},
+                  "currency": {
+                    "symbol": {{token_name}},
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }  
+      },
+      {
+        "operation_identifier":{"index":2},
+        "type":"output",
+        "account":{{ma_recipient_2}},
+        "amount":{"value":{{token_bundle_min_ADA}},"currency":{{currency}}},
+        "status": "",
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": {{policy_id}},
+              "tokens": [
+                {
+                  "value": {{tokens_to_send_2}},
+                  "currency": {
+                    "symbol": {{token_name}},
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }  
+      },
+      {
+        "operation_identifier":{"index":3},
+        "type":"output",
+        "account":{{recipient}},
+        "amount":{"value":{{change_amount}},"currency":{{currency}}},
+        "status": "" // to be removed in 1.4.8
+      }
+    ];
+  },
+  transfer{
+    // The suggested_fee is returned in the /construction/metadata
+    // response and saved to transfer_dry_run.suggested_fee.
+    suggested_fee = find_currency_amount({
+      "currency":{{currency}},
+      "amounts":{{transfer_dry_run.suggested_fee}}
+    });
+
+    // We can access the variables of other scenarios, so we don't
+    // need to recalculate raw_change_amount.
+    change_amount = {{raw_change_amount}} - {{suggested_fee.value}};
+    transfer.network = {{transfer_dry_run.network}};
+    transfer.confirmation_depth = {{transfer_dry_run.confirmation_depth}};
+    transfer.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"input",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{sender_amount}},"currency":{{currency}}},
+        "coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}},
+        "status": "", // to be removed in 1.4.8,
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": {{policy_id}},
+              "tokens": [
+                {
+                  "value": {{token_to_receive_amount}},
+                  "currency": {
+                    "symbol": {{token_name}},
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "operation_identifier":{"index":1},
+        "type":"output",
+        "account":{{ma_recipient_1}},
+        "amount":{"value":{{token_bundle_min_ADA}},"currency":{{currency}}},
+        "status": "",
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": {{policy_id}},
+              "tokens": [
+                {
+                  "value": {{tokens_to_send_1}},
+                  "currency": {
+                    "symbol": {{token_name}},
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }  
+      },
+      {
+        "operation_identifier":{"index":2},
+        "type":"output",
+        "account":{{ma_recipient_2}},
+        "amount":{"value":{{token_bundle_min_ADA}},"currency":{{currency}}},
+        "status": "",
+        "metadata": {
+          "tokenBundle": [
+            {
+              "policyId": {{policy_id}},
+              "tokens": [
+                {
+                  "value": {{tokens_to_send_2}},
+                  "currency": {
+                    "symbol": {{token_name}},
+                    "decimals": 0
+                  }
+                }
+              ]
+            }
+          ]
+        }  
+      },
+      {
+        "operation_identifier":{"index":3},
+        "type":"output",
+        "account":{{recipient}},
+        "amount":{"value":{{change_amount}},"currency":{{currency}}},
+        "status": "" // to be removed in 1.4.8
+      }
+    ];
+  }
+}
