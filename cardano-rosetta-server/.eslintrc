@@ -6,5 +6,8 @@
     "import/resolver": {
       "typescript": {}
     }
+  },
+  "rules": {
+    "quotes": ["error", "single", { "avoidEscape": true }]
   }
 }

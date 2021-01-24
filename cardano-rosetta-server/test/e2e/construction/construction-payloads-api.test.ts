@@ -1,3 +1,4 @@
+/* eslint-disable max-statements */
 /* eslint-disable camelcase */
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
@@ -7,7 +8,8 @@ import {
   setupServer,
   testInvalidNetworkParameters,
   modifyMAOperation,
-  modifyCoinChange
+  modifyCoinChange,
+  modifyPoolKeyHash
 } from '../utils/test-utils';
 import {
   CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS,
@@ -564,15 +566,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
   });
 
   test('Should return an error when no pool key hash is provided for stake delegation', async () => {
-    const { network_identifier, operations, metadata } = CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION;
-    const payload = {
-      network_identifier,
-      operations: operations.map(({ metadata: opMetadata, ...rest }) => ({
-        ...rest,
-        metadata: { staking_credential: opMetadata?.staking_credential }
-      })),
-      metadata
-    };
+    const payload = modifyPoolKeyHash(CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION);
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -582,6 +576,26 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     expect(response.json()).toEqual({
       code: 4020,
       message: 'Pool key hash is required for stake delegation',
+      retriable: false
+    });
+  });
+
+  test('Should return an error when an invalid pool key hash is provided for stake delegation', async () => {
+    const payload = modifyPoolKeyHash(CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION, 'InvalidPoolKeyHash');
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4021,
+      details: {
+        message:
+          // eslint-disable-next-line max-len
+          "Deserialization failed in Ed25519KeyHash because: Invalid cbor: expected tuple 'hash length' of length 28 but got length Len(0)."
+      },
+      message: 'Provided pool key hash has invalid format',
       retriable: false
     });
   });
