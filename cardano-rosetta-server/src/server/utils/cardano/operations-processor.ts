@@ -17,25 +17,51 @@ import { isPolicyIdValid, isTokenNameValid } from '../validations';
 import { generateRewardAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
+const isNumeric = (value: string): boolean => /^\d+$/.test(value);
+
 /**
  * This function validates and parses token bundles that might be attached to unspents
  *
  * @param tokenBundle bundle to be parsed
  */
-const validateAndParseTokenBundle = (tokenBundle: Components.Schemas.TokenBundleItem[]): CardanoWasm.MultiAsset =>
+const validateAndParseTokenBundle = (
+  logger: Logger,
+  tokenBundle: Components.Schemas.TokenBundleItem[]
+): CardanoWasm.MultiAsset =>
   tokenBundle.reduce((multiAssets, multiAsset) => {
-    const polictyId = multiAsset.policyId;
-    if (!isPolicyIdValid(polictyId))
-      throw ErrorFactory.transactionOutputsParametersMissingError(`PolicyId ${polictyId} is not valid`);
+    const policyId = multiAsset.policyId;
+    if (!isPolicyIdValid(policyId)) {
+      logger.error(`[validateAndParseTokenBundle] PolicyId ${policyId} is not valid`);
+      throw ErrorFactory.transactionOutputsParametersMissingError(`PolicyId ${policyId} is not valid`);
+    }
     const policy = ScriptHash.from_bytes(Buffer.from(multiAsset.policyId, 'hex'));
     const assetsToAdd = multiAsset.tokens.reduce((assets, asset) => {
       const tokenName = asset.currency.symbol;
-      if (!isTokenNameValid(asset.currency.symbol))
+      if (!isTokenNameValid(tokenName)) {
+        logger.error(`[validateAndParseTokenBundle] Token name ${tokenName} is not valid`);
         throw ErrorFactory.transactionOutputsParametersMissingError(`Token name ${tokenName} is not valid`);
+      }
       const assetName = AssetName.new(Buffer.from(tokenName, 'hex'));
       if (assets.get(assetName) !== undefined) {
+        logger.error(
+          `[validateAndParseTokenBundle] Token name ${tokenName} has already been added for policy ${multiAsset.policyId}`
+        );
         throw ErrorFactory.transactionOutputsParametersMissingError(
           `Token name ${tokenName} has already been added for policy ${multiAsset.policyId} and will be overriden`
+        );
+      }
+      if (asset.value === undefined || !asset.value[0]) {
+        logger.error(
+          `[validateAndParseTokenBundle] Token with name ${tokenName} for policy ${multiAsset.policyId} has no value or is empty`
+        );
+        throw ErrorFactory.transactionOutputsParametersMissingError(
+          `Token with name ${tokenName} for policy ${multiAsset.policyId} has no value or is empty`
+        );
+      }
+      if (!isNumeric(asset.value)) {
+        logger.error(`[validateAndParseTokenBundle] Asset ${tokenName} has negative or invalid value '${asset.value}'`);
+        throw ErrorFactory.transactionOutputsParametersMissingError(
+          `Asset ${tokenName} has negative or invalid value '${asset.value}'`
         );
       }
       assets.insert(assetName, BigNum.from_str(asset.value));
@@ -65,12 +91,13 @@ const validateAndParseTransactionOutput = (
     logger.error('[validateAndParseTransactionOutput] Output has missing amount value field');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
   }
-  if (/^-\d+/.test(outputValue)) {
-    logger.error('[validateAndParseTransactionOutput] Output has negative value');
+  if (!isNumeric(outputValue)) {
+    logger.error(`[validateAndParseTransactionOutput] Output has negative or invalid value '${outputValue}'`);
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
   }
-  const value = Value.new(BigNum.from_str(output.amount?.value));
-  if (output.metadata?.tokenBundle) value.set_multiasset(validateAndParseTokenBundle(output.metadata.tokenBundle));
+  const value = Value.new(BigNum.from_str(outputValue));
+  if (output.metadata?.tokenBundle)
+    value.set_multiasset(validateAndParseTokenBundle(logger, output.metadata.tokenBundle));
   try {
     return CardanoWasm.TransactionOutput.new(address, value);
   } catch (error) {
