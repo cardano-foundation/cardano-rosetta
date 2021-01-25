@@ -3,7 +3,6 @@
 /* eslint-disable new-cap */
 /* eslint-disable no-console */
 import {
-  constructionDerive,
   constructionPreprocess,
   constructionMetadata,
   constructionPayloads,
@@ -12,30 +11,35 @@ import {
   signPayloads,
   waitForBalanceToBe,
   buildOperation,
-  generateKeys,
 } from "./commons";
 const logger = console;
 
-const PRIVATE_KEY =
-  "41d9523b87b9bd89a4d07c9b957ae68a7472d8145d7956a692df1a8ad91957a2c117d9dd874447f47306f50a650f1e08bf4bec2cfcb2af91660f23f2db912977";
+// address with ma balance
+const PAYMENT_ADDRESS =
+  "addr_test1vpcv26kdu8hr9x939zktp275xhwz4478c8hcdt7l8wrl0ecjftnfa";
+
+const PAYMENT_KEYS = {
+  secretKey: Buffer.from(
+    "67b638cef68135c4005cb71782b070c4805c9e1077c7ab6145b152206073272974dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106",
+    "hex"
+  ),
+  publicKey: Buffer.from(
+    "74dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106",
+    "hex"
+  ),
+};
+
 const SEND_FUNDS_ADDRESS =
-  "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
+  "addr_test1vz4nrdp83nksz0w3szxpav2peasm0xsdfc44lt2ml20420qclwuqu";
 
 const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};
-  const keys = generateKeys(PRIVATE_KEY);
-  logger.info(
-    `[doRun] secretKey ${Buffer.from(keys.secretKey).toString("hex")}`
-  );
-  const address = await constructionDerive(
-    Buffer.from(keys.publicKey).toString("hex")
-  );
-  keyAddressMapper[address] = keys;
+  keyAddressMapper[PAYMENT_ADDRESS] = PAYMENT_KEYS;
   const unspents = await waitForBalanceToBe(
-    address,
+    PAYMENT_ADDRESS,
     (response) => response.coins.length !== 0
   );
-  const builtOperations = buildOperation(unspents, address, SEND_FUNDS_ADDRESS);
+  const builtOperations = buildOperation(unspents, PAYMENT_ADDRESS, SEND_FUNDS_ADDRESS);
   const preprocess = await constructionPreprocess(
     builtOperations.operations,
     1000
@@ -55,7 +59,7 @@ const doRun = async (): Promise<void> => {
   logger.info(
     `[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent`
   );
-  await waitForBalanceToBe(address, (response) => response.coins.length === 0);
+  await waitForBalanceToBe(PAYMENT_ADDRESS, (response) => response.coins.length === 0);
 };
 
 doRun()

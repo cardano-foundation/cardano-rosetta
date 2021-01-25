@@ -2,9 +2,9 @@
 /* eslint-disable camelcase */
 /* eslint-disable new-cap */
 /* eslint-disable no-console */
-import delay from 'delay';
-import * as NaCl from 'tweetnacl';
-import axios from 'axios';
+import delay from "delay";
+import * as NaCl from "tweetnacl";
+import axios from "axios";
 
 const logger = console;
 
@@ -14,7 +14,7 @@ const httpClient = axios.create({
 
 const network_identifier = {
   blockchain: "cardano",
-  network: "testnet",
+  network: 3,
 };
 
 const generateKeys = (secretKey?: string) =>
@@ -99,12 +99,14 @@ const constructionMetadata = async (options: any) => {
   });
   return response.data.metadata;
 };
+
 const buildOperation = (
   unspents: any,
   address: string,
   destination: string,
-  isRegisteringStakeKey: boolean
+  isRegisteringStakeKey: boolean = false
 ) => {
+  let tokenBundle = [];
   const inputs = unspents.coins.map((coin: any, index: number) => {
     const operation = {
       operation_identifier: {
@@ -123,51 +125,67 @@ const buildOperation = (
         coin_identifier: coin.coin_identifier,
         coin_action: "coin_created",
       },
+      metadata: {},
     };
+    if (coin.metadata) {
+      const coinsWithMa = Object.keys(coin.metadata);
+      tokenBundle.push(coinsWithMa.reduce((tokenBundleList, coinWithMa) => {
+        const tokenBundleItems = coin.metadata[coinWithMa];
+        return tokenBundleList.concat(tokenBundleItems);
+      }, []));
+      operation.metadata = { tokenBundle };
+    }
     operation.amount.value = `-${operation.amount.value}`;
     return operation;
   });
   // TODO: No proper fees estimation is being done (it should be transaction size based)
-  const totalBalance = BigInt(unspents.balances[0].value);
-  let outputAmount = (totalBalance * BigInt(95)) / BigInt(100);
+  const adaBalance = BigInt(unspents.balances[0].value);
+  let outputAmount = (adaBalance * BigInt(95)) / BigInt(100);
   if (isRegisteringStakeKey) {
     let i = 0;
     do {
       let dividend = 95 - i;
-      outputAmount = (totalBalance * BigInt(dividend)) / BigInt(100);
+      outputAmount = (adaBalance * BigInt(dividend)) / BigInt(100);
       i += 5;
-      if (outputAmount < 2500000) throw new Error(`outputAmount=${outputAmount} is too low. Try with more funds.`);
-    }
-    while (totalBalance - outputAmount <= 2000000)
+      if (outputAmount < 2500000)
+        throw new Error(
+          `outputAmount=${outputAmount} is too low. Try with more funds.`
+        );
+    } while (adaBalance - outputAmount <= 2000000);
   }
-  const outputs = [
-    {
-      operation_identifier: {
-        index: inputs.length,
-        network_index: 0,
-      },
-      related_operations: [],
-      type: "output",
-      status: "success",
-      account: {
-        address: destination,
-        metadata: {},
-      },
-      amount: {
-        value: outputAmount.toString(),
-        currency: {
-          symbol: "ADA",
-          decimals: 6,
-        },
-        metadata: {},
-      },
+
+  const outputOp = {
+    operation_identifier: {
+      index: inputs.length,
+      network_index: 0,
     },
-  ];
+    related_operations: [],
+    type: "output",
+    status: "success",
+    account: {
+      address: destination,
+      metadata: {},
+    },
+    amount: {
+      value: outputAmount.toString(),
+      currency: {
+        symbol: "ADA",
+        decimals: 6,
+      },
+      metadata: {},
+    },
+    metadata: {},
+  };
+  if (tokenBundle.length > 0) outputOp.metadata = { tokenBundle };
+  const outputs = [outputOp];
+
   return {
     network_identifier,
-    operations: inputs.concat(outputs),
+    operations: inputs.concat(outputs)
   };
 };
+
+
 const constructionPayloads = async (payload: any) => {
   const response = await httpClient.post("/construction/payloads", {
     network_identifier,
