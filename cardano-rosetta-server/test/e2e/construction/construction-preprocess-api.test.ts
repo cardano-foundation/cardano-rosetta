@@ -418,7 +418,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
       });
     });
 
-    test('Should fail if MultiAsset value is negative', async () => {
+    test('Should fail if MultiAsset value for output operation is negative', async () => {
       const value = '-10000';
       const operations = mod(
         1,

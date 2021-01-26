@@ -17,7 +17,7 @@ import { isPolicyIdValid, isTokenNameValid } from '../validations';
 import { generateRewardAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
-const isNumeric = (value: string): boolean => /^\d+$/.test(value);
+const isPositiveNumber = (value: string): boolean => /^\+?\d+/.test(value);
 
 /**
  * This function validates and parses token bundles that might be attached to unspents
@@ -58,7 +58,7 @@ const validateAndParseTokenBundle = (
           `Token with name ${tokenName} for policy ${multiAsset.policyId} has no value or is empty`
         );
       }
-      if (!isNumeric(asset.value)) {
+      if (!isPositiveNumber(asset.value)) {
         logger.error(`[validateAndParseTokenBundle] Asset ${tokenName} has negative or invalid value '${asset.value}'`);
         throw ErrorFactory.transactionOutputsParametersMissingError(
           `Asset ${tokenName} has negative or invalid value '${asset.value}'`
@@ -91,7 +91,7 @@ const validateAndParseTransactionOutput = (
     logger.error('[validateAndParseTransactionOutput] Output has missing amount value field');
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has missing amount value field');
   }
-  if (!isNumeric(outputValue)) {
+  if (!isPositiveNumber(outputValue)) {
     logger.error(`[validateAndParseTransactionOutput] Output has negative or invalid value '${outputValue}'`);
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
   }
@@ -123,7 +123,7 @@ const validateAndParseTransactionInput = (
     logger.error('[validateAndParseTransactionInput] Input has missing amount value field');
     throw ErrorFactory.transactionInputsParametersMissingError('Input has missing amount value field');
   }
-  if (/^\+?\d+/.test(value)) {
+  if (isPositiveNumber(value)) {
     logger.error('[validateAndParseTransactionInput] Input has positive value');
     throw ErrorFactory.transactionInputsParametersMissingError('Input has positive amount value');
   }
