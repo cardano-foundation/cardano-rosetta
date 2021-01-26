@@ -1,39 +1,38 @@
 /* eslint-disable camelcase */
 /* eslint-disable no-magic-numbers */
+import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
+import { Pool } from 'pg';
+import { mod } from 'shades';
+import { ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from '../../../src/server/utils/constants';
 import {
+  CONSTRUCTION_PAYLOADS_REQUEST,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
+  CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS,
+  CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
+  SIGNED_TX_WITH_MA,
+  SIGNED_TX_WITH_MULTIPLE_MA,
+  SIGNED_TX_WITH_STAKE_DELEGATION,
+  SIGNED_TX_WITH_STAKE_KEY_DEREGISTRATION,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL,
+  SIGNED_TX_WITH_TWO_WITHDRAWALS,
+  SIGNED_TX_WITH_WITHDRAWAL,
+  TRANSACTION_SIZE_IN_BYTES
+} from '../fixture-data';
+import {
+  modifyMAOperation,
   setupOfflineDatabase,
   setupServer,
-  testInvalidNetworkParameters,
-  modifyMAOperation
+  testInvalidNetworkParameters
 } from '../utils/test-utils';
-import { Pool } from 'pg';
-import { FastifyInstance } from 'fastify';
-import {
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION,
-  CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
-  CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS,
-  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
-  CONSTRUCTION_PAYLOADS_REQUEST,
-  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION,
-  SIGNED_TX_WITH_STAKE_KEY_DEREGISTRATION,
-  TRANSACTION_SIZE_IN_BYTES,
-  SIGNED_TX_WITH_STAKE_DELEGATION,
-  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGATION,
-  SIGNED_TX_WITH_WITHDRAWAL,
-  SIGNED_TX_WITH_TWO_WITHDRAWALS,
-  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL,
-  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
-  SIGNED_TX_WITH_MA,
-  CONSTRUCTION_COMBINE_PAYLOAD,
-  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
-  SIGNED_TX_WITH_MULTIPLE_MA
-} from '../fixture-data';
-import { ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from '../../../src/server/utils/constants';
-import { mod } from 'shades';
 
 const CONSTRUCTION_PREPROCESS_ENDPOINT = '/construction/preprocess';
 
@@ -371,8 +370,6 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
 
     test('Should fail if MultiAsset symbol longer than expected', async () => {
-      const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
-
       const operations = mod(
         1,
         'metadata',
@@ -415,6 +412,92 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
         details: {
           message:
             'Token name 6e7574636f696e has already been added for policy b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7 and will be overriden'
+        },
+        message: invalidOperationErrorMessage,
+        retriable: false
+      });
+    });
+
+    test('Should fail if MultiAsset value is negative', async () => {
+      const value = '-10000';
+      const operations = mod(
+        1,
+        'metadata',
+        'tokenBundle',
+        0
+      )((tokenBundleItem: Components.Schemas.TokenBundleItem) => ({
+        ...tokenBundleItem,
+        tokens: [
+          {
+            value,
+            currency: {
+              symbol: '6e7574636f696e',
+              decimals: 0
+            }
+          }
+        ]
+      }))(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA.operations);
+
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4009,
+        details: {
+          message: `Asset 6e7574636f696e has negative or invalid value '${value}'`
+        },
+        message: invalidOperationErrorMessage,
+        retriable: false
+      });
+    });
+
+    test('Should fail if MultiAsset value is not a number', async () => {
+      const value = 'someInvalidValue';
+      const symbol = '6e7574636f696f';
+
+      const operations = mod(
+        1,
+        'metadata',
+        'tokenBundle',
+        0
+      )((tokenBundleItem: Components.Schemas.TokenBundleItem) => ({
+        ...tokenBundleItem,
+        tokens: [
+          {
+            value,
+            currency: {
+              symbol,
+              decimals: 0
+            }
+          }
+        ]
+      }))(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA.operations);
+
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4009,
+        details: {
+          message: `Asset ${symbol} has negative or invalid value '${value}'`
         },
         message: invalidOperationErrorMessage,
         retriable: false
