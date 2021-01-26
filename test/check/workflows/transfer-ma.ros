@@ -19,7 +19,7 @@ request_funds(1){
     loaded_account = find_balance({
       "account_identifier": {{random_account.account_identifier}},
       "minimum_balance":{
-        "value": "10000000",
+        "value": "20000000",
         "currency": {{currency}}
       },
       "require_coin":true
