@@ -49,13 +49,12 @@ transfer(10){
     transfer_dry_run.network = {"network":"3", "blockchain":"cardano"};
     currency = {"symbol":"ADA", "decimals":6};
 
-    // We set the max_fee_amount to know how much buffer we should
-    // leave for fee payment when selecting a sender account.
     token_bundle_min_ADA = "5000000"; // we will generate two outputs
     dust_amount = "1000000";
     max_fee_amount = "5000000";
+    token_bundles_ADA_cost = {{token_bundle_min_ADA}} + {{token_bundle_min_ADA}};
     send_buffer = {{dust_amount}} + {{max_fee_amount}};
-    send_buffer = {{send_buffer}} + 10000000 // Bundle ADAs
+    send_buffer = {{send_buffer}} + {{token_bundles_ADA_cost}};
 
     sender = find_balance({
       "minimum_balance":{
@@ -208,9 +207,9 @@ transfer(10){
       "amounts":{{transfer_dry_run.suggested_fee}}
     });
 
-    // We can access the variables of other scenarios, so we don't
-    // need to recalculate raw_change_amount.
-    change_amount = {{raw_change_amount}} - {{suggested_fee.value}};
+    change_amount = {{sender.balance.value}} - {{token_bundles_ADA_cost}};
+    change_amount = {{change_amount}} - {{suggested_fee.value}};
+
     transfer.network = {{transfer_dry_run.network}};
     transfer.confirmation_depth = {{transfer_dry_run.confirmation_depth}};
     transfer.operations = [
