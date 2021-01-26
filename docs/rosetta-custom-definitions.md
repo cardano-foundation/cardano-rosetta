@@ -66,6 +66,102 @@ In this case the metadata is optional. If it's provided, then the `address_type`
 }
 ```
 
+## `/account/balance`
+
+For accounts that have a multi asset balance there will be returned with the corresponding policy passed as metadata at `currency` as follows:
+
+### Response
+
+```typescript
+{
+  "block_identifier": {
+    "index": 382733,
+    "hash": "50bb3491000528b19a074291bd958b77dd0b8b1cf3003bf14d1ac24a62073f1e"
+  },
+  "balances": [
+    { "value": "4800000", "currency": { "symbol": "ADA", "decimals": 6 } },
+   {
+      "value": "20",
+      "currency": {
+        "symbol": "",                                                               // token symbol as hex string
+        "decimals": 0,
+        "metadata": {
+          "policyId": "181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e"    // token policy as hex string
+        }
+      }
+    },
+    {
+      "value": "10",
+      "currency": {
+        "symbol": "7376c3a57274",
+        "decimals": 0,
+        "metadata": {
+          "policyId": "fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d"
+        }
+      }
+    }
+  ],
+  "coins": [...]
+}
+```
+
+Also, `coins` will be returned with the token bundle list corresponding to each coin as metadata as follows:
+
+```typescript
+{
+  "block_identifier": {
+    "index": 382733,
+    "hash": "50bb3491000528b19a074291bd958b77dd0b8b1cf3003bf14d1ac24a62073f1e"
+  },
+  "balances": [...],
+  "coins": [
+    {
+      "coin_identifier": {
+        "identifier": "02562c123f6d560e1250f5a46f7e95911b21fd8a9fa70157335c3a3d1d16bdda:0"
+      },
+      "amount": {
+        "currency": { "decimals": 6, "symbol": "ADA" },
+        "value": "4800000"
+      },
+      "metadata": {
+        "02562c123f6d560e1250f5a46f7e95911b21fd8a9fa70157335c3a3d1d16bdda:0": [       // coin identifier
+          {
+            "policyId": "181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e",   
+            "tokens": [
+              {
+                "value": "20",
+                "currency": {
+                  "decimals": 0,
+                  "symbol": "",                                                       
+                  "metadata": {
+                    "policyId": "181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "policyId": "fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d",
+            "tokens": [
+              {
+                "value": "10",
+                "currency": {
+                  "decimals": 0,
+                  "symbol": "7376c3a57274",
+                  "metadata": {
+                    "policyId": "fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
 ## `/block`
 
 The following metadata is also returned when querying for block information:
@@ -115,9 +211,67 @@ The following metadata is also returned when querying for block information:
 }
 ```
 
+## `/block/transactions`
+
+If the block requested contains transactions with multi assets operations the token bundles associated to each operation will be returned as metadata as follows: 
+
+### Response
+
+```typescript
+{
+  "transaction_identifier": {
+    "hash": "2356072a5379064aa62f83bf61d7d4467dbc47ec281461b558aa51b08c38c884"
+  },
+  "operations": [
+    {
+      "operation_identifier": {
+        "index": 0
+      },
+      "type": "input",
+      "status": "success",
+      "account": {
+        "address": "addr_test1vpcv26kdu8hr9x939zktp275xhwz4478c8hcdt7l8wrl0ecjftnfa"
+      },
+      "amount": {
+        "value": "-999999000000",
+        "currency": {
+          "symbol": "ADA",
+          "decimals": 6
+        }
+      },
+      "coin_change": {
+        "coin_identifier": {
+          "identifier": "127cf01f95448cdcde439b8ace9b8a8ec100e690abe2b52069b3dbd924e032b3:0"
+        },
+        "coin_action": "coin_spent"
+      },
+      "metadata": {
+        "tokenBundle": [
+          {
+            "policyId": "3e6fc736d30770b830db70994f25111c18987f1407585c0f55ca470f",
+            "tokens": [
+              {
+                "value": "-5",
+                "currency": {
+                  "symbol": "6a78546f6b656e31",
+                  "decimals": 0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    ...
+  ]
+}
+```
+
 ## `/construction/preprocess`
 
 Not only input and output operations are allowed but also special staking operations as described in [here](./staking-support.md).
+
+It is possible to operate with multi assets tokens too, as explained [here](./multi-assets-support.md).
 
 Cardano transactions require a `ttl` to be defined. As it's explained [in the cardano docs](https://docs.cardano.org/projects/cardano-node/en/latest/reference/building-and-signing-tx.html):
 
@@ -205,6 +359,8 @@ Metadata endpoint needs to receive the `relative_ttl` returned in process so it 
 ## `/construction/payloads`
 
 Not only input and output operations are allowed but also special staking operations as described in [here](./staking-support.md).
+
+It is possible to operate with multi assets tokens too, as explained [here](./multi-assets-support.md).
 
 Furthermore, transaction `ttl` needs to be sent as string in the metadata.
 

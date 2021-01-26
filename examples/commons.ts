@@ -129,10 +129,14 @@ const buildOperation = (
     };
     if (coin.metadata) {
       const coinsWithMa = Object.keys(coin.metadata);
-      tokenBundle.push(coinsWithMa.reduce((tokenBundleList, coinWithMa) => {
-        const tokenBundleItems = coin.metadata[coinWithMa];
-        return tokenBundleList.concat(tokenBundleItems);
-      }, []));
+      const coinTokenBundleItems = coinsWithMa.reduce(
+        (tokenBundleList, coinWithMa) => {
+          const tokenBundleItems = coin.metadata[coinWithMa];
+          return tokenBundleList.concat(tokenBundleItems);
+        },
+        []
+      );
+      tokenBundle.push(...coinTokenBundleItems);
       operation.metadata = { tokenBundle };
     }
     operation.amount.value = `-${operation.amount.value}`;
@@ -181,10 +185,9 @@ const buildOperation = (
 
   return {
     network_identifier,
-    operations: inputs.concat(outputs)
+    operations: inputs.concat(outputs),
   };
 };
-
 
 const constructionPayloads = async (payload: any) => {
   const response = await httpClient.post("/construction/payloads", {
