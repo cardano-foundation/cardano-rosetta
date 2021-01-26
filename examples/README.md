@@ -77,3 +77,22 @@ In order to execute the example, run:
 ```javascript
 $ yarn withdrawal-example
 ```
+
+## Sending transactions with single multi assets
+
+Sends a transaction that spends a single MultiAsset token. So:
+
+1. A predefined address `PAYMENT_ADDRESS` expects a specific token
+2. Sends `total token amount` to another predefined address `SEND_FUNDS_ADDRESS`
+3. All the ADA is also sent to that address 
+
+Important notes:
+- `EXPECTED_TOKEN` will be used to define the token expected. It requires policy and symbol both defined as hex string.
+- Running this example requieres a sender that owns tokens (for example by minting) and can send them to the rosetta-cli generated address. It's strongly recommended to use [this helper scripts](https://github.com/james-iohk/scripts)
+- Funds will be sent to `SEND_FUNDS_ADDRESS` by default as it's the address where testnet funds should be returned.
+
+In order to execute the example, run:
+
+```javascript
+$ yarn ma-transfer-example
+```

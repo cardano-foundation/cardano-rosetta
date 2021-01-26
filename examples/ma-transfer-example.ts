@@ -18,6 +18,11 @@ const logger = console;
 const PAYMENT_ADDRESS =
   "addr_test1vpcv26kdu8hr9x939zktp275xhwz4478c8hcdt7l8wrl0ecjftnfa";
 
+const EXPECTED_TOKEN = {
+  policy: "3e6fc736d30770b830db70994f25111c18987f1407585c0f55ca470f",
+  symbol: "6a78546f6b656e31",
+};
+
 const PAYMENT_KEYS = {
   secretKey: Buffer.from(
     "67b638cef68135c4005cb71782b070c4805c9e1077c7ab6145b152206073272974dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106",
@@ -35,11 +40,21 @@ const SEND_FUNDS_ADDRESS =
 const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};
   keyAddressMapper[PAYMENT_ADDRESS] = PAYMENT_KEYS;
-  const unspents = await waitForBalanceToBe(
+
+  const responseCondition = (response) =>
+    response.coins.length !== 0 &&
+    response.balances.some(
+      (balance) =>
+        balance.currency.symbol === EXPECTED_TOKEN.symbol &&
+        balance.currency?.metadata?.policyId === EXPECTED_TOKEN.policy
+    );
+
+  const unspents = await waitForBalanceToBe(PAYMENT_ADDRESS, responseCondition);
+  const builtOperations = buildOperation(
+    unspents,
     PAYMENT_ADDRESS,
-    (response) => response.coins.length !== 0
+    SEND_FUNDS_ADDRESS
   );
-  const builtOperations = buildOperation(unspents, PAYMENT_ADDRESS, SEND_FUNDS_ADDRESS);
   const preprocess = await constructionPreprocess(
     builtOperations.operations,
     1000
@@ -59,7 +74,10 @@ const doRun = async (): Promise<void> => {
   logger.info(
     `[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent`
   );
-  await waitForBalanceToBe(PAYMENT_ADDRESS, (response) => response.coins.length === 0);
+  await waitForBalanceToBe(
+    PAYMENT_ADDRESS,
+    (response) => response.coins.length === 0
+  );
 };
 
 doRun()
