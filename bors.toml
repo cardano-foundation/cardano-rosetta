@@ -1,0 +1,9 @@
+status = [
+  "ci/hydra-eval",
+  "ci/hydra-build:required",
+  "CI / tests (pull_request)"
+]
+timeout_sec = 7200
+required_approvals = 1
+block_labels = [ "WIP", "DO NOT MERGE" ]
+delete_merged_branches = true
