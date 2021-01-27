@@ -652,6 +652,29 @@ describe('Invalid request with MultiAssets', () => {
     });
   });
 
+  test('Should fail if MultiAsset policy id is not a hex string', async () => {
+    const invalidPolicy = 'thisIsANonHexString';
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
+    const payload = {
+      operations: modifyMAOperation(invalidPolicy)(operations),
+      ...restPayload
+    };
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4009,
+      details: {
+        message: `PolicyId ${invalidPolicy} is not valid`
+      },
+      message: invalidOperationErrorMessage,
+      retriable: false
+    });
+  });
+
   test('Should fail if MultiAsset policy id is longer than expected', async () => {
     // eslint-disable-next-line no-magic-numbers
     const invalidPolicy = new Array(POLICY_ID_LENGTH + 2).join('0');
@@ -670,6 +693,30 @@ describe('Invalid request with MultiAssets', () => {
       code: 4009,
       details: {
         message: `PolicyId ${invalidPolicy} is not valid`
+      },
+      message: invalidOperationErrorMessage,
+      retriable: false
+    });
+  });
+
+  test('Should fail if MultiAsset symbol is not a hex string', async () => {
+    const invalidSymbol = 'thisIsANonHexString';
+    const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
+    const payload = {
+      operations: modifyMAOperation(undefined, invalidSymbol)(operations),
+      ...restPayload
+    };
+
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4009,
+      details: {
+        message: `Token name ${invalidSymbol} is not valid`
       },
       message: invalidOperationErrorMessage,
       retriable: false
