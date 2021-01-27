@@ -22,6 +22,7 @@ const SEND_FUNDS_ADDRESS =
   "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
 
 const doRun = async (): Promise<void> => {
+  const keyAddressMapper = {};
   const keys = generateKeys(PRIVATE_KEY);
   logger.info(
     `[doRun] secretKey ${Buffer.from(keys.secretKey).toString("hex")}`
@@ -29,6 +30,7 @@ const doRun = async (): Promise<void> => {
   const address = await constructionDerive(
     Buffer.from(keys.publicKey).toString("hex")
   );
+  keyAddressMapper[address] = keys;
   const unspents = await waitForBalanceToBe(
     address,
     (response) => response.coins.length !== 0
@@ -43,7 +45,7 @@ const doRun = async (): Promise<void> => {
     operations: builtOperations.operations,
     metadata,
   });
-  const signatures = signPayloads(payloads.payloads, keys);
+  const signatures = signPayloads(payloads.payloads, keyAddressMapper);
   const combined = await constructionCombine(
     payloads.unsigned_transaction,
     signatures
