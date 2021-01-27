@@ -49,6 +49,7 @@ const doRun = async (): Promise<void> => {
         balance.currency?.metadata?.policyId === EXPECTED_TOKEN.policy
     );
 
+  logger.info(`[doRun] address ${PAYMENT_ADDRESS} expects to receive funds.`);
   const unspents = await waitForBalanceToBe(PAYMENT_ADDRESS, responseCondition);
   const builtOperations = buildOperation(
     unspents,

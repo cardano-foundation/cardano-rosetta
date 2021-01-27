@@ -14,7 +14,7 @@ const httpClient = axios.create({
 
 const network_identifier = {
   blockchain: "cardano",
-  network: 3,
+  network: "testnet",
 };
 
 const generateKeys = (secretKey?: string) =>
@@ -67,9 +67,10 @@ const waitForBalanceToBe = async (
       },
     });
     if (cond(response.data)) {
-      const [balance] = response.data.balances;
-      logger.info(
-        `[waitForBalanceToBe] Funds found! ${balance.value} ${balance.currency.symbol}`
+      const { balances } = response.data;
+      logger.info("[waitForBalanceToBe] Funds found!");
+      balances.forEach((balance) =>
+        logger.info(`[waitForBalanceToBe] ${balance.value} ${balance.currency.symbol}`)
       );
       fetchAccountBalance = response.data;
     } else {

@@ -213,7 +213,9 @@ The following metadata is also returned when querying for block information:
 
 ## `/block/transactions`
 
-If the block requested contains transactions with multi assets operations the token bundles associated to each operation will be returned as metadata as follows: 
+When the block requested contains transactions with multi assets operations the token bundles associated to each operation will be returned as metadata as follows: 
+
+_Also, assets will be returned sorted by name._
 
 ### Response
 
