@@ -1,0 +1,30 @@
+{
+  "network": {
+    "blockchain": "cardano",
+    "network": "3"
+  },
+  "online_url": "http://localhost:8080",
+  "http_timeout": 300,
+  "max_retries": 5,
+  "retry_elapsed_time": 0,
+  "max_online_connections": 0,
+  "max_sync_concurrency": 0,
+  "tip_delay": 300,
+  "log_configuration": false,
+  "construction": {
+    "max_offline_connections": 0,
+    "offline_url": "http://localhost:8080",
+    "stale_depth": 0,
+    "broadcast_limit": 0,
+    "ignore_broadcast_failures": false,
+    "clear_broadcasts": false,
+    "broadcast_behind_tip": false,
+    "block_broadcast_limit": 0,
+    "rebroadcast_all": false,
+    "constructor_dsl_file": "../../workflows/transfer-multiple-ma.ros",
+    "end_conditions": {
+      "create_account": 1,
+      "transfer": 1
+    }
+  }
+}
