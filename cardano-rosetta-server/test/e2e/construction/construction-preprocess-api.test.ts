@@ -342,8 +342,62 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
       });
     });
 
+    test('Should fail if MultiAsset policy id is not a hex string', async () => {
+      const invalidPolicy = 'thisIsANonHexString';
+
+      const operations = modifyMAOperation(invalidPolicy)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
+
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4009,
+        details: {
+          message: `PolicyId ${invalidPolicy} is not valid`
+        },
+        message: invalidOperationErrorMessage,
+        retriable: false
+      });
+    });
+
     test('Should fail if MultiAsset symbol longer than expected', async () => {
       const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
+
+      const operations = modifyMAOperation(undefined, invalidSymbol)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
+
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 4009,
+        details: {
+          message: `Token name ${invalidSymbol} is not valid`
+        },
+        message: invalidOperationErrorMessage,
+        retriable: false
+      });
+    });
+
+    test('Should fail if MultiAsset symbol is not a hex string', async () => {
+      const invalidSymbol = 'thisIsANonHexString';
 
       const operations = modifyMAOperation(undefined, invalidSymbol)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
 

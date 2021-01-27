@@ -8,6 +8,8 @@ export const isKeyValid = (publicKeyBytes: string, curveType: string): boolean =
 export const isAddressTypeValid = (type: string): boolean =>
   [...Object.values(AddressType), '', undefined].includes(type);
 
-export const isTokenNameValid = (name: string): boolean => name.length <= ASSET_NAME_LENGTH;
+export const isTokenNameValid = (name: string): boolean =>
+  new RegExp(`^[0-9a-fA-F]{0,${ASSET_NAME_LENGTH}}$`).test(name);
 
-export const isPolicyIdValid = (policyId: string): boolean => policyId.length === POLICY_ID_LENGTH;
+export const isPolicyIdValid = (policyId: string): boolean =>
+  new RegExp(`^[0-9a-fA-F]{${POLICY_ID_LENGTH}}$`).test(policyId);
