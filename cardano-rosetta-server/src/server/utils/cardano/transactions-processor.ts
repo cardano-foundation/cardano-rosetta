@@ -8,6 +8,12 @@ import { hexFormatter } from '../formatters';
 import { generateRewardAddress, getAddressPrefix } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
+const compareStrings = (a: string, b: string): number => {
+  if (a === b) return 0;
+  if (a > b) return 1;
+  return -1;
+};
+
 /* eslint-disable camelcase */
 const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: number): Components.Schemas.Operation => ({
   operation_identifier: { index },
@@ -69,7 +75,7 @@ const parseTokenAsset = (
     policyId,
     tokens: (keys(assets) as CardanoWasm.AssetName[])
       .map(key => parseAsset(logger, assets, key))
-      .sort((assetA, assetB) => assetA.currency.symbol.localeCompare(assetB.currency.symbol))
+      .sort((assetA, assetB) => compareStrings(assetA.currency.symbol, assetB.currency.symbol))
   };
 };
 
@@ -83,7 +89,7 @@ const parseTokenBundle = (
     logger.info(`[parseTokenBundle] About to parse ${multiassets.len()} multiassets from token bundle`);
     tokenBundle = (keys(multiassets) as CardanoWasm.ScriptHash[])
       .map(key => parseTokenAsset(logger, multiassets, key))
-      .sort((tokenA, tokenB) => tokenA.policyId.localeCompare(tokenB.policyId));
+      .sort((tokenA, tokenB) => compareStrings(tokenA.policyId, tokenB.policyId));
   }
   return multiassets ? { tokenBundle } : undefined;
 };
