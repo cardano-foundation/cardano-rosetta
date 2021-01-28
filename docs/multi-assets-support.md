@@ -76,3 +76,5 @@ Both token symbol and policy will be passed as hex string as follows:
   }
 }
 ```
+
+It's important to mention that Token Name is not required by Cardano protocol rules. As Rosetta [symbol](https://www.rosetta-api.org/docs/1.4.4/models/Currency.html) is a required field, it will be represented as `\\x`.

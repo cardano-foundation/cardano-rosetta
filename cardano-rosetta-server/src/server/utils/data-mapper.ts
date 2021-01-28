@@ -15,6 +15,7 @@ import {
   StakingOperations,
   SUCCESS_STATUS
 } from './constants';
+import { hexStringFormatter } from './formatters';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
@@ -27,7 +28,7 @@ export const mapAmount = (
 ): Components.Schemas.Amount => ({
   value,
   currency: {
-    symbol,
+    symbol: hexStringFormatter(symbol),
     decimals,
     metadata
   }
@@ -36,7 +37,7 @@ export const mapAmount = (
 export const mapMaAmount = (maUtxo: Utxo): Components.Schemas.Amount => ({
   value: maUtxo.quantity || '',
   currency: {
-    symbol: maUtxo.name || '',
+    symbol: hexStringFormatter(maUtxo.name),
     decimals: MULTI_ASSET_DECIMALS,
     metadata: {
       policy: maUtxo.policy
@@ -50,7 +51,7 @@ const mapTokenBundle = (tokenBundle: TokenBundle, spent: boolean): Components.Sc
   [...tokenBundle.tokens.entries()].map(([policyId, tokens]) => ({
     policyId,
     tokens: tokens.map(t => ({
-      currency: { symbol: t.name, decimals: 0 },
+      currency: { symbol: hexStringFormatter(t.name), decimals: 0 },
       value: mapValue(t.quantity, spent)
     }))
   }));

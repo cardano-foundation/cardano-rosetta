@@ -12,7 +12,7 @@ import {
   TransactionInOut,
   Utxo
 } from '../models';
-import { hashStringToBuffer, hexFormatter } from '../utils/formatters';
+import { hexStringToBuffer, hexFormatter } from '../utils/formatters';
 import Queries, {
   FindBalance,
   FindTransaction,
@@ -342,7 +342,7 @@ const populateTransactions = async (
   databaseInstance: Pool,
   transactionsMap: TransactionsMap
 ): Promise<PopulatedTransaction[]> => {
-  const transactionsHashes = Object.keys(transactionsMap).map(hashStringToBuffer);
+  const transactionsHashes = Object.keys(transactionsMap).map(hexStringToBuffer);
   const operationsQueries = [
     Queries.findTransactionsInputs,
     Queries.findTransactionsOutputs,
@@ -371,7 +371,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     const query = Queries.findBlock(blockNumber, blockHash);
     logger.debug(`[findBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`);
     // Add paramter or short-circuit it
-    const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
+    const parameters = [blockNumber ? blockNumber : true, blockHash ? hexStringToBuffer(blockHash) : true];
     const result = await databaseInstance.query(query, parameters);
     /* eslint-disable camelcase */
     if (result.rows.length === 1) {
@@ -413,7 +413,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       `[findTransactionsByBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
     );
     // Add paramter or short-circuit it
-    const parameters = [blockNumber ? blockNumber : true, blockHash ? hashStringToBuffer(blockHash) : true];
+    const parameters = [blockNumber ? blockNumber : true, blockHash ? hexStringToBuffer(blockHash) : true];
     logger.debug({ parameters }, '[findTransactionsByBlock] About to run findTransactionsByBlock query with params');
     const result: QueryResult<FindTransaction> = await databaseInstance.query(query, parameters);
     logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
@@ -442,7 +442,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       `[findTransactionByHashAndBlock] Parameters received for run query 
       blockNumber: ${blockNumber}, blockHash: ${blockHash}`
     );
-    const parameters = [hashStringToBuffer(hash), Number(blockNumber), hashStringToBuffer(blockHash)];
+    const parameters = [hexStringToBuffer(hash), Number(blockNumber), hexStringToBuffer(blockHash)];
     logger.debug(
       { parameters },
       '[findTransactionByHashAndBlock] About to run findTransactionsByHashAndBlock query with parameters'
@@ -479,7 +479,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     return null;
   },
   async findUtxoByAddressAndBlock(logger: Logger, address, blockHash): Promise<Utxo[]> {
-    const parameters = [address, hashStringToBuffer(blockHash)];
+    const parameters = [address, hexStringToBuffer(blockHash)];
     logger.debug(
       { address, blockHash },
       '[findUtxoByAddressAndBlock] About to run findUtxoByAddressAndBlock query with parameters:'
@@ -496,7 +496,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     }));
   },
   async findBalanceByAddressAndBlock(logger: Logger, address, blockHash): Promise<string> {
-    const parameters = [address, hashStringToBuffer(blockHash)];
+    const parameters = [address, hexStringToBuffer(blockHash)];
     logger.debug(
       { address, blockHash },
       '[findBalanceByAddressAndBlock] About to run findBalanceByAddressAndBlock query with parameters:'
