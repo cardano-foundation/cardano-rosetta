@@ -13,6 +13,7 @@ import CardanoWasm, {
 import { Logger } from 'fastify';
 import { NetworkIdentifier, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
+import { hexStringToBuffer } from '../formatters';
 import { isPolicyIdValid, isTokenNameValid } from '../validations';
 import { generateRewardAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
@@ -34,14 +35,14 @@ const validateAndParseTokenBundle = (
       logger.error(`[validateAndParseTokenBundle] PolicyId ${policyId} is not valid`);
       throw ErrorFactory.transactionOutputsParametersMissingError(`PolicyId ${policyId} is not valid`);
     }
-    const policy = ScriptHash.from_bytes(Buffer.from(multiAsset.policyId, 'hex'));
+    const policy = ScriptHash.from_bytes(hexStringToBuffer(multiAsset.policyId));
     const assetsToAdd = multiAsset.tokens.reduce((assets, asset) => {
       const tokenName = asset.currency.symbol;
       if (!isTokenNameValid(tokenName)) {
         logger.error(`[validateAndParseTokenBundle] Token name ${tokenName} is not valid`);
         throw ErrorFactory.transactionOutputsParametersMissingError(`Token name ${tokenName} is not valid`);
       }
-      const assetName = AssetName.new(Buffer.from(tokenName, 'hex'));
+      const assetName = AssetName.new(hexStringToBuffer(tokenName));
       if (assets.get(assetName) !== undefined) {
         logger.error(
           `[validateAndParseTokenBundle] Token name ${tokenName} has already been added for policy ${multiAsset.policyId}`

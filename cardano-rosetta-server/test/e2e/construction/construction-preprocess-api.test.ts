@@ -9,6 +9,7 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITM_MA_WITHOUT_NAME,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
@@ -17,6 +18,7 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS,
   CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
   SIGNED_TX_WITH_MA,
+  SIGNED_TX_WITH_MA_WITHOUT_NAME,
   SIGNED_TX_WITH_MULTIPLE_MA,
   SIGNED_TX_WITH_STAKE_DELEGATION,
   SIGNED_TX_WITH_STAKE_KEY_DEREGISTRATION,
@@ -282,6 +284,25 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_MULTIPLE_MA) }
+    });
+  });
+
+  test('Should properly process MultiAssets transactions with tokens without name', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        relativeTtl: 100,
+        operations: CONSTRUCTION_PAYLOADS_REQUEST_WITM_MA_WITHOUT_NAME.operations
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_MA_WITHOUT_NAME) }
     });
   });
 

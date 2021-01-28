@@ -469,7 +469,7 @@ describe('/account/balance endpoint', () => {
         {
           value: '20',
           currency: {
-            symbol: '',
+            symbol: '\\x',
             decimals: 0,
             metadata: {
               policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
@@ -503,7 +503,7 @@ describe('/account/balance endpoint', () => {
                     value: '20',
                     currency: {
                       decimals: 0,
-                      symbol: '',
+                      symbol: '\\x',
                       metadata: {
                         policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
                       }
