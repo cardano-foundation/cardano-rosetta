@@ -653,7 +653,7 @@ describe('Invalid request with MultiAssets', () => {
   });
 
   test('Should fail if MultiAsset policy id is not a hex string', async () => {
-    const invalidPolicy = 'thisIsANonHexString';
+    const invalidPolicy = new Array(POLICY_ID_LENGTH + 1).join('w');
     const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
     const payload = {
       operations: modifyMAOperation(invalidPolicy)(operations),

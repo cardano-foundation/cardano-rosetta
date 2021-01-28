@@ -343,7 +343,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
 
     test('Should fail if MultiAsset policy id is not a hex string', async () => {
-      const invalidPolicy = 'thisIsANonHexString';
+      const invalidPolicy = new Array(POLICY_ID_LENGTH + 1).join('w');
 
       const operations = modifyMAOperation(invalidPolicy)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
 
