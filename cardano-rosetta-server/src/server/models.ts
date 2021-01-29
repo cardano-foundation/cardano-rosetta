@@ -49,6 +49,12 @@ export interface Utxo {
   quantity?: string;
 }
 
+export interface MaBalance {
+  name: string;
+  policy: string;
+  value: string;
+}
+
 export interface TransactionInOut {
   id: number;
   address: string;
@@ -108,6 +114,7 @@ export interface Network {
 export interface BlockUtxos {
   block: Block;
   utxos: Utxo[];
+  maBalances: MaBalance[];
 }
 
 export interface BalanceAtBlock {

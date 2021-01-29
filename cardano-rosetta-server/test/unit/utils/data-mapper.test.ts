@@ -30,7 +30,8 @@ describe('Data Mapper', () => {
             name: '',
             policy: ''
           }
-        ]
+        ],
+        maBalances: []
       };
       const mapped = mapToAccountBalanceResponse(blockUtxos);
       expect(mapped).toEqual({
