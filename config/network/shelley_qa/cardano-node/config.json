@@ -42,7 +42,6 @@
   "TracingVerbosity": "NormalVerbosity",
   "TurnOnLogMetrics": true,
   "TurnOnLogging": true,
-  "ViewMode": "SimpleView",
   "defaultBackends": [
     "KatipBK"
   ],
@@ -60,96 +59,14 @@
   "minSeverity": "Info",
   "options": {
     "mapBackends": {
-      "cardano.node-metrics": [
-        "EKGViewBK",
-        {
-          "kind": "UserDefinedBK",
-          "name": "LiveViewBackend"
-        }
-      ],
-      "cardano.node.BlockFetchDecision.peers": [
-        "EKGViewBK",
-        {
-          "kind": "UserDefinedBK",
-          "name": "LiveViewBackend"
-        }
-      ],
-      "cardano.node.ChainDB.metrics": [
-        "EKGViewBK",
-        {
-          "kind": "UserDefinedBK",
-          "name": "LiveViewBackend"
-        }
-      ],
-      "cardano.node.Forge.metrics": [
-        "EKGViewBK"
-      ],
       "cardano.node.metrics": [
-        "EKGViewBK",
-        {
-          "kind": "UserDefinedBK",
-          "name": "LiveViewBackend"
-        }
+        "EKGViewBK"
       ],
       "cardano.node.resources": [
         "EKGViewBK"
       ]
     },
     "mapSubtrace": {
-      "#ekgview": {
-        "contents": [
-          [
-            {
-              "contents": "cardano.epoch-validation.benchmark",
-              "tag": "Contains"
-            },
-            [
-              {
-                "contents": ".monoclock.basic.",
-                "tag": "Contains"
-              }
-            ]
-          ],
-          [
-            {
-              "contents": "cardano.epoch-validation.benchmark",
-              "tag": "Contains"
-            },
-            [
-              {
-                "contents": "diff.RTS.cpuNs.timed.",
-                "tag": "Contains"
-              }
-            ]
-          ],
-          [
-            {
-              "contents": "#ekgview.#aggregation.cardano.epoch-validation.benchmark",
-              "tag": "StartsWith"
-            },
-            [
-              {
-                "contents": "diff.RTS.gcNum.timed.",
-                "tag": "Contains"
-              }
-            ]
-          ]
-        ],
-        "subtrace": "FilterTrace"
-      },
-      "benchmark": {
-        "contents": [
-          "GhcRtsStats",
-          "MonotonicClock"
-        ],
-        "subtrace": "ObservableTrace"
-      },
-      "cardano.epoch-validation.utxo-stats": {
-        "subtrace": "NoTrace"
-      },
-      "cardano.node-metrics": {
-        "subtrace": "Neutral"
-      },
       "cardano.node.metrics": {
         "subtrace": "Neutral"
       }
