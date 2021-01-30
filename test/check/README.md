@@ -94,7 +94,7 @@ _Note: Running this example is complex as it requires a sender that owns tokens 
 # POLICY_ID Hex encoded policy id linked to the token to be received
 # RECIPIENT address that will receive the remaining ADA
 
-TOKENS_TO_RECEIVE_AMOUNT_1="\"5\"" TOKENS_TO_RECEIVE_AMOUNT_2="\"8\"" MA_RECIPIENT_1="\"addr_test1qrdn052npj6t8kx8k6c9ftdquwd29ctgfwxw7adt5h57uqr7qdk9h8zwhgg8m30qgzau09j7v2vm0zdflmc6grsjmqtq7q542z\"" MA_RECIPIENT_2="\"addr_test1qz3tw7ws2n0kf79vafjtw0jfjx787kzxmlx02yqq7e50ggsxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flkns79y22u\"" TOKEN_NAME="\"616c616e5465737431\""  POLICY_ID="\"3e6fc736d30770b830db70994f25111c18987f1407585c0f55ca470f\"" RECIPIENT="\"addr_test1qr670l0rlzv67jfd3d5l9t6rzy7lv9jzt7fnqefckfzv7dtrglt8qqfwllj3h6kw6zly45fk305xreswcds6nxuyyc6s55h05v\"" ./bin/rosetta-cli check:construction --configuration-file ./configuration/construction/transfer-ma.json
+TOKENS_TO_RECEIVE_AMOUNT_1="\"5\"" TOKENS_TO_RECEIVE_AMOUNT_2="\"8\"" MA_RECIPIENT_1="\"addr_test1qrdn052npj6t8kx8k6c9ftdquwd29ctgfwxw7adt5h57uqr7qdk9h8zwhgg8m30qgzau09j7v2vm0zdflmc6grsjmqtq7q542z\"" MA_RECIPIENT_2="\"addr_test1qz3tw7ws2n0kf79vafjtw0jfjx787kzxmlx02yqq7e50ggsxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flkns79y22u\"" TOKEN_NAME="\"616c616e5465737431\""  POLICY_ID="\"3e6fc736d30770b830db70994f25111c18987f1407585c0f55ca470f\"" RECIPIENT="\"addr_test1qr670l0rlzv67jfd3d5l9t6rzy7lv9jzt7fnqefckfzv7dtrglt8qqfwllj3h6kw6zly45fk305xreswcds6nxuyyc6s55h05v\"" ./bin/rosetta-cli check:construction --configuration-file ./configuration/construction/transfer-multiple-ma.json
 ```
 
 
