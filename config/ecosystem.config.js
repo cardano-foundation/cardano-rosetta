@@ -11,7 +11,9 @@ module.exports = {
       ],
       autorestart: true,
       exec_mode: 'fork_mode',
-      kill_timeout : 15000
+      kill_timeout : 15000,
+      error_file: 'NULL',
+      out_file: 'NULL'
     },
     {
       name: 'cardano-node',
@@ -25,7 +27,9 @@ module.exports = {
       ],
       autorestart: true,
       exec_mode: 'fork_mode',
-      kill_timeout : 30000
+      kill_timeout : 30000,
+      error_file: 'NULL',
+      out_file: 'NULL'
     },
     {
       name: 'cardano-db-sync',
@@ -38,7 +42,9 @@ module.exports = {
         PGPASSFILE: '/config/cardano-db-sync/pgpass'
       },
       exec_mode: 'fork_mode',
-      kill_timeout : 15000
+      kill_timeout : 15000,
+      error_file: 'NULL',
+      out_file: 'NULL'
     },
     {
       name: 'cardano-rosetta-server',
@@ -60,7 +66,9 @@ module.exports = {
       },
       env_production: {
         NODE_ENV: 'production'
-      }
+      },
+      error_file: 'NULL',
+      out_file: 'NULL'
     }
   ]
 }
