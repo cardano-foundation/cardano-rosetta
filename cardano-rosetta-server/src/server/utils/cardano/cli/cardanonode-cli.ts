@@ -20,7 +20,6 @@ const wrongErraDetectRegex = /The era of the node and the tx do not match|Decode
  * This function returns true if DecoderErrorDeserialiseFailure is thrown.
  *
  * It's not the best way to detect if an era mismatch but it avoids a race condition
- * it's the simplest one we can do.
  *
  * @param errorMessage
  */
