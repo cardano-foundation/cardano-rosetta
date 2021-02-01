@@ -1,5 +1,5 @@
 import { Logger } from 'fastify';
-import { configure } from '../../../../../src/server/utils/cardano/cli/cardanonode-cli';
+import { configure, SUPPORTED_ERAS } from '../../../../../src/server/utils/cardano/cli/cardanonode-cli';
 
 const logger: Logger = {
   info: jest.fn(),
@@ -10,12 +10,19 @@ const logger: Logger = {
   trace: jest.fn()
 };
 
-const WRONG_ERA_ERROR =
+const WRONG_ERA_DECODING_ERROR =
   'TextEnvelope decode error: DecoderErrorDeserialiseFailure "Shelley Tx" (DeserialiseFailure 102 "expected word")';
+
+const WRONG_ERA_ERROR =
+  'Shelley command failed: transaction submit  Error: The era of the node and the tx do not match. The node is running in the Allegra era, but the transaction is for the Mary era.';
+
 describe('CardanoNode CLI', () => {
   it('Should retry if an era mismatch', async () => {
     const executor = jest.fn();
     executor
+      .mockRejectedValueOnce({
+        stderr: WRONG_ERA_DECODING_ERROR
+      })
       .mockRejectedValueOnce({
         stderr: WRONG_ERA_ERROR
       })
@@ -27,22 +34,22 @@ describe('CardanoNode CLI', () => {
     const cli = configure('/path', 3, executor);
     await cli.submitTransaction(logger, 'deadbeefdeadbeef', true);
     // eslint-disable-next-line no-magic-numbers
-    expect(executor).toBeCalledTimes(2);
+    expect(executor).toBeCalledTimes(3);
   });
 
   it('Should throw an error if eras are not supported', async () => {
     const executor = jest.fn();
     executor.mockRejectedValue({
-      stderr: WRONG_ERA_ERROR
+      stderr: WRONG_ERA_DECODING_ERROR
     });
     // eslint-disable-next-line no-magic-numbers
     const cli = configure('/path', 3, executor);
     await expect(cli.submitTransaction(logger, 'deadbeefdeadbeef', true)).rejects.toThrow(
       // eslint-disable-next-line quotes
-      "Transaction wasn't processed. Era not supported."
+      'Transaction not submitted. Era not supported.'
     );
     // eslint-disable-next-line no-magic-numbers
-    expect(executor).toBeCalledTimes(2);
+    expect(executor).toBeCalledTimes(SUPPORTED_ERAS.length);
   });
 
   it('Should execute a single call if no errors', async () => {

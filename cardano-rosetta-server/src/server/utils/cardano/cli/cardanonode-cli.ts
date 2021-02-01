@@ -13,8 +13,9 @@ export interface CardanoCli {
   submitTransaction(logger: Logger, signedTransaction: string, isMainnet: boolean): Promise<void>;
 }
 
-const SUPPORTED_ERAS = ['Tx MaryEra', 'TxSignedShelley', 'Tx AllegraEra'];
+export const SUPPORTED_ERAS = ['Tx MaryEra', 'Tx AllegraEra', 'TxSignedShelley'];
 
+const wrongErraDetectRegex = /The era of the node and the tx do not match|DecoderErrorDeserialiseFailure/;
 /**
  * This function returns true if DecoderErrorDeserialiseFailure is thrown.
  *
@@ -23,7 +24,7 @@ const SUPPORTED_ERAS = ['Tx MaryEra', 'TxSignedShelley', 'Tx AllegraEra'];
  *
  * @param errorMessage
  */
-const isWrongEra = (errorMessage: string): boolean => errorMessage.includes('DecoderErrorDeserialiseFailure');
+const isWrongEra = (errorMessage: string): boolean => errorMessage.match(wrongErraDetectRegex) !== null;
 
 export type ProcessExecutorResult = execa.ExecaChildProcess;
 
@@ -49,7 +50,9 @@ export const configure = (
       logger.debug(`[submitTransaction] File created at ${file}`);
       try {
         // `--testnet-magic` flag is used even if it's mainnet as we are using the proper networkMagic
-        logger.debug(`[submitTransaction] Invoking cardano-cli at ${cardanoCliPath} using ${networkMagic} networkMagic`);
+        logger.debug(
+          `[submitTransaction] Invoking cardano-cli at ${cardanoCliPath} using ${networkMagic} networkMagic`
+        );
         const commonParameters = ['transaction', 'submit', '--tx-file', file];
         const parameters = isMainnet
           ? commonParameters.concat('--mainnet')
@@ -68,7 +71,6 @@ export const configure = (
         await fs.promises.unlink(file);
       }
     }
-    // eslint-disable-next-line quotes
-    throw new Error(`Transaction not submitted. ${era} era not supported.`);
+    throw new Error('Transaction not submitted. Era not supported.');
   }
 });
