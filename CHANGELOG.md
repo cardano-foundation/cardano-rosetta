@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.0.0...1.1.0) (2021-02-01)
+
+### Features
+
+* add delegation and deregistration operations support ([b8acd6b](https://github.com/input-output-hk/cardano-rosetta/commit/b8acd6b466d061507374be6a59187d48d8e5408b))
+* add token bundle to transaction operations ([#282](https://github.com/input-output-hk/cardano-rosetta/issues/282)) ([9ca1f65](https://github.com/input-output-hk/cardano-rosetta/commit/9ca1f65cdc62c327ea86c4cc16ff21356a799e05))
+* added multiassets representation to the openapi.json definition ([6923a91](https://github.com/input-output-hk/cardano-rosetta/commit/6923a91a9a0d797172d3b3a1c8ad6c15e252d21f))
+* added staking delegation workflow to be executed by rosetta-cli ([b0b9dd3](https://github.com/input-output-hk/cardano-rosetta/commit/b0b9dd34ce5b2441e7ae3f19cc369a2ba5a3e8f7))
+* calculate fee validation ([585f427](https://github.com/input-output-hk/cardano-rosetta/commit/585f42721400c37e49b8b40b540a5f4d4e01b427)), closes [#211](https://github.com/input-output-hk/cardano-rosetta/issues/211)
+* cardano-serialization-lib added to the repo as a tar ([fd208ff](https://github.com/input-output-hk/cardano-rosetta/commit/fd208ffa23bb110321638cf9cb86f97848b45fcc))
+* consider deposit, refunds and withdrawals for fee calculation ([c6a7e06](https://github.com/input-output-hk/cardano-rosetta/commit/c6a7e065929288bd8c183baacc8923682c33feef)), closes [#211](https://github.com/input-output-hk/cardano-rosetta/issues/211)
+* construction derive staking support ([#207](https://github.com/input-output-hk/cardano-rosetta/issues/207)) ([4cf5ea5](https://github.com/input-output-hk/cardano-rosetta/commit/4cf5ea5f2375549e5d7928deb3d3ca957e56f3a3)), closes [#198](https://github.com/input-output-hk/cardano-rosetta/issues/198)
+* including token bundles in input and output operations parsing ([#290](https://github.com/input-output-hk/cardano-rosetta/issues/290)) ([7fb6fc7](https://github.com/input-output-hk/cardano-rosetta/commit/7fb6fc7c4861536792067278c6585218d59d8a3a))
+* Initial outputs parsing ([651cf17](https://github.com/input-output-hk/cardano-rosetta/commit/651cf1718c333a1b8b2e534c96cd230ceaeeb10f))
+* multiple snapshots and fixtures are now allowed when running tests ([604ea88](https://github.com/input-output-hk/cardano-rosetta/commit/604ea8847b557ad48e37832c3d8e59c7f2cafc1e)), closes [#276](https://github.com/input-output-hk/cardano-rosetta/issues/276)
+* rosetta-cli check:construction MA workflow ([#295](https://github.com/input-output-hk/cardano-rosetta/issues/295)) ([9beaf72](https://github.com/input-output-hk/cardano-rosetta/commit/9beaf72ef18922eefd502c7c1353b53fef4e4c4a))
+* stake registration and deregistration parsing ([54af672](https://github.com/input-output-hk/cardano-rosetta/commit/54af672577c56eaa019a2362085952d2e9aa20ea)), closes [#205](https://github.com/input-output-hk/cardano-rosetta/issues/205)
+* try multiple eras when sending a transaction ([#310](https://github.com/input-output-hk/cardano-rosetta/issues/310)) ([132d7e6](https://github.com/input-output-hk/cardano-rosetta/commit/132d7e65bad086a2bbe2f2df234c18a5638268c3))
+* validate token policy and symbol to be a hex string ([#302](https://github.com/input-output-hk/cardano-rosetta/issues/302)) ([08e3917](https://github.com/input-output-hk/cardano-rosetta/commit/08e391792b57929e4b88f7d64942bfb9d44afa9f))
+* **construction-parse:** stake operations and withdrawals parsing ([974d5b9](https://github.com/input-output-hk/cardano-rosetta/commit/974d5b98703687b8d587078db7db8f215f9e2987)), closes [#205](https://github.com/input-output-hk/cardano-rosetta/issues/205)
+
+
+### Bug Fixes
+
+* add missing staking addresses when creating transaction payloads ([25342c6](https://github.com/input-output-hk/cardano-rosetta/commit/25342c60c8205b638ffbcfbf2aa519cbb8c1e7c5))
+* add missing testnet network identifier to post-release workflow ([7ac1c72](https://github.com/input-output-hk/cardano-rosetta/commit/7ac1c72f12720766f0fe2a60c014656261b93161))
+* cardano-cli tx encoding should be `Tx MaryEra` ([401cd7d](https://github.com/input-output-hk/cardano-rosetta/commit/401cd7d76b31b780b50d080b04f173cbcb37b354))
+* delegate stake example ([17f0698](https://github.com/input-output-hk/cardano-rosetta/commit/17f0698f3411d672ae56d4a949ae79d7cfba6a25))
+* fix dump_blocks script and db snapshot ([5f22d23](https://github.com/input-output-hk/cardano-rosetta/commit/5f22d238d7f9aa5aa6913d85e9f195a8b46af72f))
+* fix lint issues ([e5b2c49](https://github.com/input-output-hk/cardano-rosetta/commit/e5b2c490b386b42aec35345186935e20ff1d5efb))
+* fix missing shades dependency ([2193f9a](https://github.com/input-output-hk/cardano-rosetta/commit/2193f9a4fe8090c81410fdf76662c4ffffdff75b))
+* fix withdrawal example ([#255](https://github.com/input-output-hk/cardano-rosetta/issues/255)) ([c5a48b8](https://github.com/input-output-hk/cardano-rosetta/commit/c5a48b82efe6f5825c14063bdd4ea6d630303373))
+* map empty asset name in order to work with rosetta-cli:check data ([#307](https://github.com/input-output-hk/cardano-rosetta/issues/307)) ([d17c4e1](https://github.com/input-output-hk/cardano-rosetta/commit/d17c4e1f4cf43aa282781d663cc00445fe44074b))
+* missing minKeyDeposit parameter in cardano service and linter warning fixes ([8b3b41d](https://github.com/input-output-hk/cardano-rosetta/commit/8b3b41db176dcce957eb3f333459b4888a35ff1f))
+* multiassets schema wasn't properly mapped ([#280](https://github.com/input-output-hk/cardano-rosetta/issues/280)) ([eeb5611](https://github.com/input-output-hk/cardano-rosetta/commit/eeb56112574339624b624167870f2d937666b1b2))
+* set default test db as mainnet ([61ddbdd](https://github.com/input-output-hk/cardano-rosetta/commit/61ddbddf28ceea138c4928078ddc0fdd324bb390))
+* there were some staking network operations missing ([#223](https://github.com/input-output-hk/cardano-rosetta/issues/223)) ([0309ee4](https://github.com/input-output-hk/cardano-rosetta/commit/0309ee4343a833a957a9248f46f395c3efd50108))
+* typo fix in isPolictyIdValid ([dc33252](https://github.com/input-output-hk/cardano-rosetta/commit/dc3325251ebbc1a928549692347a14419e5b7f3b))
 
 ## [1.0.0](https://github.com/input-output-hk/cardano-rosetta/compare/0.2.2...1.0.0) (2020-12-11)
 
