@@ -57,7 +57,7 @@ describe('CardanoNode CLI', () => {
     expect(executor).toBeCalledTimes(1);
   });
 
-  it('Should throw and error and fail is not related to era mismatch', async () => {
+  it('Should throw errors unrelated to era mismatch', async () => {
     const executor = jest.fn();
     const error =
       'Error while submitting tx: ApplyTxError [LedgerFailure (UtxowFailure (UtxoFailure (ValueNotConservedUTxO (Value 20000000 (fromList [(PolicyID {policyID = ScriptHash "9e2a4681f2e26df0312e4960584a2c56e1c1206d4d621a4648f0ff97"},fromList [("cats",5),("dogs",5)])])) (Value 20000000 (fromList [(PolicyID {policyID = ScriptHash "9e2a4681f2e26df0312e4960584a2c56e1c1206d4d621a4648f0ff97"},fromList [("",5),("\\202",5)])])))))]]}';

@@ -13,12 +13,12 @@ export interface CardanoCli {
   submitTransaction(logger: Logger, signedTransaction: string, isMainnet: boolean): Promise<void>;
 }
 
-const SUPPORTED_ERAS = ['Tx MaryEra', 'TxSignedShelley'];
+const SUPPORTED_ERAS = ['Tx MaryEra', 'TxSignedShelley', 'Tx AllegraEra'];
 
 /**
  * This function returns true if DecoderErrorDeserialiseFailure is thrown.
  *
- * It's not the best way to detect if an era mismatch but it has been agreed
+ * It's not the best way to detect if an era mismatch but it avoids a race condition
  * it's the simplest one we can do.
  *
  * @param errorMessage
@@ -38,18 +38,18 @@ export const configure = (
 ): CardanoCli => ({
   async submitTransaction(logger, signedTransaction, isMainnet): Promise<void> {
     for (const era of SUPPORTED_ERAS) {
-      logger.info(`[submitTransaction] About to create temp file for transaction ${signedTransaction}`);
+      logger.debug(`[submitTransaction] About to create temp file for transaction ${signedTransaction}`);
       const cardanoCliFileContent = `{
         "type": "${era}",
         "description": "",
         "cborHex": "${signedTransaction}"
       }`;
-      logger.info(cardanoCliFileContent, '[submitTransaction] cardano-cli file');
+      logger.debug(cardanoCliFileContent, '[submitTransaction] cardano-cli file');
       const file = await tempWrite(cardanoCliFileContent);
-      logger.info(`[submitTransaction] File created at ${file}`);
+      logger.debug(`[submitTransaction] File created at ${file}`);
       try {
         // `--testnet-magic` flag is used even if it's mainnet as we are using the proper networkMagic
-        logger.info(`[submitTransaction] Invoking cardano-cli at ${cardanoCliPath} using ${networkMagic} networkMagic`);
+        logger.debug(`[submitTransaction] Invoking cardano-cli at ${cardanoCliPath} using ${networkMagic} networkMagic`);
         const commonParameters = ['transaction', 'submit', '--tx-file', file];
         const parameters = isMainnet
           ? commonParameters.concat('--mainnet')
@@ -59,7 +59,7 @@ export const configure = (
         return;
       } catch (error) {
         if (isWrongEra(error.stderr.toString())) {
-          logger.error(`[submitTransaction] Era mismatch when using era ${era}`);
+          logger.debug(`[submitTransaction] Era mismatch when using era ${era}`);
         } else {
           logger.error(error, '[submitTransaction] Command failed');
           throw new Error(error.stderr.toString());
@@ -69,6 +69,6 @@ export const configure = (
       }
     }
     // eslint-disable-next-line quotes
-    throw new Error("Transaction wasn't processed. Era not supported.");
+    throw new Error(`Transaction not submitted. ${era} era not supported.`);
   }
 });
