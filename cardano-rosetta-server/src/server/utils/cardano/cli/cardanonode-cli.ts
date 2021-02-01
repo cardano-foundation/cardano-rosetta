@@ -60,10 +60,10 @@ export const configure = (
         logger.info('[submitTransaction] transaction successfully sent', stdout.toString());
         return;
       } catch (error) {
+        logger.error(error, '[submitTransaction] Command failed');
         if (isWrongEra(error.stderr.toString())) {
           logger.debug(`[submitTransaction] Era mismatch when using era ${era}`);
         } else {
-          logger.error(error, '[submitTransaction] Command failed');
           throw new Error(error.stderr.toString());
         }
       } finally {
