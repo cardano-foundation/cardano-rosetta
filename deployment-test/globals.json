@@ -1,0 +1,14 @@
+{
+	"id": "f0ff4d5a-b1ce-4a7f-8af1-d9f21f52c1e6",
+	"values": [
+		{
+			"key": "rosettaVersion",
+			"value": "1.4.4",
+			"enabled": true
+		}
+	],
+	"name": "Team Workspace Globals",
+	"_postman_variable_scope": "globals",
+	"_postman_exported_at": "2021-02-03T19:33:49.979Z",
+	"_postman_exported_using": "Postman/7.36.1"
+}
