@@ -132,11 +132,14 @@ const allow = {
       retriable: true
     }
   ],
-  historical_balance_lookup: true
+  historical_balance_lookup: true,
+  call_methods: [],
+  balance_exemptions: [],
+  mempool_coins: false
 };
 
 const version = {
-  rosetta_version: '1.4.4',
+  rosetta_version: '1.4.10',
   node_version: 'cardano-node 1.18.0 - linux-x86_64 - ghc-8.6\ngit rev 36ad7b90bfbde8afd41b68ed9b928df3fcab0dbc',
   middleware_version: packageJson.version,
   metadata: {}
