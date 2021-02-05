@@ -72,7 +72,10 @@ const configure = (networkService: NetworkService, cardanoNode: CardanoNode): Ne
               .map(fn => fn())
               // Return them sorted by code
               .sort((error1, error2) => error1.code - error2.code),
-            historical_balance_lookup: true
+            historical_balance_lookup: true,
+            call_methods: [],
+            balance_exemptions: [],
+            mempool_coins: false
           }
         };
         logger.info('[networkOptions] All network options has been successfully fetched.');
