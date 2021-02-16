@@ -1,0 +1,32 @@
+scenarios:
+    - flow:
+        - log: "/block"
+        - log: "blockIndex: {{ blockIndex }}"
+        - log: "blockHash: {{ blockHash }}"
+        - post:
+            url: "/block"
+            headers:
+                Content-Type: "application/json"
+            json:
+                network_identifier:
+                    blockchain: "cardano"
+                    network: "{{ networkId }}"
+                block_identifier:
+                    index: "{{  blockIndex }}"
+                    hash: "{{  blockHash }}"
+    - flow:
+        - log: "/block/transaction"
+        - log: "{{ blockIndex }}"
+        - post:
+            url: "/block/transaction"
+            headers:
+                Content-Type: "application/json"
+            json:
+                network_identifier:
+                    blockchain: "cardano"
+                    network: "{{ networkId }}"
+                block_identifier:
+                    index: "{{  blockIndex }}"
+                    hash: "{{  blockHash }}"
+                transaction_identifier:
+                    hash: "{{ transactionId }}"

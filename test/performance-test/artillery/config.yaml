@@ -1,0 +1,23 @@
+config:
+    target: "localhost:8081"
+    phases:
+      - duration: 10
+        arrivalCount: 10
+    environments:
+        localhost:
+            target: "http://localhost:8081"
+            phases:
+              - duration: 10
+                arrivalCount: 100
+        testnet:
+            target: "https://explorer.cardano-testnet.iohkdev.io/rosetta"
+            phases:
+              - duration: 120
+                arrivalRate: 10
+    payload:
+        path: "{{  $environment  }}-vars.csv"
+        fields:
+          - "networkId"
+          - "blockIndex"
+          - "blockHash"
+          - "transactionId"
