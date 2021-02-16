@@ -1,0 +1,82 @@
+Network-Identifier: &network_identifier
+  network_identifier:
+    blockchain: "cardano"
+    network: "{{ networkId }}"
+
+Public-Key: &public_key
+  hex_bytes: "22ae46272bffe077cecc46e1494d790d4ad453ae1c4228aa0c2e9671dcb16344"
+  curve_type: "edwards25519"
+
+Ada-Currency: &ada_currency
+  currency:
+    symbol: "ADA"
+    decimals: 6
+
+scenarios:
+  - name: Simple Transaction
+    flow:
+        - log: "/construction/derive"
+        - post:
+            url: "/construction/derive"
+            capture: 
+              json: "$.address"
+              as: "address"
+            headers:
+              Content-Type: "application/json"
+            json:
+              <<: *network_identifier
+              public_key:
+                  <<: *public_key
+              metadata:
+                  relative_ttl: 1000
+        - log: "/construction/preprocess"
+        - post:
+            url: "/construction/preprocess"
+            capture:
+              json: "$.options"
+              as: "options"
+            headers:
+              Content-Type: "application/json"
+            json:
+              <<: *network_identifier
+              operations:
+                - operation_identifier:
+                    index: 0
+                  type: "input"
+                  status: "" # maybe can be removed soon
+                  account:
+                    address: "{{ address }}"
+                  amount:
+                    value: "-100000"
+                    <<: *ada_currency
+                  coin_change:
+                    coin_identifier:
+                      identifier: "8f0e1bb31ff09a8dcc8a1b13d6ccb8f873f8d94b17bb7236c62e2d9d63d5426b:0"
+                    coin_action: "coin_spent"
+                - operation_identifier:
+                    index: 1
+                  type: "output"
+                  status: "" # maybe can be removed soon
+                  account:
+                    address: "{{ address }}"
+                  amount:
+                    value: 90000
+                    <<: *ada_currency
+        - log: "/construction/metadata"
+        - post:
+            url: "/construction/metadata"
+            capture:
+            - json: "$.suggested_fee[0].value"
+              as: "suggested_fee_value"
+            - json: "$.metadata.ttl"
+              as: "ttl"
+            headers:
+              Content-Type: "application/json"
+            json:
+              <<: *network_identifier
+              options:
+                "{{ options }}"
+              public_keys:
+              - <<: *public_key
+        - log: "suggested_fee_value: {{ suggested_fee_value }}"
+        - log: "ttl: {{ ttl }}"

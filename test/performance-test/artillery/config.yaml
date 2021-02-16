@@ -8,7 +8,7 @@ config:
             target: "http://localhost:8081"
             phases:
               - duration: 10
-                arrivalCount: 100
+                arrivalCount: 10
         testnet:
             target: "https://explorer.cardano-testnet.iohkdev.io/rosetta"
             phases:
