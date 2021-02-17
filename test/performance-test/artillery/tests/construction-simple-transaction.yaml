@@ -1,0 +1,171 @@
+Http-Headers: &headers
+  headers:
+    Content-Type: "application/json"
+
+Network-Identifier: &network_identifier
+  network_identifier:
+    blockchain: "cardano"
+    network: "{{ networkId }}"
+
+Public-Key: &public_key
+  hex_bytes: "22ae46272bffe077cecc46e1494d790d4ad453ae1c4228aa0c2e9671dcb16344"
+  curve_type: "edwards25519"
+
+Ada-Currency: &ada_currency
+  currency:
+    symbol: "ADA"
+    decimals: 6
+
+Operations: &operations
+  operations:
+  - operation_identifier:
+      index: 0
+    type: "input"
+    status: "" # maybe can be removed soon
+    account:
+      address: "{{ address }}"
+    amount:
+      value: "-100000"
+      <<: *ada_currency
+    coin_change:
+      coin_identifier:
+        identifier: "8f0e1bb31ff09a8dcc8a1b13d6ccb8f873f8d94b17bb7236c62e2d9d63d5426b:0"
+      coin_action: "coin_spent"
+  - operation_identifier:
+      index: 1
+    type: "output"
+    status: "" # maybe can be removed soon
+    account:
+      address: "{{ address }}"
+    amount:
+      value: 90000
+      <<: *ada_currency
+
+Signatures: &signatures
+  signatures:
+  - signing_payload:
+      account_identifier:
+        address: "{{ address }}"
+        #metadata: ""
+      hex_bytes: "{{ hex_bytes }}"
+      signature_type: "ed25519"
+    public_key:
+      hex_bytes: "{{ public_key }}" # defined in sign-transaction.js
+      curve_type: "edwards25519"
+    signature_type: "ed25519"
+    hex_bytes: "{{ signed_hex_bytes  }}" # produced in sign-transaction.js
+
+scenarios:
+  - name: Simple Transaction
+    flow:
+        - log: "/construction/derive"
+        - post:
+            url: "/construction/derive"
+            capture: 
+              json: "$.address"
+              as: "address"
+            <<: *headers
+            json:
+              <<: *network_identifier
+              public_key:
+                  <<: *public_key
+              metadata:
+                  relative_ttl: 1000
+        
+        - log: "/construction/preprocess"
+        - post:
+            url: "/construction/preprocess"
+            capture:
+              json: "$.options"
+              as: "options"
+            <<: *headers
+            json:
+              <<: *network_identifier
+              <<: *operations
+        
+        - log: "/construction/metadata"
+        - post:
+            url: "/construction/metadata"
+            capture:
+            - json: "$.suggested_fee"
+              as: "suggested_fee"
+            - json: "$.metadata"
+              as: "metadata"
+            <<: *headers
+            json:
+              <<: *network_identifier
+              options:
+                "{{ options }}"
+              public_keys:
+              - <<: *public_key
+        
+        - log: "/construction/payloads"
+        - post:
+            url: "/construction/payloads"
+            capture:
+            - json: "$.unsigned_transaction"
+              as: "unsigned_transaction"
+            - json: "$.payloads[0].hex_bytes"
+              as: "hex_bytes"
+            <<: *headers
+            json:
+              <<: *network_identifier
+              <<: *operations
+              metadata:
+                "{{ metadata }}"
+              suggested_fee:
+                "{{ suggested_fee }}"
+        
+        - log: "/construction/parse (unsigned)"
+        - post:
+            url: "/construction/parse"
+            <<: *headers
+            json:
+              <<: *network_identifier
+              signed: "false"
+              transaction:
+                "{{ unsigned_transaction }}"
+        
+        - function: "signTransaction" # in sign-transaction.js
+        - log: "signed_hex_bytes: {{ signed_hex_bytes }}"
+        
+        - log: "/construction/combine"
+        - post:
+            url: "/construction/combine"
+            capture:
+              json: "$.signed_transaction"
+              as: "signed_transaction"
+            <<: *headers
+            json:
+              <<: *network_identifier
+              unsigned_transaction: "{{ unsigned_transaction }}"
+              <<: *signatures
+        
+        #- log: "signed_transaction={{ signed_transaction }}"
+        - log: "/construction/parse (signed)"
+        - post:
+            url: "/construction/parse"
+            <<: *headers
+            json:
+              <<: *network_identifier
+              signed: "true"
+              transaction: "{{ signed_transaction }}"
+        - log: "/construction/submit"
+        - post:
+            url: "/construction/submit"
+            <<: *headers
+            json:
+              <<: *network_identifier
+              signed_transaction: "{{ signed_transaction }}"
+
+        - log: "/construction/hash"
+        - post:
+            url: "/construction/hash"
+            capture:
+              json: "$.transaction_identifier.hash"
+              as: "hash"
+            <<: *headers
+            json:
+              <<: *network_identifier
+              signed_transaction: "{{ signed_transaction }}"
+              <<: *signatures
