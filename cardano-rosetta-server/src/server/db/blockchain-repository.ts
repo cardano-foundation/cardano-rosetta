@@ -84,7 +84,8 @@ export interface BlockchainRepository {
   findUtxoByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<Utxo[]>;
 
   /**
-   * Returns an array containing all multi asset balances for address till block identified by blockIdentifier if present, else the last
+   * Returns an array containing all multi asset balances for the provided address till block identified by
+   * blockIdentifier is present. Otherwise, it returns the last one.
    * @param address account's address to count balance
    * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
    */
