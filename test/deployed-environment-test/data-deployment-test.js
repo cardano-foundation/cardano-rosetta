@@ -3,7 +3,7 @@ const newman = require('newman');
 const env = process.argv[2]
 
 newman.run({
-    collection: 'https://www.getpostman.com/collections/681bc379b01e1bf278a6',
+    collection: require('./collection.json'),
     environment: require(`./environments/${env}`),
     globals: require('./globals.json'),
     reporters: ['cli', 'json']

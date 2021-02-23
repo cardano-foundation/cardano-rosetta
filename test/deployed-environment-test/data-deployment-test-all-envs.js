@@ -7,7 +7,7 @@ const environments = [ 'testnet.postman_environment.json',
 
 for (env of environments) {
     newman.run({
-        collection: 'https://www.getpostman.com/collections/681bc379b01e1bf278a6',
+        collection: require('./collection.json'),
         bail: true, // exit on failure
         environment: require(`./environments/${env}`),
         globals: require('./globals.json'),
