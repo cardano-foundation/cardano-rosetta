@@ -1,0 +1,44 @@
+name: Deployed Environment Checks
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  push:
+    branches:
+    - feat/deployment-tests
+  workflow_dispatch:
+
+jobs:
+  deployed-env-checks:
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout Rosetta
+      uses: actions/checkout@v2
+
+    - name: Setup Node
+      uses: actions/setup-node@v2
+      
+    - name: Install NodeJs
+      run: npm i node
+
+    - name: Install newman
+      run: npm i newman
+
+    - name: Check Testnet
+      working-directory: ./deployment-test
+      run: node data-deployment-test testnet.postman_environment.json
+
+    - name: Check Shelley-QA
+      if: always()
+      working-directory: ./deployment-test
+      run: node data-deployment-test shelley-qa.postman_environment.json
+
+    - name: Check Mary-QA
+      if: always()
+      working-directory: ./deployment-test
+      run: node data-deployment-test mary-qa.postman_environment.json
+
+    - name: Check Staging
+      if: always()
+      working-directory: ./deployment-test
+      run: node data-deployment-test staging.postman_environment.json

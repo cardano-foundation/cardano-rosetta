@@ -1,18 +1,18 @@
 const newman = require('newman');
 
-const environments = [ 'testnet.postman_environment.json',
-                       'shelley-qa.postman_environment.json',
-                       'mary-qa.postman_environment.json',
-                       'staging.postman_environment.json' ]
+const env = process.argv[2]
 
-for (env of environments) {
-    newman.run({
-        collection: 'https://www.getpostman.com/collections/681bc379b01e1bf278a6',
-        environment: require(`./environments/${env}`),
-        globals: require('./globals.json'),
-        reporters: ['cli', 'json']
-    }, function (err) {
-    	if (err) { throw err; }
-        console.log('collection run complete!');
-    });
-}
+newman.run({
+    collection: 'https://www.getpostman.com/collections/681bc379b01e1bf278a6',
+    environment: require(`./environments/${env}`),
+    globals: require('./globals.json'),
+    reporters: ['cli', 'json']
+}, function (err, summary) {
+	if (err) { 
+        console.error('collection run encountered an error.');
+    } else if (summary.run.failures.length) {
+        console.error('assertion failure occured.');
+        process.exit(1);
+    }
+    console.log('collection run complete!');
+});
