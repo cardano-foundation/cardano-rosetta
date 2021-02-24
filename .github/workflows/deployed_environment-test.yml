@@ -2,7 +2,7 @@ name: Deployed Environment Checks
 
 on:
   schedule:
-    - cron: '0 12 * * *'
+  - cron: '0 12 * * *'
   push:
     branches:
     - feat/deployment-tests
@@ -42,3 +42,9 @@ jobs:
       if: always()
       working-directory: ./test/deployed-environment-test
       run: node data-deployment-test staging.postman_environment.json
+
+    - name: Check Mainnet
+      if: always()
+      working-directory: ./test/deployed-environment-test
+      run: node data-deployment-test mainnet.postman_environment.json
+

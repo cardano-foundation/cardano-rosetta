@@ -1,6 +1,7 @@
 const newman = require('newman');
 
-const environments = [ 'testnet.postman_environment.json',
+const environments = [ 'mainnet.postman_environment.json'
+                       'testnet.postman_environment.json',
                        'shelley-qa.postman_environment.json',
                        'mary-qa.postman_environment.json',
                        'staging.postman_environment.json' ]
