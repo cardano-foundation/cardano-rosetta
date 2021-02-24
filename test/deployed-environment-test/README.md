@@ -1,7 +1,7 @@
 ## Deployment Test
 
 ### Description
-Automated API checks for Rosetta deployments on testnet, stagning, shelley-qa and mary-qa. Can also be used for local instance.
+Automated API checks for Rosetta deployments on testnet, staging, shelley-qa, mary-qa and mainnet. Can also be used for local instance.
 
 ### Steps:
 - `npm i newman`

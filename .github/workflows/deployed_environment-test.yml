@@ -3,9 +3,6 @@ name: Deployed Environment Checks
 on:
   schedule:
   - cron: '0 12 * * *'
-  push:
-    branches:
-    - feat/deployment-tests
   workflow_dispatch:
 
 jobs:
