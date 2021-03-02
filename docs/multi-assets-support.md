@@ -8,7 +8,7 @@ For operations sent in the request of the `/construction/preprocess` and `/const
 
 More information about Multi Assets structure can be found [here](https://developers.cardano.org/en/development-environments/native-tokens/multi-asset-tokens-explainer/).
 
-Both token symbol and policy will be passed as hex string as follows:
+`symbol` is the Asset Name stored in the Ledger. Both `symbol` and `policyId` will be passed as hex string as follows:
 
 ### Input operation
 
@@ -77,4 +77,83 @@ Both token symbol and policy will be passed as hex string as follows:
 }
 ```
 
+### Account balance query
+The response from `/account/balance` will have the list of Token Bundles along with ADA balance.
+
+```json
+"balances": [
+    {
+      "value": "71103107",
+      "currency": {
+        "symbol": "ADA",
+        "decimals": 6
+      }
+    },
+    {
+      "value": "9648589196",
+      "currency": {
+        "symbol": "4141504c",
+        "decimals": 0,
+        "metadata": {
+          "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517"
+        }
+      }
+    },
+    {
+      "value": "9648589196",
+      "currency": {
+        "symbol": "4150504c45",
+        "decimals": 0,
+        "metadata": {
+          "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517"
+        }
+      }
+    }
+  ],
+"coins": [
+  {
+    "coin_identifier": {
+      "identifier": "414afe46bc6b7e52739dd5dd76eef30812168912a34bb31676b9872881aeacd2:0"
+    },
+    "amount": {
+      "value": "71103107",
+      "currency": {
+        "symbol": "ADA",
+        "decimals": 6
+      }
+    },
+    "metadata": {
+      "414afe46bc6b7e52739dd5dd76eef30812168912a34bb31676b9872881aeacd2:0": [
+        {
+          "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517",
+          "tokens": [
+            {
+              "value": "9648589196",
+              "currency": {
+                "symbol": "4141504c",
+                "decimals": 0,
+                "metadata": {
+                  "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517"
+                }
+              }
+            },
+            {
+              "value": "9648589196",
+              "currency": {
+                "symbol": "4150504c45",
+                "decimals": 0,
+                "metadata": {
+                  "policyId": "12e65fa3585d80cba39dcf4f59363bb68b77f9d3c0784734427b1517"
+                }
+              }
+            }
+          ]
+       }
+     ]
+    }
+  }
+]
+```
+
 It's important to mention that Token Name is not required by Cardano protocol rules. As Rosetta [symbol](https://www.rosetta-api.org/docs/1.4.4/models/Currency.html) is a required field, it will be represented as `\\x`.
+
