@@ -75,29 +75,24 @@ export const generateEnterpriseAddress = (
   return bech32enterpriseAddress;
 };
 
-export const getEraAddressType = (address: string): EraAddressType | null => {
+/**
+ * Returns either Byron or Shelley address type or it throws an error
+ * @param address
+ */
+export const getEraAddressType = (address: string): EraAddressType => {
   if (CardanoWasm.ByronAddress.is_valid(address)) {
     return EraAddressType.Byron;
   }
-  try {
-    CardanoWasm.Address.from_bech32(address);
-    return EraAddressType.Shelley;
-  } catch (error) {
-    return null;
-  }
+  CardanoWasm.Address.from_bech32(address);
+  return EraAddressType.Shelley;
 };
 
-export const parseAddress = (address: string): CardanoWasm.Address | null => {
+export const parseAddress = (address: string): CardanoWasm.Address => {
   const addressType = getEraAddressType(address);
-  switch (addressType) {
-    case EraAddressType.Shelley: {
-      return CardanoWasm.Address.from_bech32(address);
-    }
-    case EraAddressType.Byron: {
-      const byronAddress = CardanoWasm.ByronAddress.from_base58(address);
-      return byronAddress.to_address();
-    }
-    default:
-      return null;
+
+  if (addressType === EraAddressType.Byron) {
+    const byronAddress = CardanoWasm.ByronAddress.from_base58(address);
+    return byronAddress.to_address();
   }
+  return CardanoWasm.Address.from_bech32(address);
 };

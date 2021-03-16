@@ -291,7 +291,11 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
   },
 
   getEraAddressType(address) {
-    return getEraAddressType(address);
+    try {
+      return getEraAddressType(address);
+    } catch (error) {
+      return null;
+    }
   },
   getPrefixFromAddress(address) {
     return address.slice(0, PREFIX_LENGTH);

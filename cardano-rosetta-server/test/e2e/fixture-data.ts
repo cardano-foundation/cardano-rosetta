@@ -2705,7 +2705,7 @@ export const CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE = 
   ])
   .toString('hex');
 
-export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
+export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS: Components.Schemas.ConstructionPayloadsRequest = {
   network_identifier: {
     blockchain: 'cardano',
     network: 'mainnet'
@@ -2713,15 +2713,12 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
   operations: [
     {
       operation_identifier: {
-        index: 1,
+        index: 0,
         network_index: 0
       },
       related_operations: [
         {
-          index: 0,
-          operation_identifier: {
-            index: 0
-          }
+          index: 1
         }
       ],
       type: OperationType.INPUT,
@@ -2750,10 +2747,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
       },
       related_operations: [
         {
-          index: 1,
-          operation_identifier: {
-            index: 0
-          }
+          index: 0
         }
       ],
       type: OperationType.OUTPUT,
@@ -2782,10 +2776,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
       },
       related_operations: [
         {
-          index: 2,
-          operation_identifier: {
-            index: 0
-          }
+          index: 0
         }
       ],
       type: OperationType.OUTPUT,
@@ -2813,7 +2804,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS = {
   }
 };
 
-export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
+export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS: Components.Schemas.ConstructionPayloadsRequest = {
   network_identifier: {
     blockchain: 'cardano',
     network: 'mainnet'
@@ -2821,15 +2812,12 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
   operations: [
     {
       operation_identifier: {
-        index: 1,
+        index: 0,
         network_index: 0
       },
       related_operations: [
         {
-          index: 0,
-          operation_identifier: {
-            index: 0
-          }
+          index: 1
         }
       ],
       type: OperationType.INPUT,
@@ -2858,10 +2846,7 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
       },
       related_operations: [
         {
-          index: 1,
-          operation_identifier: {
-            index: 0
-          }
+          index: 0
         }
       ],
       type: OperationType.OUTPUT,
@@ -2886,15 +2871,12 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS = {
     },
     {
       operation_identifier: {
-        index: 1,
+        index: 2,
         network_index: 0
       },
       related_operations: [
         {
-          index: 2,
-          operation_identifier: {
-            index: 0
-          }
+          index: 0
         }
       ],
       type: OperationType.OUTPUT,
