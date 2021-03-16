@@ -1,6 +1,6 @@
 import CardanoWasm, { StakeCredential } from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
-import { NetworkIdentifier } from '../constants';
+import { NetworkIdentifier, EraAddressType } from '../constants';
 
 /**
  * Returns the bech-32 address prefix based on the netowrkId acording to
@@ -73,4 +73,31 @@ export const generateEnterpriseAddress = (
   const bech32enterpriseAddress = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
   logger.info(`[generateAddress] enterprise address is ${bech32enterpriseAddress}`);
   return bech32enterpriseAddress;
+};
+
+export const getEraAddressType = (address: string): EraAddressType | null => {
+  if (CardanoWasm.ByronAddress.is_valid(address)) {
+    return EraAddressType.Byron;
+  }
+  try {
+    CardanoWasm.Address.from_bech32(address);
+    return EraAddressType.Shelley;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const parseAddress = (address: string): CardanoWasm.Address | null => {
+  const addressType = getEraAddressType(address);
+  switch (addressType) {
+    case EraAddressType.Shelley: {
+      return CardanoWasm.Address.from_bech32(address);
+    }
+    case EraAddressType.Byron: {
+      const byronAddress = CardanoWasm.ByronAddress.from_base58(address);
+      return byronAddress.to_address();
+    }
+    default:
+      return null;
+  }
 };

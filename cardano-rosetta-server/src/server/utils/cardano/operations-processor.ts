@@ -15,7 +15,7 @@ import { NetworkIdentifier, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
 import { hexStringToBuffer } from '../formatters';
 import { isPolicyIdValid, isTokenNameValid } from '../validations';
-import { generateRewardAddress } from './addresses';
+import { generateRewardAddress, parseAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
 const isPositiveNumber = (value: string): boolean => /^\+?\d+/.test(value);
@@ -76,10 +76,9 @@ const validateAndParseTransactionOutput = (
   logger: Logger,
   output: Components.Schemas.Operation
 ): CardanoWasm.TransactionOutput => {
-  // eslint-disable-next-line camelcase
   let address;
   try {
-    address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
+    address = output.account && parseAddress(output.account.address);
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(error.toString());
   }
