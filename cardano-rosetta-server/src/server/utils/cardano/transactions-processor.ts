@@ -5,7 +5,7 @@ import { ADA, ADA_DECIMALS, CurveType, OperationType } from '../constants';
 import { mapAmount } from '../data-mapper';
 import { ErrorFactory } from '../errors';
 import { hexFormatter } from '../formatters';
-import { generateRewardAddress, getAddressPrefix } from './addresses';
+import { generateRewardAddress, getAddressPrefix, parseAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
 const compareStrings = (a: string, b: string): number => {
@@ -103,7 +103,7 @@ const parseOutputToOperation = (
 ): Components.Schemas.Operation => ({
   operation_identifier: { index },
   related_operations: relatedOperations,
-  account: { address: output.address().to_bech32(addressPrefix) },
+  account: { address: parseAddress(output.address(), addressPrefix) },
   amount: {
     value: output
       .amount()

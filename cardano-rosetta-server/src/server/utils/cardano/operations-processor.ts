@@ -15,7 +15,7 @@ import { NetworkIdentifier, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
 import { hexStringToBuffer } from '../formatters';
 import { isPolicyIdValid, isTokenNameValid } from '../validations';
-import { generateRewardAddress, parseAddress } from './addresses';
+import { generateRewardAddress, generateAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
 const isPositiveNumber = (value: string): boolean => /^\+?\d+/.test(value);
@@ -78,7 +78,7 @@ const validateAndParseTransactionOutput = (
 ): CardanoWasm.TransactionOutput => {
   let address;
   try {
-    address = output.account && parseAddress(output.account.address);
+    address = output.account && generateAddress(output.account.address);
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(error.toString());
   }
