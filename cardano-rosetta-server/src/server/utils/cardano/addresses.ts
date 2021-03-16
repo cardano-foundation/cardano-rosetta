@@ -101,23 +101,12 @@ export const generateAddress = (address: string): Address => {
   return Address.from_bech32(address);
 };
 
-const convertShelleyToByronAddress = (address: Address): ByronAddress => {
-  const addressBytes = address.to_bytes();
-  return ByronAddress.from_bytes(addressBytes);
-};
-
 /**
  * Returns either a base58 string for Byron or a bech32 for Shelley
  * @param address base58 for Byron or bech32 for Shelley
  * @param addressPrefix
  */
 export const parseAddress = (address: Address, addressPrefix?: string): string => {
-  let parsedAddress;
-  try {
-    const byronAddress: ByronAddress = convertShelleyToByronAddress(address);
-    parsedAddress = byronAddress.to_base58();
-  } catch (error) {
-    return address.to_bech32(addressPrefix);
-  }
-  return parsedAddress;
+  const byronAddress = ByronAddress.from_address(address);
+  return byronAddress ? byronAddress.to_base58() : address.to_bech32(addressPrefix);
 };
