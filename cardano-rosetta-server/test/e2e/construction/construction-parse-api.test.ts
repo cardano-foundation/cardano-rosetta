@@ -6,6 +6,7 @@ import {
   constructionParseOperations,
   CONSTRUCTION_INVALID_TRANSACTION,
   CONSTRUCTION_PAYLOADS_REQUEST,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_OUTPUT,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_SEVERAL_MA,
@@ -23,6 +24,7 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION,
   CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
+  CONSTRUCTION_SIGNED_TX_WITH_BYRON_ADDRESS_AND_EXTRA_DATA,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_MA,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_MULTIPLE_MA,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_SEVERAL_MA,
@@ -53,6 +55,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
   afterAll(async () => {
     await database.end();
   });
+
   test('Should return 1 input, 2 outputs and signers if a valid signed transaction is set', async () => {
     const response = await server.inject({
       method: 'post',
@@ -62,6 +65,26 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST));
     expect(response.json().signers).toEqual([CONSTRUCTION_PAYLOADS_REQUEST.operations[0].account?.address]);
+  });
+
+  test('Should return valid data if a valid signed transaction with a Byron address is set', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload(
+        'cardano',
+        'mainnet',
+        true,
+        CONSTRUCTION_SIGNED_TX_WITH_BYRON_ADDRESS_AND_EXTRA_DATA
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_OUTPUT)
+    );
+    expect(response.json().signers).toEqual([
+      CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_OUTPUT.operations[0].account?.address
+    ]);
   });
 
   // eslint-disable-next-line max-len

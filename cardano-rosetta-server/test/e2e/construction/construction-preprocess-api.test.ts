@@ -7,6 +7,9 @@ import { mod } from 'shades';
 import { ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from '../../../src/server/utils/constants';
 import {
   CONSTRUCTION_PAYLOADS_REQUEST,
+  CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS,
+  CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_OUTPUT,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITM_MA_WITHOUT_NAME,
@@ -17,6 +20,7 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL,
   CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS,
   CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL,
+  SIGNED_TX_WITH_BYRON_OUTPUT,
   SIGNED_TX_WITH_MA,
   SIGNED_TX_WITH_MA_WITHOUT_NAME,
   SIGNED_TX_WITH_MULTIPLE_MA,
@@ -96,6 +100,62 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       options: { relative_ttl: 100, transaction_size: TRANSACTION_SIZE_IN_BYTES }
+    });
+  });
+
+  test('Should return a valid TTL when the operations include an output with a Byron address', async () => {
+    const { operations } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_OUTPUT;
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({ blockchain: 'cardano', network: 'mainnet', operations, relativeTtl: 100 })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_BYRON_OUTPUT) }
+    });
+  });
+
+  test('Should throw an error when invalid outputs are sent as parameters', async () => {
+    const { operations } = CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS;
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({ blockchain: 'cardano', network: 'mainnet', operations, relativeTtl: 100 })
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4014,
+      message: 'Cant deserialize transaction output from transaction body',
+      retriable: false,
+      details: {
+        message:
+          'Invalid input: ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx - mixed-case strings not allowed'
+      }
+    });
+  });
+
+  test('Should throw an error when invalid inputs are sent as parameters', async () => {
+    const { operations } = CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS;
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({ blockchain: 'cardano', network: 'mainnet', operations, relativeTtl: 100 })
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4013,
+      message: 'Cant deserialize transaction input from transaction body',
+      retriable: false,
+      details: {
+        message:
+          // eslint-disable-next-line max-len, quotes
+          "There was an error deserializating transaction input: Deserialization failed in TransactionHash because: Invalid cbor: expected tuple 'hash length' of length 32 but got length Len(0)."
+      }
     });
   });
 

@@ -15,7 +15,7 @@ import { NetworkIdentifier, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
 import { hexStringToBuffer } from '../formatters';
 import { isPolicyIdValid, isTokenNameValid } from '../validations';
-import { generateRewardAddress } from './addresses';
+import { generateRewardAddress, generateAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
 const isPositiveNumber = (value: string): boolean => /^\+?\d+/.test(value);
@@ -76,12 +76,13 @@ const validateAndParseTransactionOutput = (
   logger: Logger,
   output: Components.Schemas.Operation
 ): CardanoWasm.TransactionOutput => {
-  // eslint-disable-next-line camelcase
   let address;
   try {
-    address = output.account && CardanoWasm.Address.from_bech32(output.account.address);
+    address = output.account && generateAddress(output.account.address);
   } catch (error) {
-    throw ErrorFactory.transactionOutputDeserializationError(error.toString());
+    throw ErrorFactory.transactionOutputDeserializationError(
+      `Invalid input: ${output.account?.address} - ${error.toString()}`
+    );
   }
   if (!address) {
     logger.error('[validateAndParseTransactionOutput] Output has missing address field');
@@ -102,7 +103,9 @@ const validateAndParseTransactionOutput = (
   try {
     return CardanoWasm.TransactionOutput.new(address, value);
   } catch (error) {
-    throw ErrorFactory.transactionOutputDeserializationError(error.toString());
+    throw ErrorFactory.transactionOutputDeserializationError(
+      `Invalid input: ${output.account?.address} - ${error.toString()}`
+    );
   }
 };
 

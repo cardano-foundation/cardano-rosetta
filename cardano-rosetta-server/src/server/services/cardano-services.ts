@@ -3,7 +3,12 @@
 import CardanoWasm, { BigNum, Ed25519Signature, PublicKey, StakeCredential, Vkey } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
-import { generateBaseAddress, generateEnterpriseAddress, generateRewardAddress } from '../utils/cardano/addresses';
+import {
+  generateBaseAddress,
+  generateEnterpriseAddress,
+  generateRewardAddress,
+  getEraAddressType
+} from '../utils/cardano/addresses';
 import * as OperationsProcessor from '../utils/cardano/operations-processor';
 import { getStakingCredentialFromHex } from '../utils/cardano/staking-credentials';
 import * as TransactionProcessor from '../utils/cardano/transactions-processor';
@@ -286,12 +291,8 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
   },
 
   getEraAddressType(address) {
-    if (CardanoWasm.ByronAddress.is_valid(address)) {
-      return EraAddressType.Byron;
-    }
     try {
-      CardanoWasm.Address.from_bech32(address);
-      return EraAddressType.Shelley;
+      return getEraAddressType(address);
     } catch (error) {
       return null;
     }

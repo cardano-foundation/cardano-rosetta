@@ -1,6 +1,6 @@
-import CardanoWasm, { StakeCredential } from 'cardano-serialization-lib';
+import CardanoWasm, { Address, ByronAddress, StakeCredential } from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
-import { NetworkIdentifier } from '../constants';
+import { NetworkIdentifier, EraAddressType } from '../constants';
 
 /**
  * Returns the bech-32 address prefix based on the netowrkId acording to
@@ -73,4 +73,40 @@ export const generateEnterpriseAddress = (
   const bech32enterpriseAddress = enterpriseAddress.to_address().to_bech32(getAddressPrefix(network));
   logger.info(`[generateAddress] enterprise address is ${bech32enterpriseAddress}`);
   return bech32enterpriseAddress;
+};
+
+/**
+ * Returns either Byron or Shelley address type or it throws an error
+ * @param address
+ */
+export const getEraAddressType = (address: string): EraAddressType => {
+  if (CardanoWasm.ByronAddress.is_valid(address)) {
+    return EraAddressType.Byron;
+  }
+  CardanoWasm.Address.from_bech32(address);
+  return EraAddressType.Shelley;
+};
+
+/**
+ * Returns either a Shelley or a Byron Address
+ * @param address base58 for Byron or bech32 for Shelley
+ */
+export const generateAddress = (address: string): Address => {
+  const addressType = getEraAddressType(address);
+
+  if (addressType === EraAddressType.Byron) {
+    const byronAddress = ByronAddress.from_base58(address);
+    return byronAddress.to_address();
+  }
+  return Address.from_bech32(address);
+};
+
+/**
+ * Returns either a base58 string for Byron or a bech32 for Shelley
+ * @param address base58 for Byron or bech32 for Shelley
+ * @param addressPrefix
+ */
+export const parseAddress = (address: Address, addressPrefix?: string): string => {
+  const byronAddress = ByronAddress.from_address(address);
+  return byronAddress ? byronAddress.to_base58() : address.to_bech32(addressPrefix);
 };
