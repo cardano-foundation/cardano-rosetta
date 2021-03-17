@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.1.0...1.2.0) (2021-03-17)
+
+
+### Features
+
+* byron address outputs support ([#324](https://github.com/input-output-hk/cardano-rosetta/issues/324)) ([f716ca3](https://github.com/input-output-hk/cardano-rosetta/commit/f716ca3c086d3f3f86e4f0d231837e93ac29206d))
+
 ## [1.1.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.0.0...1.1.0) (2021-02-01)
 
 ### Features
