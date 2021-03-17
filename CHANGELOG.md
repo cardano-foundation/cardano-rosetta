@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.2.0...1.2.1) (2021-03-17)
+
+
+### Bug Fixes
+
+* fix README instructions to point to proper version (1.2.1) ([959866a](https://github.com/input-output-hk/cardano-rosetta/commit/959866a7468db0d942e6592dbbbc99fb3c728538))
+
 ## [1.2.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.1.0...1.2.0) (2021-03-17)
 
 
