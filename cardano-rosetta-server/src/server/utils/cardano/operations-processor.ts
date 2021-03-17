@@ -80,7 +80,9 @@ const validateAndParseTransactionOutput = (
   try {
     address = output.account && generateAddress(output.account.address);
   } catch (error) {
-    throw ErrorFactory.transactionOutputDeserializationError(error.toString());
+    throw ErrorFactory.transactionOutputDeserializationError(
+      `Invalid input: ${output.account?.address} - ${error.toString()}`
+    );
   }
   if (!address) {
     logger.error('[validateAndParseTransactionOutput] Output has missing address field');
@@ -101,7 +103,9 @@ const validateAndParseTransactionOutput = (
   try {
     return CardanoWasm.TransactionOutput.new(address, value);
   } catch (error) {
-    throw ErrorFactory.transactionOutputDeserializationError(error.toString());
+    throw ErrorFactory.transactionOutputDeserializationError(
+      `Invalid input: ${output.account?.address} - ${error.toString()}`
+    );
   }
 };
 

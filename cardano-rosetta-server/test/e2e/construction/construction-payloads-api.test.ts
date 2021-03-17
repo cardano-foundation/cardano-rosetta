@@ -150,7 +150,10 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       code: 4014,
       message: 'Cant deserialize transaction output from transaction body',
       retriable: false,
-      details: { message: 'mixed-case strings not allowed' }
+      details: {
+        message:
+          'Invalid input: ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx - mixed-case strings not allowed'
+      }
     });
   });
 
