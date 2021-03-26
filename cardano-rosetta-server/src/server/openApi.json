@@ -1806,7 +1806,7 @@
       "ConstructionMetadataRequest": {
         "description": "A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers. Options is not required in the case that there is network-wide metadata of interest. Optionally, the request can also include an array of PublicKeys associated with the AccountIdentifiers returned in ConstructionPreprocessResponse.",
         "type": "object",
-        "required": ["network_identifier"],
+        "required": ["network_identifier", "options"],
         "properties": {
           "network_identifier": {
             "$ref": "#/components/schemas/NetworkIdentifier"
@@ -1950,7 +1950,7 @@
       "ConstructionPayloadsRequest": {
         "description": "ConstructionPayloadsRequest is the request to `/construction/payloads`. It contains the network, a slice of operations, and arbitrary metadata that was returned by the call to `/construction/metadata`. Optionally, the request can also include an array of PublicKeys associated with the AccountIdentifiers returned in ConstructionPreprocessResponse.",
         "type": "object",
-        "required": ["network_identifier", "operations"],
+        "required": ["network_identifier", "operations", "metadata"],
         "properties": {
           "network_identifier": {
             "$ref": "#/components/schemas/NetworkIdentifier"
@@ -1962,7 +1962,11 @@
             }
           },
           "metadata": {
-            "type": "object"
+            "type": "object",
+            "required": ["ttl"],
+            "properties": {
+              "ttl": { "type": "string" }
+            }
           },
           "public_keys": {
             "type": "array",
