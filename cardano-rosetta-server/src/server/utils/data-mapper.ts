@@ -352,7 +352,7 @@ export const mapToAccountBalanceResponse = (
         hash: blockBalanceData.block.hash
       },
       balances: totalBalance.length === 0 ? [mapAmount('0')] : totalBalance,
-      coins: [...adaCoins.values()]
+      // coins: [...adaCoins.values()]
     };
   }
   return {

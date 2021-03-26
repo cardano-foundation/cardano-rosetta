@@ -374,7 +374,7 @@ declare namespace Components {
       /**
        * Some blockchains require different metadata for different types of transaction construction (ex: delegation versus a transfer). Instead of requiring a blockchain node to return all possible types of metadata for construction (which may require multiple node fetches), the client can populate an options object to limit the metadata returned to only the subset required.
        */
-      options?: {
+      options: {
         relative_ttl: number;
         transaction_size: number;
       };
@@ -428,7 +428,9 @@ declare namespace Components {
     export interface ConstructionPayloadsRequest {
       network_identifier: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       operations: /* Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction. Operations are used both to represent on-chain data (Data API) and to construct new transactions (Construction API), creating a standard interface for reading and writing to blockchains. */ Operation[];
-      metadata?: {};
+      metadata: {
+        ttl: string;
+      };
       public_keys?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey[];
     }
     /**
@@ -486,14 +488,7 @@ declare namespace Components {
        * 8
        */
       decimals: number; // int32
-      /**
-       * Any additional information related to the currency itself. For example, it would be useful to populate this object with the contract address of an ERC-20 token.
-       * example:
-       * {
-       *   "Issuer": "Satoshi"
-       * }
-       */
-      metadata?: {};
+      metadata?: any;
     }
     /**
      * CurveType is the type of cryptographic curve associated with a PublicKey. * secp256k1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * secp256r1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * edwards25519: `y (255-bits) || x-sign-bit (1-bit)` - `32 bytes` (https://ed25519.cr.yp.to/ed25519-20110926.pdf) * tweedle: 1st pk : Fq.t (32 bytes) || 2nd pk : Fq.t (32 bytes) (https://github.com/CodaProtocol/coda/blob/develop/rfcs/0038-rosetta-construction-api.md#marshal-keys)
