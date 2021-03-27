@@ -10,7 +10,8 @@ import {
   Token,
   Transaction,
   TransactionInOut,
-  Utxo
+  Utxo,
+  MaBalance
 } from '../models';
 import { hexStringToBuffer, hexFormatter } from '../utils/formatters';
 import Queries, {
@@ -24,7 +25,8 @@ import Queries, {
   FindTransactionsInputs,
   FindTransactionsOutputs,
   FindTransactionWithdrawals,
-  FindUtxo
+  FindUtxo,
+  FindMaBalance
 } from './queries/blockchain-queries';
 
 export interface BlockchainRepository {
@@ -81,6 +83,13 @@ export interface BlockchainRepository {
    */
   findUtxoByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<Utxo[]>;
 
+  /**
+   * Returns an array containing all multi asset balances for the provided address till block identified by
+   * blockIdentifier is present. Otherwise, it returns the last one.
+   * @param address account's address to count balance
+   * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
+   */
+  findMultiAssetByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<MaBalance[]>;
   /**
    * Returns the balance for address till block identified by blockIdentifier if present, else the last
    * @param address account's address to count balance
@@ -493,6 +502,19 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       name: utxo.name ? hexFormatter(utxo.name) : utxo.name,
       policy: utxo.policy ? hexFormatter(utxo.policy) : utxo.policy,
       quantity: utxo.quantity
+    }));
+  },
+  async findMultiAssetByAddressAndBlock(logger: Logger, address, blockHash): Promise<MaBalance[]> {
+    const parameters = [address, hexStringToBuffer(blockHash)];
+    const balancesResult: QueryResult<FindMaBalance> = await databaseInstance.query(
+      Queries.findMaBalanceByAddressAndBlock,
+      parameters
+    );
+    logger.debug(`[findMultiAssetByAddressAndBlock] Found balances for ${balancesResult.rowCount} multi assets`);
+    return balancesResult.rows.map(multiAssetBalance => ({
+      name: multiAssetBalance?.name && hexFormatter(multiAssetBalance.name),
+      policy: multiAssetBalance?.policy && hexFormatter(multiAssetBalance.policy),
+      value: multiAssetBalance.value
     }));
   },
   async findBalanceByAddressAndBlock(logger: Logger, address, blockHash): Promise<string> {

@@ -235,6 +235,28 @@ export interface FindUtxo {
   quantity: string;
 }
 
+export interface FindMaBalance {
+  name: Buffer;
+  policy: Buffer;
+  value: string;
+}
+
+const utxoQuery = `FROM tx_out
+LEFT JOIN tx_in ON 
+  tx_out.tx_id = tx_in.tx_out_id AND 
+  tx_out.index::smallint = tx_in.tx_out_index::smallint 
+LEFT JOIN tx as tx_in_tx ON 
+  tx_in_tx.id = tx_in.tx_in_id AND
+  tx_in_tx.block_id <= (select id from block where hash = $2) 
+JOIN tx AS tx_out_tx ON
+  tx_out_tx.id = tx_out.tx_id AND
+  tx_out_tx.block_id <= (select id from block where hash = $2)
+LEFT JOIN ma_tx_out ON
+ma_tx_out.tx_out_id = tx_out.id 
+WHERE 
+  tx_out.address = $1 AND
+  tx_in_tx.id IS NULL`;
+
 const findUtxoByAddressAndBlock = `
   SELECT
     tx_out.value as value,
@@ -243,24 +265,23 @@ const findUtxoByAddressAndBlock = `
     ma_tx_out.name as "name",
     ma_tx_out.policy as "policy",
     ma_tx_out.quantity
-  FROM tx_out
-  LEFT JOIN tx_in ON 
-		tx_out.tx_id = tx_in.tx_out_id AND 
-	tx_out.index::smallint = tx_in.tx_out_index::smallint 
-	LEFT JOIN tx as tx_in_tx ON 
-		tx_in_tx.id = tx_in.tx_in_id AND
-    tx_in_tx.block_id <= (select id from block where hash = $2)	
-	JOIN tx AS tx_out_tx ON
-	  tx_out_tx.id = tx_out.tx_id AND
-    tx_out_tx.block_id <= (select id from block where hash = $2)
-  LEFT JOIN ma_tx_out ON
-  ma_tx_out.tx_out_id = tx_out.id	
-  WHERE 
-	  tx_out.address = $1 AND
-    tx_in_tx.id IS NULL
+    ${utxoQuery} 
   ORDER BY
     tx_out_tx.hash, tx_out.index, ma_tx_out.policy, ma_tx_out.name
 `;
+
+const findMaBalanceByAddressAndBlock = `
+SELECT
+    ma_tx_out.name as "name",
+    ma_tx_out.policy as "policy",
+    SUM(ma_tx_out.quantity) as value
+  ${utxoQuery} 
+  AND
+    ma_tx_out.policy IS NOT NULL
+  GROUP  BY ma_tx_out.name, ma_tx_out.policy
+  ORDER BY
+    ma_tx_out.policy, ma_tx_out.name
+  `;
 
 const findBalanceByAddressAndBlock = `SELECT (SELECT COALESCE(SUM(r.amount),0) 
   FROM reward r
@@ -292,6 +313,7 @@ const Queries = {
   findLatestBlockNumber,
   findGenesisBlock,
   findUtxoByAddressAndBlock,
+  findMaBalanceByAddressAndBlock,
   findBalanceByAddressAndBlock
 };
 

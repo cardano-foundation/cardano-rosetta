@@ -160,13 +160,15 @@ const configure = (repository: BlockchainRepository, cardanoService: CardanoServ
       };
     }
     const utxoDetails = await repository.findUtxoByAddressAndBlock(logger, address, block.hash);
+    const maBalances = await repository.findMultiAssetByAddressAndBlock(logger, address, block.hash);
     logger.debug(
       utxoDetails,
       `[findBalanceDataByAddressAndBlock] Found ${utxoDetails.length} utxo details for address ${address}`
     );
     return {
       block,
-      utxos: utxoDetails
+      utxos: utxoDetails,
+      maBalances
     };
   },
   findTransaction(logger, transactionHash, blockNumber, blockHash) {

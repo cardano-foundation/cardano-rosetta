@@ -29,13 +29,13 @@ const configure = (
         if (cardanoService.getEraAddressType(accountAddress) === null)
           throw ErrorFactory.invalidAddressError(accountAddress);
         logger.info(`[accountBalance] Looking for block: ${accountBalanceRequest.block_identifier || 'latest'}`);
-        const blockUtxos = await blockService.findBalanceDataByAddressAndBlock(
+        const blockBalanceData = await blockService.findBalanceDataByAddressAndBlock(
           logger,
           accountAddress,
           accountBalanceRequest.block_identifier?.index,
           accountBalanceRequest.block_identifier?.hash
         );
-        const toReturn = mapToAccountBalanceResponse(blockUtxos);
+        const toReturn = mapToAccountBalanceResponse(blockBalanceData);
         logger.debug(toReturn, '[accountBalance] About to return ');
         return toReturn;
       },
