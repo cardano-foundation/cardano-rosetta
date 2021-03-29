@@ -247,7 +247,7 @@ LEFT JOIN tx_in ON
   tx_out.index::smallint = tx_in.tx_out_index::smallint 
 LEFT JOIN tx as tx_in_tx ON 
   tx_in_tx.id = tx_in.tx_in_id AND
-  tx_in_tx.block_id <= (select id from block where hash = $2) 
+  tx_in_tx.block_id <= (select id from block where hash = $2)
 JOIN tx AS tx_out_tx ON
   tx_out_tx.id = tx_out.tx_id AND
   tx_out_tx.block_id <= (select id from block where hash = $2)
@@ -283,21 +283,22 @@ SELECT
     ma_tx_out.policy, ma_tx_out.name
   `;
 
-const findBalanceByAddressAndBlock = `SELECT (SELECT COALESCE(SUM(r.amount),0) 
-  FROM reward r
-  JOIN stake_address ON 
-    stake_address.id = r.addr_id
-  JOIN block ON
-    block.id = r.block_id
-  WHERE stake_address.view = $1
-  AND block.id <= (SELECT id FROM block WHERE hash = $2))- 
-  (SELECT COALESCE(SUM(w.amount),0) 
-  FROM withdrawal w
-  JOIN tx ON tx.id = w.tx_id AND 
-    tx.block_id <= (SELECT id FROM block WHERE hash = $2)
-  JOIN stake_address ON stake_address.id = w.addr_id
-  WHERE stake_address.view = $1) 
-  AS balance
+const findBalanceByAddressAndBlock = `
+  SELECT (SELECT COALESCE(SUM(r.amount),0) 
+      FROM reward r
+    JOIN stake_address ON 
+        stake_address.id = r.addr_id
+    JOIN block ON
+        block.id = r.block_id
+    WHERE stake_address.view = $1
+    AND block.id <= (SELECT id FROM block WHERE hash = $2))- 
+    (SELECT COALESCE(SUM(w.amount),0) 
+    FROM withdrawal w
+    JOIN tx ON tx.id = w.tx_id AND 
+      tx.block_id <= (SELECT id FROM block WHERE hash = $2)
+    JOIN stake_address ON stake_address.id = w.addr_id
+    WHERE stake_address.view = $1) 
+    AS balance
 `;
 
 const Queries = {
