@@ -114,6 +114,9 @@ export interface Network {
 export interface BlockUtxos {
   block: Block;
   utxos: Utxo[];
+}
+
+export interface BlockUtxosMultiAssets extends BlockUtxos {
   maBalances: MaBalance[];
 }
 
