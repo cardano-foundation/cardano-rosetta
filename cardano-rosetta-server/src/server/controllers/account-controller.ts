@@ -56,7 +56,6 @@ const configure = (
         logger.debug({ accountBalanceRequest: request.body }, '[accountCoins] Request received');
         if (cardanoService.getEraAddressType(accountAddress) === null)
           throw ErrorFactory.invalidAddressError(accountAddress);
-        logger.info('[accountCoins] Looking for latest block');
         const blockUtxos = await blockService.findCoinsDataByAddress(logger, accountAddress);
         const toReturn = mapToAccountCoinsResponse(blockUtxos);
         logger.debug(toReturn, '[accountCoins] About to return ');

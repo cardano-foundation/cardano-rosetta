@@ -1583,7 +1583,7 @@
       "AccountCoinsRequest": {
         "description": "AccountCoinsRequest is utilized to make a request on the /account/coins endpoint.",
         "type": "object",
-        "required": ["network_identifier", "account_identifier", "include_mempool"],
+        "required": ["network_identifier", "account_identifier"],
         "properties": {
           "network_identifier": {
             "$ref": "#/components/schemas/NetworkIdentifier"
