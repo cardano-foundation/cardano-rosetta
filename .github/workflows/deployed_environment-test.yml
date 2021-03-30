@@ -30,11 +30,6 @@ jobs:
       working-directory: ./test/deployed-environment-test
       run: node data-deployment-test shelley-qa.postman_environment.json
 
-    - name: Check Mary-QA
-      if: always()
-      working-directory: ./test/deployed-environment-test
-      run: node data-deployment-test mary-qa.postman_environment.json
-
     - name: Check Staging
       if: always()
       working-directory: ./test/deployed-environment-test
