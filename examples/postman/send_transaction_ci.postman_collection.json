@@ -1,0 +1,585 @@
+{
+	"info": {
+		"_postman_id": "6b10fc0c-d4c2-4c44-ade0-f95eb6ce577b",
+		"name": "send_transaction_ci",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Send Transaction",
+			"item": [
+				{
+					"name": "/network/status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"",
+									"pm.collectionVariables.set(\"current_block_index\", pm.response.json().current_block_identifier.index);",
+									"pm.collectionVariables.set(\"current_block_hash\", pm.response.json().current_block_identifier.hash);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/network/status",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"network",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/account/balance",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"",
+									"pm.test(\"Body has correct address\", function () {",
+									"    const current_block_index = pm.collectionVariables.get(\"current_block_index\");",
+									"    const current_block_hash = pm.collectionVariables.get(\"current_block_hash\");",
+									"    pm.expect(pm.response.json().block_identifier.index).eq(current_block_index)",
+									"    pm.expect(pm.response.json().block_identifier.hash).eq(current_block_hash)",
+									"});",
+									"",
+									"pm.test(\"Body has single UTxO\", function () {",
+									"    pm.expect(pm.response.json().coins).to.have.lengthOf(1)",
+									"});",
+									"",
+									"pm.test(\"UTxO has more than 2 ADA\", function () {",
+									"    pm.expect(Number(pm.response.json().coins[0].amount.value)).to.be.greaterThan(2_000_000)",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"utxo_ada_value\", Number(pm.response.json().coins[0].amount.value)); // DO NOT REMOVE",
+									"const coin_identifier = pm.response.json().coins[0].coin_identifier.identifier // DO NOT REMOVE",
+									"pm.collectionVariables.set(\"utxo_addr_and_id\", coin_identifier); // DO NOT REMOVE",
+									"",
+									"pm.test(\"UTxO has 1 token policyId\", function () {",
+									"    pm.expect(pm.response.json().coins[0].metadata[coin_identifier]).to.have.lengthOf(1)",
+									"});",
+									"",
+									"pm.test(\"Policy has 1 token\", function () {",
+									"    pm.expect(pm.response.json().coins[0].metadata[coin_identifier][0].tokens).to.have.lengthOf(1)",
+									"});",
+									"",
+									"pm.test(\"UTxO has 2 Testcoin token\", function () {",
+									"    const value = Number(pm.response.json().coins[0].metadata[coin_identifier][0].tokens[0].value)",
+									"    pm.expect(value).eq(2)",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"json_testcoin_metadata\", JSON.stringify(pm.response.json().coins[0].metadata[coin_identifier])); // DO NOT REMOVE"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"account_identifier\": {\n        \"address\": \"{{senderAddress}}\",\n        \"metadata\": {}\n    },\n    \"block_identifier\": {\n        \"index\": {{current_block_index}},\n        \"hash\": \"{{current_block_hash}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/account/balance",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"account",
+								"balance"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/construction/derive",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"",
+									"pm.test(\"Body has correct address\", function () {",
+									"    const recipientAddress = pm.environment.get(\"recipientAddress\");",
+									"    pm.expect(pm.response.json().address).eq(recipientAddress)",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"public_key\": {\n        \"hex_bytes\": \"{{publicKey}}\",\n        \"curve_type\": \"edwards25519\"\n    },\n    \"metadata\": {\n        \"relative_ttl\": 1000\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/derive",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"derive"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/construction/preprocess",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var ada_value = pm.collectionVariables.get(\"utxo_ada_value\");",
+									"pm.variables.set(\"ada_value\", ada_value - 150000); // fee estimate only - will use suggested fee later"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"",
+									"pm.test(\"Body has options\", function () {",
+									"    var jsonData = pm.response.json();",
+									"    pm.expect(jsonData).to.have.property('options');",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"json_options\", JSON.stringify(pm.response.json().options));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"\",\n            \"account\": {\n                \"address\": \"{{senderAddress}}\"\n            },\n            \"amount\": {\n                \"value\": \"-{{utxo_ada_value}}\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"{{utxo_addr_and_id}}\"\n                },\n                \"coin_action\": \"coin_spent\"\n            },\n            \"metadata\": {\n                \"tokenBundle\": {{json_testcoin_metadata}}\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"type\": \"output\",\n            \"status\": \"\",\n            \"account\": {\n                \"address\": \"{{recipientAddress}}\"\n            },\n            \"amount\": {\n                \"value\": {{ada_value}},\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"metadata\": {\n                \"tokenBundle\": {{json_testcoin_metadata}}\n            }\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/preprocess",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"preprocess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/construction/metadata",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"",
+									"pm.test(\"Body has metadata\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('metadata');",
+									"});",
+									"",
+									"pm.test(\"Body has suggested_fee\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('suggested_fee');",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"json_metadata\", JSON.stringify(pm.response.json().metadata));",
+									"pm.collectionVariables.set(\"json_suggested_fee\", JSON.stringify(pm.response.json().suggested_fee));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"options\": {{json_options}},\n    \"public_keys\": [\n        {\n            \"hex_bytes\": \"{{publicKey}}\",\n            \"curve_type\": \"edwards25519\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/metadata",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"metadata"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/construction/payloads",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var ada_value = pm.collectionVariables.get(\"utxo_ada_value\");",
+									"var suggested_fee_value = Number(JSON.parse(pm.collectionVariables.get(\"json_suggested_fee\"))[0].value);",
+									"pm.variables.set(\"ada_value\", ada_value - suggested_fee_value);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Body has unsigned_transaction\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('unsigned_transaction');",
+									"});",
+									"",
+									"pm.test(\"Body has payloads\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('payloads');",
+									"});",
+									"",
+									"pm.test(\"Body has payloads[0].hex_bytes\", function () {",
+									"    pm.expect(pm.response.json().payloads[0]).to.have.property('hex_bytes');",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"unsigned_transaction\", pm.response.json().unsigned_transaction);",
+									"pm.collectionVariables.set(\"hex_bytes\", pm.response.json().payloads[0].hex_bytes);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"\",\n            \"account\": {\n                \"address\": \"{{senderAddress}}\"\n            },\n            \"amount\": {\n                \"value\": \"-{{utxo_ada_value}}\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"{{utxo_addr_and_id}}\"\n                },\n                \"coin_action\": \"coin_spent\"\n            },\n            \"metadata\": {\n                \"tokenBundle\": {{json_testcoin_metadata}}\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"type\": \"output\",\n            \"status\": \"\",\n            \"account\": {\n                \"address\": \"{{recipientAddress}}\"\n            },\n            \"amount\": {\n                \"value\": {{ada_value}},\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"metadata\": {\n                \"tokenBundle\": {{json_testcoin_metadata}}\n            }\n        }\n    ],\n    \"metadata\": {{json_metadata}},\n    \"suggested_fee\": {{json_suggested_fee}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/payloads",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"payloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/construction/parse",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Body has 2 operations (input & output) with correct addresses\", function () {",
+									"    const sender_address = pm.environment.get(\"senderAddress\");",
+									"    const recipient_address = pm.environment.get(\"recipientAddress\");",
+									"    pm.expect(pm.response.json().operations).to.have.lengthOf(2);",
+									"    pm.expect(pm.response.json().operations[0].type).eq(\"input\")",
+									"    pm.expect(pm.response.json().operations[0].account.address).eq(sender_address)",
+									"    pm.expect(pm.response.json().operations[1].type).eq(\"output\")",
+									"    pm.expect(pm.response.json().operations[1].account.address).eq(recipient_address)",
+									"});",
+									"",
+									"pm.test(\"Body signers is empty\", function () {",
+									"    pm.expect(pm.response.json().signers).to.be.empty;",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n        \"signed\": false,\n    \"transaction\": \"{{unsigned_transaction}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/parse",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"parse"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/construction/combine",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"const private_key = pm.environment.get(\"privateKey\");",
+									"const public_key = pm.environment.get(\"publicKey\");",
+									"const hex_bytes = pm.collectionVariables.get(\"hex_bytes\");",
+									"",
+									"var request = {",
+									"    url: 'http://localhost:3773/sign',",
+									"    method : 'POST',",
+									"    header: {",
+									"\t\t'Content-Type': 'application/json'",
+									"\t},",
+									"    body : {",
+									"        mode: 'raw',",
+									"        raw: JSON.stringify({private_key: private_key, public_key: public_key, hex_bytes: hex_bytes})",
+									"    }",
+									"};",
+									"",
+									"pm.sendRequest(request, function (err, res) {",
+									"    if (err) throw new Error(\"An error has occurred. Check local server at port 3773.\");",
+									"    signed_hex_bytes = res.json().signed_hex_bytes",
+									"    console.log(\"signed_hex_bytes=\"+signed_hex_bytes)",
+									"    pm.collectionVariables.set(\"signed_hex_bytes\", signed_hex_bytes);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Body has signed_transaction\", function () {",
+									"    pm.expect(pm.response.json()).to.have.property('signed_transaction');",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"signed_transaction\", pm.response.json().signed_transaction);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n        \"unsigned_transaction\": \"{{unsigned_transaction}}\",\n        \"signatures\": [\n        {\n            \"signing_payload\": {\n                \"account_identifier\": {\n                    \"address\": \"{{senderAddress}}\",\n                    \"metadata\": {}\n                },\n                \"hex_bytes\": \"{{hex_bytes}}\",\n                \"signature_type\": \"ed25519\"\n            },\n            \"public_key\": {\n                \"hex_bytes\": \"{{publicKey}}\",\n                \"curve_type\": \"edwards25519\"\n            },\n            \"signature_type\": \"ed25519\",\n            \"hex_bytes\": \"{{signed_hex_bytes}}\"\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/combine",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"combine"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/construction/submit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Body has transaction hash\", function () {",
+									"    pm.expect(pm.response.json().transaction_identifier).to.have.property('hash');",
+									"});",
+									"",
+									"pm.collectionVariables.set(\"transaction_hash\", pm.response.json().transaction_identifier.hash);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"signed_transaction\": \"{{signed_transaction}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/submit",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"submit"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/construction/hash",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Body has transaction hash\", function () {",
+									"    pm.expect(pm.response.json().transaction_identifier).to.have.property('hash');",
+									"});",
+									"",
+									"var transaction_hash = pm.collectionVariables.get(\"transaction_hash\");",
+									"",
+									"pm.test(\"Body has same transaction hash as submit response\", function () {",
+									"    pm.expect(pm.response.json().transaction_identifier.hash).to.be.eq(transaction_hash);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n        \"signed_transaction\": \"{{signed_transaction}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/hash",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"hash"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
