@@ -7,11 +7,8 @@ import { CARDANO } from '../../../src/server/utils/constants';
 import {
   latestBlockIdentifier,
   address1vpfAccountBalances,
-  address1vpfCoins,
   balancesAtBlock213891,
-  balancesAtBlock213892,
-  coinsAtBlock213891,
-  coinsAtBlock213892
+  balancesAtBlock213892
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
@@ -38,13 +35,6 @@ const AE2HashAccountBalances = [
       symbol: 'ADA'
     },
     value: '1153846000000'
-  }
-];
-
-const AE2HashAccountUtxos = [
-  {
-    coin_identifier: { identifier: '2d51b929d79a0ac8f360f38e8a38cdcb28ca84139aced314c5d7edc739aa4366:0' },
-    amount: { value: '1153846000000', currency: { symbol: 'ADA', decimals: 6 } }
   }
 ];
 
@@ -81,12 +71,6 @@ describe('/account/balance endpoint', () => {
     expect(response.json()).toEqual({
       balances: [{ currency: { decimals: 6, symbol: 'ADA' }, value: '21063' }],
       block_identifier: latestBlockIdentifier
-      // coins: [
-      //   {
-      //     coin_identifier: { identifier: 'af0dd90debb1fbaf3854b90686ba2d6f7c95416080e8cda18d9ea3cb6bb195ad:0' },
-      //     amount: { value: '21063', currency: { symbol: 'ADA', decimals: 6 } }
-      //   }
-      // ]
     });
   });
 
@@ -103,7 +87,6 @@ describe('/account/balance endpoint', () => {
         hash: '7c6901c6346781c2bc5cbc49577490e336c2545c320ce4a61605bc71a9c5bed0',
         index: 20
       }
-      // coins: AE2HashAccountUtxos
     });
   });
 
@@ -126,7 +109,6 @@ describe('/account/balance endpoint', () => {
         hash: '7c6901c6346781c2bc5cbc49577490e336c2545c320ce4a61605bc71a9c5bed0',
         index: 20
       }
-      // coins: AE2HashAccountUtxos
     });
   });
 
@@ -149,7 +131,6 @@ describe('/account/balance endpoint', () => {
         hash: 'd3fdc8c8ea4050cc87a21cb73110d54e3ec92f8ae76941e8a1957ed6e6a7e0b0',
         index: 30
       }
-      // coins: AE2HashAccountUtxos
     });
   });
 
@@ -191,20 +172,6 @@ describe('/account/balance endpoint', () => {
           }
         }
       ]
-      // coins: [
-      //   {
-      //     coin_identifier: {
-      //       identifier: '4bcf79c0c2967986749fd0ae03f5b54a712d51b35672a3d974707c060c4d8dac:1'
-      //     },
-      //     amount: { value: '10509579714', currency: { decimals: 6, symbol: 'ADA' } }
-      //   },
-      //   {
-      //     coin_identifier: {
-      //       identifier: 'bcc57134d1bd588b00f40142f0fdc17db5f35047e3196cdf26aa7319524c0014:1'
-      //     },
-      //     amount: { value: '999800000', currency: { decimals: 6, symbol: 'ADA' } }
-      //   }
-      // ]
     });
   });
 
@@ -251,12 +218,6 @@ describe('/account/balance endpoint', () => {
           }
         }
       ]
-      // coins: [
-      //   {
-      //     amount: { value: '1000000', currency: { symbol: 'ADA', decimals: 6 } },
-      //     coin_identifier: { identifier: '6497b33b10fa2619c6efbd9f874ecd1c91badb10bf70850732aab45b90524d9e:0' }
-      //   }
-      // ]
     });
   });
   test('should only consider balance till last block and balance SHOULD be 0', async () => {
@@ -285,7 +246,6 @@ describe('/account/balance endpoint', () => {
           }
         }
       ]
-      // coins: []
     });
   });
   test('should return 0 for the balance of stake account at block with no earned rewards', async () => {
@@ -392,8 +352,6 @@ describe('/account/balance endpoint', () => {
     address1vpfAccountBalances.forEach(accountBalance =>
       expect(response.json().balances).toContainEqual(accountBalance)
     );
-    // expect(response.json().coins).toHaveLength(address1vpfCoins.length);
-    // address1vpfCoins.forEach(address1vpfCoin => expect(response.json().coins).toContainEqual(address1vpfCoin));
   });
 
   // eslint-disable-next-line max-len
@@ -441,8 +399,6 @@ describe('/account/balance endpoint', () => {
     balancesAtBlock213892.forEach(accountBalance =>
       expect(responseAtBlock213892.json().balances).toContainEqual(accountBalance)
     );
-    // expect(responseAtBlock213892.json().coins).toHaveLength(coinsAtBlock213892.length);
-    // coinsAtBlock213892.forEach(coin => expect(responseAtBlock213892.json().coins).toContainEqual(coin));
   });
 
   test('should return balances for ma with empty name', async () => {
