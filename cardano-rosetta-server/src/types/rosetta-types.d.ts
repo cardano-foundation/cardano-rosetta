@@ -355,8 +355,8 @@ declare namespace Components {
       /**
        * [DEPRECATED by `account_identifier` in `v1.4.4`] Address in network-specific format.
        */
-      address: string;
-      account_identifier?: /* The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated). */ AccountIdentifier;
+      address?: string;
+      account_identifier: /* The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated). */ AccountIdentifier;
       metadata?: {};
     }
     /**
@@ -418,8 +418,8 @@ declare namespace Components {
       /**
        * [DEPRECATED by `account_identifier_signers` in `v1.4.4`] All signers (addresses) of a particular transaction. If the transaction is unsigned, it should be empty.
        */
-      signers: string[];
-      account_identifier_signers?: /* The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated). */ AccountIdentifier[];
+      signers?: string[];
+      account_identifier_signers: /* The account_identifier uniquely identifies an account within a network. All fields in the account_identifier are utilized to determine this uniqueness (including the metadata field, if populated). */ AccountIdentifier[];
       metadata?: {};
     }
     /**
