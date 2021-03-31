@@ -90,7 +90,11 @@ export interface BlockService {
    * @param logger
    * @param address
    */
-  findCoinsDataByAddress(logger: Logger, address: string): Promise<BlockUtxos>;
+  findCoinsDataByAddress(
+    logger: Logger,
+    address: string,
+    currencies?: Components.Schemas.Currency[]
+  ): Promise<BlockUtxos>;
 }
 
 const configure = (repository: BlockchainRepository, cardanoService: CardanoService): BlockService => ({
@@ -187,14 +191,17 @@ const configure = (repository: BlockchainRepository, cardanoService: CardanoServ
       maBalances
     };
   },
-  async findCoinsDataByAddress(logger, address) {
+  async findCoinsDataByAddress(logger, address, currencies) {
     const block = await this.findBlock(logger);
     if (block === null) {
       logger.error('[findCoinsDataByAddress] Block not found');
       throw ErrorFactory.blockNotFoundError();
     }
-    logger.info(`[findCoinsDataByAddress] Looking for utxos for address ${address}`);
-    const utxoDetails = await repository.findUtxoByAddressAndBlock(logger, address, block.hash);
+    logger.info(
+      `[findCoinsDataByAddress] Looking for utxos for address ${address} and ${currencies?.length ||
+        '0'} specified currencies`
+    );
+    const utxoDetails = await repository.findUtxoByAddressAndBlock(logger, address, block.hash, currencies);
     logger.debug(utxoDetails, `[findCoinsByAddress] Found ${utxoDetails.length} coin details for address ${address}`);
     return {
       block,

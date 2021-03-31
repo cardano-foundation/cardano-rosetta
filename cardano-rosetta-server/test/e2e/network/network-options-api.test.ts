@@ -104,6 +104,8 @@ const allow = {
       message: 'Asset value is required for token asset',
       retriable: false
     },
+    { code: 4023, message: 'Invalid policy id', retriable: false },
+    { code: 4024, message: 'Invalid token name', retriable: false },
     {
       code: 5000,
       message: 'An error occurred',
