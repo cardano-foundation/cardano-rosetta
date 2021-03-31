@@ -1,19 +1,31 @@
+/* eslint-disable unicorn/prevent-abbreviations */
 /* eslint-disable camelcase */
 /* eslint-disable no-magic-numbers */
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
-import { CARDANO } from '../../../src/server/utils/constants';
-import { latestBlockIdentifier, latestBlockIdentifierMAServer, address1vpfCoins } from '../fixture-data';
+import { CARDANO, ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from '../../../src/server/utils/constants';
+import {
+  latestBlockIdentifier,
+  latestBlockIdentifierMAServer,
+  address1vpfCoins,
+  coinIdentifier95e1
+} from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
-const generatePayload = (blockchain: string, network: string, address: string) => ({
+const generatePayload = (
+  blockchain: string,
+  network: string,
+  address: string,
+  currencies?: Components.Schemas.Currency[]
+) => ({
   // eslint-disable-next-line camelcase
   network_identifier: {
     blockchain,
     network
   },
-  account_identifier: { address }
+  account_identifier: { address },
+  currencies
 });
 
 const ACCOUNT_COINS_ENDPOINT = '/account/coins';
@@ -96,7 +108,7 @@ describe('/account/coins endpoint', () => {
       coins: []
     });
   });
-  test('should return no coins for stake accounts', async () => {
+  test('should no return coins for stake accounts', async () => {
     const response = await server.inject({
       method: 'post',
       url: ACCOUNT_COINS_ENDPOINT,
@@ -120,7 +132,6 @@ describe('/account/coins endpoint', () => {
     expect(response.json().coins).toHaveLength(address1vpfCoins.length);
     address1vpfCoins.forEach(address1vpfCoin => expect(response.json().coins).toContainEqual(address1vpfCoin));
   });
-
   test('should return coins for ma with empty name', async () => {
     const response = await serverWithMultiassetsSupport.inject({
       method: 'post',
@@ -133,7 +144,7 @@ describe('/account/coins endpoint', () => {
       block_identifier: latestBlockIdentifierMAServer,
       coins: [
         {
-          coin_identifier: { identifier: '95e1117558c2d075a4cd110ab0772460340f72a19ac5bc4691c6498e28055339:0' },
+          coin_identifier: coinIdentifier95e1,
           amount: {
             currency: { decimals: 6, symbol: 'ADA' },
             value: '4600000'
@@ -184,6 +195,241 @@ describe('/account/coins endpoint', () => {
           }
         }
       ]
+    });
+  });
+  test('should return coins for one specified currency', async () => {
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: ACCOUNT_COINS_ENDPOINT,
+      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y', [
+        {
+          decimals: 0,
+          symbol: '486173414e616d65',
+          metadata: {
+            policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
+          }
+        }
+      ])
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: latestBlockIdentifierMAServer,
+      coins: [
+        {
+          coin_identifier: coinIdentifier95e1,
+          amount: {
+            currency: { decimals: 6, symbol: 'ADA' },
+            value: '4600000'
+          },
+          metadata: {
+            '95e1117558c2d075a4cd110ab0772460340f72a19ac5bc4691c6498e28055339:0': [
+              {
+                policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e',
+                tokens: [
+                  {
+                    value: '30',
+                    currency: {
+                      decimals: 0,
+                      symbol: '486173414e616d65',
+                      metadata: {
+                        policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    });
+  });
+  test('should return coins for multiple specified currencies', async () => {
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: ACCOUNT_COINS_ENDPOINT,
+      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y', [
+        {
+          decimals: 0,
+          symbol: '486173414e616d65',
+          metadata: {
+            policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
+          }
+        },
+        {
+          decimals: 0,
+          symbol: '7376c3a57274',
+          metadata: {
+            policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d'
+          }
+        }
+      ])
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: latestBlockIdentifierMAServer,
+      coins: [
+        {
+          coin_identifier: coinIdentifier95e1,
+          amount: {
+            currency: { decimals: 6, symbol: 'ADA' },
+            value: '4600000'
+          },
+          metadata: {
+            '95e1117558c2d075a4cd110ab0772460340f72a19ac5bc4691c6498e28055339:0': [
+              {
+                policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e',
+                tokens: [
+                  {
+                    value: '30',
+                    currency: {
+                      decimals: 0,
+                      symbol: '486173414e616d65',
+                      metadata: {
+                        policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d',
+                tokens: [
+                  {
+                    value: '10',
+                    currency: {
+                      decimals: 0,
+                      symbol: '7376c3a57274',
+                      metadata: {
+                        policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d'
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    });
+  });
+  test('should return coins for multi asset currency with empty name', async () => {
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: ACCOUNT_COINS_ENDPOINT,
+      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y', [
+        {
+          decimals: 0,
+          symbol: '\\x',
+          metadata: {
+            policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
+          }
+        }
+      ])
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: latestBlockIdentifierMAServer,
+      coins: [
+        {
+          coin_identifier: coinIdentifier95e1,
+          amount: {
+            currency: { decimals: 6, symbol: 'ADA' },
+            value: '4600000'
+          },
+          metadata: {
+            '95e1117558c2d075a4cd110ab0772460340f72a19ac5bc4691c6498e28055339:0': [
+              {
+                policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e',
+                tokens: [
+                  {
+                    value: '20',
+                    currency: {
+                      decimals: 0,
+                      symbol: '\\x',
+                      metadata: {
+                        policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    });
+  });
+  test('should fail when querying for a currency with non hex string symbol', async () => {
+    const invalidSymbol = 'thisIsANonHexString';
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_COINS_ENDPOINT,
+      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y', [
+        {
+          decimals: 0,
+          symbol: invalidSymbol,
+          metadata: {
+            policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
+          }
+        }
+      ])
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4024,
+      message: 'Invalid token name',
+      retriable: false,
+      details: { message: 'Given name is thisIsANonHexString' }
+    });
+  });
+  test('should fail when querying for a currency with a symbol longer than expected', async () => {
+    const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_COINS_ENDPOINT,
+      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y', [
+        {
+          decimals: 0,
+          symbol: invalidSymbol,
+          metadata: {
+            policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
+          }
+        }
+      ])
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4024,
+      message: 'Invalid token name',
+      retriable: false,
+      details: { message: 'Given name is 00000000000000000000000000000000000000000000000000000000000000000' }
+    });
+  });
+  test('should fail when querying for a currency with a policy id longer than expected', async () => {
+    const invalidPolicy = new Array(POLICY_ID_LENGTH + 1).join('w');
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_COINS_ENDPOINT,
+      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y', [
+        {
+          decimals: 0,
+          symbol: '486173414e616d65',
+          metadata: {
+            policyId: invalidPolicy
+          }
+        }
+      ])
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4023,
+      message: 'Invalid policy id',
+      retriable: false,
+      details: { message: 'Given policy id is wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww' }
     });
   });
 });

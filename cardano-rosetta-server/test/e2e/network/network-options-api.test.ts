@@ -96,17 +96,19 @@ const allow = {
     },
     {
       code: 4021,
-      message: 'Provided pool key hash has invalid format',
-      retriable: false
-    },
-    {
-      code: 4022,
       message: 'Assets are required for output operation token bundle',
       retriable: false
     },
     {
-      code: 4023,
+      code: 4022,
       message: 'Asset value is required for token asset',
+      retriable: false
+    },
+    { code: 4023, message: 'Invalid policy id', retriable: false },
+    { code: 4024, message: 'Invalid token name', retriable: false },
+    {
+      code: 4025,
+      message: 'Provided pool key hash has invalid format',
       retriable: false
     },
     {

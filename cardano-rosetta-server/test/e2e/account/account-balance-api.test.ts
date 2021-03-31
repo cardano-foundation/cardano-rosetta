@@ -443,49 +443,6 @@ describe('/account/balance endpoint', () => {
           }
         }
       ]
-      // coins: [
-      //   {
-      //     coin_identifier: { identifier: '02562c123f6d560e1250f5a46f7e95911b21fd8a9fa70157335c3a3d1d16bdda:0' },
-      //     amount: {
-      //       currency: { decimals: 6, symbol: 'ADA' },
-      //       value: '4800000'
-      //     },
-      //     metadata: {
-      //       '02562c123f6d560e1250f5a46f7e95911b21fd8a9fa70157335c3a3d1d16bdda:0': [
-      //         {
-      //           policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e',
-      //           tokens: [
-      //             {
-      //               value: '20',
-      //               currency: {
-      //                 decimals: 0,
-      //                 symbol: '\\x',
-      //                 metadata: {
-      //                   policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
-      //                 }
-      //               }
-      //             }
-      //           ]
-      //         },
-      //         {
-      //           policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d',
-      //           tokens: [
-      //             {
-      //               value: '10',
-      //               currency: {
-      //                 decimals: 0,
-      //                 symbol: '7376c3a57274',
-      //                 metadata: {
-      //                   policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d'
-      //                 }
-      //               }
-      //             }
-      //           ]
-      //         }
-      //       ]
-      //     }
-      //   }
-      // ]
     });
   });
 });

@@ -13,7 +13,7 @@ import {
   Utxo,
   MaBalance
 } from '../models';
-import { hexStringToBuffer, hexFormatter } from '../utils/formatters';
+import { hexStringToBuffer, hexFormatter, isEmptyHexString } from '../utils/formatters';
 import Queries, {
   FindBalance,
   FindTransaction,
@@ -81,7 +81,12 @@ export interface BlockchainRepository {
    * @param address account's address to count balance
    * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
    */
-  findUtxoByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<Utxo[]>;
+  findUtxoByAddressAndBlock(
+    logger: Logger,
+    address: string,
+    blockHash: string,
+    currencies?: Components.Schemas.Currency[]
+  ): Promise<Utxo[]>;
 
   /**
    * Returns an array containing all multi asset balances for the provided address till block identified by
@@ -487,13 +492,20 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger.debug('[findGenesisBlock] Genesis block was not found');
     return null;
   },
-  async findUtxoByAddressAndBlock(logger: Logger, address, blockHash): Promise<Utxo[]> {
+  async findUtxoByAddressAndBlock(logger: Logger, address, blockHash, currencies): Promise<Utxo[]> {
     const parameters = [address, hexStringToBuffer(blockHash)];
     logger.debug(
       { address, blockHash },
       '[findUtxoByAddressAndBlock] About to run findUtxoByAddressAndBlock query with parameters:'
     );
-    const result: QueryResult<FindUtxo> = await databaseInstance.query(Queries.findUtxoByAddressAndBlock, parameters);
+    const currenciesIds = currencies?.map(c => ({
+      symbol: isEmptyHexString(c.symbol) ? '' : c.symbol,
+      policy: c.metadata?.policyId
+    }));
+    const result: QueryResult<FindUtxo> = await databaseInstance.query(
+      Queries.findUtxoByAddressAndBlock(currenciesIds),
+      parameters
+    );
     logger.debug(`[findUtxoByAddressAndBlock] Found ${result.rowCount} utxos`);
     return result.rows.map(utxo => ({
       value: utxo.value,

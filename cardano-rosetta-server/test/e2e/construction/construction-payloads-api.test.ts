@@ -613,7 +613,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      code: 4021,
+      code: 4025,
       details: {
         message:
           // eslint-disable-next-line max-len

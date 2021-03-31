@@ -37,6 +37,11 @@ export interface FindTransaction {
   size: number;
 }
 
+export interface CurrencyId {
+  symbol: string;
+  policy?: string;
+}
+
 // AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
 // This condition is made because genesis block has block_no = null
 // Also, genesis number is 0, thats why $2 = 0.
@@ -257,17 +262,27 @@ WHERE
   tx_out.address = $1 AND
   tx_in_tx.id IS NULL`;
 
-const findUtxoByAddressAndBlock = `
-  SELECT
-    tx_out.value as value,
-    tx_out_tx.hash as "txHash",
-    tx_out.index as index,
-    ma_tx_out.name as "name",
-    ma_tx_out.policy as "policy",
-    ma_tx_out.quantity
-    ${utxoQuery} 
-  ORDER BY
-    tx_out_tx.hash, tx_out.index, ma_tx_out.policy, ma_tx_out.name
+const findUtxoByAddressAndBlock = (currencies?: CurrencyId[]): string => `
+SELECT
+  tx_out.value as value,
+  tx_out_tx.hash as "txHash",
+  tx_out.index as index,
+  ma_tx_out.name as "name",
+  ma_tx_out.policy as "policy",
+  ma_tx_out.quantity
+  ${utxoQuery}
+  ${
+    currencies
+      ? `AND (${currencies
+          .map(
+            ({ symbol, policy }) =>
+              `name = DECODE('${symbol}', 'hex') ${policy ? `AND policy = DECODE('${policy}', 'hex')` : ''}`
+          )
+          .join('OR ')})`
+      : ''
+  }
+ORDER BY
+  tx_out_tx.hash, tx_out.index, ma_tx_out.policy, ma_tx_out.name
 `;
 
 const findMaBalanceByAddressAndBlock = `

@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prevent-abbreviations */
 /* eslint-disable max-len */
 /* eslint-disable no-magic-numbers */
 import cbor from 'cbor';
@@ -3636,3 +3637,5 @@ export const balancesAtBlock213892 = [
     }
   }
 ];
+
+export const coinIdentifier95e1 = { identifier: '95e1117558c2d075a4cd110ab0772460340f72a19ac5bc4691c6498e28055339:0' };

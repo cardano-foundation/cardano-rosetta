@@ -5,7 +5,7 @@ import { CardanoService } from '../services/cardano-services';
 import { NetworkService } from '../services/network-service';
 import { mapToAccountBalanceResponse, mapToAccountCoinsResponse } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
-
+import { isPolicyIdValid, isTokenNameValid } from '../utils/validations';
 export interface AccountController {
   accountBalance(
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.AccountBalanceRequest>
@@ -53,10 +53,16 @@ const configure = (
         const logger = request.log;
         const accountCoinsRequest = request.body;
         const accountAddress = accountCoinsRequest.account_identifier.address;
+        const { currencies } = accountCoinsRequest;
         logger.debug({ accountBalanceRequest: request.body }, '[accountCoins] Request received');
         if (cardanoService.getEraAddressType(accountAddress) === null)
           throw ErrorFactory.invalidAddressError(accountAddress);
-        const blockUtxos = await blockService.findCoinsDataByAddress(logger, accountAddress);
+        currencies?.forEach(({ symbol, metadata }) => {
+          if (!isTokenNameValid(symbol)) throw ErrorFactory.invalidTokenNameError(`Given name is ${symbol}`);
+          if (metadata?.policyId && !isPolicyIdValid(metadata.policyId))
+            throw ErrorFactory.invalidPolicyIdError(`Given policy id is ${metadata.policyId}`);
+        });
+        const blockUtxos = await blockService.findCoinsDataByAddress(logger, accountAddress, currencies);
         const toReturn = mapToAccountCoinsResponse(blockUtxos);
         logger.debug(toReturn, '[accountCoins] About to return ');
         return toReturn;
