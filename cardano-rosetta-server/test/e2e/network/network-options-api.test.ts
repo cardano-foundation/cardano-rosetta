@@ -141,7 +141,17 @@ const allow = {
   ],
   historical_balance_lookup: true,
   call_methods: [],
-  balance_exemptions: [],
+  balance_exemptions: [
+    {
+      exemption_type: 'greater_or_equal'
+    },
+    {
+      exemption_type: 'less_or_equal'
+    },
+    {
+      exemption_type: 'dynamic'
+    }
+  ],
   mempool_coins: false
 };
 
