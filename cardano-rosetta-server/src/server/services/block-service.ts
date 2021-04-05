@@ -93,7 +93,7 @@ export interface BlockService {
   findCoinsDataByAddress(
     logger: Logger,
     address: string,
-    currencies?: Components.Schemas.Currency[]
+    currencies: Components.Schemas.Currency[]
   ): Promise<BlockUtxos>;
 }
 
@@ -198,8 +198,7 @@ const configure = (repository: BlockchainRepository, cardanoService: CardanoServ
       throw ErrorFactory.blockNotFoundError();
     }
     logger.info(
-      `[findCoinsDataByAddress] Looking for utxos for address ${address} and ${currencies?.length ||
-        '0'} specified currencies`
+      `[findCoinsDataByAddress] Looking for utxos for address ${address} and ${currencies.length} specified currencies`
     );
     const utxoDetails = await repository.findUtxoByAddressAndBlock(logger, address, block.hash, currencies);
     logger.debug(utxoDetails, `[findCoinsByAddress] Found ${utxoDetails.length} coin details for address ${address}`);

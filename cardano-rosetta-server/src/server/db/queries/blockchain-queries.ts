@@ -39,8 +39,15 @@ export interface FindTransaction {
 
 export interface CurrencyId {
   symbol: string;
-  policy?: string;
+  policy: string;
 }
+
+const currenciesQuery = (currencies: CurrencyId[]): string =>
+  `SELECT tx_out_id 
+   FROM ma_tx_out 
+   WHERE (${currencies
+     .map(({ symbol, policy }) => `name = DECODE('${symbol}', 'hex') AND policy = DECODE('${policy}', 'hex')`)
+     .join('OR ')})`;
 
 // AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
 // This condition is made because genesis block has block_no = null
@@ -246,57 +253,58 @@ export interface FindMaBalance {
   value: string;
 }
 
-const utxoQuery = `FROM tx_out
-LEFT JOIN tx_in ON 
-  tx_out.tx_id = tx_in.tx_out_id AND 
-  tx_out.index::smallint = tx_in.tx_out_index::smallint 
-LEFT JOIN tx as tx_in_tx ON 
-  tx_in_tx.id = tx_in.tx_in_id AND
-  tx_in_tx.block_id <= (select id from block where hash = $2)
-JOIN tx AS tx_out_tx ON
-  tx_out_tx.id = tx_out.tx_id AND
-  tx_out_tx.block_id <= (select id from block where hash = $2)
-LEFT JOIN ma_tx_out ON
-ma_tx_out.tx_out_id = tx_out.id 
-WHERE 
-  tx_out.address = $1 AND
-  tx_in_tx.id IS NULL`;
+const utxoQuery = `
+WITH utxo AS (
+	SELECT
+	  tx_out.value as value,
+	  tx_out_tx.hash as "txHash",
+	  tx_out.index as index,
+	  tx_out.id as tx_out_id
+	FROM tx_out
+	LEFT JOIN tx_in ON 
+	  tx_out.tx_id = tx_in.tx_out_id AND 
+	  tx_out.index::smallint = tx_in.tx_out_index::smallint 
+	LEFT JOIN tx as tx_in_tx ON 
+	  tx_in_tx.id = tx_in.tx_in_id AND
+	  tx_in_tx.block_id <= (select id from block where hash = $2)
+	JOIN tx AS tx_out_tx ON
+	  tx_out_tx.id = tx_out.tx_id AND
+	  tx_out_tx.block_id <= (select id from block where hash = $2)
+	WHERE 
+	  tx_out.address = $1 AND
+	  tx_in_tx.id IS NULL
+)`;
 
 const findUtxoByAddressAndBlock = (currencies?: CurrencyId[]): string => `
-SELECT
-  tx_out.value as value,
-  tx_out_tx.hash as "txHash",
-  tx_out.index as index,
-  ma_tx_out.name as "name",
-  ma_tx_out.policy as "policy",
-  ma_tx_out.quantity
   ${utxoQuery}
-  ${
-    currencies
-      ? `AND (${currencies
-          .map(
-            ({ symbol, policy }) =>
-              `name = DECODE('${symbol}', 'hex') ${policy ? `AND policy = DECODE('${policy}', 'hex')` : ''}`
-          )
-          .join('OR ')})`
-      : ''
-  }
-ORDER BY
-  tx_out_tx.hash, tx_out.index, ma_tx_out.policy, ma_tx_out.name
+  SELECT
+    utxo.value,
+    utxo."txHash",
+    utxo.index,
+    ma_tx_out.name as "name",
+    ma_tx_out.policy as "policy",
+    ma_tx_out.quantity
+  FROM utxo
+  LEFT JOIN ma_tx_out 
+  ON ma_tx_out.tx_out_id = utxo.tx_out_id 
+    ${currencies && currencies.length > 0 ? `WHERE utxo.tx_out_id IN (${currenciesQuery(currencies)})` : ''}
+  ORDER BY
+    utxo."txHash", utxo.index, ma_tx_out.policy, ma_tx_out.name
 `;
 
 const findMaBalanceByAddressAndBlock = `
-SELECT
-    ma_tx_out.name as "name",
-    ma_tx_out.policy as "policy",
-    SUM(ma_tx_out.quantity) as value
-  ${utxoQuery} 
-  AND
-    ma_tx_out.policy IS NOT NULL
+  ${utxoQuery}
+  SELECT
+      ma_tx_out.name as "name",
+      ma_tx_out.policy as "policy",
+      SUM(ma_tx_out.quantity) as value
+  FROM utxo
+      LEFT JOIN ma_tx_out 
+      ON ma_tx_out.tx_out_id = utxo.tx_out_id 
+  WHERE ma_tx_out.policy IS NOT NULL
   GROUP  BY ma_tx_out.name, ma_tx_out.policy
-  ORDER BY
-    ma_tx_out.policy, ma_tx_out.name
-  `;
+  ORDER BY ma_tx_out.policy, ma_tx_out.name
+`;
 
 const findBalanceByAddressAndBlock = `
   SELECT (SELECT COALESCE(SUM(r.amount),0) 
