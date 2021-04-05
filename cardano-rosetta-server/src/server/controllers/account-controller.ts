@@ -6,6 +6,7 @@ import { NetworkService } from '../services/network-service';
 import { mapToAccountBalanceResponse, mapToAccountCoinsResponse } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 import { isPolicyIdValid, isTokenNameValid } from '../utils/validations';
+import { ADA } from '../utils/constants';
 export interface AccountController {
   accountBalance(
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.AccountBalanceRequest>
@@ -59,10 +60,13 @@ const configure = (
           throw ErrorFactory.invalidAddressError(accountAddress);
         currencies?.forEach(({ symbol, metadata }) => {
           if (!isTokenNameValid(symbol)) throw ErrorFactory.invalidTokenNameError(`Given name is ${symbol}`);
-          if (metadata?.policyId && !isPolicyIdValid(metadata.policyId))
+          if (!isPolicyIdValid(metadata.policyId))
             throw ErrorFactory.invalidPolicyIdError(`Given policy id is ${metadata.policyId}`);
         });
-        const blockUtxos = await blockService.findCoinsDataByAddress(logger, accountAddress, currencies);
+        // if ADA is requested as currency then all coins will be returned
+        const currenciesRequested =
+          currencies && !currencies.map(currency => currency.symbol).includes(ADA) ? currencies : [];
+        const blockUtxos = await blockService.findCoinsDataByAddress(logger, accountAddress, currenciesRequested);
         const toReturn = mapToAccountCoinsResponse(blockUtxos);
         logger.debug(toReturn, '[accountCoins] About to return ');
         return toReturn;
