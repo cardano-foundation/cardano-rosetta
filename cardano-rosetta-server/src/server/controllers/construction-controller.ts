@@ -108,9 +108,11 @@ const configure = (
           throw ErrorFactory.addressGenerationError();
         }
         logger.info(`[constructionDerive] new address is ${address}`);
-
         return {
-          address
+          // eslint-disable-next-line camelcase
+          account_identifier: {
+            address
+          }
         };
       },
       request.log,

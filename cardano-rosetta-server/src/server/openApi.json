@@ -1878,7 +1878,7 @@
       "ConstructionDeriveResponse": {
         "description": "ConstructionDeriveResponse is returned by the `/construction/derive` endpoint.",
         "type": "object",
-        "required": ["address"],
+        "required": ["account_identifier"],
         "properties": {
           "address": {
             "type": "string",
@@ -2042,7 +2042,7 @@
       "ConstructionParseResponse": {
         "description": "ConstructionParseResponse contains an array of operations that occur in a transaction blob. This should match the array of operations provided to `/construction/preprocess` and `/construction/payloads`.",
         "type": "object",
-        "required": ["operations", "signers"],
+        "required": ["operations", "account_identifier_signers"],
         "properties": {
           "operations": {
             "type": "array",

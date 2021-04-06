@@ -88,7 +88,9 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       unsigned_transaction: CONSTRUCTION_PAYLOADS_RESPONSE,
       payloads: [
         {
-          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '333a6ccaaa639f7b451ce93764f54f654ef499fdb7b8b24374ee9d99eab9d795'
         }
@@ -353,7 +355,9 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_RESPONSE,
       payloads: [
         {
-          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'ec6bb1091d68dcb3e4f4889329e143fbb6090b8e78c74e7c8d0903d9eec4eed1'
         }
@@ -373,12 +377,16 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_DELEGATION_RESPONSE,
       payloads: [
         {
-          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'd4818d5a1ad1163fdb84b1e538d6d2c2fc34a86a91cd13f628dd3a7e4458a7c1'
         },
         {
-          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'd4818d5a1ad1163fdb84b1e538d6d2c2fc34a86a91cd13f628dd3a7e4458a7c1'
         }
@@ -398,12 +406,16 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_DELEGATION_RESPONSE,
       payloads: [
         {
-          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'dbf6479409a59e3e99c79b9c46b6af714de7c8264094b1d38c373b7454acf33d'
         },
         {
-          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'dbf6479409a59e3e99c79b9c46b6af714de7c8264094b1d38c373b7454acf33d'
         }
@@ -423,12 +435,16 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       unsigned_transaction: CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
       payloads: [
         {
-          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'da2eb0d62aee9313fc68df0827bd176b55168bc9129aedce92f4e29b1d52de38'
         },
         {
-          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'da2eb0d62aee9313fc68df0827bd176b55168bc9129aedce92f4e29b1d52de38'
         }
@@ -448,12 +464,16 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
       payloads: [
         {
-          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '8b47f0f3690167b596f1e7623e1869148f6bea78ebceaa08fe890a2e3e9e4d89'
         },
         {
-          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '8b47f0f3690167b596f1e7623e1869148f6bea78ebceaa08fe890a2e3e9e4d89'
         }
@@ -473,12 +493,16 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       unsigned_transaction: CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE,
       payloads: [
         {
-          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '9c0f4e7fa746738d3df3665fc7cd11b2e3115e3268a047e0435f2454ed41fdc5'
         },
         {
-          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '9c0f4e7fa746738d3df3665fc7cd11b2e3115e3268a047e0435f2454ed41fdc5'
         }
@@ -609,7 +633,9 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       unsigned_transaction: CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE,
       payloads: [
         {
-          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
           hex_bytes: '3a4e241fe0c56f8001cb2e71ffdf10e2804437b4159930c32d59e3b4469203d6',
           signature_type: SIGNATURE_TYPE
         }

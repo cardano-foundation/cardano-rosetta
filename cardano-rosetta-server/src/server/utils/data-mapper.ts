@@ -351,7 +351,7 @@ export const mapToAccountBalanceResponse = (
         index: blockBalanceData.block.number,
         hash: blockBalanceData.block.hash
       },
-      balances: totalBalance.length === 0 ? [mapAmount('0')] : totalBalance,
+      balances: totalBalance.length === 0 ? [mapAmount('0')] : totalBalance
       // coins: [...adaCoins.values()]
     };
   }
@@ -456,4 +456,10 @@ export const constructPayloadsForTransactionBody = (
   transactionBodyHash: string,
   addresses: string[]
 ): Components.Schemas.SigningPayload[] =>
-  addresses.map(address => ({ address, hex_bytes: transactionBodyHash, signature_type: SIGNATURE_TYPE }));
+  addresses.map(address => ({
+    account_identifier: {
+      address
+    },
+    hex_bytes: transactionBodyHash,
+    signature_type: SIGNATURE_TYPE
+  }));

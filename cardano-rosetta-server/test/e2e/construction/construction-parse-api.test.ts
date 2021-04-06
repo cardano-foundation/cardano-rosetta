@@ -64,7 +64,9 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST));
-    expect(response.json().signers).toEqual([CONSTRUCTION_PAYLOADS_REQUEST.operations[0].account?.address]);
+    expect(response.json().account_identifier_signers).toEqual([
+      { address: CONSTRUCTION_PAYLOADS_REQUEST.operations[0].account?.address }
+    ]);
   });
 
   test('Should return valid data if a valid signed transaction with a Byron address is set', async () => {
@@ -82,7 +84,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_OUTPUT)
     );
-    expect(response.json().signers).toEqual([
+    expect([response.json().account_identifier_signers[0].address]).toEqual([
       CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_OUTPUT.operations[0].account?.address
     ]);
   });
@@ -98,7 +100,9 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION)
     );
-    expect(response.json().signers).toEqual([
+    expect(
+      response.json().account_identifier_signers.map((account_signer: { address: any }) => account_signer.address)
+    ).toEqual([
       CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION.operations[0].account?.address,
       'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
     ]);
@@ -120,7 +124,9 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL)
     );
-    expect(response.json().signers).toEqual([
+    expect(
+      response.json().account_identifier_signers.map((account_signer: { address: any }) => account_signer.address)
+    ).toEqual([
       CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL.operations[0].account?.address,
       'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
     ]);
@@ -135,7 +141,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST));
-    expect(response.json().signers).toEqual([]);
+    expect(response.json().account_identifier_signers).toEqual([]);
   });
 
   // eslint-disable-next-line max-len
@@ -149,7 +155,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION)
     );
-    expect(response.json().signers).toEqual([]);
+    expect(response.json().account_identifier_signers).toEqual([]);
   });
 
   // eslint-disable-next-line max-len
@@ -163,7 +169,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION)
     );
-    expect(response.json().signers).toEqual([]);
+    expect(response.json().account_identifier_signers).toEqual([]);
   });
 
   // eslint-disable-next-line max-len
@@ -177,7 +183,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION)
     );
-    expect(response.json().signers).toEqual([]);
+    expect(response.json().account_identifier_signers).toEqual([]);
   });
 
   // eslint-disable-next-line max-len
@@ -196,7 +202,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION)
     );
-    expect(response.json().signers).toEqual([]);
+    expect(response.json().account_identifier_signers).toEqual([]);
   });
 
   // eslint-disable-next-line max-len
@@ -208,7 +214,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL));
-    expect(response.json().signers).toEqual([]);
+    expect(response.json().account_identifier_signers).toEqual([]);
   });
 
   // eslint-disable-next-line max-len
@@ -227,7 +233,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL)
     );
-    expect(response.json().signers).toEqual([]);
+    expect(response.json().account_identifier_signers).toEqual([]);
   });
 
   test('Should throw an error when invalid signed transaction bytes are provided', async () => {
