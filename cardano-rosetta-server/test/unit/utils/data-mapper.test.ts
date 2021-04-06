@@ -46,21 +46,6 @@ describe('Data Mapper', () => {
           hash: '032349b3b569bc1ecb266b79ae28a5e79834377562a627f0dc99fa3cd1bfd546',
           index: 1627535
         }
-        // coins: [
-        //   {
-        //     amount: {
-        //       currency: {
-        //         decimals: 6,
-        //         symbol: 'ADA'
-        //       },
-        //       value: '37999999989620601'
-        //     },
-        //     // eslint-disable-next-line camelcase
-        //     coin_identifier: {
-        //       identifier: 'c09c523b0a94837dacf08e30f8cc6d5915786b883f822981ea2012551f8699ce:1'
-        //     }
-        //   }
-        // ]
       });
     });
   });
