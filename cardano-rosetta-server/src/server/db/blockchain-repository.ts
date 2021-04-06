@@ -13,6 +13,7 @@ import {
   Utxo,
   MaBalance
 } from '../models';
+import { LinearFeeParameters } from '../services/cardano-services';
 import { hexStringToBuffer, hexFormatter } from '../utils/formatters';
 import Queries, {
   FindBalance,
@@ -75,6 +76,11 @@ export interface BlockchainRepository {
    * Returns the genesis block
    */
   findGenesisBlock(logger: Logger): Promise<GenesisBlock | null>;
+
+  /**
+   * Get the lastest minFeeA and minFeeB
+   */
+  getLinearFeeParameters(logger: Logger): Promise<LinearFeeParameters>;
 
   /**
    * Returns an array containing all utxo for address till block identified by blockIdentifier if present, else the last
@@ -475,6 +481,12 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     const latestBlockNumber = result.rows[0].blockHeight;
     logger.debug(`[findLatestBlockNumber] Latest block number is ${latestBlockNumber}`);
     return latestBlockNumber;
+  },
+
+  async getLinearFeeParameters(logger: Logger): Promise<LinearFeeParameters> {
+    logger.debug('[getLinearFeeParameters] About to run getLinearFeeParameters query');
+    const result = await databaseInstance.query(Queries.findLatestMinFeeAAndMinFeeB);
+    return { minFeeA: result.rows[0].min_fee_a, minFeeB: result.rows[0].min_fee_b };
   },
 
   async findGenesisBlock(logger: Logger): Promise<GenesisBlock | null> {

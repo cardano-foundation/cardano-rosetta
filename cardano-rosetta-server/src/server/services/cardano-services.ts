@@ -135,7 +135,7 @@ export interface CardanoService {
    *
    * @param transactionSize in bytes
    */
-  calculateTxMinimumFee(transactionSize: number): BigInt;
+  calculateTxMinimumFee(transactionSize: number, linearFeeParameters: LinearFeeParameters): BigInt;
 
   /**
    * Generates an hex encoded signed transaction
@@ -261,7 +261,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
-const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: number): CardanoService => ({
+const configure = (minKeyDeposit: number): CardanoService => ({
   generateAddress(logger, network, publicKeyString, stakingCredentialString, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${JSON.stringify(
@@ -390,7 +390,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
     return previousTxSize + cbor.encode(updatedTtl).byteLength - cbor.encode(previousTtl).byteLength;
   },
 
-  calculateTxMinimumFee(transactionSize: number): BigInt {
+  calculateTxMinimumFee(transactionSize: number, linearFeeParameters: LinearFeeParameters): BigInt {
     return BigInt(linearFeeParameters.minFeeA) * BigInt(transactionSize) + BigInt(linearFeeParameters.minFeeB);
   },
 

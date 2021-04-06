@@ -9,17 +9,12 @@ import * as Services from './services/services';
 import * as CardanoCli from './utils/cardano/cli/cardanonode-cli';
 import * as CardanoNode from './utils/cardano/cli/cardano-node';
 import { Environment, parseEnvironment } from './utils/environment-parser';
-import { LinearFeeParameters } from './services/cardano-services';
 
 // FIXME: validate the following paraemeters when implementing (2)
 // https://github.com/input-output-hk/cardano-rosetta/issues/101
 const genesis = JSON.parse(fs.readFileSync(path.resolve(process.env.GENESIS_SHELLEY_PATH)).toString());
 const networkMagic = genesis.networkMagic;
 const networkId = genesis.networkId.toLowerCase();
-const linearFeeParameters: LinearFeeParameters = {
-  minFeeA: genesis.protocolParams.minFeeA,
-  minFeeB: genesis.protocolParams.minFeeB
-};
 const keyDeposit = genesis.protocolParams.keyDeposit;
 
 const start = async (databaseInstance: Pool) => {
@@ -37,7 +32,6 @@ const start = async (databaseInstance: Pool) => {
       networkMagic,
       environment.TOPOLOGY_FILE,
       environment.DEFAULT_RELATIVE_TTL,
-      linearFeeParameters,
       keyDeposit
     );
     server = buildServer(services, cardanoCli, cardanoNode, environment.LOGGER_LEVEL, {

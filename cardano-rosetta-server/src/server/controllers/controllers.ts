@@ -23,5 +23,11 @@ export const configure = (
   ...blockController(services.blockService, pageSize, services.networkService),
   ...accountController(services.blockService, services.cardanoService, services.networkService),
   ...networkController(services.networkService, cardanoNode),
-  ...constructionController(services.constructionService, services.cardanoService, cardanoCli, services.networkService)
+  ...constructionController(
+    services.constructionService,
+    services.cardanoService,
+    cardanoCli,
+    services.networkService,
+    services.blockService
+  )
 });
