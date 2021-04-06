@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable unicorn/prevent-abbreviations */
 /* eslint-disable camelcase */
 /* eslint-disable no-magic-numbers */
@@ -392,6 +393,140 @@ describe('/account/coins endpoint', () => {
       ]
     });
   });
+  test('should return all coins when ADA is specified as currency', async () => {
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: ACCOUNT_COINS_ENDPOINT,
+      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vpqwk50mnckqnjvzdd7lhln2685xep2xf84jmhd9njd5kucdqnufv', [
+        {
+          decimals: 0,
+          symbol: '4154414441636f696e',
+          metadata: {
+            policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+          }
+        },
+        {
+          decimals: 6,
+          symbol: 'ADA'
+        }
+      ])
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: latestBlockIdentifierMAServer,
+      coins: [
+        {
+          coin_identifier: { identifier: '7260f6b728bf49a95095da74ca9ec88cdbfb414eea81eaeb7d1939bbe6745b12:0' },
+          amount: {
+            currency: { decimals: 6, symbol: 'ADA' },
+            value: '2000000'
+          },
+          metadata: {
+            '7260f6b728bf49a95095da74ca9ec88cdbfb414eea81eaeb7d1939bbe6745b12:0': [
+              {
+                policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd',
+                tokens: [
+                  {
+                    value: '50',
+                    currency: {
+                      symbol: '42435348',
+                      decimals: 0,
+                      metadata: { policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd' }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          coin_identifier: { identifier: 'b352ea2f50d47851bda890ba2baed955f2f9aa3667ea69136454fa2a2de11ffe:0' },
+          amount: {
+            value: '5000000',
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            }
+          },
+          metadata: {
+            'b352ea2f50d47851bda890ba2baed955f2f9aa3667ea69136454fa2a2de11ffe:0': [
+              {
+                policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+                tokens: [
+                  {
+                    value: '1',
+                    currency: {
+                      symbol: '4154414441636f696e',
+                      decimals: 0,
+                      metadata: { policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518' }
+                    }
+                  },
+                  {
+                    value: '1',
+                    currency: {
+                      symbol: '61646f736961',
+                      decimals: 0,
+                      metadata: { policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518' }
+                    }
+                  }
+                ]
+              },
+              {
+                policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd',
+                tokens: [
+                  {
+                    value: '2',
+                    currency: {
+                      symbol: '42435348',
+                      decimals: 0,
+                      metadata: { policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd' }
+                    }
+                  }
+                ]
+              },
+              {
+                policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9',
+                tokens: [
+                  {
+                    value: '1',
+                    currency: {
+                      symbol: '676f6c64',
+                      decimals: 0,
+                      metadata: { policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9' }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          coin_identifier: { identifier: 'e58247e88790192246039816d27b58501c6686ab1f945cffec5262feedba4d23:0' },
+          amount: {
+            currency: { decimals: 6, symbol: 'ADA' },
+            value: '2000000'
+          },
+          metadata: {
+            'e58247e88790192246039816d27b58501c6686ab1f945cffec5262feedba4d23:0': [
+              {
+                policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9',
+                tokens: [
+                  {
+                    value: '5',
+                    currency: {
+                      symbol: '676f6c64',
+                      decimals: 0,
+                      metadata: { policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9' }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    });
+  });
   test('should return coins for multi asset currency with empty name', async () => {
     const response = await serverWithMultiassetsSupport.inject({
       method: 'post',
@@ -464,6 +599,7 @@ describe('/account/coins endpoint', () => {
       ]
     });
   });
+
   test('should fail when querying for a currency with non hex string symbol', async () => {
     const invalidSymbol = 'thisIsANonHexString';
     const response = await server.inject({
@@ -533,6 +669,29 @@ describe('/account/coins endpoint', () => {
       message: 'Invalid policy id',
       retriable: false,
       details: { message: 'Given policy id is wwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwwww' }
+    });
+  });
+  test('should fail when querying for a currency with a non hex policy id', async () => {
+    const invalidPolicy = 'thisIsANonHexString';
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_COINS_ENDPOINT,
+      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y', [
+        {
+          decimals: 0,
+          symbol: '486173414e616d65',
+          metadata: {
+            policyId: invalidPolicy
+          }
+        }
+      ])
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4023,
+      message: 'Invalid policy id',
+      retriable: false,
+      details: { message: 'Given policy id is thisIsANonHexString' }
     });
   });
 });

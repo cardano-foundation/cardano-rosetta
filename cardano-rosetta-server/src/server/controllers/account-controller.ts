@@ -60,12 +60,12 @@ const configure = (
           throw ErrorFactory.invalidAddressError(accountAddress);
         currencies?.forEach(({ symbol, metadata }) => {
           if (!isTokenNameValid(symbol)) throw ErrorFactory.invalidTokenNameError(`Given name is ${symbol}`);
-          if (!isPolicyIdValid(metadata.policyId))
+          if (symbol !== ADA && !isPolicyIdValid(metadata.policyId))
             throw ErrorFactory.invalidPolicyIdError(`Given policy id is ${metadata.policyId}`);
         });
-        // if ADA is requested as currency then all coins will be returned
+        // if ADA is requested then all coins will be returned
         const currenciesRequested =
-          currencies && !currencies.map(currency => currency.symbol).includes(ADA) ? currencies : [];
+          currencies && !currencies.map(currency => currency.symbol).some(s => s === ADA) ? currencies : [];
         const blockUtxos = await blockService.findCoinsDataByAddress(logger, accountAddress, currenciesRequested);
         const toReturn = mapToAccountCoinsResponse(blockUtxos);
         logger.debug(toReturn, '[accountCoins] About to return ');
