@@ -10,7 +10,7 @@ import {
   setupServer,
   testInvalidNetworkParameters
 } from '../utils/test-utils';
-import { latestBlockSlot, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
+import { latestLaunchpadBlockSlot, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 
@@ -26,21 +26,21 @@ const generateMetadataPayload = (blockchain: string, network: string, relativeTt
 });
 
 describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
-  let database: Pool;
+  let multiassetsDatabase: Pool;
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupOfflineDatabase();
-    server = setupServer(database);
+    multiassetsDatabase = setupOfflineDatabase();
+    server = setupServer(multiassetsDatabase);
   });
 
   afterAll(async () => {
-    await database.end();
+    await multiassetsDatabase.end();
   });
 
   beforeAll(async () => {
-    database = setupDatabase();
-    server = setupServer(database);
+    multiassetsDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
+    server = setupServer(multiassetsDatabase);
   });
 
   test('Should return a valid TTL when the parameters are valid', async () => {
@@ -53,7 +53,7 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       metadata: {
-        ttl: (latestBlockSlot + relativeTtl).toString()
+        ttl: (latestLaunchpadBlockSlot + relativeTtl).toString()
       },
       suggested_fee: [
         {

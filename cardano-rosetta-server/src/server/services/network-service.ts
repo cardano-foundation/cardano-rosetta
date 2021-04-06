@@ -4,9 +4,7 @@ import { MAIN_TESTNET_NETWORK_MAGIC } from '../utils/constants';
 import { BlockService } from './block-service';
 import fs from 'fs';
 import path from 'path';
-const exemptionsFile = process.env.EXEMPTION_TYPES_PATH
-  ? fs.readFileSync(path.resolve(process.env.EXEMPTION_TYPES_PATH)).toString()
-  : process.env.EXEMPTION_TYPES_PATH;
+let exemptionsFile: Components.Schemas.BalanceExemption[] = [];
 
 export interface NetworkStatus {
   latestBlock: Block;
@@ -16,7 +14,7 @@ export interface NetworkStatus {
 
 export interface NetworkService {
   getSupportedNetwork(): Network;
-  getExemptionTypes(): Components.Schemas.BalanceExemption[];
+  getExemptionTypes(logger: Logger): Components.Schemas.BalanceExemption[];
   getNetworkStatus(logger: Logger): Promise<NetworkStatus>;
 }
 
@@ -37,6 +35,24 @@ const getPeersFromConfig = (logger: Logger, topologyFile: TopologyConfig): Peer[
   const { Producers } = topologyFile;
   logger.debug(`[getPeersFromConfig] Found ${Producers.length} peers`);
   return Producers;
+};
+
+const getExemptionFile = (logger: Logger): Components.Schemas.BalanceExemption[] => {
+  if (exemptionsFile === []) {
+    try {
+      exemptionsFile = JSON.parse(
+        process.env.EXEMPTION_TYPES_PATH
+          ? fs.readFileSync(path.resolve(process.env.EXEMPTION_TYPES_PATH)).toString()
+          : process.env.EXEMPTION_TYPES_PATH
+      );
+      return exemptionsFile;
+    } catch (error) {
+      logger.error('[getting exemptions file]', error);
+      return [];
+    }
+  } else {
+    return [];
+  }
 };
 
 const configure = (
@@ -64,8 +80,8 @@ const configure = (
       peers: getPeersFromConfig(logger, topologyFile)
     };
   },
-  getExemptionTypes() {
-    return exemptionsFile ? JSON.parse(exemptionsFile) : [];
+  getExemptionTypes(logger: Logger) {
+    return getExemptionFile(logger);
   }
 });
 
