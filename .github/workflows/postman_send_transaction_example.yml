@@ -26,10 +26,6 @@ jobs:
       working-directory: ./examples/postman
       run: jq "(.values[] | select(.key==\"privateKey\") | .value) |= \"${{secrets.POSTMAN_SEND_TRANSACTION_EXAMPLE_PRIVATE_KEY}}\"" send_transaction_postman_environment.json > ./temp_env.json && mv ./temp_env.json ./send_transaction_postman_environment.json
       
-    - name: DEBUG
-      working-directory: ./examples/postman
-      run: cat send_transaction_postman_environment.json
-
     - name: Run Signing Server
       working-directory: ./examples/postman
       run: npm i && node sign-transaction-server &
