@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import fs from 'fs';
-import { mod } from 'shades';
+import { mod, findBy } from 'shades';
 import path from 'path';
 import StatusCodes from 'http-status-codes';
 import PgConnectionString from 'pg-connection-string';
@@ -11,6 +11,7 @@ import buildServer from '../../../src/server/server';
 import { Pool } from 'pg';
 import { CardanoCli } from '../../../src/server/utils/cardano/cli/cardanonode-cli';
 import { CardanoNode } from '../../../src/server/utils/cardano/cli/cardano-node';
+import { OperationType } from '../../../src/server/utils/constants';
 
 const DEFAULT_PAGE_SIZE = 5;
 
@@ -18,7 +19,7 @@ const DEFAULT_PAGE_SIZE = 5;
  * Setups a database connection that will fail if invoked.
  * This is useful to test offline methods
  */
-export const setupOfflineDatabase = () => {
+export const setupOfflineDatabase = (): Pool => {
   const poolMock = new Pool();
   poolMock.query = jest.fn();
   return poolMock;
@@ -104,6 +105,7 @@ export const testInvalidNetworkParameters = (
   });
 };
 
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const modifyMAOperation = (policyId?: string, symbol?: string) =>
   mod(
     1,
@@ -115,3 +117,13 @@ export const modifyMAOperation = (policyId?: string, symbol?: string) =>
     policyId: policyId ?? tokenBundleItem.policyId,
     tokens: mod(0, 'currency', 'symbol')((v: string) => symbol || v)(tokenBundleItem.tokens)
   }));
+
+export const modifyCoinChange = (
+  payload: Components.Schemas.ConstructionPayloadsRequest,
+  coinChange?: Components.Schemas.CoinChange
+): Components.Schemas.ConstructionPayloadsRequest =>
+  mod(
+    'operations',
+    findBy((operation: Components.Schemas.Operation) => operation && operation.type === OperationType.INPUT),
+    'coin_change'
+  )(() => coinChange)(payload);

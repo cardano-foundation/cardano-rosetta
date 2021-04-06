@@ -35,6 +35,7 @@ describe('Environment parser test', () => {
       throw new Error(code?.toString());
     });
     expect(environmentParser).toThrowError(Error);
+    expect(mockExit).toHaveBeenCalledWith(1);
     process.env.TOPOLOGY_FILE_PATH = previousPath;
   });
   test('Should throw an error if a field is expected to be a valid host but its not', () => {

@@ -20,7 +20,7 @@ import {
   PREFIX_LENGTH,
   PUBLIC_KEY_BYTES_LENGTH,
   SIGNATURE_LENGTH,
-  StakeType
+  StakeAddressPrefix
 } from '../utils/constants';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
@@ -302,7 +302,9 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
   },
   isStakeAddress(address) {
     const addressPrefix = this.getPrefixFromAddress(address);
-    return [StakeType.STAKE as string, StakeType.STAKE_TEST as string].some(type => addressPrefix.includes(type));
+    return [StakeAddressPrefix.MAIN as string, StakeAddressPrefix.TEST as string].some(type =>
+      addressPrefix.includes(type)
+    );
   },
   getHashOfSignedTransaction(logger, signedTransaction) {
     try {

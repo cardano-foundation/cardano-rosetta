@@ -134,6 +134,7 @@ const parseCertToOperation = (
   };
   const delegationCert = cert.as_stake_delegation();
   if (delegationCert) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
   }
   return operation;
@@ -157,15 +158,17 @@ const parseCertsToOperations = (
     }
     const credential = getStakingCredentialFromHex(logger, stakingOperation.metadata?.staking_credential);
     const address = generateRewardAddress(logger, network, credential);
-    const cert = transactionBody.certs()!.get(i);
-    const parsedOperation = parseCertToOperation(
-      cert,
-      stakingOperation.operation_identifier.index,
-      hex,
-      stakingOperation.type,
-      address
-    );
-    parsedOperations.push(parsedOperation);
+    const cert = transactionBody.certs()?.get(i);
+    if (cert) {
+      const parsedOperation = parseCertToOperation(
+        cert,
+        stakingOperation.operation_identifier.index,
+        hex,
+        stakingOperation.type,
+        address
+      );
+      parsedOperations.push(parsedOperation);
+    }
   }
 
   return parsedOperations;
@@ -203,10 +206,13 @@ const parseWithdrawalsToOperations = (
   logger.info(`[parseWithdrawalsToOperations] About to parse ${withdrawalsCount} withdrawals`);
   for (let i = 0; i < withdrawalsCount; i++) {
     const withdrawalOperation = withdrawalOps[i];
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const credential = getStakingCredentialFromHex(logger, withdrawalOperation.metadata!.staking_credential);
     const address = generateRewardAddress(logger, network, credential);
     const parsedOperation = parseWithdrawalToOperation(
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       withdrawalOperation.amount!.value,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       withdrawalOperation.metadata!.staking_credential!.hex_bytes,
       withdrawalOperation.operation_identifier.index,
       address

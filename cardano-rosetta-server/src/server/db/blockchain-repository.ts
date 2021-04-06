@@ -171,7 +171,7 @@ const tryAddToken = <T extends TransactionInOut>(inOut: T, findResult: FindTrans
     if (!tokenBundle.tokens.has(policyAsHex)) {
       tokenBundle.tokens.set(policyAsHex, []);
     }
-    tokenBundle.tokens.get(policyAsHex)!.push({ name: nameAsHex, quantity });
+    tokenBundle.tokens.get(policyAsHex)?.push({ name: nameAsHex, quantity });
 
     return {
       ...inOut,

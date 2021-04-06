@@ -24,7 +24,7 @@ export const mapAmount = (
   value: string,
   symbol = ADA,
   decimals = ADA_DECIMALS,
-  metadata?: any
+  metadata?: { policyId?: string }
 ): Components.Schemas.Amount => ({
   value,
   currency: {

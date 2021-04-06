@@ -133,6 +133,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
       retriable: false,
       details: {
         message:
+          // eslint-disable-next-line max-len
           'Invalid input: ThisIsAnInvalidAddressaddr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx - mixed-case strings not allowed'
       }
     });
@@ -546,6 +547,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
         code: 4009,
         details: {
           message:
+            // eslint-disable-next-line max-len
             'Token name 6e7574636f696e has already been added for policy b0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7 and will be overriden'
         },
         message: invalidOperationErrorMessage,

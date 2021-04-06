@@ -1,3 +1,4 @@
+/* eslint-disable max-len  */
 import { Logger } from 'fastify';
 import { configure, SUPPORTED_ERAS } from '../../../../../src/server/utils/cardano/cli/cardanonode-cli';
 

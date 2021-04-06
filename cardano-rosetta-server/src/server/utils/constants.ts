@@ -19,9 +19,18 @@ export const PUBLIC_KEY_BYTES_LENGTH = 64;
 export const POLICY_ID_LENGTH = 56;
 export const ASSET_NAME_LENGTH = 64;
 
-export enum StakeType {
-  STAKE = 'stake',
-  STAKE_TEST = 'stake_test'
+export enum NonStakeAddressPrefix {
+  MAIN = 'addr',
+  TEST = 'addr_test'
+}
+
+export enum StakeAddressPrefix {
+  MAIN = 'stake',
+  TEST = 'stake_test'
+}
+export interface AddressPrefix {
+  MAIN: string;
+  TEST: string;
 }
 
 export enum OperationType {

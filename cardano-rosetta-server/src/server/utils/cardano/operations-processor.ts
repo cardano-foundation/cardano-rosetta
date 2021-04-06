@@ -20,24 +20,17 @@ import { getStakingCredentialFromHex } from './staking-credentials';
 
 const isPositiveNumber = (value: string): boolean => /^\+?\d+/.test(value);
 
-/**
- * This function validates and parses token bundles that might be attached to unspents
- *
- * @param tokenBundle bundle to be parsed
- */
 const validateAndParseTokenBundle = (
   logger: Logger,
   tokenBundle: Components.Schemas.TokenBundleItem[]
 ): CardanoWasm.MultiAsset =>
-  tokenBundle.reduce((multiAssets, multiAsset) => {
-    const policyId = multiAsset.policyId;
+  tokenBundle.reduce((multiAssets, { policyId, tokens }) => {
     if (!isPolicyIdValid(policyId)) {
       logger.error(`[validateAndParseTokenBundle] PolicyId ${policyId} is not valid`);
       throw ErrorFactory.transactionOutputsParametersMissingError(`PolicyId ${policyId} is not valid`);
     }
-    const policy = ScriptHash.from_bytes(hexStringToBuffer(multiAsset.policyId));
-    const assetsToAdd = multiAsset.tokens.reduce((assets, asset) => {
-      const tokenName = asset.currency.symbol;
+    const policy = ScriptHash.from_bytes(hexStringToBuffer(policyId));
+    const assetsToAdd = tokens.reduce((assets, { currency: { symbol: tokenName }, value: assetValue }) => {
       if (!isTokenNameValid(tokenName)) {
         logger.error(`[validateAndParseTokenBundle] Token name ${tokenName} is not valid`);
         throw ErrorFactory.transactionOutputsParametersMissingError(`Token name ${tokenName} is not valid`);
@@ -45,27 +38,27 @@ const validateAndParseTokenBundle = (
       const assetName = AssetName.new(hexStringToBuffer(tokenName));
       if (assets.get(assetName) !== undefined) {
         logger.error(
-          `[validateAndParseTokenBundle] Token name ${tokenName} has already been added for policy ${multiAsset.policyId}`
+          `[validateAndParseTokenBundle] Token name ${tokenName} has already been added for policy ${policyId}`
         );
         throw ErrorFactory.transactionOutputsParametersMissingError(
-          `Token name ${tokenName} has already been added for policy ${multiAsset.policyId} and will be overriden`
+          `Token name ${tokenName} has already been added for policy ${policyId} and will be overriden`
         );
       }
-      if (asset.value === undefined || !asset.value[0]) {
+      if (assetValue === undefined || !assetValue[0]) {
         logger.error(
-          `[validateAndParseTokenBundle] Token with name ${tokenName} for policy ${multiAsset.policyId} has no value or is empty`
+          `[validateAndParseTokenBundle] Token with name ${tokenName} for policy ${policyId} has no value or is empty`
         );
         throw ErrorFactory.transactionOutputsParametersMissingError(
-          `Token with name ${tokenName} for policy ${multiAsset.policyId} has no value or is empty`
+          `Token with name ${tokenName} for policy ${policyId} has no value or is empty`
         );
       }
-      if (!isPositiveNumber(asset.value)) {
-        logger.error(`[validateAndParseTokenBundle] Asset ${tokenName} has negative or invalid value '${asset.value}'`);
+      if (!isPositiveNumber(assetValue)) {
+        logger.error(`[validateAndParseTokenBundle] Asset ${tokenName} has negative or invalid value '${assetValue}'`);
         throw ErrorFactory.transactionOutputsParametersMissingError(
-          `Asset ${tokenName} has negative or invalid value '${asset.value}'`
+          `Asset ${tokenName} has negative or invalid value '${assetValue}'`
         );
       }
-      assets.insert(assetName, BigNum.from_str(asset.value));
+      assets.insert(assetName, BigNum.from_str(assetValue));
       return assets;
     }, Assets.new());
     multiAssets.insert(policy, assetsToAdd);
@@ -202,12 +195,15 @@ const operationProcessor: (
 } = (logger, operation, network, resultAccumulator) => ({
   [OperationType.INPUT]: () => {
     resultAccumulator.transactionInputs.add(validateAndParseTransactionInput(logger, operation));
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     resultAccumulator.addresses.push(operation.account!.address);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     resultAccumulator.inputAmounts.push(operation.amount!.value);
     return resultAccumulator;
   },
   [OperationType.OUTPUT]: () => {
     resultAccumulator.transactionOutputs.add(validateAndParseTransactionOutput(logger, operation));
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     resultAccumulator.outputAmounts.push(operation.amount!.value);
     return resultAccumulator;
   },
