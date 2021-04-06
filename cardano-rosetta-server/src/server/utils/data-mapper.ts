@@ -471,3 +471,7 @@ export const constructPayloadsForTransactionBody = (
     hex_bytes: transactionBodyHash,
     signature_type: SIGNATURE_TYPE
   }));
+
+// if ADA is requested then all coins will be returned
+export const filterRequestedCurrencies = (currencies?: Components.Schemas.Currency[]): Components.Schemas.Currency[] =>
+  currencies && !currencies.map(currency => currency.symbol).some(s => s === ADA) ? currencies : [];

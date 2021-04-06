@@ -3,10 +3,13 @@ import { withNetworkValidation } from '../controllers/controllers-helper';
 import { BlockService } from '../services/block-service';
 import { CardanoService } from '../services/cardano-services';
 import { NetworkService } from '../services/network-service';
-import { mapToAccountBalanceResponse, mapToAccountCoinsResponse } from '../utils/data-mapper';
+import {
+  filterRequestedCurrencies,
+  mapToAccountBalanceResponse,
+  mapToAccountCoinsResponse
+} from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
-import { isPolicyIdValid, isTokenNameValid } from '../utils/validations';
-import { ADA } from '../utils/constants';
+import { validateCurrencies } from '../utils/validations';
 export interface AccountController {
   accountBalance(
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.AccountBalanceRequest>
@@ -58,14 +61,8 @@ const configure = (
         logger.debug({ accountBalanceRequest: request.body }, '[accountCoins] Request received');
         if (cardanoService.getEraAddressType(accountAddress) === null)
           throw ErrorFactory.invalidAddressError(accountAddress);
-        currencies?.forEach(({ symbol, metadata }) => {
-          if (!isTokenNameValid(symbol)) throw ErrorFactory.invalidTokenNameError(`Given name is ${symbol}`);
-          if (symbol !== ADA && !isPolicyIdValid(metadata.policyId))
-            throw ErrorFactory.invalidPolicyIdError(`Given policy id is ${metadata.policyId}`);
-        });
-        // if ADA is requested then all coins will be returned
-        const currenciesRequested =
-          currencies && !currencies.map(currency => currency.symbol).some(s => s === ADA) ? currencies : [];
+        currencies && validateCurrencies(currencies);
+        const currenciesRequested = filterRequestedCurrencies(currencies);
         const blockUtxos = await blockService.findCoinsDataByAddress(logger, accountAddress, currenciesRequested);
         const toReturn = mapToAccountCoinsResponse(blockUtxos);
         logger.debug(toReturn, '[accountCoins] About to return ');

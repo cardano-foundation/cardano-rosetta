@@ -389,8 +389,6 @@ describe('/account/balance endpoint', () => {
     balancesAtBlock213891.forEach(accountBalance =>
       expect(responseAtBlock213891.json().balances).toContainEqual(accountBalance)
     );
-    // expect(responseAtBlock213891.json().coins).toHaveLength(coinsAtBlock213891.length);
-    // coinsAtBlock213891.forEach(coin => expect(responseAtBlock213891.json().coins).toContainEqual(coin));
     expect(responseAtBlock213892.statusCode).toEqual(StatusCodes.OK);
     expect(responseAtBlock213892.json().block_identifier).toEqual({
       index: 213892,
