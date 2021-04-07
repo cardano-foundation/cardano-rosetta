@@ -9,16 +9,14 @@ Using Postman Collections we can define high level scenarios that serve as teste
 - Run `$ node sign-transaction-server` to start local server for handling transaction signing. This is required because there are limitations in Postman's sandbox environment.
 
 ### Running the send transaction example
-The `send_transaction.postman_collection.json` defines the scenario and `send_transaction_postman_environment.json` defines the environment variables. The scenario performs the following:
-- Queries sender address for ADA and native asset balance.
-- If all is as expected it proceeds to construct a transaction to send some ADA and 2 Testcoin to the sender address.
+The `send_transaction.postman_collection.json` defines the scenario and `send_transaction_postman_environment.json` defines the environment variables. This example is designed to be run as a nightly test. As a result, the sender and receiver addresses are the same to allow funds to be "sent" to the same address. The scenario performs the following:
+- Queries sender address for ada and native asset balance.
+- Constructs a transaction to send some ada and 2 Testcoin to the sender address.
 - Signs the transaction
-- Submits the transaction to the Cardano Testnet
-
-This example has been designed to be run multiple times over to create unique valid transactions each time, this allows it to be used in the automated nighty test run. As a result, the sender and receiver addresses are the same.
+- Submits the transaction to the Rosetta instance
 
 #### It is possible for you to run this scenario yourself locally by following these steps:
-- Firstly, you must have a Testnet account with some ADA in it. You'll need the account's keys in order to sign a transaction.
+- Firstly, you must have a Testnet account with some ada in it. You'll need the account's keys in order to sign a transaction.
 - Edit `send_transaction_postman_environment.json` to use your private key, public key, sender address and recipient address.
 - Import `send-transaction-postman_collection.json` and `send_transaction_postman_environment.json` into Postman.
 - Unless your Testnet account also has a single UTxO with native assets, like the account used for nightly runs does, you'll need to modify the `operations` array used in the `/construction/preprocess` and `/construction/payloads` requests. The `operations` array defines the input and output for the transaction. You can remove the `metadata` object from each operation is there are no native assets involved.

@@ -5,7 +5,7 @@ if (env === undefined) {
   throw new Error('Environment file must be provided as argument to this script')
 }
 newman.run({
-    collection: require('./send_transaction_ci.postman_collection.json'),
+    collection: require('./send_transaction.postman_collection.json'),
     environment: require(`./${env}`),
     reporters: ['cli', 'json']
 }, function (err, summary) {
