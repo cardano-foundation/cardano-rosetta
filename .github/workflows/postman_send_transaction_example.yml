@@ -18,18 +18,19 @@ jobs:
 
     - name: Setup Node
       uses: actions/setup-node@v2
-      
-    - name: Install newman
-      run: npm i newman
+
+    - name: Install dependencies
+      working-directory: ./examples/postman
+      run: npm ci
 
     - name: Set private key
       working-directory: ./examples/postman
       run: jq "(.values[] | select(.key==\"privateKey\") | .value) |= \"${{secrets.POSTMAN_SEND_TRANSACTION_EXAMPLE_PRIVATE_KEY}}\"" send_transaction_postman_environment.json > ./temp_env.json && mv ./temp_env.json ./send_transaction_postman_environment.json
-      
+
     - name: Run Signing Server
       working-directory: ./examples/postman
-      run: npm i && node sign-transaction-server &
+      run: node sign-transaction-server &
 
     - name: Run Send Transaction Example
       working-directory: ./examples/postman
-      run: node send-transaction-example send_transaction_postman_environment.json
+      run: npm run send-transaction

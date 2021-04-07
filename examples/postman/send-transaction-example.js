@@ -1,7 +1,9 @@
 const newman = require('newman');
 
 const env = process.argv[2]
-
+if (env === undefined) {
+  throw new Error('Environment file must be provided as argument to this script')
+}
 newman.run({
     collection: require('./send_transaction_ci.postman_collection.json'),
     environment: require(`./${env}`),

@@ -5,6 +5,7 @@
   "private": true,
   "main": "./sign-transaction-server.js",
   "scripts": {
+    "send-transaction": "node send-transaction-example send_transaction_postman_environment.json",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "James",
