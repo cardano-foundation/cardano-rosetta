@@ -7,7 +7,7 @@ newman.run({
     environment: require(`./${env}`),
     reporters: ['cli', 'json']
 }, function (err, summary) {
-	if (err) { 
+	if (err) {
         console.error('collection run encountered an error.');
     } else if (summary.run.failures.length) {
         console.error('assertion failure occured.');
