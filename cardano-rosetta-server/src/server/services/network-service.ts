@@ -4,7 +4,9 @@ import { MAIN_TESTNET_NETWORK_MAGIC } from '../utils/constants';
 import { BlockService } from './block-service';
 import fs from 'fs';
 import path from 'path';
-const exemptionsFile = fs.readFileSync(path.resolve(process.env.EXEMPTION_TYPES_PATH)).toString();
+const exemptionsFile = process.env.EXEMPTION_TYPES_PATH
+  ? fs.readFileSync(path.resolve(process.env.EXEMPTION_TYPES_PATH)).toString()
+  : process.env.EXEMPTION_TYPES_PATH;
 
 export interface NetworkStatus {
   latestBlock: Block;
@@ -63,7 +65,7 @@ const configure = (
     };
   },
   getExemptionTypes() {
-    return JSON.parse(exemptionsFile);
+    return exemptionsFile ? JSON.parse(exemptionsFile) : [];
   }
 });
 
