@@ -127,3 +127,14 @@ export const modifyCoinChange = (
     findBy((operation: Components.Schemas.Operation) => operation && operation.type === OperationType.INPUT),
     'coin_change'
   )(() => coinChange)(payload);
+
+export const modifyPoolKeyHash = (
+  payload: Components.Schemas.ConstructionPayloadsRequest,
+  poolKeyHash?: string
+): Components.Schemas.ConstructionPayloadsRequest =>
+  mod(
+    'operations',
+    findBy((operation: Components.Schemas.Operation) => operation && operation.type === OperationType.STAKE_DELEGATION),
+    'metadata',
+    'pool_key_hash'
+  )(() => poolKeyHash)(payload);

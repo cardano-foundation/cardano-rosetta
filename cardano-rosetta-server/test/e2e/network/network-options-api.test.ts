@@ -96,11 +96,16 @@ const allow = {
     },
     {
       code: 4021,
-      message: 'Assets are required for output operation token bundle',
+      message: 'Provided pool key hash has invalid format',
       retriable: false
     },
     {
       code: 4022,
+      message: 'Assets are required for output operation token bundle',
+      retriable: false
+    },
+    {
+      code: 4023,
       message: 'Asset value is required for token asset',
       retriable: false
     },

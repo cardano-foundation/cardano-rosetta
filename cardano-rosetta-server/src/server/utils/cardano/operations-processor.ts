@@ -146,6 +146,21 @@ const processStakeKeyRegistration = (
   return CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
 };
 
+const validateAndParsePoolKeyHash = (logger: Logger, poolKeyHash?: string): CardanoWasm.Ed25519KeyHash => {
+  if (!poolKeyHash) {
+    logger.error('[validateAndParsePoolKeyHash] no pool key hash provided for stake delegation');
+    throw ErrorFactory.missingPoolKeyError();
+  }
+  let parsedPoolKeyHash: CardanoWasm.Ed25519KeyHash;
+  try {
+    parsedPoolKeyHash = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex'));
+  } catch (error) {
+    logger.error('[validateAndParsePoolKeyHash] invalid pool key hash');
+    throw ErrorFactory.invalidPoolKeyError(error);
+  }
+  return parsedPoolKeyHash;
+};
+
 const processOperationCertification = (
   logger: Logger,
   network: NetworkIdentifier,
@@ -157,14 +172,8 @@ const processOperationCertification = (
   const address = generateRewardAddress(logger, network, credential);
   if (operation.type === OperationType.STAKE_DELEGATION) {
     // eslint-disable-next-line camelcase
-    const poolKeyHash = operation.metadata?.pool_key_hash;
-    if (!poolKeyHash) {
-      logger.error('[processOperationCertification] no pool key hash provided for stake delegation');
-      throw ErrorFactory.missingPoolKeyError();
-    }
-    const certificate = CardanoWasm.Certificate.new_stake_delegation(
-      StakeDelegation.new(credential, CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')))
-    );
+    const poolKeyHash = validateAndParsePoolKeyHash(logger, operation.metadata?.pool_key_hash);
+    const certificate = CardanoWasm.Certificate.new_stake_delegation(StakeDelegation.new(credential, poolKeyHash));
     return { certificate, address };
   }
   return {

@@ -67,8 +67,9 @@ export const Errors = {
     code: 4019
   },
   POOL_KEY_MISSING: { message: 'Pool key hash is required for stake delegation', code: 4020 },
-  TOKEN_BUNDLE_ASSETS_MISSING: { message: 'Assets are required for output operation token bundle', code: 4021 },
-  TOKEN_ASSET_VALUE_MISSING: { message: 'Asset value is required for token asset', code: 4022 },
+  INVALID_POOL_KEY_HASH: { message: 'Provided pool key hash has invalid format', code: 4021 },
+  TOKEN_BUNDLE_ASSETS_MISSING: { message: 'Assets are required for output operation token bundle', code: 4022 },
+  TOKEN_ASSET_VALUE_MISSING: { message: 'Asset value is required for token asset', code: 4023 },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -102,6 +103,7 @@ const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.I
 const invalidStakingKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_STAKING_KEY_FORMAT, false);
 const missingStakingKeyError: CreateErrorFunction = type => buildApiError(Errors.STAKING_KEY_MISSING, false, type);
 const missingPoolKeyError: CreateErrorFunction = type => buildApiError(Errors.POOL_KEY_MISSING, false, type);
+const invalidPoolKeyError: CreateErrorFunction = details => buildApiError(Errors.INVALID_POOL_KEY_HASH, false, details);
 const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
 const cantBuildWitnessesSet: CreateErrorFunction = () => buildApiError(Errors.CANT_BUILD_WITNESSES_SET, false);
@@ -144,6 +146,7 @@ export const ErrorFactory = {
   invalidStakingKeyFormat,
   missingStakingKeyError,
   missingPoolKeyError,
+  invalidPoolKeyError,
   parseSignedTransactionError,
   cantBuildSignedTransaction,
   cantBuildWitnessesSet,
