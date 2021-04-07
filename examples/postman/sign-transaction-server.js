@@ -1,6 +1,6 @@
-import express from 'express';
-import { body, validationResult } from 'express-validator';
-import NaCl from 'tweetnacl';
+const express = require('express');
+const { body, validationResult } = require('express-validator');
+const NaCl = require('tweetnacl');
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));

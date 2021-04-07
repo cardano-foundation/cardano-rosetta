@@ -9,10 +9,10 @@
   },
   "author": "James",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "express": "^4.17.1",
     "express-validator": "^6.10.0",
+    "newman": "^5.2.2",
     "tweetnacl": "^1.0.3"
   }
 }
