@@ -11,5 +11,6 @@ declare namespace NodeJS {
     CARDANO_NODE_PATH: string;
     TOPOLOGY_FILE_PATH: string;
     EXEMPTION_TYPES_PATH: string;
+    BODY_LIMIT: number;
   }
 }

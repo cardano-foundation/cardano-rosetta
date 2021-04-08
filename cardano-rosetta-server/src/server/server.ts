@@ -29,7 +29,7 @@ const buildServer = (
   logLevel: string,
   extraParameters: ExtraParams
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
-  const server = fastify({ logger: { level: logLevel } });
+  const server = fastify({ logger: { level: logLevel }, bodyLimit: process.env.BODY_LIMIT });
   const { networkId, pageSize } = extraParameters;
   server.register(fastifyBlipp);
   server.register(openapiGlue, {

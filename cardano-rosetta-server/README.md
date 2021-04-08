@@ -39,6 +39,8 @@ PAGE_SIZE=25
 DEFAULT_RELATIVE_TTL=1000
 # Exemption types file path
 EXEMPTION_TYPES_PATH="/etc/node/exemptions.json"
+# request payload limit
+BODY_LIMIT=1048576
 ```
 
 ### Install packages from offline cache
