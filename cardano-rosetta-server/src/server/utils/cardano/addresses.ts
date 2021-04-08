@@ -1,4 +1,4 @@
-import CardanoWasm, { Address, ByronAddress, StakeCredential } from 'cardano-serialization-lib';
+import CardanoWasm, { Address, ByronAddress, StakeCredential } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import {
   NetworkIdentifier,
