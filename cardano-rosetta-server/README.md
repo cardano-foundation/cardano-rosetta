@@ -37,6 +37,8 @@ CARDANO_NODE_SOCKET_PATH=/tmp/node.socket
 PAGE_SIZE=25
 # relative ttl to be used if any is sent during the request
 DEFAULT_RELATIVE_TTL=1000
+# Exemption types file path
+EXEMPTION_TYPES_PATH="/etc/node/exemptions.json"
 ```
 
 ### Install packages from offline cache

@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.2",
   "info": {
-    "version": "1.4.4",
+    "version": "1.4.10",
     "title": "Rosetta",
     "description": "Build Once. Integrate Your Blockchain Everywhere.",
     "license": {
@@ -292,7 +292,7 @@
     },
     "/account/balance": {
       "post": {
-        "summary": "Get an Account Balance",
+        "summary": "Get an Account's Balance",
         "description": "Get an array of all AccountBalances for an AccountIdentifier and the BlockIdentifier at which the balance lookup was performed. The BlockIdentifier must always be returned because some consumers of account balance data need to know specifically at which block the balance was calculated to compare balances they compute from operations with the balance returned by the node. It is important to note that making a balance request for an account without populating the SubAccountIdentifier should not result in the balance of all possible SubAccountIdentifiers being returned. Rather, it should result in the balance pertaining to no SubAccountIdentifiers being returned (sometimes called the liquid balance). To get all balances associated with an account, it may be necessary to perform multiple balance requests with unique AccountIdentifiers. It is also possible to perform a historical balance lookup (if the server supports it) by passing in an optional BlockIdentifier.",
         "operationId": "accountBalance",
         "tags": ["Account"],
@@ -313,6 +313,46 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/AccountBalanceResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/coins": {
+      "post": {
+        "summary": "Get an Account's Unspent Coins",
+        "description": "Get an array of all unspent coins for an AccountIdentifier and the BlockIdentifier at which the lookup was performed. If your implementation does not support coins (i.e. it is for an account-based blockchain), you do not need to implement this endpoint. If you implementation does support coins (i.e. it is fro a UTXO-based blockchain), you MUST also complete the `/account/balance` endpoint. It is important to note that making a coins request for an account without populating the SubAccountIdentifier should not result in the coins of all possible SubAccountIdentifiers being returned. Rather, it should result in the coins pertaining to no SubAccountIdentifiers being returned. To get all coins associated with an account, it may be necessary to perform multiple coin requests with unique AccountIdentifiers. Optionally, an implementation may choose to support updating an AccountIdentifier's unspent coins based on the contents of the mempool. Note, using this functionality breaks any guarantee of idempotency.",
+        "operationId": "accountCoins",
+        "tags": ["Account"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountCoinsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountCoinsResponse"
                 }
               }
             }
@@ -649,6 +689,126 @@
           }
         }
       }
+    },
+    "/call": {
+      "post": {
+        "summary": "Make a Network-Specific Procedure Call",
+        "description": "Call invokes an arbitrary, network-specific procedure call with network-specific parameters. The guidance for what this endpoint should or could do is purposely left vague. In Ethereum, this could be used to invoke `eth_call` to implement an entire Rosetta API interface for some smart contract that is not parsed by the implementation creator (like a DEX). This endpoint could also be used to provide access to data that does not map to any Rosetta models instead of requiring an integrator to use some network-specific SDK and call some network-specific endpoint (like surfacing staking parameters). Call is NOT a replacement for implementing Rosetta API endpoints or mapping network-specific data to Rosetta models. Rather, it enables developers to build additional Rosetta API interfaces for things they care about without introducing complexity into a base-level Rosetta implementation. Simply put, imagine that the average integrator will use layered Rosetta API implementations that each surfaces unique data.",
+        "operationId": "call",
+        "tags": ["Call"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CallRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CallResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/blocks": {
+      "post": {
+        "summary": "[INDEXER] Get a range of BlockEvents",
+        "description": "`/events/blocks` allows the caller to query a sequence of BlockEvents indicating which blocks were added and removed from storage to reach the current state. Following BlockEvents allows lightweight clients to update their state without needing to implement their own syncing logic (like finding the common parent in a reorg). `/events/blocks` is considered an \"indexer\" endpoint and Rosetta implementations are not required to complete it to adhere to the Rosetta spec. However, any Rosetta \"indexer\" MUST support this endpoint.",
+        "operationId": "eventsBlocks",
+        "tags": ["Events"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventsBlocksRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventsBlocksResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/search/transactions": {
+      "post": {
+        "summary": "[INDEXER] Search for Transactions",
+        "description": "`/search/transactions` allows the caller to search for transactions that meet certain conditions. Some conditions include matching a transaction hash, containing an operation with a certain status, or containing an operation that affects a certain account. `/search/transactions` is considered an \"indexer\" endpoint and Rosetta implementations are not required to complete it to adhere to the Rosetta spec. However, any Rosetta \"indexer\" MUST support this endpoint.",
+        "operationId": "searchTransactions",
+        "tags": ["Search"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchTransactionsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Expected response to a valid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchTransactionsResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "unexpected error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -839,6 +999,12 @@
               "$ref": "#/components/schemas/Operation"
             }
           },
+          "related_transactions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RelatedTransaction"
+            }
+          },
           "metadata": {
             "description": "Transactions that are related to other transactions (like a cross-shard transaction) should include the tranaction_identifier of these transactions in the metadata.",
             "type": "object",
@@ -850,15 +1016,15 @@
         }
       },
       "Operation": {
-        "description": "Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction.",
+        "description": "Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction. Operations are used both to represent on-chain data (Data API) and to construct new transactions (Construction API), creating a standard interface for reading and writing to blockchains.",
         "type": "object",
-        "required": ["operation_identifier", "type", "status"],
+        "required": ["operation_identifier", "type"],
         "properties": {
           "operation_identifier": {
             "$ref": "#/components/schemas/OperationIdentifier"
           },
           "related_operations": {
-            "description": "Restrict referenced related_operations to identifier indexes < the current operation_identifier.index. This ensures there exists a clear DAG-structure of relations. Since operations are one-sided, one could imagine relating operations in a single transfer or linking operations in a call tree.",
+            "description": "Restrict referenced related_operations to identifier indices < the current operation_identifier.index. This ensures there exists a clear DAG-structure of relations. Since operations are one-sided, one could imagine relating operations in a single transfer or linking operations in a call tree.",
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OperationIdentifier"
@@ -873,12 +1039,12 @@
             ]
           },
           "type": {
-            "description": "The network-specific type of the operation. Ensure that any type that can be returned here is also specified in the NetworkOptionsResponse. This can be very useful to downstream consumers that parse all block data.",
+            "description": "Type is the network-specific type of the operation. Ensure that any type that can be returned here is also specified in the NetworkOptionsResponse. This can be very useful to downstream consumers that parse all block data.",
             "type": "string",
             "example": "Transfer"
           },
           "status": {
-            "description": "The network-specific status of the operation. Status is not defined on the transaction object because blockchains with smart contracts may have transactions that partially apply. Blockchains with atomic transactions (all operations succeed or all operations fail) will have the same status for each operation.",
+            "description": "Status is the network-specific status of the operation. Status is not defined on the transaction object because blockchains with smart contracts may have transactions that partially apply (some operations are successful and some are not). Blockchains with atomic transactions (all operations succeed or all operations fail) will have the same status for each operation. On-chain operations (operations retrieved in the `/block` and `/block/transaction` endpoints) MUST have a populated status field (anything on-chain must have succeeded or failed). However, operations provided during transaction construction (often times called \"intent\" in the documentation) MUST NOT have a populated status field (operations yet to be included on-chain have not yet succeeded or failed).",
             "type": "string",
             "example": "Reverted"
           },
@@ -967,6 +1133,9 @@
           },
           "currency": {
             "$ref": "#/components/schemas/Currency"
+          },
+          "metadata": {
+            "type": "object"
           }
         }
       },
@@ -1001,12 +1170,11 @@
         }
       },
       "SyncStatus": {
-        "description": "SyncStatus is used to provide additional context about an implementation's sync status. It is often used to indicate that an implementation is healthy when it cannot be queried  until some sync phase occurs. If an implementation is immediately queryable, this model is often not populated.",
+        "description": "SyncStatus is used to provide additional context about an implementation's sync status. This object is often used by implementations to indicate healthiness when block data cannot be queried until some sync phase completes or cannot be determined by comparing the timestamp of the most recent block with the current time.",
         "type": "object",
-        "required": ["current_index"],
         "properties": {
           "current_index": {
-            "description": "CurrentIndex is the index of the last synced block in the current stage.",
+            "description": "CurrentIndex is the index of the last synced block in the current stage. This is a separate field from current_block_identifier in NetworkStatusResponse because blocks with indices up to and including the current_index may not yet be queryable by the caller. To reiterate, all indices up to and including current_block_identifier in NetworkStatusResponse must be queryable via the /block endpoint (excluding indices less than oldest_block_identifier).",
             "type": "integer",
             "format": "int64",
             "example": 100
@@ -1021,6 +1189,10 @@
             "description": "Stage is the phase of the sync process.",
             "type": "string",
             "example": "header sync"
+          },
+          "synced": {
+            "description": "sycned is a boolean that indicates if an implementation has synced up to the most recent block. If this field is not populated, the caller should rely on a traditional tip timestamp comparison to determine if an implementation is synced. This field is particularly useful for quiescent blockchains (blocks only produced when there are pending transactions). In these blockchains, the most recent block could have a timestamp far behind the current time but the node could be healthy and at tip.",
+            "type": "boolean"
           }
         }
       },
@@ -1067,7 +1239,15 @@
       "Allow": {
         "description": "Allow specifies supported Operation status, Operation types, and all possible error statuses. This Allow object is used by clients to validate the correctness of a Rosetta Server implementation. It is expected that these clients will error if they receive some response that contains any of the above information that is not specified here.",
         "type": "object",
-        "required": ["operation_statuses", "operation_types", "errors", "historical_balance_lookup"],
+        "required": [
+          "operation_statuses",
+          "operation_types",
+          "errors",
+          "historical_balance_lookup",
+          "call_methods",
+          "balance_exemptions",
+          "mempool_coins"
+        ],
         "properties": {
           "operation_statuses": {
             "description": "All Operation.Status this implementation supports. Any status that is returned during parsing that is not listed here will cause client validation to error.",
@@ -1094,6 +1274,31 @@
           "historical_balance_lookup": {
             "type": "boolean",
             "description": "Any Rosetta implementation that supports querying the balance of an account at any height in the past should set this to true."
+          },
+          "timestamp_start_index": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "description": "If populated, `timestamp_start_index` indicates the first block index where block timestamps are considered valid (i.e. all blocks less than `timestamp_start_index` could have invalid timestamps). This is useful when the genesis block (or blocks) of a network have timestamp 0. If not populated, block timestamps are assumed to be valid for all available blocks."
+          },
+          "call_methods": {
+            "type": "array",
+            "description": "All methods that are supported by the /call endpoint. Communicating which parameters should be provided to /call is the responsibility of the implementer (this is en lieu of defining an entire type system and requiring the implementer to define that in Allow).",
+            "items": {
+              "type": "string",
+              "example": "eth_call"
+            }
+          },
+          "balance_exemptions": {
+            "type": "array",
+            "description": "BalanceExemptions is an array of BalanceExemption indicating which account balances could change without a corresponding Operation. BalanceExemptions should be used sparingly as they may introduce significant complexity for integrators that attempt to reconcile all account balance changes. If your implementation relies on any BalanceExemptions, you MUST implement historical balance lookup (the ability to query an account balance at any BlockIdentifier).",
+            "items": {
+              "$ref": "#/components/schemas/BalanceExemption"
+            }
+          },
+          "mempool_coins": {
+            "type": "boolean",
+            "description": "Any Rosetta implementation that can update an AccountIdentifier's unspent coins based on the contents of the mempool should populate this field as true. If false, requests to `/account/coins` that set `include_mempool` as true will be automatically rejected."
           }
         }
       },
@@ -1242,6 +1447,92 @@
           }
         }
       },
+      "BalanceExemption": {
+        "description": "BalanceExemption indicates that the balance for an exempt account could change without a corresponding Operation. This typically occurs with staking rewards, vesting balances, and Currencies with a dynamic supply. Currently, it is possible to exempt an account from strict reconciliation by SubAccountIdentifier.Address or by Currency. This means that any account with SubAccountIdentifier.Address would be exempt or any balance of a particular Currency would be exempt, respectively. BalanceExemptions should be used sparingly as they may introduce significant complexity for integrators that attempt to reconcile all account balance changes. If your implementation relies on any BalanceExemptions, you MUST implement historical balance lookup (the ability to query an account balance at any BlockIdentifier).",
+        "type": "object",
+        "properties": {
+          "sub_account_address": {
+            "description": "SubAccountAddress is the SubAccountIdentifier.Address that the BalanceExemption applies to (regardless of the value of SubAccountIdentifier.Metadata).",
+            "type": "string",
+            "example": "staking"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "exemption_type": {
+            "$ref": "#/components/schemas/ExemptionType"
+          }
+        }
+      },
+      "ExemptionType": {
+        "description": "ExemptionType is used to indicate if the live balance for an account subject to a BalanceExemption could increase above, decrease below, or equal the computed balance. * greater_or_equal: The live balance may increase above or equal the computed balance. This typically   occurs with staking rewards that accrue on each block. * less_or_equal: The live balance may decrease below or equal the computed balance. This typically   occurs as balance moves from locked to spendable on a vesting account. * dynamic: The live balance may increase above, decrease below, or equal the computed balance. This   typically occurs with tokens that have a dynamic supply.",
+        "type": "string",
+        "enum": ["greater_or_equal", "less_or_equal", "dynamic"]
+      },
+      "BlockEvent": {
+        "description": "BlockEvent represents the addition or removal of a BlockIdentifier from storage. Streaming BlockEvents allows lightweight clients to update their own state without needing to implement their own syncing logic.",
+        "type": "object",
+        "required": ["sequence", "block_identifier", "type"],
+        "properties": {
+          "sequence": {
+            "description": "sequence is the unique identifier of a BlockEvent within the context of a NetworkIdentifier.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "example": 5
+          },
+          "block_identifier": {
+            "$ref": "#/components/schemas/BlockIdentifier"
+          },
+          "type": {
+            "$ref": "#/components/schemas/BlockEventType"
+          }
+        }
+      },
+      "BlockEventType": {
+        "description": "BlockEventType determines if a BlockEvent represents the addition or removal of a block.",
+        "type": "string",
+        "enum": ["block_added", "block_removed"]
+      },
+      "Operator": {
+        "description": "Operator is used by query-related endpoints to determine how to apply conditions. If this field is not populated, the default `and` value will be used.",
+        "type": "string",
+        "enum": ["or", "and"]
+      },
+      "BlockTransaction": {
+        "description": "BlockTransaction contains a populated Transaction and the BlockIdentifier that contains it.",
+        "type": "object",
+        "required": ["block_identifier", "transaction"],
+        "properties": {
+          "block_identifier": {
+            "$ref": "#/components/schemas/BlockIdentifier"
+          },
+          "transaction": {
+            "$ref": "#/components/schemas/Transaction"
+          }
+        }
+      },
+      "RelatedTransaction": {
+        "description": "The related_transaction allows implementations to link together multiple transactions. An unpopulated network identifier indicates that the related transaction is on the same network.",
+        "type": "object",
+        "required": ["transaction_identifier", "direction"],
+        "properties": {
+          "network_identifier": {
+            "$ref": "#/components/schemas/NetworkIdentifier"
+          },
+          "transaction_identifier": {
+            "$ref": "#/components/schemas/TransactionIdentifier"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/Direction"
+          }
+        }
+      },
+      "Direction": {
+        "description": "Used by RelatedTransaction to indicate the direction of the relation (i.e. cross-shard/cross-network sends may reference `backward` to an earlier transaction and async execution may reference `forward`). Can be used to indicate if a transaction relation is from child to parent or the reverse.",
+        "type": "string",
+        "enum": ["forward", "backward"]
+      },
       "AccountBalanceRequest": {
         "description": "An AccountBalanceRequest is utilized to make a balance request on the /account/balance endpoint. If the block_identifier is populated, a historical balance query should be performed.",
         "type": "object",
@@ -1255,11 +1546,18 @@
           },
           "block_identifier": {
             "$ref": "#/components/schemas/PartialBlockIdentifier"
+          },
+          "currencies": {
+            "type": "array",
+            "description": "In some cases, the caller may not want to retrieve all available balances for an AccountIdentifier. If the currencies field is populated, only balances for the specified currencies will be returned. If not populated, all available balances will be returned.",
+            "items": {
+              "$ref": "#/components/schemas/Currency"
+            }
           }
         }
       },
       "AccountBalanceResponse": {
-        "description": "An AccountBalanceResponse is returned on the /account/balance endpoint. If an account has a balance for each AccountIdentifier describing it (ex: an ERC-20 token balance on a few smart contracts), an account balance request must be made with each AccountIdentifier.",
+        "description": "An AccountBalanceResponse is returned on the /account/balance endpoint. If an account has a balance for each AccountIdentifier describing it (ex: an ERC-20 token balance on a few smart contracts), an account balance request must be made with each AccountIdentifier. The `coins` field was removed and replaced by by `/account/coins` in `v1.4.7`.",
         "type": "object",
         "required": ["block_identifier", "balances"],
         "properties": {
@@ -1272,6 +1570,47 @@
             "items": {
               "$ref": "#/components/schemas/Amount"
             }
+          },
+          "metadata": {
+            "description": "Account-based blockchains that utilize a nonce or sequence number should include that number in the metadata. This number could be unique to the identifier or global across the account address.",
+            "type": "object",
+            "example": {
+              "sequence_number": 23
+            }
+          }
+        }
+      },
+      "AccountCoinsRequest": {
+        "description": "AccountCoinsRequest is utilized to make a request on the /account/coins endpoint.",
+        "type": "object",
+        "required": ["network_identifier", "account_identifier"],
+        "properties": {
+          "network_identifier": {
+            "$ref": "#/components/schemas/NetworkIdentifier"
+          },
+          "account_identifier": {
+            "$ref": "#/components/schemas/AccountIdentifier"
+          },
+          "include_mempool": {
+            "type": "boolean",
+            "description": "Include state from the mempool when looking up an account's unspent coins. Note, using this functionality breaks any guarantee of idempotency."
+          },
+          "currencies": {
+            "type": "array",
+            "description": "In some cases, the caller may not want to retrieve coins for all currencies for an AccountIdentifier. If the currencies field is populated, only coins for the specified currencies will be returned. If not populated, all unspent coins will be returned.",
+            "items": {
+              "$ref": "#/components/schemas/Currency"
+            }
+          }
+        }
+      },
+      "AccountCoinsResponse": {
+        "description": "AccountCoinsResponse is returned on the /account/coins endpoint and includes all unspent Coins owned by an AccountIdentifier.",
+        "type": "object",
+        "required": ["block_identifier", "coins"],
+        "properties": {
+          "block_identifier": {
+            "$ref": "#/components/schemas/BlockIdentifier"
           },
           "coins": {
             "type": "array",
@@ -1303,7 +1642,7 @@
         }
       },
       "BlockResponse": {
-        "description": "A BlockResponse includes a fully-populated block or a partially-populated block with a list of other transactions to fetch (other_transactions). As a result of the consensus algorithm of some blockchains, blocks can be omitted (i.e. certain block indexes can be skipped). If a query for one of these omitted indexes is made, the response should not include a `Block` object. It is VERY important to note that blocks MUST still form a canonical, connected chain of blocks where each block has a unique index. In other words, the `PartialBlockIdentifier` of a block after an omitted block should reference the last non-omitted block.",
+        "description": "A BlockResponse includes a fully-populated block or a partially-populated block with a list of other transactions to fetch (other_transactions). As a result of the consensus algorithm of some blockchains, blocks can be omitted (i.e. certain block indices can be skipped). If a query for one of these omitted indices is made, the response should not include a `Block` object. It is VERY important to note that blocks MUST still form a canonical, connected chain of blocks where each block has a unique index. In other words, the `PartialBlockIdentifier` of a block after an omitted block should reference the last non-omitted block.",
         "type": "object",
         "required": ["block"],
         "properties": {
@@ -1465,7 +1804,7 @@
         }
       },
       "ConstructionMetadataRequest": {
-        "description": "A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers. Optionally, the request can also include an array of PublicKeys associated with the AccountIdentifiers returned in ConstructionPreprocessResponse.",
+        "description": "A ConstructionMetadataRequest is utilized to get information required to construct a transaction. The Options object used to specify which metadata to return is left purposely unstructured to allow flexibility for implementers. Options is not required in the case that there is network-wide metadata of interest. Optionally, the request can also include an array of PublicKeys associated with the AccountIdentifiers returned in ConstructionPreprocessResponse.",
         "type": "object",
         "required": ["network_identifier", "options"],
         "properties": {
@@ -1539,7 +1878,7 @@
       "ConstructionDeriveResponse": {
         "description": "ConstructionDeriveResponse is returned by the `/construction/derive` endpoint.",
         "type": "object",
-        "required": ["address"],
+        "required": ["account_identifier"],
         "properties": {
           "address": {
             "type": "string",
@@ -1703,7 +2042,7 @@
       "ConstructionParseResponse": {
         "description": "ConstructionParseResponse contains an array of operations that occur in a transaction blob. This should match the array of operations provided to `/construction/preprocess` and `/construction/payloads`.",
         "type": "object",
-        "required": ["operations", "signers"],
+        "required": ["operations", "account_identifier_signers"],
         "properties": {
           "operations": {
             "type": "array",
@@ -1768,6 +2107,185 @@
           }
         }
       },
+      "CallRequest": {
+        "description": "CallRequest is the input to the `/call` endpoint.",
+        "type": "object",
+        "required": ["network_identifier", "method", "parameters"],
+        "properties": {
+          "network_identifier": {
+            "$ref": "#/components/schemas/NetworkIdentifier"
+          },
+          "method": {
+            "type": "string",
+            "description": "Method is some network-specific procedure call. This method could map to a network-specific RPC endpoint, a method in an SDK generated from a smart contract, or some hybrid of the two. The implementation must define all available methods in the Allow object. However, it is up to the caller to determine which parameters to provide when invoking `/call`.",
+            "example": "eth_call"
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Parameters is some network-specific argument for a method. It is up to the caller to determine which parameters to provide when invoking `/call`.",
+            "example": {
+              "block_number": 23,
+              "address": "0x52bc44d5378309ee2abf1539bf71de1b7d7be3b5"
+            }
+          }
+        }
+      },
+      "CallResponse": {
+        "description": "CallResponse contains the result of a `/call` invocation.",
+        "type": "object",
+        "required": ["result", "idempotent"],
+        "properties": {
+          "result": {
+            "type": "object",
+            "description": "Result contains the result of the `/call` invocation. This result will not be inspected or interpreted by Rosetta tooling and is left to the caller to decode.",
+            "example": {
+              "count": 1000
+            }
+          },
+          "idempotent": {
+            "type": "boolean",
+            "description": "Idempotent indicates that if `/call` is invoked with the same CallRequest again, at any point in time, it will return the same CallResponse. Integrators may cache the CallResponse if this is set to true to avoid making unnecessary calls to the Rosetta implementation. For this reason, implementers should be very conservative about returning true here or they could cause issues for the caller."
+          }
+        }
+      },
+      "EventsBlocksRequest": {
+        "description": "EventsBlocksRequest is utilized to fetch a sequence of BlockEvents indicating which blocks were added and removed from storage to reach the current state.",
+        "type": "object",
+        "required": ["network_identifier"],
+        "properties": {
+          "network_identifier": {
+            "$ref": "#/components/schemas/NetworkIdentifier"
+          },
+          "offset": {
+            "description": "offset is the offset into the event stream to sync events from. If this field is not populated, we return the limit events backwards from tip. If this is set to 0, we start from the beginning.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "example": 5
+          },
+          "limit": {
+            "description": "limit is the maximum number of events to fetch in one call. The implementation may return <= limit events.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "example": 5
+          }
+        }
+      },
+      "EventsBlocksResponse": {
+        "description": "EventsBlocksResponse contains an ordered collection of BlockEvents and the max retrievable sequence.",
+        "type": "object",
+        "required": ["max_sequence", "events"],
+        "properties": {
+          "max_sequence": {
+            "description": "max_sequence is the maximum available sequence number to fetch.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "example": 5
+          },
+          "events": {
+            "type": "array",
+            "description": "events is an array of BlockEvents indicating the order to add and remove blocks to maintain a canonical view of blockchain state. Lightweight clients can use this event stream to update state without implementing their own block syncing logic.",
+            "items": {
+              "$ref": "#/components/schemas/BlockEvent"
+            }
+          }
+        }
+      },
+      "SearchTransactionsRequest": {
+        "description": "SearchTransactionsRequest is used to search for transactions matching a set of provided conditions in canonical blocks.",
+        "type": "object",
+        "required": ["network_identifier"],
+        "properties": {
+          "network_identifier": {
+            "$ref": "#/components/schemas/NetworkIdentifier"
+          },
+          "operator": {
+            "$ref": "#/components/schemas/Operator"
+          },
+          "max_block": {
+            "description": "max_block is the largest block index to consider when searching for transactions. If this field is not populated, the current block is considered the max_block. If you do not specify a max_block, it is possible a newly synced block will interfere with paginated transaction queries (as the offset could become invalid with newly added rows).",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "example": 5
+          },
+          "offset": {
+            "description": "offset is the offset into the query result to start returning transactions. If any search conditions are changed, the query offset will change and you must restart your search iteration.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "example": 5
+          },
+          "limit": {
+            "description": "limit is the maximum number of transactions to return in one call. The implementation may return <= limit transactions.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "example": 5
+          },
+          "transaction_identifier": {
+            "$ref": "#/components/schemas/TransactionIdentifier"
+          },
+          "account_identifier": {
+            "$ref": "#/components/schemas/AccountIdentifier"
+          },
+          "coin_identifier": {
+            "$ref": "#/components/schemas/CoinIdentifier"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "status": {
+            "type": "string",
+            "description": "status is the network-specific operation type.",
+            "example": "reverted"
+          },
+          "type": {
+            "type": "string",
+            "description": "type is the network-specific operation type.",
+            "example": "transfer"
+          },
+          "address": {
+            "type": "string",
+            "description": "address is AccountIdentifier.Address. This is used to get all transactions related to an AccountIdentifier.Address, regardless of SubAccountIdentifier.",
+            "example": "0x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347"
+          },
+          "success": {
+            "type": "boolean",
+            "description": "success is a synthetic condition populated by parsing network-specific operation statuses (using the mapping provided in `/network/options`)."
+          }
+        }
+      },
+      "SearchTransactionsResponse": {
+        "description": "SearchTransactionsResponse contains an ordered collection of BlockTransactions that match the query in SearchTransactionsRequest. These BlockTransactions are sorted from most recent block to oldest block.",
+        "type": "object",
+        "required": ["transactions", "total_count"],
+        "properties": {
+          "transactions": {
+            "type": "array",
+            "description": "transactions is an array of BlockTransactions sorted by most recent BlockIdentifier (meaning that transactions in recent blocks appear first). If there are many transactions for a particular search, transactions may not contain all matching transactions. It is up to the caller to paginate these transactions using the max_block field.",
+            "items": {
+              "$ref": "#/components/schemas/BlockTransaction"
+            }
+          },
+          "total_count": {
+            "description": "total_count is the number of results for a given search. Callers typically use this value to concurrently fetch results by offset or to display a virtual page number associated with results.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "example": 5
+          },
+          "next_offset": {
+            "description": "next_offset is the next offset to use when paginating through transaction results. If this field is not populated, there are no more transactions to query.",
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0,
+            "example": 5
+          }
+        }
+      },
       "Error": {
         "description": "Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields.",
         "type": "object",
@@ -1784,6 +2302,11 @@
             "description": "Message is a network-specific error message. The message MUST NOT change for a given code. In particular, this means that any contextual information should be included in the details field.",
             "type": "string",
             "example": "Invalid account format"
+          },
+          "description": {
+            "description": "Description allows the implementer to optionally provide additional information about an error. In many cases, the content of this field will be a copy-and-paste from existing developer documentation. Description can ONLY be populated with generic information about a particular type of error. It MUST NOT be populated with information about a particular instantiation of an error (use `details` for this). Whereas the content of Error.Message should stay stable across releases, the content of Error.Description will likely change across releases (as implementers improve error documentation). For this reason, the content in this field is not part of any type assertion (unlike Error.Message).",
+            "type": "string",
+            "example": "This error is returned when the requested AccountIdentifier is improperly formatted."
           },
           "retriable": {
             "description": "An error is retriable if the same request may succeed if submitted again.",

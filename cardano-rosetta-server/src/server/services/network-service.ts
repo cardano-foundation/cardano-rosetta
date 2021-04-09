@@ -2,6 +2,11 @@ import { Logger } from 'fastify';
 import { Block, GenesisBlock, Network } from '../models';
 import { MAIN_TESTNET_NETWORK_MAGIC } from '../utils/constants';
 import { BlockService } from './block-service';
+import fs from 'fs';
+import path from 'path';
+const exemptionsFile = process.env.EXEMPTION_TYPES_PATH
+  ? fs.readFileSync(path.resolve(process.env.EXEMPTION_TYPES_PATH)).toString()
+  : process.env.EXEMPTION_TYPES_PATH;
 
 export interface NetworkStatus {
   latestBlock: Block;
@@ -11,6 +16,7 @@ export interface NetworkStatus {
 
 export interface NetworkService {
   getSupportedNetwork(): Network;
+  getExemptionTypes(): Components.Schemas.BalanceExemption[];
   getNetworkStatus(logger: Logger): Promise<NetworkStatus>;
 }
 
@@ -57,6 +63,9 @@ const configure = (
       genesisBlock,
       peers: getPeersFromConfig(logger, topologyFile)
     };
+  },
+  getExemptionTypes() {
+    return exemptionsFile ? JSON.parse(exemptionsFile) : [];
   }
 });
 

@@ -1,4 +1,5 @@
-import { PUBLIC_KEY_BYTES_LENGTH, AddressType, CurveType, ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from './constants';
+import { PUBLIC_KEY_BYTES_LENGTH, ADA, AddressType, CurveType, ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from './constants';
+import { ErrorFactory } from './errors';
 import { isEmptyHexString } from './formatters';
 
 const tokenNameValidation = new RegExp(`^[0-9a-fA-F]{0,${ASSET_NAME_LENGTH}}$`);
@@ -16,3 +17,11 @@ export const isAddressTypeValid = (type: string): boolean =>
 export const isTokenNameValid = (name: string): boolean => tokenNameValidation.test(name) || isEmptyHexString(name);
 
 export const isPolicyIdValid = (policyId: string): boolean => policyIdValidation.test(policyId);
+
+export const validateCurrencies = (currencies: Components.Schemas.Currency[]): void => {
+  currencies.forEach(({ symbol, metadata }) => {
+    if (!isTokenNameValid(symbol)) throw ErrorFactory.invalidTokenNameError(`Given name is ${symbol}`);
+    if (symbol !== ADA && !isPolicyIdValid(metadata.policyId))
+      throw ErrorFactory.invalidPolicyIdError(`Given policy id is ${metadata.policyId}`);
+  });
+};

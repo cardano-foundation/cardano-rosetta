@@ -1,5 +1,13 @@
 import { Logger } from 'fastify';
-import { Block, BlockUtxos, BalanceAtBlock, GenesisBlock, Transaction, PopulatedTransaction } from '../models';
+import {
+  Block,
+  BlockUtxos,
+  BlockUtxosMultiAssets,
+  BalanceAtBlock,
+  GenesisBlock,
+  Transaction,
+  PopulatedTransaction
+} from '../models';
 import { ErrorFactory } from '../utils/errors';
 import { BlockchainRepository } from '../db/blockchain-repository';
 import { CardanoService } from './cardano-services';
@@ -74,7 +82,19 @@ export interface BlockService {
     address: string,
     number?: number,
     hash?: string
-  ): Promise<BlockUtxos | BalanceAtBlock>;
+  ): Promise<BlockUtxosMultiAssets | BalanceAtBlock>;
+
+  /**
+   * Returns the coins for a given address.
+   *
+   * @param logger
+   * @param address
+   */
+  findCoinsDataByAddress(
+    logger: Logger,
+    address: string,
+    currencies: Components.Schemas.Currency[]
+  ): Promise<BlockUtxos>;
 }
 
 const configure = (repository: BlockchainRepository, cardanoService: CardanoService): BlockService => ({
@@ -169,6 +189,22 @@ const configure = (repository: BlockchainRepository, cardanoService: CardanoServ
       block,
       utxos: utxoDetails,
       maBalances
+    };
+  },
+  async findCoinsDataByAddress(logger, address, currencies) {
+    const block = await this.findBlock(logger);
+    if (block === null) {
+      logger.error('[findCoinsDataByAddress] Block not found');
+      throw ErrorFactory.blockNotFoundError();
+    }
+    logger.info(
+      `[findCoinsDataByAddress] Looking for utxos for address ${address} and ${currencies.length} specified currencies`
+    );
+    const utxoDetails = await repository.findUtxoByAddressAndBlock(logger, address, block.hash, currencies);
+    logger.debug(utxoDetails, `[findCoinsByAddress] Found ${utxoDetails.length} coin details for address ${address}`);
+    return {
+      block,
+      utxos: utxoDetails
     };
   },
   findTransaction(logger, transactionHash, blockNumber, blockHash) {

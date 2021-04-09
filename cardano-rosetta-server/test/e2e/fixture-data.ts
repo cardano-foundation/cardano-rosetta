@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prevent-abbreviations */
 /* eslint-disable max-len */
 /* eslint-disable no-magic-numbers */
 import cbor from 'cbor';
@@ -33,7 +34,10 @@ export const latestBlockIdentifier = {
   hash: latestBlockHash,
   index: 4853177
 };
-
+export const latestBlockIdentifierMAServer = {
+  hash: '0700721626036f82476e0deb2eff43845c33823b646250fbf42fa0247149c8e0',
+  index: 382908
+};
 export const block23236WithTransactions = {
   block: {
     block_identifier: {
@@ -3594,78 +3598,6 @@ export const balancesAtBlock213891 = [
   }
 ];
 
-const coinId30d9 = { identifier: '30d97e64d1892ed7e03faf544318f167443a0153c244305df9b0f796a0386c8b:0' };
-export const coinsAtBlock213891 = [
-  {
-    coin_identifier: coinId30d9,
-    amount: {
-      value: '299994729944',
-      currency: {
-        decimals: 6,
-        symbol: 'ADA'
-      }
-    },
-    metadata: {
-      '30d97e64d1892ed7e03faf544318f167443a0153c244305df9b0f796a0386c8b:0': [
-        {
-          policyId: '06e5f0ade7121aaefa0e7ec53cac61820d774de0c12c83e8597627ff',
-          tokens: [
-            {
-              value: '10',
-              currency: {
-                decimals: 0,
-                symbol: '74657374746f6b656e',
-                metadata: {
-                  policyId: '06e5f0ade7121aaefa0e7ec53cac61820d774de0c12c83e8597627ff'
-                }
-              }
-            }
-          ]
-        },
-        {
-          policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
-          tokens: [
-            {
-              value: '95',
-              currency: {
-                decimals: 0,
-                symbol: '4154414441636f696e',
-                metadata: {
-                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
-                }
-              }
-            },
-            {
-              value: '2500',
-              currency: {
-                decimals: 0,
-                symbol: '6d616368746c636f696e',
-                metadata: {
-                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
-                }
-              }
-            }
-          ]
-        },
-        {
-          policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db',
-          tokens: [
-            {
-              value: '500',
-              currency: {
-                decimals: 0,
-                symbol: '6d616368746c32636f696e',
-                metadata: {
-                  policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
-                }
-              }
-            }
-          ]
-        }
-      ]
-    }
-  }
-];
 export const balancesAtBlock213892 = [
   {
     value: '299994547239',
@@ -3706,60 +3638,4 @@ export const balancesAtBlock213892 = [
   }
 ];
 
-const coinId1a04 = { identifier: '1a04005e5459b07a6353f5c1a9b1066d5969638b681923af6cb0601cf8c57495:0' };
-export const coinsAtBlock213892 = [
-  {
-    coin_identifier: coinId1a04,
-    amount: {
-      value: '299994547239',
-      currency: {
-        decimals: 6,
-        symbol: 'ADA'
-      }
-    },
-    metadata: {
-      '1a04005e5459b07a6353f5c1a9b1066d5969638b681923af6cb0601cf8c57495:0': [
-        {
-          policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
-          tokens: [
-            {
-              value: '95',
-              currency: {
-                decimals: 0,
-                symbol: '4154414441636f696e',
-                metadata: {
-                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
-                }
-              }
-            },
-            {
-              value: '2500',
-              currency: {
-                decimals: 0,
-                symbol: '6d616368746c636f696e',
-                metadata: {
-                  policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
-                }
-              }
-            }
-          ]
-        },
-        {
-          policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db',
-          tokens: [
-            {
-              value: '500',
-              currency: {
-                decimals: 0,
-                symbol: '6d616368746c32636f696e',
-                metadata: {
-                  policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db'
-                }
-              }
-            }
-          ]
-        }
-      ]
-    }
-  }
-];
+export const coinIdentifier95e1 = { identifier: '95e1117558c2d075a4cd110ab0772460340f72a19ac5bc4691c6498e28055339:0' };

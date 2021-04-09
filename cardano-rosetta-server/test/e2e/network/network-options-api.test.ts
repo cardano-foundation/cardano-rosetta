@@ -96,17 +96,19 @@ const allow = {
     },
     {
       code: 4021,
-      message: 'Provided pool key hash has invalid format',
-      retriable: false
-    },
-    {
-      code: 4022,
       message: 'Assets are required for output operation token bundle',
       retriable: false
     },
     {
-      code: 4023,
+      code: 4022,
       message: 'Asset value is required for token asset',
+      retriable: false
+    },
+    { code: 4023, message: 'Invalid policy id', retriable: false },
+    { code: 4024, message: 'Invalid token name', retriable: false },
+    {
+      code: 4025,
+      message: 'Provided pool key hash has invalid format',
       retriable: false
     },
     {
@@ -137,11 +139,14 @@ const allow = {
       retriable: true
     }
   ],
-  historical_balance_lookup: true
+  historical_balance_lookup: true,
+  call_methods: [],
+  balance_exemptions: [],
+  mempool_coins: false
 };
 
 const version = {
-  rosetta_version: '1.4.4',
+  rosetta_version: '1.4.10',
   node_version: 'cardano-node 1.18.0 - linux-x86_64 - ghc-8.6\ngit rev 36ad7b90bfbde8afd41b68ed9b928df3fcab0dbc',
   middleware_version: packageJson.version,
   metadata: {}

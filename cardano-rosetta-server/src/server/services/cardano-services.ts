@@ -37,7 +37,7 @@ export interface UnsignedTransaction {
 
 export interface TransactionParsed {
   operations: Components.Schemas.Operation[];
-  signers: string[];
+  account_identifier_signers: Components.Schemas.AccountIdentifier[];
 }
 
 export interface LinearFeeParameters {
@@ -191,7 +191,10 @@ const calculateFee = (
   return fee;
 };
 
+const addressesToAccountIdentifiers = (addresses: string[]) => addresses.map(address => ({ address }));
 const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
+const getUniqueAccountIdentifiers = (addresses: string[]) =>
+  addressesToAccountIdentifiers(getUniqueAddresses(addresses));
 
 const signatureProcessor: { [eraType: string]: Signatures } = {
   [EraAddressType.Shelley]: {
@@ -402,8 +405,10 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       const operations = TransactionProcessor.convert(logger, parsed.body(), extraData, networkId);
       logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
       logger.info(operations, '[parseSignedTransaction] Returning operations');
-      const signers = getUniqueAddresses(extraData.map(data => getSignerFromOperation(logger, networkId, data)));
-      return { operations, signers };
+      const accountIdentifierSigners = getUniqueAccountIdentifiers(
+        extraData.map(data => getSignerFromOperation(logger, networkId, data))
+      );
+      return { operations, account_identifier_signers: accountIdentifierSigners };
     } catch (error) {
       logger.error({ error }, '[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes');
       throw ErrorFactory.cantCreateSignedTransactionFromBytes();
@@ -417,7 +422,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       logger.info(extraData, '[parseUnsignedTransaction] About to parse operations from transaction body');
       const operations = TransactionProcessor.convert(logger, parsed, extraData, networkId);
       logger.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
-      return { operations, signers: [] };
+      return { operations, account_identifier_signers: [] };
     } catch (error) {
       logger.error(
         { error },

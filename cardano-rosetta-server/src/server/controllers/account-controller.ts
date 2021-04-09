@@ -3,13 +3,20 @@ import { withNetworkValidation } from '../controllers/controllers-helper';
 import { BlockService } from '../services/block-service';
 import { CardanoService } from '../services/cardano-services';
 import { NetworkService } from '../services/network-service';
-import { mapToAccountBalanceResponse } from '../utils/data-mapper';
+import {
+  filterRequestedCurrencies,
+  mapToAccountBalanceResponse,
+  mapToAccountCoinsResponse
+} from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
-
+import { validateCurrencies } from '../utils/validations';
 export interface AccountController {
   accountBalance(
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.AccountBalanceRequest>
   ): Promise<Components.Schemas.AccountBalanceResponse | Components.Schemas.Error>;
+  accountCoins(
+    request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.AccountCoinsRequest>
+  ): Promise<Components.Schemas.AccountCoinsResponse | Components.Schemas.Error>;
 }
 
 const configure = (
@@ -37,6 +44,28 @@ const configure = (
         );
         const toReturn = mapToAccountBalanceResponse(blockBalanceData);
         logger.debug(toReturn, '[accountBalance] About to return ');
+        return toReturn;
+      },
+      request.log,
+      networkService
+    ),
+  accountCoins: async request =>
+    withNetworkValidation(
+      request.body.network_identifier,
+      request,
+      async () => {
+        const logger = request.log;
+        const accountCoinsRequest = request.body;
+        const accountAddress = accountCoinsRequest.account_identifier.address;
+        const { currencies } = accountCoinsRequest;
+        logger.debug({ accountBalanceRequest: request.body }, '[accountCoins] Request received');
+        if (cardanoService.getEraAddressType(accountAddress) === null)
+          throw ErrorFactory.invalidAddressError(accountAddress);
+        currencies && validateCurrencies(currencies);
+        const currenciesRequested = filterRequestedCurrencies(currencies);
+        const blockUtxos = await blockService.findCoinsDataByAddress(logger, accountAddress, currenciesRequested);
+        const toReturn = mapToAccountCoinsResponse(blockUtxos);
+        logger.debug(toReturn, '[accountCoins] About to return ');
         return toReturn;
       },
       request.log,

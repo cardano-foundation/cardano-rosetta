@@ -1,7 +1,16 @@
 /* eslint-disable camelcase */
 
 import cbor from 'cbor';
-import { BalanceAtBlock, Block, BlockUtxos, Network, PopulatedTransaction, TokenBundle, Utxo } from '../models';
+import {
+  BalanceAtBlock,
+  Block,
+  BlockUtxos,
+  BlockUtxosMultiAssets,
+  Network,
+  PopulatedTransaction,
+  TokenBundle,
+  Utxo
+} from '../models';
 import { NetworkStatus } from '../services/network-service';
 import {
   ADA,
@@ -290,42 +299,34 @@ const updateMetadataCoin = (
   return updatedCoin;
 };
 
-const mapToAddressBalanceAndCoins = (
-  blockBalanceData: BlockUtxos
-): { adaBalance: Components.Schemas.Amount; adaCoins: Map<string, Components.Schemas.Coin> } => {
-  const mappedUtxos = blockBalanceData.utxos.reduce(
-    ({ adaBalance, adaCoins }, current, index) => {
-      const previousValue = blockBalanceData.utxos[index - 1];
-      // This function accumulates ADA value. As there might be several, one for each multi-asset, we need to
-      // avoid counting them twice
-      const coinId = `${current.transactionHash}:${current.index}`;
-      if (!previousValue || !areEqualUtxos(previousValue, current)) {
-        adaBalance += BigInt(current.value);
-        adaCoins.set(coinId, {
-          coin_identifier: {
-            identifier: coinId
-          },
-          amount: mapAmount(current.value)
-        });
-      }
-      if (current.policy && current.name !== undefined && current.quantity) {
-        // MultiAsset
-        const relatedCoin = adaCoins.get(coinId);
-        if (relatedCoin) {
-          const updatedCoin = updateMetadataCoin(relatedCoin, current.policy, current.quantity, current.name);
-          adaCoins.set(coinId, updatedCoin);
-        }
-      }
-      return { adaBalance, adaCoins };
-    },
-    {
-      adaBalance: BigInt(0),
-      adaCoins: new Map<string, Components.Schemas.Coin>()
+export const mapToAccountCoinsResponse = (blockCoinsData: BlockUtxos): Components.Schemas.AccountCoinsResponse => {
+  const mappedUtxos = blockCoinsData.utxos.reduce((adaCoins, current, index) => {
+    const previousValue = blockCoinsData.utxos[index - 1];
+    const coinId = `${current.transactionHash}:${current.index}`;
+    if (!previousValue || !areEqualUtxos(previousValue, current)) {
+      adaCoins.set(coinId, {
+        coin_identifier: {
+          identifier: coinId
+        },
+        amount: mapAmount(current.value)
+      });
     }
-  );
+    if (current.policy && current.name !== undefined && current.quantity) {
+      // MultiAsset
+      const relatedCoin = adaCoins.get(coinId);
+      if (relatedCoin) {
+        const updatedCoin = updateMetadataCoin(relatedCoin, current.policy, current.quantity, current.name);
+        adaCoins.set(coinId, updatedCoin);
+      }
+    }
+    return adaCoins;
+  }, new Map<string, Components.Schemas.Coin>());
   return {
-    adaBalance: mapAmount(mappedUtxos.adaBalance.toString()),
-    adaCoins: mappedUtxos.adaCoins
+    block_identifier: {
+      index: blockCoinsData.block.number,
+      hash: blockCoinsData.block.hash
+    },
+    coins: [...mappedUtxos.values()]
   };
 };
 
@@ -335,7 +336,7 @@ const mapToAddressBalanceAndCoins = (
  * @param accountAddress
  */
 export const mapToAccountBalanceResponse = (
-  blockBalanceData: BlockUtxos | BalanceAtBlock
+  blockBalanceData: BlockUtxosMultiAssets | BalanceAtBlock
 ): Components.Schemas.AccountBalanceResponse => {
   if (isBlockUtxos(blockBalanceData)) {
     const maBalances =
@@ -344,15 +345,22 @@ export const mapToAccountBalanceResponse = (
             mapAmount(maBalance.value, maBalance.name, MULTI_ASSET_DECIMALS, { policyId: maBalance.policy })
           )
         : [];
-    const { adaBalance, adaCoins } = mapToAddressBalanceAndCoins(blockBalanceData);
-    const totalBalance = [adaBalance, ...maBalances];
+    const adaBalance = blockBalanceData.utxos.reduce((totalAmount, current, index) => {
+      const previousValue = blockBalanceData.utxos[index - 1];
+      // This function accumulates ADA value. As there might be several, one for each multi-asset, we need to
+      // avoid counting them twice
+      if (!previousValue || !areEqualUtxos(previousValue, current)) {
+        totalAmount += BigInt(current.value);
+      }
+      return totalAmount;
+    }, BigInt(0));
+    const totalBalance = [mapAmount(adaBalance.toString()), ...maBalances];
     return {
       block_identifier: {
         index: blockBalanceData.block.number,
         hash: blockBalanceData.block.hash
       },
-      balances: totalBalance.length === 0 ? [mapAmount('0')] : totalBalance,
-      coins: [...adaCoins.values()]
+      balances: totalBalance.length === 0 ? [mapAmount('0')] : totalBalance
     };
   }
   return {
@@ -456,4 +464,14 @@ export const constructPayloadsForTransactionBody = (
   transactionBodyHash: string,
   addresses: string[]
 ): Components.Schemas.SigningPayload[] =>
-  addresses.map(address => ({ address, hex_bytes: transactionBodyHash, signature_type: SIGNATURE_TYPE }));
+  addresses.map(address => ({
+    account_identifier: {
+      address
+    },
+    hex_bytes: transactionBodyHash,
+    signature_type: SIGNATURE_TYPE
+  }));
+
+// if ADA is requested then all coins will be returned
+export const filterRequestedCurrencies = (currencies?: Components.Schemas.Currency[]): Components.Schemas.Currency[] =>
+  currencies && !currencies.map(currency => currency.symbol).some(s => s === ADA) ? currencies : [];

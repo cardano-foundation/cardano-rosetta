@@ -1,0 +1,11 @@
+[
+{
+    "exemption_type": "greater_or_equal"
+},
+{
+    "exemption_type": "less_or_equal"
+},
+{
+    "exemption_type": "dynamic"
+}
+]
