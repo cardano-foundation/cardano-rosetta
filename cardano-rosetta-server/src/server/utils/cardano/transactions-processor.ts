@@ -1,4 +1,4 @@
-import CardanoWasm from 'cardano-serialization-lib';
+import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
 import { ADA, ADA_DECIMALS, CurveType, OperationType } from '../constants';
@@ -35,7 +35,7 @@ const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: numbe
  */
 const keys = (
   collection: CardanoWasm.Assets | CardanoWasm.MultiAsset
-): CardanoWasm.AssetName[] | CardanoWasm.ScriptHash[] => {
+): (CardanoWasm.AssetName | CardanoWasm.ScriptHash)[] => {
   const keysArray = [];
   for (let j = 0; j < collection.len(); j++) {
     keysArray.push(collection.keys().get(j));

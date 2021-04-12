@@ -74,7 +74,7 @@
     "typescript": "3.9.5"
   },
   "dependencies": {
-    "cardano-serialization-lib": "file:./packages-cache/cardano-serialization-lib-5.0.0-98fdbfacef9e24dfb90b955dfadb1a3ff8e1425d-rc.0.tgz",
+    "@emurgo/cardano-serialization-lib-nodejs": "6.0.0",
     "cbor": "5.1.0",
     "dotenv": "8.2.0",
     "envalid": "6.0.2",

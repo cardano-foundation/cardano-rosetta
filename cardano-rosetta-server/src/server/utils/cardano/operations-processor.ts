@@ -9,7 +9,7 @@ import CardanoWasm, {
   StakeDeregistration,
   StakeRegistration,
   Value
-} from 'cardano-serialization-lib';
+} from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import { NetworkIdentifier, OperationType } from '../constants';
 import { ErrorFactory } from '../errors';
