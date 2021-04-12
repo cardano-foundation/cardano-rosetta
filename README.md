@@ -1,5 +1,5 @@
 # Cardano Rosetta
-[![CI][img_src_CI]][workflow_CI] [![Nightly][img_src_Nightly]][workflow_Nightly]
+[![CI][img_src_CI]][workflow_CI] [![Nightly][img_src_Nightly]][workflow_Nightly] [![Postman Send Transaction Example](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml/badge.svg)](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml)
 
 An implementation of [Rosetta 1.4.4] for [Cardano].
 

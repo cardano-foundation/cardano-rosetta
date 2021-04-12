@@ -1,4 +1,5 @@
 ## Postman Examples
+[![Postman Send Transaction Example](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml/badge.svg)](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml)
 
 ### What it does
 Using Postman Collections we can define high level scenarios that serve as tested documentation. You can import a Collection into the [Postman](https://www.postman.com/downloads) application to visualise the expected requests for each endpoint. In this context, we show you how Rosetta can be used to construct and submit a transaction. Provided the [nightly test](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml) is passing, you can be assured that this documentation is correct and up-to-date.

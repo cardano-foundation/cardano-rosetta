@@ -3,9 +3,6 @@ name: Postman Send Transaction Example
 on:
   schedule:
   - cron: '0 1 * * *'
-  push:
-    branches:
-    - feat/postman-examples
   workflow_dispatch:
 
 jobs:
