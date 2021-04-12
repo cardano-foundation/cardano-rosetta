@@ -1,0 +1,33 @@
+name: Postman Send Transaction Example
+
+on:
+  schedule:
+  - cron: '0 1 * * *'
+  workflow_dispatch:
+
+jobs:
+  postman-send-transaction-example:
+    runs-on: ubuntu-20.04
+    environment: Testnet
+    steps:
+    - name: Checkout Rosetta
+      uses: actions/checkout@v2
+
+    - name: Setup Node
+      uses: actions/setup-node@v2
+
+    - name: Install dependencies
+      working-directory: ./examples/postman
+      run: yarn install
+
+    - name: Set private key
+      working-directory: ./examples/postman
+      run: jq "(.values[] | select(.key==\"privateKey\") | .value) |= \"${{secrets.POSTMAN_SEND_TRANSACTION_EXAMPLE_PRIVATE_KEY}}\"" send_transaction_postman_environment.json > ./temp_env.json && mv ./temp_env.json ./send_transaction_postman_environment.json
+
+    - name: Run Signing Server
+      working-directory: ./examples/postman
+      run: node sign-transaction-server &
+
+    - name: Run Send Transaction Example
+      working-directory: ./examples/postman
+      run: yarn send-transaction-postman-example
