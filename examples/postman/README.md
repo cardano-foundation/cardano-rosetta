@@ -4,11 +4,13 @@
 Using Postman Collections we can define high level scenarios that serve as tested documentation. You can import a Collection into the [Postman](https://www.postman.com/downloads) application to visualise the expected requests for each endpoint. In this context, we show you how Rosetta can be used to construct and submit a transaction. Provided the [nightly test](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml) is passing, you can be assured that this documentation is correct and up-to-date.
 
 ### Get set up
-- Install [Postman](https://www.postman.com/downloads)
-- Run `$ npm i` to install node modules
+- Install [Postman](https://www.postman.com/downloads) (not required if running with Yarn)
 - Run `$ node sign-transaction-server` to start local server for handling transaction signing. This is required because there are limitations in Postman's sandbox environment.
 
-### Running the send transaction example
+### Running the send transaction example using Yarn
+- `$ yarn send-transaction-postman-example`
+
+### Running the send transaction example using Postman
 The `send_transaction.postman_collection.json` defines the scenario and `send_transaction_postman_environment.json` defines the environment variables. This example is designed to be run as a nightly test. As a result, the sender and receiver addresses are the same to allow funds to be "sent" to the same address. The scenario performs the following:
 - Queries sender address for ada and native asset balance.
 - Constructs a transaction to send some ada and 2 Testcoin to the sender address.

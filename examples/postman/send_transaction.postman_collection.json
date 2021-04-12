@@ -83,7 +83,7 @@
 									"});",
 									"",
 									"pm.test(\"UTxO has more than 2 ADA\", function () {",
-									"    pm.expect(Number(pm.response.json().coins[0].amount.value)).to.be.greaterThan(2_000_000)",
+									"    pm.expect(Number(pm.response.json().coins[0].amount.value)).to.be.greaterThan(2000000)",
 									"});",
 									"",
 									"pm.collectionVariables.set(\"utxo_ada_value\", Number(pm.response.json().coins[0].amount.value)); // DO NOT REMOVE",

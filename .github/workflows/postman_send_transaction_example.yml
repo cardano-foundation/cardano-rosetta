@@ -21,7 +21,7 @@ jobs:
 
     - name: Install dependencies
       working-directory: ./examples/postman
-      run: npm ci
+      run: yarn install
 
     - name: Set private key
       working-directory: ./examples/postman
@@ -33,4 +33,4 @@ jobs:
 
     - name: Run Send Transaction Example
       working-directory: ./examples/postman
-      run: npm run send-transaction
+      run: yarn send-transaction-postman-example
