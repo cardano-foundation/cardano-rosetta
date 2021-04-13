@@ -178,6 +178,7 @@ const configure = (
       request.log,
       networkService
     ),
+
   constructionPayloads: async request =>
     withNetworkValidation(
       request.body.network_identifier,

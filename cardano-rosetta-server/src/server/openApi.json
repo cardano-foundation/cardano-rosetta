@@ -1096,6 +1096,9 @@
           "pool_key_hash": {
             "type": "string"
           },
+          "pool_retirement" : {
+            "$ref" : "#/components/schemas/PoolRetirement"
+          },
           "tokenBundle": {
             "description": "A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.",
             "type": "array",
@@ -1192,6 +1195,16 @@
           },
           "hash": {
             "type": "string"
+          }
+        }
+      },
+      "PoolRetirement": {
+        "type" : "object",
+        "required" : ["epoch"],
+        "properties" : {
+          "epoch": {
+            "description": "Epoch slot",
+            "type": "number"
           }
         }
       },

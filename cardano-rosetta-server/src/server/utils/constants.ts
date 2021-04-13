@@ -41,7 +41,8 @@ export enum OperationType {
   WITHDRAWAL = 'withdrawal',
   STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration',
   POOL_REGISTRATION = 'poolRegistration',
-  POOL_REGISTRATION_WITH_CERT = 'poolRegistrationWithCert'
+  POOL_REGISTRATION_WITH_CERT = 'poolRegistrationWithCert',
+  POOL_RETIREMENT = 'poolRetirement'
 }
 
 export enum RelayType {
@@ -59,7 +60,11 @@ export const StakingOperations = [
   OperationType.WITHDRAWAL
 ];
 
-export const PoolOperations = [OperationType.POOL_REGISTRATION, OperationType.POOL_REGISTRATION_WITH_CERT];
+export const PoolOperations = [
+  OperationType.POOL_RETIREMENT,
+  OperationType.POOL_REGISTRATION,
+  OperationType.POOL_REGISTRATION_WITH_CERT
+];
 
 enum OperationTypeStatus {
   SUCCESS = 'success'
