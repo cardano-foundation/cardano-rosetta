@@ -1102,6 +1102,73 @@
             "items": {
               "$ref": "#/components/schemas/TokenBundleItem"
             }
+          },
+          "poolRegistrationParams": {
+            "$ref": "#/components/schemas/PoolRegistrationParams"
+          }
+        }
+      },
+      "PoolRegistrationParams": {
+        "type": "object",
+        "required": ["vrfKeyHash", "pledge", "cost", "rewardAccount", "poolOwners", "relays"],
+        "properties": {
+          "vrfKeyHash": {
+            "type": "string"
+          },
+          "pledge": {
+            "description": "Lovelace amount to pledge",
+            "type": "string"
+          },
+          "cost": {
+            "description": "Operational costs per epoch lovelace",
+            "type": "string"
+          },
+          "rewardAccount": {
+            "type": "string"
+          },
+          "poolOwners": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Relay"
+            }
+          },
+          "poolMetadata": {
+            "$ref": "#/components/schemas/PoolMetadata"
+          }
+        }
+      },
+      "Relay": {
+        "type": "object",
+        "properties": {
+          "ipv4": {
+            "type": "string"
+          },
+          "ipv6": {
+            "type": "string"
+          },
+          "dnsName": {
+            "type": "string"
+          },
+          "port": {
+            "type": "string"
+          }
+        }
+      },
+      "PoolMetadata": {
+        "type": "object",
+        "required": ["url", "hash"],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string"
           }
         }
       },

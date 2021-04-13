@@ -184,13 +184,16 @@ const calculateFee = (
   inputAmounts: string[],
   outputAmounts: string[],
   refundsSum: bigint,
-  depositsSum: bigint,
-  withdrawalAmounts: bigint[]
+  keyDepositsSum: bigint,
+  withdrawalAmounts: bigint[],
+  poolDepositsSum: bigint
+  // TODO
+  // eslint-disable-next-line max-params
 ): BigInt => {
   const inputsSum = inputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0)) * BigInt(-1);
   const outputsSum = outputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0));
   const withdrawalsSum = withdrawalAmounts.reduce((acum, current) => acum + current, BigInt(0));
-  const fee = inputsSum + withdrawalsSum + refundsSum - outputsSum - depositsSum;
+  const fee = inputsSum + withdrawalsSum + refundsSum - outputsSum - keyDepositsSum - poolDepositsSum;
   if (fee < 0) {
     throw ErrorFactory.outputsAreBiggerThanInputsError();
   }
@@ -223,18 +226,21 @@ const processOperations = (
   logger: Logger,
   network: NetworkIdentifier,
   operations: Components.Schemas.Operation[],
-  minKeyDeposit: number
+  minKeyDeposit: number,
+  poolDeposit: number
 ) => {
   logger.info('[processOperations] About to calculate fee');
   const result = OperationsProcessor.convert(logger, network, operations);
   const refundsSum = result.stakeKeyDeRegistrationsCount * minKeyDeposit;
-  const depositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
+  const keyDepositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
+  const poolDepositsSum = result.poolRegistrationsCount * poolDeposit;
   const fee = calculateFee(
     result.inputAmounts,
     result.outputAmounts,
     BigInt(refundsSum),
-    BigInt(depositsSum),
-    result.withdrawalAmounts
+    BigInt(keyDepositsSum),
+    result.withdrawalAmounts,
+    BigInt(poolDepositsSum)
   );
   logger.info(`[processOperations] Calculated fee: ${fee}`);
   return {
@@ -267,7 +273,11 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
-const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: number): CardanoService => ({
+const configure = (
+  linearFeeParameters: LinearFeeParameters,
+  minKeyDeposit: number,
+  poolDeposit: number
+): CardanoService => ({
   generateAddress(logger, network, publicKeyString, stakingCredentialString, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${JSON.stringify(
@@ -352,7 +362,8 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       logger,
       network,
       operations,
-      minKeyDeposit
+      minKeyDeposit,
+      poolDeposit
     );
 
     logger.info('[createUnsignedTransaction] About to create transaction body');

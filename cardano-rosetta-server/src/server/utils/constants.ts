@@ -39,7 +39,8 @@ export enum OperationType {
   STAKE_KEY_REGISTRATION = 'stakeKeyRegistration',
   STAKE_DELEGATION = 'stakeDelegation',
   WITHDRAWAL = 'withdrawal',
-  STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration'
+  STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration',
+  POOL_REGISTRATION = 'poolRegistration'
 }
 
 export const OPERATION_TYPES = Object.values(OperationType);
