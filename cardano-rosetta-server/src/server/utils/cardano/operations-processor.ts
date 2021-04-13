@@ -4,6 +4,7 @@ import CardanoWasm, {
   Assets,
   BigNum,
   MultiAsset,
+  PoolRetirement,
   ScriptHash,
   StakeDelegation,
   StakeDeregistration,
@@ -182,6 +183,25 @@ const processOperationCertification = (
   };
 };
 
+const processPoolRetirement = (
+  logger: Logger,
+  operation: Components.Schemas.Operation
+): { certificate: CardanoWasm.Certificate; poolKeyHash: string } => {
+  logger.info(`[processPoolRetiring] About to process operation of type ${operation.type}`);
+  // eslint-disable-next-line camelcase
+  if (operation.metadata?.pool_retirement && operation.metadata?.pool_key_hash) {
+    const poolKeyHash: string = operation.metadata.pool_key_hash!;
+    const epoch: number = operation.metadata.pool_retirement.epoch;
+    const keyHash = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex'));
+    return {
+      certificate: CardanoWasm.Certificate.new_pool_retirement(PoolRetirement.new(keyHash, epoch)),
+      poolKeyHash
+    };
+  }
+  logger.error('[processPoolRetiring] Operation metadata information is missing');
+  throw ErrorFactory.missingMetadataParametersForPoolRetirement();
+};
+
 const processWithdrawal = (
   logger: Logger,
   network: NetworkIdentifier,
@@ -240,6 +260,12 @@ const operationProcessor: (
     resultAccumulator.withdrawalAmounts.push(withdrawalAmount);
     resultAccumulator.withdrawals.insert(reward, BigNum.from_str(withdrawalAmount.toString()));
     resultAccumulator.addresses.push(address);
+    return resultAccumulator;
+  },
+  [OperationType.POOL_RETIREMENT]: () => {
+    const { certificate, poolKeyHash } = processPoolRetirement(logger, operation);
+    resultAccumulator.certificates.add(certificate);
+    resultAccumulator.addresses.push(poolKeyHash);
     return resultAccumulator;
   }
 });

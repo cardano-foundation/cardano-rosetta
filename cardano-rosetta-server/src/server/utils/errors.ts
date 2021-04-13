@@ -72,6 +72,10 @@ export const Errors = {
   INVALID_POLICY_ID: { message: 'Invalid policy id', code: 4023 },
   INVALID_TOKEN_NAME: { message: 'Invalid token name', code: 4024 },
   INVALID_POOL_KEY_HASH: { message: 'Provided pool key hash has invalid format', code: 4025 },
+  MISSING_METADATA_PARAMETERS_FOR_POOL_RETIREMENT: {
+    message: 'Mandatory parameters are missing: Epoch and pool key hash',
+    code: 4026
+  },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -116,6 +120,8 @@ const transactionOutputsParametersMissingError: CreateErrorFunction = (details?:
   buildApiError(Errors.TRANSACTION_OUTPUTS_PARAMETERS_MISSING_ERROR, false, details);
 const outputsAreBiggerThanInputsError: CreateErrorFunction = () =>
   buildApiError(Errors.OUTPUTS_BIGGER_THAN_INPUTS_ERROR, false);
+const missingMetadataParametersForPoolRetirement: CreateErrorFunction = () =>
+  buildApiError(Errors.MISSING_METADATA_PARAMETERS_FOR_POOL_RETIREMENT, false);
 const cantCreateSignedTransactionFromBytes: CreateErrorFunction = () =>
   buildApiError(Errors.CANT_CREATE_SIGNED_TRANSACTION_ERROR, false);
 const cantCreateUnsignedTransactionFromBytes: CreateErrorFunction = () =>
@@ -161,6 +167,7 @@ export const ErrorFactory = {
   outputsAreBiggerThanInputsError,
   cantCreateSignedTransactionFromBytes,
   cantCreateUnsignedTransactionFromBytes,
+  missingMetadataParametersForPoolRetirement,
   sendTransactionError,
   transactionInputDeserializationError,
   transactionOutputDeserializationError,

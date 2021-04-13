@@ -112,6 +112,11 @@ const allow = {
       retriable: false
     },
     {
+      code: 4026,
+      message: 'Mandatory parameters are missing: Epoch and pool key hash',
+      retriable: false
+    },
+    {
       code: 5000,
       message: 'An error occurred',
       retriable: true

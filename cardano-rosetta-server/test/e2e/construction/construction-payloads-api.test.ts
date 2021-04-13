@@ -32,7 +32,11 @@ import {
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
-  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_POOL_KEY_HASH,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE
 } from '../fixture-data';
 import { SIGNATURE_TYPE, POLICY_ID_LENGTH, ASSET_NAME_LENGTH } from '../../../src/server/utils/constants';
 
@@ -498,6 +502,63 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
           hex_bytes: '9c0f4e7fa746738d3df3665fc7cd11b2e3115e3268a047e0435f2454ed41fdc5'
         }
       ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool retirement', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'ec44114edfb063ce344797f95328ccfd8bc1c92f71816803803110cfebbb8360'
+        },
+        {
+          account_identifier: {
+            address: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'ec44114edfb063ce344797f95328ccfd8bc1c92f71816803803110cfebbb8360'
+        }
+      ]
+    });
+  });
+
+  test('Should throw an error when no epoch was sent on pool retirement operation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4026,
+      message: 'Mandatory parameters are missing: Epoch and pool key hash',
+      retriable: false
+    });
+  });
+
+  test('Should throw an error when no pool key hash was sent on pool retirement operation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_POOL_KEY_HASH
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4026,
+      message: 'Mandatory parameters are missing: Epoch and pool key hash',
+      retriable: false
     });
   });
 

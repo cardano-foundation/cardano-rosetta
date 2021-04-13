@@ -31,7 +31,9 @@ import {
   SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL,
   SIGNED_TX_WITH_TWO_WITHDRAWALS,
   SIGNED_TX_WITH_WITHDRAWAL,
-  TRANSACTION_SIZE_IN_BYTES
+  TRANSACTION_SIZE_IN_BYTES,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
+  SIGNED_TX_WITH_POOL_RETIREMENT
 } from '../fixture-data';
 import {
   modifyMAOperation,
@@ -176,6 +178,27 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_KEY_REGISTRATION) }
+    });
+  });
+
+  test('Should return a valid TTL when the operations include pool retirement', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        operations: CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT.operations,
+        relativeTtl: 100
+      })
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: {
+        relative_ttl: 100,
+        transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_RETIREMENT)
+      }
     });
   });
 
