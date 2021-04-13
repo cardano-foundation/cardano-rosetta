@@ -393,7 +393,6 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       throw ErrorFactory.cantBuildSignedTransaction();
     }
   },
-
   createUnsignedTransaction(logger, network, operations, ttl) {
     logger.info(
       `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`

@@ -41,7 +41,9 @@ import {
   CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_WITHDRWAWAL_AND_EXTRA_DATA,
   CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA,
   CONSTRUCTION_SIGNED_TX_INPUT_WITH_BYRON_ADDRESS_AND_EXTRA_DATA,
-  CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE
 } from '../fixture-data';
 import { setupOfflineDatabase, setupServer } from '../utils/test-utils';
 
@@ -199,6 +201,18 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION)
     );
+    expect(response.json().account_identifier_signers).toEqual([]);
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return 1 input, 2 outputs, 1 pool retirement and empty signers if a valid unsigned transaction is set', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload('cardano', 'mainnet', false, CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE)
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT));
     expect(response.json().account_identifier_signers).toEqual([]);
   });
 

@@ -2096,6 +2096,189 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION: Components.Sch
   }
 };
 
+export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT: Components.Schemas.ConstructionPayloadsRequest = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: OperationType.INPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1
+      },
+      type: OperationType.POOL_RETIREMENT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      metadata: {
+        pool_key_hash: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf',
+        pool_retirement: {
+          epoch: 200
+        }
+      }
+    }
+  ],
+  metadata: {
+    ttl: '1000'
+  }
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH: Components.Schemas.ConstructionPayloadsRequest = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: OperationType.INPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1
+      },
+      type: OperationType.POOL_RETIREMENT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      },
+      metadata: {
+        pool_key_hash: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf'
+      }
+    }
+  ],
+  metadata: {
+    ttl: '1000'
+  }
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_POOL_KEY_HASH: Components.Schemas.ConstructionPayloadsRequest = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: OperationType.INPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1
+      },
+      type: OperationType.POOL_RETIREMENT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      },
+      metadata: {
+        pool_retirement: {
+          epoch: 200
+        }
+      }
+    }
+  ],
+  metadata: {
+    ttl: '1000'
+  }
+};
+
 export const CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION: Components.Schemas.ConstructionPayloadsRequest = {
   network_identifier: {
     blockchain: 'cardano',
@@ -4049,6 +4232,13 @@ export const CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE = cbor
   ])
   .toString('hex');
 
+export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE = cbor
+  .encode([
+    'a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f010180021a00015f90031903e804818304581c153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf18c8',
+    constructionExtraData(CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT)
+  ])
+  .toString('hex');
+
 export const CONSTRUCTION_PAYLOADS_STAKE_DELEGATION_RESPONSE = cbor
   .encode([
     'a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8048183028200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
@@ -4446,6 +4636,8 @@ export const SIGNED_TX_WITH_MULTIPLE_MA =
 
 export const SIGNED_TEX_WITH_SEVERAL_MA =
   '83a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb82192710a1581cb0d07d45fe9514f80213f4020e5a61241458be626841cde717cb38a7a349477569646f436f696e190906504a75616e4372757a546f6b656e617a6f191a0a476e7574636f696e19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c400300a100818258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
+export const SIGNED_TX_WITH_POOL_RETIREMENT =
+  '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f010180021a00015f90030004818304581c153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf18c8a1008282582000000000000000000000000000000000000000000000000000000000000000005840000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
 
 export const SIGNED_TX_WITH_STAKE_KEY_REGISTRATION =
   '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c40021a006a0c700300048182008200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fba100818258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
