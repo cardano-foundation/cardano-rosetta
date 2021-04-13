@@ -182,6 +182,108 @@ const processOperationCertification = (
   };
 };
 
+// TODO
+// eslint-disable-next-line sonarjs/cognitive-complexity
+const generatePoolRelays = (relays: Components.Schemas.Relay[]): CardanoWasm.Relays => {
+  const relaysGenerated = CardanoWasm.Relays.new();
+  for (const relay of relays) {
+    if (relay.ipv4 || relay.ipv6) {
+      relaysGenerated.add(
+        CardanoWasm.Relay.new_single_host_addr(
+          CardanoWasm.SingleHostAddr.new(
+            !relay.port ? undefined : Number.parseInt(relay.port, 10),
+            relay.ipv4 ? CardanoWasm.Ipv4.from_bytes(Buffer.from(relay.ipv4, 'hex')) : undefined,
+            relay.ipv6 ? CardanoWasm.Ipv4.from_bytes(Buffer.from(relay.ipv6, 'hex')) : undefined
+          )
+        )
+      );
+      continue;
+    }
+    if (relay.dnsName && relay.port) {
+      relaysGenerated.add(
+        CardanoWasm.Relay.new_single_host_name(
+          CardanoWasm.SingleHostName.new(
+            relay.port ? Number.parseInt(relay.port, 10) : undefined,
+            CardanoWasm.DNSRecordAorAAAA.new(relay.dnsName)
+          )
+        )
+      );
+      continue;
+    }
+    if (relay.dnsName) {
+      relaysGenerated.add(
+        CardanoWasm.Relay.new_multi_host_name(
+          CardanoWasm.MultiHostName.new(CardanoWasm.DNSRecordAorAAAA.new(relay.dnsName))
+        )
+      );
+    }
+  }
+
+  return relaysGenerated;
+};
+
+const processPoolRegistration = (
+  logger: Logger,
+  operation: Components.Schemas.Operation
+): { certificate: CardanoWasm.Certificate; poolKeyHash: string } => {
+  if (!operation?.metadata?.poolRegistrationParams) throw Error;
+  // eslint-disable-next-line camelcase
+  const poolKeyHash = validateAndParsePoolKeyHash(logger, operation.metadata?.pool_key_hash);
+
+  const rewardAddress = CardanoWasm.Address.from_bytes(
+    Buffer.from(operation?.metadata.poolRegistrationParams.rewardAccount, 'hex')
+  );
+
+  const wasmRewardAddress = CardanoWasm.RewardAddress.from_address(rewardAddress);
+
+  if (!wasmRewardAddress) {
+    throw Error;
+  }
+
+  // pool owners
+  const owners = CardanoWasm.Ed25519KeyHashes.new();
+
+  operation.metadata?.poolRegistrationParams.poolOwners.forEach(owner => {
+    const ownerKey = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(owner, 'hex'));
+    owners.add(ownerKey);
+  });
+
+  // relays
+  const relays = generatePoolRelays(operation.metadata.poolRegistrationParams.relays);
+
+  const poolMetadata = (() => {
+    const metadata = operation.metadata?.poolRegistrationParams.poolMetadata;
+    return metadata
+      ? CardanoWasm.PoolMetadata.new(
+          CardanoWasm.URL.new(metadata.url),
+          CardanoWasm.MetadataHash.from_bytes(Buffer.from(metadata.hash, 'hex'))
+        )
+      : undefined;
+  })();
+
+  const wasmPoolRegistration = CardanoWasm.PoolRegistration.new(
+    CardanoWasm.PoolParams.new(
+      poolKeyHash,
+      CardanoWasm.VRFKeyHash.from_bytes(Buffer.from(operation.metadata?.poolRegistrationParams.vrfKeyHash, 'hex')),
+      CardanoWasm.BigNum.from_str(operation.metadata.poolRegistrationParams.pledge),
+      CardanoWasm.BigNum.from_str(operation.metadata.poolRegistrationParams.cost),
+      CardanoWasm.UnitInterval.new(
+        // TODO: dummy data since db-sync doesn't support this yet. Margin should be bring from params
+        CardanoWasm.BigNum.from_str('1'),
+        CardanoWasm.BigNum.from_str('1')
+      ),
+      wasmRewardAddress,
+      owners,
+      relays,
+      poolMetadata
+    )
+  );
+
+  const certificate = CardanoWasm.Certificate.new_pool_registration(wasmPoolRegistration);
+
+  return { certificate, poolKeyHash: Buffer.from(poolKeyHash.to_bytes()).toString() };
+};
+
 const processWithdrawal = (
   logger: Logger,
   network: NetworkIdentifier,
@@ -241,6 +343,13 @@ const operationProcessor: (
     resultAccumulator.withdrawals.insert(reward, BigNum.from_str(withdrawalAmount.toString()));
     resultAccumulator.addresses.push(address);
     return resultAccumulator;
+  },
+  [OperationType.POOL_REGISTRATION]: () => {
+    const { certificate, poolKeyHash } = processPoolRegistration(logger, operation);
+    resultAccumulator.certificates.add(certificate);
+    resultAccumulator.addresses.push(poolKeyHash);
+    resultAccumulator.poolRegistrationsCount++;
+    return resultAccumulator;
   }
 });
 
@@ -255,6 +364,7 @@ export interface ProcessOperationsResult {
   withdrawalAmounts: bigint[];
   stakeKeyRegistrationsCount: number;
   stakeKeyDeRegistrationsCount: number;
+  poolRegistrationsCount: number;
 }
 
 /**
@@ -283,7 +393,8 @@ export const convert = (
     outputAmounts: [],
     withdrawalAmounts: [],
     stakeKeyRegistrationsCount: 0,
-    stakeKeyDeRegistrationsCount: 0
+    stakeKeyDeRegistrationsCount: 0,
+    poolRegistrationsCount: 0
   };
 
   return operations.reduce<ProcessOperationsResult>((previousResult, operation) => {

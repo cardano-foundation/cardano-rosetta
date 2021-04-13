@@ -748,6 +748,7 @@ declare namespace Components {
        * A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.
        */
       tokenBundle?: TokenBundleItem[];
+      poolRegistrationParams?: PoolRegistrationParams;
     }
     /**
      * OperationStatus is utilized to indicate which Operation status are considered successful.
@@ -797,6 +798,25 @@ declare namespace Components {
       peer_id: string;
       metadata?: {};
     }
+    export interface PoolMetadata {
+      url: string;
+      hash: string;
+    }
+    export interface PoolRegistrationParams {
+      vrfKeyHash: string;
+      /**
+       * Lovelace amount to pledge
+       */
+      pledge: string;
+      /**
+       * Operational costs per epoch lovelace
+       */
+      cost: string;
+      rewardAccount: string;
+      poolOwners: string[];
+      relays: Relay[];
+      poolMetadata?: PoolMetadata;
+    }
     /**
      * PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation.
      */
@@ -814,6 +834,12 @@ declare namespace Components {
       network_identifier?: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       transaction_identifier: /* The transaction_identifier uniquely identifies a transaction in a particular network and block or in the mempool. */ TransactionIdentifier;
       direction: /* Used by RelatedTransaction to indicate the direction of the relation (i.e. cross-shard/cross-network sends may reference `backward` to an earlier transaction and async execution may reference `forward`). Can be used to indicate if a transaction relation is from child to parent or the reverse. */ Direction;
+    }
+    export interface Relay {
+      ipv4?: string;
+      ipv6?: string;
+      dnsName?: string;
+      port?: string;
     }
     /**
      * SearchTransactionsRequest is used to search for transactions matching a set of provided conditions in canonical blocks.

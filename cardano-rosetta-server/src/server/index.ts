@@ -21,6 +21,7 @@ const linearFeeParameters: LinearFeeParameters = {
   minFeeB: genesis.protocolParams.minFeeB
 };
 const keyDeposit = genesis.protocolParams.keyDeposit;
+const poolDeposit = genesis.protocolParams.poolDeposit;
 
 const start = async (databaseInstance: Pool) => {
   let server;
@@ -38,7 +39,8 @@ const start = async (databaseInstance: Pool) => {
       environment.TOPOLOGY_FILE,
       environment.DEFAULT_RELATIVE_TTL,
       linearFeeParameters,
-      keyDeposit
+      keyDeposit,
+      poolDeposit
     );
     server = buildServer(services, cardanoCli, cardanoNode, environment.LOGGER_LEVEL, {
       networkId,
