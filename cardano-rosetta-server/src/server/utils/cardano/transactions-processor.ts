@@ -1,7 +1,7 @@
-import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm, { PoolParams } from '@emurgo/cardano-serialization-lib-nodejs';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
-import { ADA, ADA_DECIMALS, CurveType, OperationType } from '../constants';
+import { ADA, ADA_DECIMALS, CurveType, OperationType, StakeAddressPrefix } from '../constants';
 import { mapAmount } from '../data-mapper';
 import { ErrorFactory } from '../errors';
 import { hexFormatter } from '../formatters';
@@ -27,6 +27,71 @@ const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: numbe
   status: '',
   type: OperationType.INPUT
 });
+
+// eslint-disable-next-line consistent-return
+const parsePoolMetadata = (poolParameters: CardanoWasm.PoolParams): Components.Schemas.PoolMetadata | undefined => {
+  const metadata = poolParameters.pool_metadata();
+  if (metadata) {
+    const hash = Buffer.from(metadata.metadata_hash().to_bytes()).toString();
+    const url = Buffer.from(metadata.url().to_bytes()).toString();
+    return { url, hash };
+  }
+};
+
+const parsePoolOwners = (poolParameters: CardanoWasm.PoolParams): Array<string> => {
+  const poolOwners: Array<string> = [];
+  const ownersCount = poolParameters.pool_owners().len();
+  for (let i = 0; i <= ownersCount; i++) {
+    const owner = poolParameters.pool_owners().get(i);
+    poolOwners.push(Buffer.from(owner.to_bytes()).toString('hex'));
+  }
+  return poolOwners;
+};
+
+const parsePoolRelays = (poolParameters: CardanoWasm.PoolParams): Array<Components.Schemas.Relay> => {
+  const poolRelays: Array<Components.Schemas.Relay> = [];
+  const relaysCount = poolParameters.relays().len();
+  for (let i = 0; i <= relaysCount; i++) {
+    const relay = poolParameters.relays().get(i);
+    const multiHostRelay = relay.as_multi_host_name();
+    if (multiHostRelay) {
+      poolRelays.push({ dnsName: multiHostRelay.dns_name().record() });
+      continue;
+    }
+    const singleHostName = relay.as_single_host_name();
+    if (singleHostName) {
+      poolRelays.push({ dnsName: singleHostName.dns_name().record(), port: singleHostName.port()?.toString() });
+      continue;
+    }
+    const singleHostAddr = relay.as_single_host_addr();
+    if (singleHostAddr) {
+      const ipv4 = singleHostAddr.ipv4() ? Buffer.from(singleHostAddr.ipv4()!.to_bytes).toString('hex') : undefined;
+      const ipv6 = singleHostAddr.ipv6() ? Buffer.from(singleHostAddr.ipv6()!.to_bytes).toString('hex') : undefined;
+      poolRelays.push({ port: singleHostAddr.port()?.toString(), ipv4, ipv6 });
+    }
+  }
+  return poolRelays;
+};
+
+const parsePoolRegistration = (
+  poolRegistration: CardanoWasm.PoolRegistration,
+  network: number
+): Components.Schemas.PoolRegistrationParams => {
+  const poolParameters = poolRegistration.pool_params();
+  const rewardAccount = poolParameters
+    .reward_account()
+    .to_address()
+    .to_bech32(getAddressPrefix(network, StakeAddressPrefix));
+  return {
+    vrfKeyHash: Buffer.from(poolParameters.operator().to_bytes()).toString('hex'),
+    pledge: Buffer.from(poolParameters.pledge().to_bytes()).toString(),
+    cost: Buffer.from(poolParameters.cost().to_bytes()).toString(),
+    rewardAccount,
+    poolOwners: parsePoolOwners(poolParameters),
+    relays: parsePoolRelays(poolParameters),
+    poolMetadata: parsePoolMetadata(poolParameters)
+  };
+};
 
 /**
  * Create policy id or asset name keys array
@@ -121,7 +186,9 @@ const parseCertToOperation = (
   index: number,
   hash: string,
   type: string,
-  address: string
+  address: string,
+  network: number
+  // eslint-disable-next-line max-params
 ): Components.Schemas.Operation => {
   const operation: Components.Schemas.Operation = {
     operation_identifier: { index },
@@ -132,10 +199,37 @@ const parseCertToOperation = (
       staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
     }
   };
-  const delegationCert = cert.as_stake_delegation();
-  if (delegationCert) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
+  if (type === OperationType.STAKE_DELEGATION) {
+    const delegationCert = cert.as_stake_delegation();
+    if (delegationCert) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
+    }
+  }
+  if (type === OperationType.POOL_REGISTRATION) {
+    const poolRegistrationCert = cert.as_pool_registration();
+    if (poolRegistrationCert) {
+      operation.metadata!.pool_key_hash = Buffer.from(
+        poolRegistrationCert
+          .pool_params()
+          .operator()
+          .to_bytes()
+      ).toString('hex');
+      operation.metadata!.poolRegistrationParams = parsePoolRegistration(poolRegistrationCert, network);
+    }
+  }
+  if (type === OperationType.POOL_REGISTRATION_WITH_CERT) {
+    const poolRegistrationCert = cert.as_pool_registration();
+    if (poolRegistrationCert) {
+      operation.metadata!.pool_key_hash = Buffer.from(
+        poolRegistrationCert
+          .pool_params()
+          .operator()
+          .to_bytes()
+      ).toString('hex');
+      const parsedPoolCert = Buffer.from(poolRegistrationCert.to_bytes()).toString('hex');
+      operation.metadata!.poolRegistrationCert = parsedPoolCert;
+    }
   }
   return operation;
 };
@@ -165,7 +259,8 @@ const parseCertsToOperations = (
         stakingOperation.operation_identifier.index,
         hex,
         stakingOperation.type,
-        address
+        address,
+        network
       );
       parsedOperations.push(parsedOperation);
     }
@@ -266,13 +361,14 @@ export const convert = (
     [
       OperationType.STAKE_KEY_REGISTRATION,
       OperationType.STAKE_KEY_DEREGISTRATION,
-      OperationType.STAKE_DELEGATION
+      OperationType.STAKE_DELEGATION,
+      OperationType.POOL_REGISTRATION,
+      OperationType.POOL_REGISTRATION_WITH_CERT
     ].includes(type as OperationType)
   );
   const certsCount = transactionBody.certs()?.len() || 0;
   const parsedCertOperations = parseCertsToOperations(logger, transactionBody, stakingOps, certsCount, network);
   operations.push(...parsedCertOperations);
-
   const withdrawalOps = extraData.filter(({ type }) => type === OperationType.WITHDRAWAL);
   const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
   parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations, network);

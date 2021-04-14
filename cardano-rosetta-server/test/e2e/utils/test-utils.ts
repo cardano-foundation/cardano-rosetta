@@ -50,6 +50,7 @@ export const linearFeeParameters = { minFeeA: 44, minFeeB: 155381 };
 
 const NETWORK_ID = 'mainnet';
 export const minKeyDeposit = 2000000;
+export const poolDeposit = 500000000;
 
 export const setupServer = (database: Pool): FastifyInstance => {
   // let repositories;
@@ -62,7 +63,8 @@ export const setupServer = (database: Pool): FastifyInstance => {
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
     Number(process.env.DEFAULT_RELATIVE_TTL),
     linearFeeParameters,
-    minKeyDeposit
+    minKeyDeposit,
+    poolDeposit
   );
   return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
     networkId: NETWORK_ID,

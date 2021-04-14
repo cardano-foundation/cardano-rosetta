@@ -91,7 +91,7 @@ const allow = {
     },
     {
       code: 4020,
-      message: 'Pool key hash is required for stake delegation',
+      message: 'Pool key hash is required to operate',
       retriable: false
     },
     {
@@ -109,6 +109,26 @@ const allow = {
     {
       code: 4025,
       message: 'Provided pool key hash has invalid format',
+      retriable: false
+    },
+    {
+      code: 4026,
+      message: 'Pool registration certificate is required for pool registration',
+      retriable: false
+    },
+    {
+      code: 4027,
+      message: 'Invalid pool registration certificate format',
+      retriable: false
+    },
+    {
+      code: 4028,
+      message: 'Invalid certificate type. Expected pool registration certificate',
+      retriable: false
+    },
+    {
+      code: 4029,
+      message: 'Pool registration parameters were expected',
       retriable: false
     },
     {
