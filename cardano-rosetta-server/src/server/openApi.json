@@ -1103,6 +1103,10 @@
               "$ref": "#/components/schemas/TokenBundleItem"
             }
           },
+          "poolRegistrationCert":{
+            "description": "Certificate of a pool registration encoded as hex string",
+            "type": "string" 
+          },
           "poolRegistrationParams": {
             "$ref": "#/components/schemas/PoolRegistrationParams"
           }

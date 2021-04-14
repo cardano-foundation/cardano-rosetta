@@ -748,6 +748,10 @@ declare namespace Components {
        * A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.
        */
       tokenBundle?: TokenBundleItem[];
+      /**
+       * Certificate of a pool registration encoded as hex string
+       */
+      poolRegistrationCert?: string;
       poolRegistrationParams?: PoolRegistrationParams;
     }
     /**

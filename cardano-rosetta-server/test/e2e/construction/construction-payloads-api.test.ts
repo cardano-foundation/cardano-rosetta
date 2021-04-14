@@ -599,7 +599,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
       code: 4020,
-      message: 'Pool key hash is required for stake delegation',
+      message: 'Pool key hash is required to operate',
       retriable: false
     });
   });
