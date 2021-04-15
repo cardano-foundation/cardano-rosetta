@@ -30,6 +30,7 @@ import {
 } from '../utils/constants';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
+import { isEd25519KeyHash } from '../utils/validations';
 
 export interface Signatures {
   signature: string;
@@ -209,7 +210,11 @@ const signatureProcessor: { [eraType: string]: Signatures } = {
   [EraAddressType.Shelley]: {
     signature: SHELLEY_DUMMY_SIGNATURE,
     publicKey: SHELLEY_DUMMY_PUBKEY
-  } // FIXME: handle this properly when supporting byron in a separate PR
+  }, // FIXME: handle this properly when supporting byron in a separate PR
+  [AddressType.POOL_KEY_HASH]: {
+    signature: SHELLEY_DUMMY_SIGNATURE,
+    publicKey: SHELLEY_DUMMY_PUBKEY
+  }
 };
 
 const getSignerFromOperation = (
@@ -397,8 +402,14 @@ const configure = (
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
       const eraAddressType = this.getEraAddressType(address);
-      if (eraAddressType === null) throw ErrorFactory.invalidAddressError(address);
-      return signatureProcessor[eraAddressType];
+      if (eraAddressType !== null) {
+        return signatureProcessor[eraAddressType];
+      }
+      // since pool key hash are passed as address, ed25519 hashes must be included
+      if (isEd25519KeyHash(address)) {
+        return signatureProcessor[AddressType.POOL_KEY_HASH];
+      }
+      throw ErrorFactory.invalidAddressError(address);
     });
     const transaction = this.buildTransaction(logger, bytes, signatures);
     // eslint-disable-next-line no-magic-numbers

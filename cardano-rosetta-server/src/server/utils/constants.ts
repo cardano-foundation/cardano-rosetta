@@ -78,7 +78,8 @@ export const SUCCESS_OPERATION_STATE = {
 export enum AddressType {
   ENTERPRISE = 'Enterprise',
   BASE = 'Base',
-  REWARD = 'Reward'
+  REWARD = 'Reward',
+  POOL_KEY_HASH = 'Pool_Hash'
 }
 
 export enum NetworkIdentifier {

@@ -1,6 +1,7 @@
 import { PUBLIC_KEY_BYTES_LENGTH, ADA, AddressType, CurveType, ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from './constants';
 import { ErrorFactory } from './errors';
 import { isEmptyHexString } from './formatters';
+import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 
 const tokenNameValidation = new RegExp(`^[0-9a-fA-F]{0,${ASSET_NAME_LENGTH}}$`);
 
@@ -24,4 +25,14 @@ export const validateCurrencies = (currencies: Components.Schemas.Currency[]): v
     if (symbol !== ADA && !isPolicyIdValid(metadata.policyId))
       throw ErrorFactory.invalidPolicyIdError(`Given policy id is ${metadata.policyId}`);
   });
+};
+
+export const isEd25519KeyHash = (hash: string): boolean => {
+  let edd25519Hash: CardanoWasm.Ed25519KeyHash;
+  try {
+    edd25519Hash = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(hash, 'hex'));
+  } catch (error) {
+    return false;
+  }
+  return !!edd25519Hash;
 };
