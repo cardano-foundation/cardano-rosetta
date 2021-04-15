@@ -148,7 +148,7 @@ const processStakeKeyRegistration = (
 
 const validateAndParsePoolKeyHash = (logger: Logger, poolKeyHash?: string): CardanoWasm.Ed25519KeyHash => {
   if (!poolKeyHash) {
-    logger.error('[validateAndParsePoolKeyHash] no pool key hash provided for stake delegation');
+    logger.error('[validateAndParsePoolKeyHash] no pool key hash provided');
     throw ErrorFactory.missingPoolKeyError();
   }
   let parsedPoolKeyHash: CardanoWasm.Ed25519KeyHash;
