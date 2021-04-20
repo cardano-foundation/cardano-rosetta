@@ -20,6 +20,7 @@ import {
   MULTI_ASSET_DECIMALS,
   NetworkIdentifier,
   OperationType,
+  PoolOperations,
   SIGNATURE_TYPE,
   StakingOperations,
   SUCCESS_STATUS
@@ -433,7 +434,8 @@ export const encodeExtraData = async (
     .filter(
       operation =>
         operation.coin_change?.coin_action === COIN_SPENT_ACTION ||
-        StakingOperations.includes(operation.type as OperationType)
+        StakingOperations.includes(operation.type as OperationType) ||
+        PoolOperations.includes(operation.type as OperationType)
     );
 
   return (await cbor.encodeAsync([transaction, extraData])).toString('hex');

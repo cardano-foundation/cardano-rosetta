@@ -132,11 +132,25 @@ export const modifyCoinChange = (
 
 export const modifyPoolKeyHash = (
   payload: Components.Schemas.ConstructionPayloadsRequest,
+  operationType: OperationType,
   poolKeyHash?: string
 ): Components.Schemas.ConstructionPayloadsRequest =>
   mod(
     'operations',
-    findBy((operation: Components.Schemas.Operation) => operation && operation.type === OperationType.STAKE_DELEGATION),
+    findBy((operation: Components.Schemas.Operation) => operation && operation.type === operationType),
     'metadata',
     'pool_key_hash'
   )(() => poolKeyHash)(payload);
+
+export const modfyPoolParameters = (
+  payload: Components.Schemas.ConstructionPayloadsRequest,
+  poolParameters: Components.Schemas.PoolRegistrationParams
+): Components.Schemas.ConstructionPayloadsRequest =>
+  mod(
+    'operations',
+    findBy(
+      (operation: Components.Schemas.Operation) => operation && operation.type === OperationType.POOL_REGISTRATION
+    ),
+    'metadata',
+    'poolRegistrationParams'
+  )(() => poolParameters)(payload);

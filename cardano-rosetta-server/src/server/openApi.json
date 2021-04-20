@@ -1103,9 +1103,9 @@
               "$ref": "#/components/schemas/TokenBundleItem"
             }
           },
-          "poolRegistrationCert":{
+          "poolRegistrationCert": {
             "description": "Certificate of a pool registration encoded as hex string",
-            "type": "string" 
+            "type": "string"
           },
           "poolRegistrationParams": {
             "$ref": "#/components/schemas/PoolRegistrationParams"
@@ -1114,7 +1114,7 @@
       },
       "PoolRegistrationParams": {
         "type": "object",
-        "required": ["vrfKeyHash", "pledge", "cost", "rewardAccount", "poolOwners", "relays"],
+        "required": ["vrfKeyHash", "pledge", "cost", "poolOwners", "relays"],
         "properties": {
           "vrfKeyHash": {
             "type": "string"
@@ -1125,9 +1125,6 @@
           },
           "cost": {
             "description": "Operational costs per epoch lovelace",
-            "type": "string"
-          },
-          "rewardAccount": {
             "type": "string"
           },
           "poolOwners": {
@@ -1149,7 +1146,9 @@
       },
       "Relay": {
         "type": "object",
+        "required": ["type"],
         "properties": {
+          "type": { "type": "string" },
           "ipv4": {
             "type": "string"
           },
