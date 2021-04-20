@@ -131,6 +131,24 @@ const allow = {
       message: 'Pool registration parameters were expected',
       retriable: false
     },
+    { code: 4030, message: 'Pool relays are invalid', retriable: false },
+    { code: 4031, message: 'Pool metadata is invalid', retriable: false },
+    { code: 4032, message: 'Dns name expected for pool relay', retriable: false },
+    {
+      code: 4033,
+      message: 'Invalid pool relay type received',
+      retriable: false
+    },
+    {
+      code: 4034,
+      message: 'Invalid pool owners received',
+      retriable: false
+    },
+    {
+      code: 4035,
+      message: 'Invalid pool registration parameters received',
+      retriable: false
+    },
     {
       code: 5000,
       message: 'An error occurred',

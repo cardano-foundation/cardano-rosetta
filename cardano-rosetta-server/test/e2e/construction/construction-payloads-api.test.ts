@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable max-statements */
 /* eslint-disable camelcase */
 import StatusCodes from 'http-status-codes';
@@ -9,7 +10,8 @@ import {
   testInvalidNetworkParameters,
   modifyMAOperation,
   modifyCoinChange,
-  modifyPoolKeyHash
+  modifyPoolKeyHash,
+  modfyPoolParameters
 } from '../utils/test-utils';
 import {
   CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS,
@@ -32,9 +34,30 @@ import {
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
-  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT_TYPE
 } from '../fixture-data';
-import { SIGNATURE_TYPE, POLICY_ID_LENGTH, ASSET_NAME_LENGTH } from '../../../src/server/utils/constants';
+import {
+  SIGNATURE_TYPE,
+  POLICY_ID_LENGTH,
+  ASSET_NAME_LENGTH,
+  OperationType
+} from '../../../src/server/utils/constants';
 
 const CONSTRUCTION_PAYLOADS_ENDPOINT = '/construction/payloads';
 
@@ -590,7 +613,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
   });
 
   test('Should return an error when no pool key hash is provided for stake delegation', async () => {
-    const payload = modifyPoolKeyHash(CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION);
+    const payload = modifyPoolKeyHash(CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION, OperationType.STAKE_DELEGATION);
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -605,7 +628,11 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
   });
 
   test('Should return an error when an invalid pool key hash is provided for stake delegation', async () => {
-    const payload = modifyPoolKeyHash(CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION, 'InvalidPoolKeyHash');
+    const payload = modifyPoolKeyHash(
+      CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
+      OperationType.STAKE_DELEGATION,
+      'InvalidPoolKeyHash'
+    );
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -776,6 +803,557 @@ describe('Invalid request with MultiAssets', () => {
         message: `Token name ${invalidSymbol} is not valid`
       },
       message: invalidOperationErrorMessage,
+      retriable: false
+    });
+  });
+});
+
+describe('Pool Registration', () => {
+  let database: Pool;
+  let server: FastifyInstance;
+
+  beforeAll(async () => {
+    database = setupOfflineDatabase();
+    server = setupServer(database);
+  });
+
+  afterAll(async () => {
+    await database.end();
+  });
+
+  test('Should return a valid unsigned transaction hash when sending valid operations with pool registration with pledge', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+        },
+        {
+          account_identifier: {
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+        }
+      ]
+    });
+  });
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with Single Host Addr relay', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '8da267e32058966c9b81d9e2cdfd88c5bf4322f3fc3bc9455618b15c1985074e'
+        },
+        {
+          account_identifier: {
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '8da267e32058966c9b81d9e2cdfd88c5bf4322f3fc3bc9455618b15c1985074e'
+        }
+      ]
+    });
+  });
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with Single Host Name relay', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '621bfe084e502ec8d7246390a3215404f6de65e9d4f93f1896f3df36f0872c9e'
+        },
+        {
+          account_identifier: {
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '621bfe084e502ec8d7246390a3215404f6de65e9d4f93f1896f3df36f0872c9e'
+        }
+      ]
+    });
+  });
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with Multi Host Name relay', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '15803239bcc181181b91c4f6b2f3818216c8152e406ed75ed39309c84bb69a8a'
+        },
+        {
+          account_identifier: {
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '15803239bcc181181b91c4f6b2f3818216c8152e406ed75ed39309c84bb69a8a'
+        }
+      ]
+    });
+  });
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with no pool metadata', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'ec473492709615faf136fda72867a012123538b2ebd7a1d9c2a25ba902233b47'
+        },
+        {
+          account_identifier: {
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'ec473492709615faf136fda72867a012123538b2ebd7a1d9c2a25ba902233b47'
+        }
+      ]
+    });
+  });
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with multiple relays', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '910d9c578eb9bcda5441a7faabe07e0ec56c6cd58615190199795ac8a7778371'
+        },
+        {
+          account_identifier: {
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '910d9c578eb9bcda5441a7faabe07e0ec56c6cd58615190199795ac8a7778371'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '910d9c578eb9bcda5441a7faabe07e0ec56c6cd58615190199795ac8a7778371'
+        }
+      ]
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with invalid pool key hash', async () => {
+    const payload = modifyPoolKeyHash(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      OperationType.POOL_REGISTRATION,
+      'InvalidPoolKeyHash'
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4025,
+      details: {
+        message:
+          // eslint-disable-next-line max-len
+          "Deserialization failed in Ed25519KeyHash because: Invalid cbor: expected tuple 'hash length' of length 28 but got length Len(0)."
+      },
+      message: 'Provided pool key hash has invalid format',
+      retriable: false
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with missing pool key hash', async () => {
+    const payload = modifyPoolKeyHash(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      OperationType.POOL_REGISTRATION
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4020,
+      message: 'Pool key hash is required to operate',
+      retriable: false
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with empty pool relays', async () => {
+    const emptyPoolRelays = {
+      vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+      pledge: '5000000',
+      cost: '3000000',
+      poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
+      relays: [],
+      poolMetadata: {
+        url: 'poolMetadataUrl',
+        hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
+      }
+    };
+    const payload = modfyPoolParameters(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA, emptyPoolRelays);
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4030,
+      message: 'Pool relays are invalid',
+      details: { message: 'Empty relays received' },
+      retriable: false
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with invalid pool relay type', async () => {
+    const invalidPoolRelays = {
+      vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+      pledge: '5000000',
+      cost: '3000000',
+      poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
+      relays: [{ type: 'invalidType' }],
+      poolMetadata: {
+        url: 'poolMetadataUrl',
+        hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
+      }
+    };
+    const payload = modfyPoolParameters(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      invalidPoolRelays
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4030,
+      message: 'Pool relays are invalid',
+      details: { message: 'Error: Invalid pool relay type received' },
+      retriable: false
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with invalid pool relays with invalid ipv4', async () => {
+    const invalidPoolRelays = {
+      vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+      pledge: '5000000',
+      cost: '3000000',
+      poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
+      relays: [{ type: 'single_host_addr', ipv4: 'notAHexString' }],
+      poolMetadata: {
+        url: 'poolMetadataUrl',
+        hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
+      }
+    };
+    const payload = modfyPoolParameters(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      invalidPoolRelays
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4030,
+      message: 'Pool relays are invalid',
+      details: { message: 'Deserialization: Invalid cbor: not enough bytes, expect 0 bytes but received 0 bytes.' },
+      retriable: false
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with invalid pool relays with invalid port', async () => {
+    const invalidPoolRelays = {
+      vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+      pledge: '5000000',
+      cost: '3000000',
+      poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
+      relays: [{ type: 'single_host_name', dnsName: 'dnsName', port: 'NaN' }],
+      poolMetadata: {
+        url: 'poolMetadataUrl',
+        hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
+      }
+    };
+    const payload = modfyPoolParameters(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      invalidPoolRelays
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4030,
+      message: 'Pool relays are invalid',
+      details: {
+        message: 'Invalid port NaN received'
+      },
+      retriable: false
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with pool relays with invalid pool metadata hash', async () => {
+    const invalidMetadataHash = 'invalidMetadataHash';
+    const invalidPoolRelays = {
+      vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+      pledge: '5000000',
+      cost: '3000000',
+      poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
+      relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
+      poolMetadata: {
+        url: 'poolMetadataUrl',
+        hash: invalidMetadataHash
+      }
+    };
+    const payload = modfyPoolParameters(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      invalidPoolRelays
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4031,
+      message: 'Pool metadata is invalid',
+      details: {
+        // eslint-disable-next-line quotes
+        message: `Deserialization failed in MetadataHash because: Invalid cbor: expected tuple 'hash length' of length 32 but got length Len(0).`
+      },
+      retriable: false
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with pool relays with invalid pool owners', async () => {
+    const invalidPoolOwner = 'notAHexString';
+    const invalidPoolRelays = {
+      vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+      pledge: '5000000',
+      cost: '3000000',
+      poolOwners: [invalidPoolOwner],
+      relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
+      poolMetadata: {
+        url: 'poolMetadataUrl',
+        hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
+      }
+    };
+    const payload = modfyPoolParameters(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      invalidPoolRelays
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4034,
+      message: 'Invalid pool owners received',
+      details: {
+        // eslint-disable-next-line quotes
+        message: `Deserialization failed in Ed25519KeyHash because: Invalid cbor: expected tuple 'hash length' of length 28 but got length Len(0).`
+      },
+      retriable: false
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with negative cost', async () => {
+    const invalidPoolRelays = {
+      vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+      pledge: '5000000',
+      cost: '-3000000',
+      poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
+      relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
+      poolMetadata: {
+        url: 'poolMetadataUrl',
+        hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
+      }
+    };
+    const payload = modfyPoolParameters(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      invalidPoolRelays
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4035,
+      message: 'Invalid pool registration parameters received',
+      details: {
+        message: 'Given pool cost -3000000 is invalid'
+      },
+      retriable: false
+    });
+  });
+  test('Should throw an error when there are operations including pool registration with pool relays with negative pledge', async () => {
+    const invalidPoolRelays = {
+      vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+      pledge: '-5000000',
+      cost: '3000000',
+      poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
+      relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
+      poolMetadata: {
+        url: 'poolMetadataUrl',
+        hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
+      }
+    };
+    const payload = modfyPoolParameters(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      invalidPoolRelays
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4035,
+      message: 'Invalid pool registration parameters received',
+      details: {
+        message: 'Given pool pledge -5000000 is invalid'
+      },
+      retriable: false
+    });
+  });
+});
+describe('Pool Registration with certification', () => {
+  let database: Pool;
+  let server: FastifyInstance;
+
+  beforeAll(async () => {
+    database = setupOfflineDatabase();
+    server = setupServer(database);
+  });
+
+  afterAll(async () => {
+    await database.end();
+  });
+  test('Should return a valid unsigned transaction hash when sending valid operations with pool registration with cert', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+        },
+        {
+          account_identifier: {
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+        }
+      ]
+    });
+  });
+  test('Should throw an error when sending operations with pool registration with invalid cert', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4027,
+      message: 'Invalid pool registration certificate format',
+      details: {
+        message:
+          'Deserialization failed in CertificateEnum because: Invalid cbor: not enough bytes, expect 0 bytes but received 0 bytes.'
+      },
+      retriable: false
+    });
+  });
+  test('Should throw an error when sending operations with pool registration with invalid cert type', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT_TYPE
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4028,
+      message: 'Invalid certificate type. Expected pool registration certificate',
       retriable: false
     });
   });

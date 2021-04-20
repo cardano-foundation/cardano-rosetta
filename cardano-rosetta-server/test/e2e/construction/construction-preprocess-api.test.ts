@@ -13,6 +13,13 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITM_MA_WITHOUT_NAME,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
@@ -24,6 +31,13 @@ import {
   SIGNED_TX_WITH_MA,
   SIGNED_TX_WITH_MA_WITHOUT_NAME,
   SIGNED_TX_WITH_MULTIPLE_MA,
+  SIGNED_TX_WITH_POOL_REGISTRATION_AND_PLEDGE,
+  SIGNED_TX_WITH_POOL_REGISTRATION_WITH_CERT,
+  SIGNED_TX_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME,
+  SIGNED_TX_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAYS,
+  SIGNED_TX_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+  SIGNED_TX_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR,
+  SIGNED_TX_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME,
   SIGNED_TX_WITH_STAKE_DELEGATION,
   SIGNED_TX_WITH_STAKE_KEY_DEREGISTRATION,
   SIGNED_TX_WITH_STAKE_KEY_REGISTRATION,
@@ -638,6 +652,145 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
         },
         message: invalidOperationErrorMessage,
         retriable: false
+      });
+    });
+  });
+  describe('Pool registration requests', () => {
+    test('Should properly process transactions with pool registrations with pledge', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE.operations
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_REGISTRATION_AND_PLEDGE) }
+      });
+    });
+    test('Should properly process transactions with pool registrations with multiple relays', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY.operations
+        })
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        options: {
+          relative_ttl: 100,
+          transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAYS)
+        }
+      });
+    });
+    test('Should properly process transactions with pool registrations with single host addr', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR.operations
+        })
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        options: {
+          relative_ttl: 100,
+          transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR)
+        }
+      });
+    });
+    test('Should properly process transactions with pool registrations with single host name', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME.operations
+        })
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        options: {
+          relative_ttl: 100,
+          transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME)
+        }
+      });
+    });
+    test('Should properly process transactions with pool registrations with multiple host name', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME.operations
+        })
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        options: {
+          relative_ttl: 100,
+          transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME)
+        }
+      });
+    });
+    test('Should properly process transactions with pool registrations with no pool metadata', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA.operations
+        })
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_REGISTRATION_WITH_NO_METADATA) }
+      });
+    });
+    test('Should properly process transactions with pool registrations with cert', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+        // eslint-disable-next-line no-magic-numbers
+        payload: generateProcessPayload({
+          blockchain: 'cardano',
+          network: 'mainnet',
+          relativeTtl: 100,
+          operations: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT.operations
+        })
+      });
+
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_REGISTRATION_WITH_CERT) }
       });
     });
   });

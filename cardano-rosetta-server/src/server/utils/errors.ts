@@ -1,5 +1,6 @@
 import ApiError from '../api-error';
 import ServerError from '../server-error';
+import { destination } from 'pino';
 
 export interface Error {
   message: string;
@@ -76,6 +77,12 @@ export const Errors = {
   INVALID_POOL_CERT: { message: 'Invalid pool registration certificate format', code: 4027 },
   INVALID_POOL_CERT_TYPE: { message: 'Invalid certificate type. Expected pool registration certificate', code: 4028 },
   POOL_REGISTRATION_PARAMS_MISSING: { message: 'Pool registration parameters were expected', code: 4029 },
+  INVALID_POOL_RELAYS: { message: 'Pool relays are invalid', code: 4030 },
+  INVALID_POOL_METADATA: { message: 'Pool metadata is invalid', code: 4031 },
+  DNS_NAME_MISSING: { message: 'Dns name expected for pool relay', code: 4032 },
+  INVALID_POOL_RELAY_TYPE: { message: 'Invalid pool relay type received', code: 4033 },
+  INVALID_POOL_OWNERS: { message: 'Invalid pool owners received', code: 4034 },
+  INVALID_POOL_REGISTRATION_PARAMS: { message: 'Invalid pool registration parameters received', code: 4035 },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -108,6 +115,7 @@ const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.A
 const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
 const invalidStakingKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_STAKING_KEY_FORMAT, false);
 const missingStakingKeyError: CreateErrorFunction = type => buildApiError(Errors.STAKING_KEY_MISSING, false, type);
+const missingDnsNameError: CreateErrorFunction = type => buildApiError(Errors.DNS_NAME_MISSING, false, type);
 const missingPoolCertError: CreateErrorFunction = type => buildApiError(Errors.POOL_CERT_MISSING, false, type);
 const missingPoolKeyError: CreateErrorFunction = type => buildApiError(Errors.POOL_KEY_MISSING, false, type);
 const missingPoolRegistrationParameters: CreateErrorFunction = type =>
@@ -116,6 +124,16 @@ const invalidPoolRegistrationCert: CreateErrorFunction = type => buildApiError(E
 const invalidPoolRegistrationCertType: CreateErrorFunction = type =>
   buildApiError(Errors.INVALID_POOL_CERT_TYPE, false, type);
 const invalidPoolKeyError: CreateErrorFunction = details => buildApiError(Errors.INVALID_POOL_KEY_HASH, false, details);
+const invalidPoolRelaysError: CreateErrorFunction = details =>
+  buildApiError(Errors.INVALID_POOL_RELAYS, false, details);
+const invalidPoolRegistrationParameters: CreateErrorFunction = details =>
+  buildApiError(Errors.INVALID_POOL_REGISTRATION_PARAMS, false, details);
+const invalidPoolRelayTypeError: CreateErrorFunction = details =>
+  buildApiError(Errors.INVALID_POOL_RELAY_TYPE, false, details);
+const invalidPoolOwnersError: CreateErrorFunction = details =>
+  buildApiError(Errors.INVALID_POOL_OWNERS, false, details);
+const invalidPoolMetadataError: CreateErrorFunction = details =>
+  buildApiError(Errors.INVALID_POOL_METADATA, false, details);
 const parseSignedTransactionError: CreateErrorFunction = () =>
   buildApiError(Errors.PARSE_SIGNED_TRANSACTION_ERROR, false);
 const cantBuildWitnessesSet: CreateErrorFunction = () => buildApiError(Errors.CANT_BUILD_WITNESSES_SET, false);
@@ -162,11 +180,17 @@ export const ErrorFactory = {
   invalidPoolRegistrationCertType,
   invalidPublicKeyFormat,
   invalidStakingKeyFormat,
+  missingDnsNameError,
   missingStakingKeyError,
   missingPoolCertError,
   missingPoolKeyError,
   missingPoolRegistrationParameters,
   invalidPoolKeyError,
+  invalidPoolRegistrationParameters,
+  invalidPoolRelaysError,
+  invalidPoolRelayTypeError,
+  invalidPoolOwnersError,
+  invalidPoolMetadataError,
   parseSignedTransactionError,
   cantBuildSignedTransaction,
   cantBuildWitnessesSet,
