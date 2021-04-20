@@ -52,6 +52,17 @@ export interface LinearFeeParameters {
   minFeeB: number;
 }
 
+export interface DepositsParameters {
+  keyDeposit: number;
+  poolDeposit: number;
+}
+
+export interface DepositsSum {
+  refundsSum: bigint;
+  keyDepositsSum: bigint;
+  poolDepositsSum: bigint;
+}
+
 const SHELLEY_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
 const SHELLEY_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
 
@@ -184,13 +195,10 @@ export interface CardanoService {
 const calculateFee = (
   inputAmounts: string[],
   outputAmounts: string[],
-  refundsSum: bigint,
-  keyDepositsSum: bigint,
   withdrawalAmounts: bigint[],
-  poolDepositsSum: bigint
-  // TODO
-  // eslint-disable-next-line max-params
+  depositsSum: DepositsSum
 ): BigInt => {
+  const { refundsSum, keyDepositsSum, poolDepositsSum } = depositsSum;
   const inputsSum = inputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0)) * BigInt(-1);
   const outputsSum = outputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0));
   const withdrawalsSum = withdrawalAmounts.reduce((acum, current) => acum + current, BigInt(0));
@@ -231,22 +239,20 @@ const processOperations = (
   logger: Logger,
   network: NetworkIdentifier,
   operations: Components.Schemas.Operation[],
-  minKeyDeposit: number,
-  poolDeposit: number
+  depositsParameters: DepositsParameters
 ) => {
   logger.info('[processOperations] About to calculate fee');
+  const { keyDeposit: minKeyDeposit, poolDeposit } = depositsParameters;
   const result = OperationsProcessor.convert(logger, network, operations);
   const refundsSum = result.stakeKeyDeRegistrationsCount * minKeyDeposit;
   const keyDepositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
   const poolDepositsSum = result.poolRegistrationsCount * poolDeposit;
-  const fee = calculateFee(
-    result.inputAmounts,
-    result.outputAmounts,
-    BigInt(refundsSum),
-    BigInt(keyDepositsSum),
-    result.withdrawalAmounts,
-    BigInt(poolDepositsSum)
-  );
+  const depositsSum = {
+    refundsSum: BigInt(refundsSum),
+    keyDepositsSum: BigInt(keyDepositsSum),
+    poolDepositsSum: BigInt(poolDepositsSum)
+  };
+  const fee = calculateFee(result.inputAmounts, result.outputAmounts, result.withdrawalAmounts, depositsSum);
   logger.info(`[processOperations] Calculated fee: ${fee}`);
   return {
     transactionInputs: result.transactionInputs,
@@ -280,8 +286,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
 
 const configure = (
   linearFeeParameters: LinearFeeParameters,
-  minKeyDeposit: number,
-  poolDeposit: number
+  depositsParameters: DepositsParameters
 ): CardanoService => ({
   generateAddress(logger, network, publicKeyString, stakingCredentialString, type = AddressType.ENTERPRISE) {
     logger.info(
@@ -367,8 +372,7 @@ const configure = (
       logger,
       network,
       operations,
-      minKeyDeposit,
-      poolDeposit
+      depositsParameters
     );
 
     logger.info('[createUnsignedTransaction] About to create transaction body');

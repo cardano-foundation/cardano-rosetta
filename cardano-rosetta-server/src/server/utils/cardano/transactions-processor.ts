@@ -77,6 +77,17 @@ const parsePoolRelays = (poolParameters: CardanoWasm.PoolParams): Array<Componen
   return poolRelays;
 };
 
+const parsePoolMargin = (poolParameters: CardanoWasm.PoolParams): Components.Schemas.PoolMargin => ({
+  denominator: poolParameters
+    .margin()
+    .denominator()
+    .to_str(),
+  numerator: poolParameters
+    .margin()
+    .numerator()
+    .to_str()
+});
+
 const parsePoolRegistration = (
   poolRegistration: CardanoWasm.PoolRegistration
 ): Components.Schemas.PoolRegistrationParams => {
@@ -87,6 +98,7 @@ const parsePoolRegistration = (
     cost: poolParameters.cost().to_str(),
     poolOwners: parsePoolOwners(poolParameters),
     relays: parsePoolRelays(poolParameters),
+    margin: parsePoolMargin(poolParameters),
     poolMetadata: parsePoolMetadata(poolParameters)
   };
 };
@@ -185,7 +197,6 @@ const parseCertToOperation = (
   hash: string,
   type: string,
   address: string
-  // eslint-disable-next-line max-params
 ): Components.Schemas.Operation => {
   const operation: Components.Schemas.Operation = {
     operation_identifier: { index },

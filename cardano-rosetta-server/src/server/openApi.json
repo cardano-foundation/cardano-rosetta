@@ -1114,7 +1114,7 @@
       },
       "PoolRegistrationParams": {
         "type": "object",
-        "required": ["vrfKeyHash", "pledge", "cost", "poolOwners", "relays"],
+        "required": ["vrfKeyHash", "pledge", "cost", "poolOwners", "relays", "margin"],
         "properties": {
           "vrfKeyHash": {
             "type": "string"
@@ -1139,6 +1139,9 @@
               "$ref": "#/components/schemas/Relay"
             }
           },
+          "margin": {
+            "$ref": "#/components/schemas/PoolMargin"
+          },
           "poolMetadata": {
             "$ref": "#/components/schemas/PoolMetadata"
           }
@@ -1159,6 +1162,18 @@
             "type": "string"
           },
           "port": {
+            "type": "string"
+          }
+        }
+      },
+      "PoolMargin": {
+        "type": "object",
+        "required": ["numerator", "denominator"],
+        "properties": {
+          "numerator": {
+            "type": "string"
+          },
+          "denominator": {
             "type": "string"
           }
         }
