@@ -2612,6 +2612,10 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE: Components
               port: '32'
             }
           ],
+          margin: {
+            numerator: '1',
+            denominator: '1'
+          },
           poolMetadata: {
             url: 'poolMetadataUrl',
             hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
@@ -2750,6 +2754,10 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY: C
               dnsName: 'dnsName'
             }
           ],
+          margin: {
+            numerator: '1',
+            denominator: '1'
+          },
           poolMetadata: {
             url: 'poolMetadataUrl',
             hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
@@ -2880,6 +2888,10 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR:
               port: '32'
             }
           ],
+          margin: {
+            numerator: '1',
+            denominator: '1'
+          },
           poolMetadata: {
             url: 'poolMetadataUrl',
             hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
@@ -2993,7 +3005,11 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA: Comp
               ipv6: '505820f5d9ea167fd2e0b19647f18dd1e0',
               port: '32'
             }
-          ]
+          ],
+          margin: {
+            numerator: '1',
+            denominator: '1'
+          }
         }
       }
     }
@@ -3103,6 +3119,10 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME:
               port: '32'
             }
           ],
+          margin: {
+            numerator: '1',
+            denominator: '1'
+          },
           poolMetadata: {
             url: 'poolMetadataUrl',
             hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
@@ -3215,6 +3235,10 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME: 
               dnsName: 'dnsName'
             }
           ],
+          margin: {
+            numerator: '1',
+            denominator: '1'
+          },
           poolMetadata: {
             url: 'poolMetadataUrl',
             hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'

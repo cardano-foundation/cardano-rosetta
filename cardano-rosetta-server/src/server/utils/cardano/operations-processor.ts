@@ -287,6 +287,34 @@ const validateAndParsePoolOwners = (logger: Logger, owners: Array<string>): Card
   }
 };
 
+const validateAndParsePoolRegistationParameters = (
+  logger: Logger,
+  poolRegistrationParameters: Components.Schemas.PoolRegistrationParams
+) => {
+  const poolParameters: { [key: string]: string } = {
+    cost: poolRegistrationParameters.cost,
+    pledge: poolRegistrationParameters.pledge,
+    numerator: poolRegistrationParameters.margin.numerator,
+    denominator: poolRegistrationParameters.margin.denominator
+  };
+  // eslint-disable-next-line unicorn/prevent-abbreviations
+  const parsedPoolParams: { [key: string]: BigNum } = {};
+  try {
+    Object.keys(poolParameters).forEach(k => {
+      const value = poolParameters[k];
+      if (!isPositiveNumber(value)) {
+        logger.error(`[validateAndParsePoolRegistationParameters] Given ${k} ${value} is invalid`);
+        throw ErrorFactory.invalidPoolRegistrationParameters(`Given ${k} ${value} is invalid`);
+      }
+      parsedPoolParams[k] = CardanoWasm.BigNum.from_str(poolParameters[k]);
+    });
+    return parsedPoolParams;
+  } catch (error) {
+    logger.error('[validateAndParsePoolRegistationParameters] Given pool parameters are invalid');
+    throw ErrorFactory.invalidPoolRegistrationParameters(error?.details?.message ? error.details.message : error);
+  }
+};
+
 const validateAndParsePoolMetadata = (
   logger: Logger,
   metadata?: Components.Schemas.PoolMetadata
@@ -317,15 +345,10 @@ const processPoolRegistration = (
     throw ErrorFactory.missingPoolRegistrationParameters();
   }
 
-  const { pledge, cost } = operation?.metadata?.poolRegistrationParams;
-  if (!isPositiveNumber(pledge)) {
-    logger.error(`[processPoolRegistration] Given pool pledge ${pledge} is invalid`);
-    throw ErrorFactory.invalidPoolRegistrationParameters(`Given pool pledge ${pledge} is invalid`);
-  }
-  if (!isPositiveNumber(cost)) {
-    logger.error(`[processPoolRegistration] Given pool cost ${cost} is invalid`);
-    throw ErrorFactory.invalidPoolRegistrationParameters(`Given pool cost ${cost} is invalid`);
-  }
+  const { pledge, cost, numerator, denominator } = validateAndParsePoolRegistationParameters(
+    logger,
+    operation?.metadata?.poolRegistrationParams
+  );
   // eslint-disable-next-line camelcase
   const poolKeyHash = validateAndParsePoolKeyHash(logger, operation.metadata?.pool_key_hash);
   // eslint-disable-next-line camelcase
@@ -346,13 +369,9 @@ const processPoolRegistration = (
     CardanoWasm.PoolParams.new(
       poolKeyHash,
       CardanoWasm.VRFKeyHash.from_bytes(Buffer.from(operation.metadata?.poolRegistrationParams.vrfKeyHash, 'hex')),
-      CardanoWasm.BigNum.from_str(operation.metadata.poolRegistrationParams.pledge),
-      CardanoWasm.BigNum.from_str(operation.metadata.poolRegistrationParams.cost),
-      CardanoWasm.UnitInterval.new(
-        // TODO: dummy data since db-sync doesn't support this yet. Margin should be bring from request
-        CardanoWasm.BigNum.from_str('1'),
-        CardanoWasm.BigNum.from_str('1')
-      ),
+      pledge,
+      cost,
+      CardanoWasm.UnitInterval.new(numerator, denominator),
       rewardAddress,
       owners,
       relays,

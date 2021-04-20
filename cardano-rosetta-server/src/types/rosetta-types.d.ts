@@ -802,6 +802,10 @@ declare namespace Components {
       peer_id: string;
       metadata?: {};
     }
+    export interface PoolMargin {
+      numerator: string;
+      denominator: string;
+    }
     export interface PoolMetadata {
       url: string;
       hash: string;
@@ -818,6 +822,7 @@ declare namespace Components {
       cost: string;
       poolOwners: string[];
       relays: Relay[];
+      margin: PoolMargin;
       poolMetadata?: PoolMetadata;
     }
     /**
