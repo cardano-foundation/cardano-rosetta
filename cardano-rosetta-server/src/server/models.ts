@@ -85,6 +85,10 @@ export interface Deregistration {
   stakeAddress: string;
   amount: string;
 }
+export interface PoolRetirement {
+  epoch: number;
+  address: string;
+}
 
 export interface Delegation {
   stakeAddress: string;
@@ -105,6 +109,7 @@ export interface PopulatedTransaction extends Transaction {
   registrations: Registration[];
   deregistrations: Deregistration[];
   delegations: Delegation[];
+  poolRetirements: PoolRetirement[];
 }
 
 export interface Network {

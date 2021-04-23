@@ -26,7 +26,8 @@ import Queries, {
   FindTransactionsOutputs,
   FindTransactionWithdrawals,
   FindUtxo,
-  FindMaBalance
+  FindMaBalance,
+  FindPoolRetirements
 } from './queries/blockchain-queries';
 
 export interface BlockchainRepository {
@@ -134,7 +135,8 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
         withdrawals: [],
         registrations: [],
         deregistrations: [],
-        delegations: []
+        delegations: [],
+        poolRetirements: []
       }
     };
   }, {});
@@ -336,6 +338,23 @@ const parseDeregistrationsRow = (
 });
 
 /**
+ * Parses a pool retirement row into a pool retirement object
+ *
+ * @param transaction
+ * @param deregistration
+ */
+const parsePoolRetirementRow = (
+  transaction: PopulatedTransaction,
+  poolRetirement: FindPoolRetirements
+): PopulatedTransaction => ({
+  ...transaction,
+  poolRetirements: transaction.poolRetirements.concat({
+    epoch: poolRetirement.epoch,
+    address: hexFormatter(poolRetirement.address)
+  })
+});
+
+/**
  * Updates the transaction appending delegations
  *
  * @param transaction
@@ -363,9 +382,18 @@ const populateTransactions = async (
     Queries.findTransactionWithdrawals,
     Queries.findTransactionRegistrations,
     Queries.findTransactionDeregistrations,
-    Queries.findTransactionDelegations
+    Queries.findTransactionDelegations,
+    Queries.findPoolRetirements
   ];
-  const [inputs, outputs, withdrawals, registrations, deregistrations, delegations] = await Promise.all(
+  const [
+    inputs,
+    outputs,
+    withdrawals,
+    registrations,
+    deregistrations,
+    delegations,
+    poolRetirements
+  ] = await Promise.all(
     operationsQueries.map(operationQuery => databaseInstance.query(operationQuery, [transactionsHashes]))
   );
   transactionsMap = populateTransactionField(transactionsMap, inputs.rows, parseInputsRow);
@@ -374,6 +402,7 @@ const populateTransactions = async (
   transactionsMap = populateTransactionField(transactionsMap, registrations.rows, parseRegistrationsRow);
   transactionsMap = populateTransactionField(transactionsMap, deregistrations.rows, parseDeregistrationsRow);
   transactionsMap = populateTransactionField(transactionsMap, delegations.rows, parseDelegationsRow);
+  transactionsMap = populateTransactionField(transactionsMap, poolRetirements.rows, parsePoolRetirementRow);
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore it will never be undefined

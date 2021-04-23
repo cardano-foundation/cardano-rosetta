@@ -9,7 +9,8 @@ import {
   transactionBlock4490558WithRegistrations,
   transactionBlock4490559WithDelegation,
   transactionBlock4597861WithWithdrawals,
-  transactionBlock4853177WithDeregistration
+  transactionBlock4853177WithDeregistration,
+  transactionBlock4853177WithPoolRetirement
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
@@ -254,6 +255,23 @@ describe('/block/transactions endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(transactionBlock4853177WithDeregistration);
+  });
+
+  test('should return a pool retirement transaction', async () => {
+    const transaction = 'dcbff41c50c5b4012d49be5be75b11a0c5289515258ef4cf108eb6ec4ed5f37a';
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(236746, 'b389d1c4975563bf4199afeaa1434dfd1b406e30ac4eda884a03ecef8cd0a87a'),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: transaction
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(transactionBlock4853177WithPoolRetirement);
   });
 
   test('should be able to return multiasset token transactions with several tokens in the bundle', async () => {
