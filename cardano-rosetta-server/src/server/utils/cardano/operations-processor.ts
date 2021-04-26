@@ -189,9 +189,9 @@ const processPoolRetirement = (
 ): { certificate: CardanoWasm.Certificate; poolKeyHash: string } => {
   logger.info(`[processPoolRetiring] About to process operation of type ${operation.type}`);
   // eslint-disable-next-line camelcase
-  if (operation.metadata?.pool_retirement && operation.metadata?.pool_key_hash) {
-    const poolKeyHash: string = operation.metadata.pool_key_hash!;
-    const epoch: number = operation.metadata.pool_retirement.epoch;
+  if (operation.metadata?.epoch && operation.account?.address) {
+    const poolKeyHash: string = operation.account?.address;
+    const epoch: number = operation.metadata.epoch;
     const keyHash = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex'));
     return {
       certificate: CardanoWasm.Certificate.new_pool_retirement(PoolRetirement.new(keyHash, epoch)),
