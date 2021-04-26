@@ -823,7 +823,7 @@ declare namespace Components {
       cost: string;
       poolOwners: string[];
       relays: Relay[];
-      margin: PoolMargin;
+      margin?: PoolMargin;
       poolMetadata?: PoolMetadata;
     }
     /**
