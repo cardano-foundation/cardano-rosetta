@@ -1427,6 +1427,39 @@ describe('Pool Registration', () => {
       retriable: false
     });
   });
+
+  test('Should throw an error when there are operations including pool registration with no margin', async () => {
+    const invalidPoolRelays = {
+      vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      pledge: '5000000',
+      cost: '3000000',
+      poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
+      relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
+      poolMetadata: {
+        url: 'poolMetadataUrl',
+        hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
+      }
+    };
+    const payload = modfyPoolParameters(
+      CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+      invalidPoolRelays
+    );
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4035,
+      message: 'Invalid pool registration parameters received',
+      details: {
+        message: 'Missing margin parameter at pool registration parameters'
+      },
+      retriable: false
+    });
+  });
   test('Should throw an error when there are operations including pool registration with invalid reward address', async () => {
     const payloadWithInvalidAddress = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',

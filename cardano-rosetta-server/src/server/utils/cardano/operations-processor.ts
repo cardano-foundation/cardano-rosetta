@@ -303,11 +303,20 @@ const validateAndParsePoolRegistationParameters = (
   logger: Logger,
   poolRegistrationParameters: Components.Schemas.PoolRegistrationParams
 ) => {
+  const denominator = poolRegistrationParameters?.margin?.denominator;
+  const numerator = poolRegistrationParameters?.margin?.numerator;
+
+  if (!denominator || !numerator) {
+    logger.error(
+      '[validateAndParsePoolRegistationParameters] Missing margin parameter at pool registration parameters'
+    );
+    throw ErrorFactory.invalidPoolRegistrationParameters('Missing margin parameter at pool registration parameters');
+  }
   const poolParameters: { [key: string]: string } = {
     cost: poolRegistrationParameters.cost,
     pledge: poolRegistrationParameters.pledge,
-    numerator: poolRegistrationParameters.margin.numerator,
-    denominator: poolRegistrationParameters.margin.denominator
+    numerator,
+    denominator
   };
   // eslint-disable-next-line unicorn/prevent-abbreviations
   const parsedPoolParams: { [key: string]: BigNum } = {};

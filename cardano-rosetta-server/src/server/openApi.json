@@ -1114,7 +1114,7 @@
       },
       "PoolRegistrationParams": {
         "type": "object",
-        "required": ["vrfKeyHash", "pledge", "cost", "poolOwners", "relays", "margin", "rewardAddress"],
+        "required": ["vrfKeyHash", "pledge", "cost", "poolOwners", "relays", "rewardAddress"],
         "properties": {
           "vrfKeyHash": {
             "type": "string"
