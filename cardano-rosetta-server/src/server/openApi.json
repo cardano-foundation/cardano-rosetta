@@ -1145,6 +1145,9 @@
           "margin": {
             "$ref": "#/components/schemas/PoolMargin"
           },
+          "margin_percentage": {
+            "type": "string"
+          },
           "poolMetadata": {
             "$ref": "#/components/schemas/PoolMetadata"
           }

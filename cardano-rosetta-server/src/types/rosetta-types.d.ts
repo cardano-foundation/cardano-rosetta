@@ -824,6 +824,7 @@ declare namespace Components {
       poolOwners: string[];
       relays: Relay[];
       margin?: PoolMargin;
+      margin_percentage?: string;
       poolMetadata?: PoolMetadata;
     }
     /**

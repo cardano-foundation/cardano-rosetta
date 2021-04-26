@@ -35,6 +35,8 @@ import { isEd25519KeyHash } from '../utils/validations';
 export interface Signatures {
   signature: string;
   publicKey: string;
+  chain_code?: string;
+  attributes?: string;
 }
 export interface UnsignedTransaction {
   hash: string;

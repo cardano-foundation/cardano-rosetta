@@ -646,6 +646,80 @@ export const transactionBlock4853177WithDeregistration = {
   }
 };
 
+export const launchpad235546WithPoolRegistration = {
+  transaction: {
+    operations: [
+      {
+        operation_identifier: { index: 0 },
+        type: 'input',
+        status: 'success',
+        account: {
+          address:
+            'addr_test1qrgej788jgwwqg2dnufrkeeksykjtu86trqlcd82585jgey2zanrjjggmm0t38fdgannesv9z9q2en42qar2t6rsat3q9yh4ug'
+        },
+        amount: { value: '-799997817691', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: {
+            identifier: 'd2e592ab44f65f8335dee7640a956d17a21f9020006253c52a939f3ba0fd3398:0'
+          },
+          coin_action: 'coin_spent'
+        }
+      },
+      {
+        operation_identifier: { index: 1 },
+        type: 'stakeDelegation',
+        status: 'success',
+        account: { address: 'stake_test1uz9pwe3efyydah4cn5k5weeucxz3zs9ve64qw349apcw4csdllxv4' },
+        metadata: { pool_key_hash: '503c82138b10d84b0ba36ff2e7342ea7fc40c57498dbc6fafe0cd322' }
+      },
+      {
+        operation_identifier: { index: 2 },
+        type: 'poolRegistration',
+        status: 'success',
+        account: { address: '503c82138b10d84b0ba36ff2e7342ea7fc40c57498dbc6fafe0cd322' },
+        metadata: {
+          poolRegistrationParams: {
+            rewardAddress: 'e08a1766394908dedeb89d2d47673cc1851140acceaa0746a5e870eae2',
+            cost: '340000000',
+            margin_percentage: '0.08',
+            pledge: '799450000000',
+            poolOwners: ['8a1766394908dedeb89d2d47673cc1851140acceaa0746a5e870eae2'],
+            relays: [
+              {
+                dnsName: 'relays.cardano-launchpad.chaincrucial.io',
+                ipv4: '',
+                ipv6: '',
+                port: '23001'
+              }
+            ],
+            vrfKeyHash: '74511e297e8d8670729af5a4eb08ff8b49f0247f1100f28ce5599b44f07b57b4'
+          }
+        }
+      },
+      {
+        operation_identifier: { index: 3, network_index: 0 },
+        related_operations: [{ index: 0 }],
+        type: 'output',
+        status: 'success',
+        account: {
+          address:
+            'addr_test1qrgej788jgwwqg2dnufrkeeksykjtu86trqlcd82585jgey2zanrjjggmm0t38fdgannesv9z9q2en42qar2t6rsat3q9yh4ug'
+        },
+        amount: { value: '799497619058', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: {
+            identifier: '2468895f6f8e7b00a298aab49647712ff55b453e35d14e32f737691a014c26eb:0'
+          },
+          coin_action: 'coin_created'
+        }
+      }
+    ],
+    transaction_identifier: {
+      hash: '2468895f6f8e7b00a298aab49647712ff55b453e35d14e32f737691a014c26eb'
+    }
+  }
+};
+
 export const transaction344050WithTokenBundle = {
   operations: [
     {

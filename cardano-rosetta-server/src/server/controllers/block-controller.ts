@@ -1,7 +1,11 @@
 import { FastifyRequest } from 'fastify';
 import { BlockService } from '../services/block-service';
 import { ErrorFactory } from '../utils/errors';
-import { mapToRosettaBlock, mapToRosettaTransaction } from '../utils/data-mapper';
+import {
+  getNetworkIdentifierByRequestParameters,
+  mapToRosettaBlock,
+  mapToRosettaTransaction
+} from '../utils/data-mapper';
 import { withNetworkValidation } from './controllers-helper';
 import { NetworkService } from '../services/network-service';
 

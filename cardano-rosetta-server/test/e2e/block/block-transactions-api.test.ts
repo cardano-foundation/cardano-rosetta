@@ -4,6 +4,7 @@ import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import {
   block23236WithTransactions,
+  launchpad235546WithPoolRegistration,
   transaction344050WithTokenBundle,
   transaction987aOnGenesis,
   transactionBlock4490558WithRegistrations,
@@ -271,5 +272,23 @@ describe('/block/transactions endpoint', () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({ transaction: transaction344050WithTokenBundle });
+  });
+
+  test('should return transaction pool registrations', async () => {
+    const transaction = '2468895f6f8e7b00a298aab49647712ff55b453e35d14e32f737691a014c26eb';
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(235546, 'beb6a8ac14ec7f51ef63f0db92ec4e7e03236f2b664b80fda568fba15191ab72'),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: transaction
+        }
+      }
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(launchpad235546WithPoolRegistration);
   });
 });

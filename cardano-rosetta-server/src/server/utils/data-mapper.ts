@@ -202,6 +202,31 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
     }
   }));
   totalOperations.push(delegationsAsOperations);
+  const poolRegistrationsAsOperations: Components.Schemas.Operation[] = transaction.poolRegistrations.map(
+    (poolRegistration, index) => ({
+      operation_identifier: {
+        index: getOperationCurrentIndex(totalOperations, index)
+      },
+      type: OperationType.POOL_REGISTRATION,
+      status: SUCCESS_STATUS,
+      account: {
+        // public cold key
+        address: poolRegistration.poolHash
+      },
+      metadata: {
+        poolRegistrationParams: {
+          pledge: poolRegistration.pledge,
+          rewardAddress: poolRegistration.address,
+          cost: poolRegistration.cost,
+          poolOwners: poolRegistration.owners,
+          margin_percentage: poolRegistration.margin,
+          vrfKeyHash: poolRegistration.vrfKeyHash,
+          relays: poolRegistration.relays
+        }
+      }
+    })
+  );
+  totalOperations.push(poolRegistrationsAsOperations);
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
   // refactored to use a reduce)

@@ -86,6 +86,40 @@ export interface Deregistration {
   amount: string;
 }
 
+export interface PoolRelay {
+  ipv4?: string;
+  ipv6?: string;
+  dnsName?: string;
+  port?: string;
+}
+
+export interface TransactionPoolRegistrations {
+  txHash: Buffer;
+  vrfKeyHash: Buffer;
+  pledge: string;
+  margin: string;
+  cost: string;
+  address: Buffer;
+  poolHash: Buffer;
+  owners: Buffer[];
+  relays: PoolRelay[];
+  metadataUrl?: string;
+  metadataHash?: Buffer;
+}
+
+export interface PoolRegistration {
+  vrfKeyHash: string;
+  pledge: string;
+  margin: string;
+  cost: string;
+  address: string;
+  poolHash: string;
+  owners: string[];
+  relays: PoolRelay[];
+  metadataUrl?: string;
+  metadataHash?: string;
+}
+
 export interface Delegation {
   stakeAddress: string;
   poolHash: string;
@@ -105,6 +139,7 @@ export interface PopulatedTransaction extends Transaction {
   registrations: Registration[];
   deregistrations: Deregistration[];
   delegations: Delegation[];
+  poolRegistrations: PoolRegistration[];
 }
 
 export interface Network {
