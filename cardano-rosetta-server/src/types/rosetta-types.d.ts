@@ -744,7 +744,7 @@ declare namespace Components {
       refundAmount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
       staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
       pool_key_hash?: string;
-      pool_retirement?: PoolRetirement;
+      epoch?: number;
       /**
        * A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.
        */

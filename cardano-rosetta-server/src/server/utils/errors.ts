@@ -84,7 +84,7 @@ export const Errors = {
   INVALID_POOL_OWNERS: { message: 'Invalid pool owners received', code: 4034 },
   INVALID_POOL_REGISTRATION_PARAMS: { message: 'Invalid pool registration parameters received', code: 4035 },
   MISSING_METADATA_PARAMETERS_FOR_POOL_RETIREMENT: {
-    message: 'Mandatory parameters are missing: Epoch and pool key hash',
+    message: 'Mandatory parameter is missing: Epoch',
     code: 4036
   },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },

@@ -151,7 +151,7 @@ const allow = {
     },
     {
       code: 4036,
-      message: 'Mandatory parameters are missing: Epoch and pool key hash',
+      message: 'Mandatory parameter is missing: Epoch',
       retriable: false
     },
     {
