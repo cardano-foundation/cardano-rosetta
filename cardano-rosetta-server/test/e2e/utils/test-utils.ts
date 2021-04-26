@@ -154,3 +154,14 @@ export const modfyPoolParameters = (
     'metadata',
     'poolRegistrationParams'
   )(() => poolParameters)(payload);
+
+export const modifyAccount = (
+  payload: Components.Schemas.ConstructionPayloadsRequest,
+  accountIdentifier: Components.Schemas.AccountIdentifier,
+  operationType: OperationType
+): Components.Schemas.ConstructionPayloadsRequest =>
+  mod(
+    'operations',
+    findBy((operation: Components.Schemas.Operation) => operation && operation.type === operationType),
+    'account'
+  )(() => accountIdentifier)(payload);
