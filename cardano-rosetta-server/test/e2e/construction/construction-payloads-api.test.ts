@@ -57,7 +57,6 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH,
-  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_POOL_KEY_HASH,
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE
 } from '../fixture-data';
 import {
@@ -591,21 +590,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
       code: 4026,
-      message: 'Mandatory parameters are missing: Epoch and pool key hash',
-      retriable: false
-    });
-  });
-
-  test('Should throw an error when no pool key hash was sent on pool retirement operation', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
-      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_POOL_KEY_HASH
-    });
-    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect(response.json()).toEqual({
-      code: 4026,
-      message: 'Mandatory parameters are missing: Epoch and pool key hash',
+      message: 'Mandatory parameter is missing: Epoch',
       retriable: false
     });
   });

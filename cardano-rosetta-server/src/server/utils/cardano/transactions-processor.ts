@@ -291,8 +291,7 @@ const parsePoolRetirementToOperation = (
   if (type === OperationType.POOL_RETIREMENT) {
     const poolRetirementCert = cert.as_pool_retirement();
     if (poolRetirementCert) {
-      operation.metadata!.pool_key_hash = Buffer.from(poolRetirementCert.pool_keyhash().to_bytes()).toString('hex');
-      operation.metadata!.pool_retirement = { epoch: poolRetirementCert.epoch() };
+      operation.metadata!.epoch = poolRetirementCert.epoch();
     }
   }
 

@@ -2134,13 +2134,10 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT: Components.Schemas.Cons
       type: OperationType.POOL_RETIREMENT,
       status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        address: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf'
       },
       metadata: {
-        pool_key_hash: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf',
-        pool_retirement: {
-          epoch: 200
-        }
+        epoch: 200
       }
     }
   ],
@@ -2187,7 +2184,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH: Components.Sch
       type: OperationType.POOL_RETIREMENT,
       status: 'success',
       account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        address: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf'
       },
       amount: {
         value: '-90000',
@@ -2203,75 +2200,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH: Components.Sch
         },
         coin_action: 'coin_spent'
       },
-      metadata: {
-        pool_key_hash: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf'
-      }
-    }
-  ],
-  metadata: {
-    ttl: '1000'
-  }
-};
-
-export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_POOL_KEY_HASH: Components.Schemas.ConstructionPayloadsRequest = {
-  network_identifier: {
-    blockchain: 'cardano',
-    network: 'mainnet'
-  },
-  operations: [
-    {
-      operation_identifier: {
-        index: 0,
-        network_index: 0
-      },
-      type: OperationType.INPUT,
-      status: 'success',
-      account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
-      },
-      amount: {
-        value: '-90000',
-        currency: {
-          symbol: 'ADA',
-          decimals: 6
-        }
-      },
-      coin_change: {
-        coin_identifier: {
-          // eslint-disable-next-line sonarjs/no-duplicate-string
-          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
-        },
-        coin_action: 'coin_spent'
-      }
-    },
-    {
-      operation_identifier: {
-        index: 1
-      },
-      type: OperationType.POOL_RETIREMENT,
-      status: 'success',
-      account: {
-        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
-      },
-      amount: {
-        value: '-90000',
-        currency: {
-          symbol: 'ADA',
-          decimals: 6
-        }
-      },
-      coin_change: {
-        coin_identifier: {
-          // eslint-disable-next-line sonarjs/no-duplicate-string
-          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
-        },
-        coin_action: 'coin_spent'
-      },
-      metadata: {
-        pool_retirement: {
-          epoch: 200
-        }
-      }
+      metadata: {}
     }
   ],
   metadata: {
