@@ -1,7 +1,7 @@
 import CardanoWasm, { PoolParams } from '@emurgo/cardano-serialization-lib-nodejs';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
-import { ADA, ADA_DECIMALS, CurveType, OperationType, StakeAddressPrefix, RelayType } from '../constants';
+import { ADA, ADA_DECIMALS, CurveType, OperationType, RelayType, StakingOperations } from '../constants';
 import { mapAmount } from '../data-mapper';
 import { ErrorFactory } from '../errors';
 import { hexFormatter } from '../formatters';
@@ -94,6 +94,12 @@ const parsePoolRegistration = (
   const poolParameters = poolRegistration.pool_params();
   return {
     vrfKeyHash: Buffer.from(poolParameters.vrf_keyhash().to_bytes()).toString('hex'),
+    rewardAddress: Buffer.from(
+      poolParameters
+        .reward_account()
+        .to_address()
+        .to_bytes()
+    ).toString('hex'),
     pledge: poolParameters.pledge().to_str(),
     cost: poolParameters.cost().to_str(),
     poolOwners: parsePoolOwners(poolParameters),
@@ -191,6 +197,38 @@ const parseOutputToOperation = (
   metadata: parseTokenBundle(logger, output)
 });
 
+const parsePoolCertToOperation = (
+  cert: CardanoWasm.Certificate,
+  index: number,
+  type: string
+): Components.Schemas.Operation => {
+  let address = '';
+  const metadata: Components.Schemas.OperationMetadata = {};
+  const poolRegistrationCert = cert.as_pool_registration();
+  if (poolRegistrationCert) {
+    address = Buffer.from(
+      poolRegistrationCert
+        .pool_params()
+        .operator()
+        .to_bytes()
+    ).toString('hex');
+    if (type === OperationType.POOL_REGISTRATION) {
+      metadata.poolRegistrationParams = parsePoolRegistration(poolRegistrationCert);
+    }
+    if (type === OperationType.POOL_REGISTRATION_WITH_CERT) {
+      const parsedPoolCert = Buffer.from(poolRegistrationCert.to_bytes()).toString('hex');
+      metadata.poolRegistrationCert = parsedPoolCert;
+    }
+  }
+  return {
+    operation_identifier: { index },
+    status: '',
+    type,
+    account: { address },
+    metadata
+  };
+};
+
 const parseCertToOperation = (
   cert: CardanoWasm.Certificate,
   index: number,
@@ -214,38 +252,14 @@ const parseCertToOperation = (
       operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
     }
   }
-  if (type === OperationType.POOL_REGISTRATION) {
-    const poolRegistrationCert = cert.as_pool_registration();
-    if (poolRegistrationCert) {
-      operation.metadata!.pool_key_hash = Buffer.from(
-        poolRegistrationCert
-          .pool_params()
-          .operator()
-          .to_bytes()
-      ).toString('hex');
-      operation.metadata!.poolRegistrationParams = parsePoolRegistration(poolRegistrationCert);
-    }
-  }
-  if (type === OperationType.POOL_REGISTRATION_WITH_CERT) {
-    const poolRegistrationCert = cert.as_pool_registration();
-    if (poolRegistrationCert) {
-      operation.metadata!.pool_key_hash = Buffer.from(
-        poolRegistrationCert
-          .pool_params()
-          .operator()
-          .to_bytes()
-      ).toString('hex');
-      const parsedPoolCert = Buffer.from(poolRegistrationCert.to_bytes()).toString('hex');
-      operation.metadata!.poolRegistrationCert = parsedPoolCert;
-    }
-  }
+
   return operation;
 };
 
 const parseCertsToOperations = (
   logger: Logger,
   transactionBody: CardanoWasm.TransactionBody,
-  stakingOps: Components.Schemas.Operation[],
+  certOps: Components.Schemas.Operation[],
   certsCount: number,
   network: number
 ): Components.Schemas.Operation[] => {
@@ -253,24 +267,36 @@ const parseCertsToOperations = (
   logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
 
   for (let i = 0; i < certsCount; i++) {
-    const stakingOperation = stakingOps[i];
-    const hex = stakingOperation.metadata?.staking_credential?.hex_bytes;
-    if (!hex) {
-      logger.error('[parseCertsToOperations] Staking key not provided');
-      throw ErrorFactory.missingStakingKeyError();
-    }
-    const credential = getStakingCredentialFromHex(logger, stakingOperation.metadata?.staking_credential);
-    const address = generateRewardAddress(logger, network, credential);
-    const cert = transactionBody.certs()?.get(i);
-    if (cert) {
-      const parsedOperation = parseCertToOperation(
-        cert,
-        stakingOperation.operation_identifier.index,
-        hex,
-        stakingOperation.type,
-        address
-      );
-      parsedOperations.push(parsedOperation);
+    const certOperation = certOps[i];
+    if (StakingOperations.includes(certOperation.type as OperationType)) {
+      const hex = certOperation.metadata?.staking_credential?.hex_bytes;
+      if (!hex) {
+        logger.error('[parseCertsToOperations] Staking key not provided');
+        throw ErrorFactory.missingStakingKeyError();
+      }
+      const credential = getStakingCredentialFromHex(logger, certOperation.metadata?.staking_credential);
+      const address = generateRewardAddress(logger, network, credential);
+      const cert = transactionBody.certs()?.get(i);
+      if (cert) {
+        const parsedOperation = parseCertToOperation(
+          cert,
+          certOperation.operation_identifier.index,
+          hex,
+          certOperation.type,
+          address
+        );
+        parsedOperations.push(parsedOperation);
+      }
+    } else {
+      const cert = transactionBody.certs()?.get(i);
+      if (cert) {
+        const parsedOperation = parsePoolCertToOperation(
+          cert,
+          certOperation.operation_identifier.index,
+          certOperation.type
+        );
+        parsedOperations.push(parsedOperation);
+      }
     }
   }
 
@@ -365,7 +391,7 @@ export const convert = (
     );
     operations.push(outputParsed);
   }
-  const stakingOps = extraData.filter(({ type }) =>
+  const certOps = extraData.filter(({ type }) =>
     [
       OperationType.STAKE_KEY_REGISTRATION,
       OperationType.STAKE_KEY_DEREGISTRATION,
@@ -375,7 +401,7 @@ export const convert = (
     ].includes(type as OperationType)
   );
   const certsCount = transactionBody.certs()?.len() || 0;
-  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, stakingOps, certsCount, network);
+  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, certOps, certsCount, network);
   operations.push(...parsedCertOperations);
   const withdrawalOps = extraData.filter(({ type }) => type === OperationType.WITHDRAWAL);
   const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;

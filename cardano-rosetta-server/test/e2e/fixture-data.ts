@@ -2592,15 +2592,11 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE: Components
       },
       type: OperationType.POOL_REGISTRATION,
       status: 'success',
-      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
+      account: { address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5' },
       metadata: {
-        staking_credential: {
-          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-          curve_type: 'edwards25519'
-        },
-        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
         poolRegistrationParams: {
           vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+          rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
           pledge: '5000000',
           cost: '3000000',
           poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
@@ -2725,15 +2721,11 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY: C
       },
       type: OperationType.POOL_REGISTRATION,
       status: 'success',
-      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
+      account: { address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5' },
       metadata: {
-        staking_credential: {
-          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-          curve_type: 'edwards25519'
-        },
-        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
         poolRegistrationParams: {
           vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+          rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
           pledge: '5000000',
           cost: '3000000',
           poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
@@ -2867,15 +2859,11 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR:
       },
       type: OperationType.POOL_REGISTRATION,
       status: 'success',
-      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
+      account: { address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5' },
       metadata: {
-        staking_credential: {
-          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-          curve_type: 'edwards25519'
-        },
-        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
         poolRegistrationParams: {
           vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+          rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
           pledge: '0',
           cost: '3000000',
           poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
@@ -2986,15 +2974,11 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA: Comp
       },
       type: OperationType.POOL_REGISTRATION,
       status: 'success',
-      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
+      account: { address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5' },
       metadata: {
-        staking_credential: {
-          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-          curve_type: 'edwards25519'
-        },
-        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
         poolRegistrationParams: {
           vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+          rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
           pledge: '0',
           cost: '3000000',
           poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
@@ -3100,15 +3084,11 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME:
       },
       type: OperationType.POOL_REGISTRATION,
       status: 'success',
-      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
+      account: { address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5' },
       metadata: {
-        staking_credential: {
-          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-          curve_type: 'edwards25519'
-        },
-        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
         poolRegistrationParams: {
           vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+          rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
           pledge: '0',
           cost: '3000000',
           poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
@@ -3217,15 +3197,11 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME: 
       },
       type: OperationType.POOL_REGISTRATION,
       status: 'success',
-      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
+      account: { address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5' },
       metadata: {
-        staking_credential: {
-          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-          curve_type: 'edwards25519'
-        },
-        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
         poolRegistrationParams: {
           vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+          rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
           pledge: '0',
           cost: '3000000',
           poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
@@ -3242,6 +3218,115 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME: 
           poolMetadata: {
             url: 'poolMetadataUrl',
             hash: '9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
+          }
+        }
+      }
+    }
+  ],
+  metadata: {
+    ttl: '1000'
+  }
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_COLD_KEY: Components.Schemas.ConstructionPayloadsRequest = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: OperationType.INPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000000000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: OperationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '10000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 2
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: OperationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '40000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.POOL_REGISTRATION,
+      status: 'success',
+      metadata: {
+        poolRegistrationParams: {
+          vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
+          rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+          pledge: '0',
+          cost: '3000000',
+          poolOwners: ['7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00'],
+          relays: [
+            {
+              type: 'single_host_addr',
+              ipv4: '445820f5d9',
+              ipv6: '505820f5d9ea167fd2e0b19647f18dd1e0',
+              port: '32'
+            }
+          ],
+          margin: {
+            numerator: '1',
+            denominator: '1'
           }
         }
       }
@@ -3333,13 +3418,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT: Components.
       },
       type: OperationType.POOL_REGISTRATION_WITH_CERT,
       status: 'success',
-      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
+      account: { address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5' },
       metadata: {
-        staking_credential: {
-          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-          curve_type: 'edwards25519'
-        },
-        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
         poolRegistrationCert:
           '8a03581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b558208dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db01a004c4b401a002dc6c0d81e820101581de1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb81581c7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f008184001820445820f5d9505820f5d9ea167fd2e0b19647f18dd1e0826f706f6f6c4d6574616461746155726c58209ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b'
       }
@@ -3446,13 +3526,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT: Com
       },
       type: OperationType.POOL_REGISTRATION_WITH_CERT,
       status: 'success',
-      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
+      account: { address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5' },
       metadata: {
-        staking_credential: {
-          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-          curve_type: 'edwards25519'
-        },
-        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
         poolRegistrationCert: 'notAValidHexCert'
       }
     }
@@ -3543,13 +3618,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT_TYPE
       },
       type: OperationType.POOL_REGISTRATION_WITH_CERT,
       status: 'success',
-      account: { address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5' },
+      account: { address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5' },
       metadata: {
-        staking_credential: {
-          hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
-          curve_type: 'edwards25519'
-        },
-        pool_key_hash: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
         poolRegistrationCert:
           '83028200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
       }
