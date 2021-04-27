@@ -20,6 +20,8 @@ import { getStakingCredentialFromHex } from '../utils/cardano/staking-credential
 import * as TransactionProcessor from '../utils/cardano/transactions-processor';
 import {
   AddressType,
+  ATTRIBUTES_LENGTH,
+  CHAIN_CODE_LENGTH,
   CurveType,
   EraAddressType,
   NetworkIdentifier,
@@ -65,9 +67,16 @@ export interface DepositsSum {
   poolDepositsSum: bigint;
 }
 
+// Shelley
 const SHELLEY_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
 const SHELLEY_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
 
+// Byron
+const BYRON_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
+const BYRON_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
+
+const CHAIN_CODE_DUMMY = new Array(CHAIN_CODE_LENGTH + 1).join('0');
+const ATTRIBUTES_DUMMY = new Array(ATTRIBUTES_LENGTH + 1).join('0');
 export interface CardanoService {
   /**
    * Derives a Shelley bech32 Enterprise address for the given public key
@@ -227,7 +236,13 @@ const signatureProcessor: { [eraType: string]: Signatures } = {
   [EraAddressType.Shelley]: {
     signature: SHELLEY_DUMMY_SIGNATURE,
     publicKey: SHELLEY_DUMMY_PUBKEY
-  }, // FIXME: handle this properly when supporting byron in a separate PR
+  },
+  [EraAddressType.Byron]: {
+    signature: BYRON_DUMMY_SIGNATURE,
+    publicKey: BYRON_DUMMY_PUBKEY,
+    chain_code: CHAIN_CODE_DUMMY,
+    attributes: ATTRIBUTES_DUMMY
+  },
   [AddressType.POOL_KEY_HASH]: {
     signature: SHELLEY_DUMMY_SIGNATURE,
     publicKey: SHELLEY_DUMMY_PUBKEY
@@ -277,15 +292,24 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   try {
     const witnesses = CardanoWasm.TransactionWitnessSet.new();
     const vkeyWitnesses = CardanoWasm.Vkeywitnesses.new();
+    const bootstrapWitnesses = CardanoWasm.BootstrapWitnesses.new();
 
     logger.info('[getWitnessesForTransaction] Extracting witnesses from signatures');
     signatures.forEach(signature => {
       const vkey: Vkey = Vkey.new(PublicKey.from_bytes(Buffer.from(signature.publicKey, 'hex')));
       const ed25519Signature: Ed25519Signature = Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'));
       vkeyWitnesses.add(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature));
+      if (signature.chain_code && signature.attributes) {
+        const chainCode = Buffer.from(signature.chain_code);
+        const attributes = Buffer.from(signature.attributes);
+        bootstrapWitnesses.add(CardanoWasm.BootstrapWitness.new(vkey, ed25519Signature, chainCode, attributes));
+      } else {
+        vkeyWitnesses.add(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature));
+      }
     });
     logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len()} witnesses were extracted to sign transaction`);
     witnesses.set_vkeys(vkeyWitnesses);
+    // witnesses.set_bootstraps(bootstrapWitnesses);
     return witnesses;
   } catch (error) {
     logger.error({ error }, '[getWitnessesForTransaction] There was an error building witnesses set for transaction');

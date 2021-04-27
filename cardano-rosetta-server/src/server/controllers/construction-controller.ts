@@ -199,6 +199,7 @@ const configure = (
           parseInt(ttl)
         );
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
+        // test only
         return {
           // eslint-disable-next-line camelcase
           unsigned_transaction: await encodeExtraData(unsignedTransaction.bytes, request.body.operations),
