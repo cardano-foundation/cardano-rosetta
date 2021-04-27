@@ -283,6 +283,7 @@ const poolRegistrationQuery = `
   WITH pool_registration AS (
   SELECT
     tx.hash as "txHash",
+    tx.id as "txId",
     pu.id as "updateId",
     ph.id as "poolId",
     pu.vrf_key_hash as "vrfKeyHash",
@@ -318,7 +319,8 @@ ${poolRegistrationQuery}
       po.hash AS "owner"
     FROM pool_registration pr
     JOIN pool_owner po
-    ON  po.pool_hash_id = pr."poolId"
+    ON  (po.pool_hash_id = pr."poolId" 
+    AND po.registered_tx_id = pr."txId")
 `;
 
 const findTransactionPoolRelays = `

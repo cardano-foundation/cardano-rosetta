@@ -727,6 +727,82 @@ export const launchpad235546WithPoolRegistration = {
   }
 };
 
+export const launchpad236643PoolRegistrationWithSeveralOwners = {
+  transaction: {
+    operations: [
+      {
+        operation_identifier: { index: 0 },
+        type: 'input',
+        status: 'success',
+        account: {
+          address:
+            'addr_test1qqslw59gg528x70pa3vg0ynsdfx70kr70erug22h5tkkvj3eppr5tp2u2uddxy6lq0pq2yjxttpnja6z84s5pp2xvqtsytzc8e'
+        },
+        amount: { value: '-2166859938552', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: {
+            identifier: 'e785c4ddb544decdc304bcd5110c6f92463d35029e0124de3e706399b6537e00:0'
+          },
+          coin_action: 'coin_spent'
+        }
+      },
+      {
+        operation_identifier: { index: 1 },
+        type: 'poolRegistration',
+        status: 'success',
+        account: { address: 'd6aafa5358b98373449434542e3da3564bc71635ae3247dc1a2b7b0e' },
+        metadata: {
+          depositAmount: { value: '500000000', currency: { symbol: 'ADA', decimals: 6 } },
+          poolRegistrationParams: {
+            rewardAddress: 'e0f695c35024868c4dd6f694e16b88bdf6986e31a074f790d75241c44b',
+            cost: '10000000000',
+            margin_percentage: '0.1',
+            pledge: '100000000',
+            poolOwners: [
+              '03d205532089ad2f7816892e2ef42849b7b52788e41b3fd43a6e01cf',
+              'c13582aec9a44fcc6d984be003c5058c660e1d2ff1370fd8b49ba73f',
+              'f695c35024868c4dd6f694e16b88bdf6986e31a074f790d75241c44b'
+            ],
+            relays: [
+              {
+                dnsName: '',
+                ipv4: '127.0.0.1',
+                ipv6: '',
+                port: '3001'
+              }
+            ],
+            vrfKeyHash: 'c78992878b9af2bff8363a3c45b0ead3b9a2ee6eb6e611e731037bb25b4db9ae'
+          }
+        }
+      },
+      {
+        operation_identifier: { index: 2, network_index: 0 },
+        related_operations: [
+          {
+            index: 0
+          }
+        ],
+        type: 'output',
+        status: 'success',
+        account: {
+          address:
+            'addr_test1qqslw59gg528x70pa3vg0ynsdfx70kr70erug22h5tkkvj3eppr5tp2u2uddxy6lq0pq2yjxttpnja6z84s5pp2xvqtsytzc8e'
+        },
+        amount: { value: '2166859729095', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: {
+            identifier: 'ea8e02abc93b863c386d25e31132866ddd61703f913b71d22af7d51843dd2bbe:0'
+          },
+          coin_action: 'coin_created'
+        }
+      }
+    ],
+    transaction_identifier: {
+      hash: 'ea8e02abc93b863c386d25e31132866ddd61703f913b71d22af7d51843dd2bbe'
+    }
+  }
+};
+
 export const transaction344050WithTokenBundle = {
   operations: [
     {

@@ -7,10 +7,10 @@ const CONTAINER_TEMP_DIR = '/tmp';
 const CONTAINER_NAME = 'cardano-test';
 
 export const removePostgresContainer = async (): Promise<void> => {
-  const docker = new Docker();
-  const container = await docker.getContainer(CONTAINER_NAME);
-  await container.stop();
-  await container.remove({ v: true });
+  // const docker = new Docker();
+  // const container = await docker.getContainer(CONTAINER_NAME);
+  // await container.stop();
+  // await container.remove({ v: true });
 };
 
 interface DatabaseConfig {

@@ -10,7 +10,8 @@ import {
   transactionBlock4490558WithRegistrations,
   transactionBlock4490559WithDelegation,
   transactionBlock4597861WithWithdrawals,
-  transactionBlock4853177WithDeregistration
+  transactionBlock4853177WithDeregistration,
+  launchpad236643PoolRegistrationWithSeveralOwners
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
@@ -290,5 +291,21 @@ describe('/block/transactions endpoint', () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(launchpad235546WithPoolRegistration);
+  });
+  test('should return transaction pool registrations with several owners', async () => {
+    const transaction = 'ea8e02abc93b863c386d25e31132866ddd61703f913b71d22af7d51843dd2bbe';
+    const response = await serverWithMultiassetsSupport.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(279711, 'f9db8c8da4fd42fb19f7c7f8b627faf3122dc63d3bd5b85172c5141c009fc2c0'),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: transaction
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(launchpad236643PoolRegistrationWithSeveralOwners);
   });
 });
