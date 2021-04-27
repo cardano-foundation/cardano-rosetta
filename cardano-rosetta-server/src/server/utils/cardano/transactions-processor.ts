@@ -268,12 +268,10 @@ const parseCertToOperation = (
       staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
     }
   };
-  if (type === OperationType.STAKE_DELEGATION) {
-    const delegationCert = cert.as_stake_delegation();
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (delegationCert)
-      operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
-  }
+  const delegationCert = cert.as_stake_delegation();
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  if (delegationCert)
+    operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
   return operation;
 };
 
@@ -453,22 +451,19 @@ export const convert = (
     const outputParsed = parseOutputToOperation(logger, output, operations.length, relatedOperations, address);
     operations.push(outputParsed);
   }
-  const poolRetirementOps = extraData.filter(({ type }) =>
-    [OperationType.POOL_RETIREMENT].includes(type as OperationType)
-  );
-  const stakingOps = extraData.filter(({ type }) =>
+
+  const filteredOperations = extraData.filter(({ type }) =>
     [
       OperationType.STAKE_KEY_REGISTRATION,
       OperationType.STAKE_KEY_DEREGISTRATION,
       OperationType.STAKE_DELEGATION,
       OperationType.POOL_REGISTRATION,
-      OperationType.POOL_REGISTRATION_WITH_CERT
+      OperationType.POOL_REGISTRATION_WITH_CERT,
+      OperationType.POOL_RETIREMENT
     ].includes(type as OperationType)
   );
-  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, stakingOps, network);
+  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, filteredOperations, network);
   operations.push(...parsedCertOperations);
-  const parsedPoolOperations = parsePoolRetirementToOperations(logger, transactionBody, poolRetirementOps);
-  operations.push(...parsedPoolOperations);
   const withdrawalOps = extraData.filter(({ type }) => type === OperationType.WITHDRAWAL);
   const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
   parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations, network);
