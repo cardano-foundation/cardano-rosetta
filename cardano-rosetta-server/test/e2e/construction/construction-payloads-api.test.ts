@@ -568,14 +568,14 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
             address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: 'ec44114edfb063ce344797f95328ccfd8bc1c92f71816803803110cfebbb8360'
+          hex_bytes: 'f3025002e2bf1004367b423e7f0815250062b4034271e1f81bf0a9b2a464e10a'
         },
         {
           account_identifier: {
             address: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: 'ec44114edfb063ce344797f95328ccfd8bc1c92f71816803803110cfebbb8360'
+          hex_bytes: 'f3025002e2bf1004367b423e7f0815250062b4034271e1f81bf0a9b2a464e10a'
         }
       ]
     });
