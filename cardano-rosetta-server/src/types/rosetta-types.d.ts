@@ -741,7 +741,7 @@ declare namespace Components {
       /**
        * If it's a deregistration operation, the amount will re returned here.
        */
-      fundAmount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
+      refundAmount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
       staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
       pool_key_hash?: string;
       /**

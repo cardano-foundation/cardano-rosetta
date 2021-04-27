@@ -1,11 +1,8 @@
 import { FastifyRequest } from 'fastify';
 import { BlockService } from '../services/block-service';
+import { CardanoService } from '../services/cardano-services';
 import { ErrorFactory } from '../utils/errors';
-import {
-  getNetworkIdentifierByRequestParameters,
-  mapToRosettaBlock,
-  mapToRosettaTransaction
-} from '../utils/data-mapper';
+import { mapToRosettaBlock, mapToRosettaTransaction } from '../utils/data-mapper';
 import { withNetworkValidation } from './controllers-helper';
 import { NetworkService } from '../services/network-service';
 
@@ -18,7 +15,12 @@ export interface BlockController {
   ): Promise<Components.Schemas.BlockTransactionResponse | Components.Schemas.Error>;
 }
 
-const configure = (blockService: BlockService, PAGE_SIZE: number, networkService: NetworkService): BlockController => ({
+const configure = (
+  blockService: BlockService,
+  cardanoService: CardanoService,
+  PAGE_SIZE: number,
+  networkService: NetworkService
+): BlockController => ({
   block: async request =>
     withNetworkValidation(
       request.body.network_identifier,
@@ -33,10 +35,11 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkService
         if (block !== null) {
           logger.info('[block] Block was found');
           const transactionsFound = await blockService.findTransactionsByBlock(logger, block);
+          const { poolDeposit } = await cardanoService.getDepositParameters(logger);
           if (transactionsFound.length > PAGE_SIZE) {
             logger.info('[block] Returning only transactions hashes since the number of them is bigger than PAGE_SIZE');
             return {
-              block: mapToRosettaBlock(block, []),
+              block: mapToRosettaBlock(block, [], poolDeposit),
               // eslint-disable-next-line camelcase
               other_transactions: transactionsFound.map(transaction => ({
                 hash: transaction.hash
@@ -47,7 +50,7 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkService
           const transactions = await blockService.fillTransactions(logger, transactionsFound);
           logger.info(transactions, '[block] transactions already filled');
           return {
-            block: mapToRosettaBlock(block, transactions)
+            block: mapToRosettaBlock(block, transactions, poolDeposit)
           };
         }
         logger.error('[block] Block was not found');
@@ -79,7 +82,8 @@ const configure = (blockService: BlockService, PAGE_SIZE: number, networkService
           logger.error('[blockTransaction] No transaction found');
           throw ErrorFactory.transactionNotFound();
         }
-        const response = mapToRosettaTransaction(transaction);
+        const { poolDeposit } = await cardanoService.getDepositParameters(logger);
+        const response = mapToRosettaTransaction(transaction, poolDeposit);
         logger.debug({ response }, '[blockTransaction] Returning response ');
         return {
           transaction: response

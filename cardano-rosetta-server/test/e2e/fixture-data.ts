@@ -620,7 +620,7 @@ export const transactionBlock4853177WithDeregistration = {
         type: 'stakeKeyDeregistration',
         status: 'success',
         account: { address: 'stake1u8zfnkhp4g6vhneetmv2qen7f5ndrklqjq8e9s2nck9h30cfz6qmp' },
-        metadata: { fundAmount: { value: '-2000000', currency: { symbol: 'ADA', decimals: 6 } } }
+        metadata: { refundAmount: { value: '-2000000', currency: { symbol: 'ADA', decimals: 6 } } }
       },
       {
         operation_identifier: { index: 2, network_index: 0 },
@@ -678,6 +678,13 @@ export const launchpad235546WithPoolRegistration = {
         status: 'success',
         account: { address: '503c82138b10d84b0ba36ff2e7342ea7fc40c57498dbc6fafe0cd322' },
         metadata: {
+          depositAmount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '500000000'
+          },
           poolRegistrationParams: {
             rewardAddress: 'e08a1766394908dedeb89d2d47673cc1851140acceaa0746a5e870eae2',
             cost: '340000000',
