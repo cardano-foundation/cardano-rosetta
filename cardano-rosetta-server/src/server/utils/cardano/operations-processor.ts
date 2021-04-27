@@ -422,17 +422,15 @@ const processPoolRetirement = (
   operation: Components.Schemas.Operation
 ): { certificate: CardanoWasm.Certificate; poolKeyHash: string } => {
   logger.info(`[processPoolRetiring] About to process operation of type ${operation.type}`);
-  // eslint-disable-next-line camelcase
   if (operation.metadata?.epoch && operation.account?.address) {
-    const poolKeyHash: string = operation.account?.address;
-    const epoch: number = operation.metadata.epoch;
-    const keyHash = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex'));
+    const epoch = operation.metadata.epoch;
+    const keyHash = validateAndParsePoolKeyHash(logger, operation.account?.address);
     return {
       certificate: CardanoWasm.Certificate.new_pool_retirement(PoolRetirement.new(keyHash, epoch)),
-      poolKeyHash
+      poolKeyHash: operation.account?.address
     };
   }
-  logger.error('[processPoolRetiring] Operation metadata information is missing');
+  logger.error('[processPoolRetiring] Epoch operation metadata is missing');
   throw ErrorFactory.missingMetadataParametersForPoolRetirement();
 };
 
