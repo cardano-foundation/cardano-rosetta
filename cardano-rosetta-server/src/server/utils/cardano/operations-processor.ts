@@ -512,6 +512,7 @@ const operationProcessor: (
     const { certificate, poolKeyHash } = processPoolRetirement(logger, operation);
     resultAccumulator.certificates.add(certificate);
     resultAccumulator.addresses.push(poolKeyHash);
+    resultAccumulator.poolRetirementsCount++;
     return resultAccumulator;
   }
 });
@@ -528,6 +529,7 @@ export interface ProcessOperationsResult {
   stakeKeyRegistrationsCount: number;
   stakeKeyDeRegistrationsCount: number;
   poolRegistrationsCount: number;
+  poolRetirementsCount: number;
 }
 
 /**
@@ -557,7 +559,8 @@ export const convert = (
     withdrawalAmounts: [],
     stakeKeyRegistrationsCount: 0,
     stakeKeyDeRegistrationsCount: 0,
-    poolRegistrationsCount: 0
+    poolRegistrationsCount: 0,
+    poolRetirementsCount: 0
   };
 
   return operations.reduce<ProcessOperationsResult>((previousResult, operation) => {

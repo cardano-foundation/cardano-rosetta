@@ -38,6 +38,18 @@ export interface Signatures {
   chain_code?: string;
   attributes?: string;
 }
+
+export interface DepositsParameters {
+  keyDeposit: number;
+  poolDeposit: number;
+}
+
+export interface DepositsSum {
+  keyRefundsSum: bigint;
+  keyDepositsSum: bigint;
+  poolRefundsSum: bigint;
+}
+
 export interface UnsignedTransaction {
   hash: string;
   bytes: string;
@@ -60,9 +72,10 @@ export interface DepositsParameters {
 }
 
 export interface DepositsSum {
-  refundsSum: bigint;
+  keyRefundsSum: bigint;
   keyDepositsSum: bigint;
   poolDepositsSum: bigint;
+  poolRefundsSum: bigint;
 }
 
 const SHELLEY_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
@@ -207,11 +220,12 @@ const calculateFee = (
   withdrawalAmounts: bigint[],
   depositsSum: DepositsSum
 ): BigInt => {
-  const { refundsSum, keyDepositsSum, poolDepositsSum } = depositsSum;
+  const { poolRefundsSum, keyRefundsSum, keyDepositsSum, poolDepositsSum } = depositsSum;
   const inputsSum = inputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0)) * BigInt(-1);
   const outputsSum = outputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0));
   const withdrawalsSum = withdrawalAmounts.reduce((acum, current) => acum + current, BigInt(0));
-  const fee = inputsSum + withdrawalsSum + refundsSum - outputsSum - keyDepositsSum - poolDepositsSum;
+  const fee =
+    poolRefundsSum + inputsSum + withdrawalsSum + keyRefundsSum - outputsSum - keyDepositsSum - poolDepositsSum;
   if (fee < 0) {
     throw ErrorFactory.outputsAreBiggerThanInputsError();
   }
@@ -256,10 +270,13 @@ const processOperations = (
   const refundsSum = result.stakeKeyDeRegistrationsCount * minKeyDeposit;
   const keyDepositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
   const poolDepositsSum = result.poolRegistrationsCount * poolDeposit;
+  const poolRefundsSum = result.poolRetirementsCount * poolDeposit;
+
   const depositsSum = {
-    refundsSum: BigInt(refundsSum),
+    keyRefundsSum: BigInt(refundsSum),
     keyDepositsSum: BigInt(keyDepositsSum),
-    poolDepositsSum: BigInt(poolDepositsSum)
+    poolDepositsSum: BigInt(poolDepositsSum),
+    poolRefundsSum: BigInt(poolRefundsSum)
   };
   const fee = calculateFee(result.inputAmounts, result.outputAmounts, result.withdrawalAmounts, depositsSum);
   logger.info(`[processOperations] Calculated fee: ${fee}`);
