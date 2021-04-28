@@ -15,6 +15,7 @@ import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
 import { NetworkService } from '../services/network-service';
 import { AddressType } from '../utils/constants';
 import { isAddressTypeValid, isKeyValid } from '../utils/validations';
+import { BlockService } from '../services/block-service';
 
 export interface ConstructionController {
   constructionDerive(
@@ -54,7 +55,8 @@ const configure = (
   constructionService: ConstructionService,
   cardanoService: CardanoService,
   cardanoCli: CardanoCli,
-  networkService: NetworkService
+  networkService: NetworkService,
+  blockService: BlockService
 ): ConstructionController => ({
   constructionDerive: async request =>
     withNetworkValidation(
@@ -169,8 +171,10 @@ const configure = (
         // now that we have it already
         logger.debug(`[constructionMetadata] updating tx size from ${txSize}`);
         const updatedTxSize = cardanoService.updateTxSize(txSize, 0, ttl);
+        const linearFeeParameters = await blockService.getLinearFeeParameters(logger);
+        logger.debug(`[constructionMetadata] gotten linear fee parameters from block-service ${linearFeeParameters}`);
         logger.debug(`[constructionMetadata] updated txSize size is ${updatedTxSize}`);
-        const suggestedFee: BigInt = cardanoService.calculateTxMinimumFee(updatedTxSize);
+        const suggestedFee: BigInt = cardanoService.calculateTxMinimumFee(updatedTxSize, linearFeeParameters);
         logger.debug(`[constructionMetadata] suggested fee is ${suggestedFee}`);
         // eslint-disable-next-line camelcase
         return { metadata: { ttl: ttl.toString() }, suggested_fee: [mapAmount(suggestedFee.toString())] };

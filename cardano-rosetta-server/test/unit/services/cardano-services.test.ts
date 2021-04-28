@@ -7,7 +7,7 @@ describe('Cardano Service', () => {
   let cardanoService: CardanoService;
 
   beforeAll(() => {
-    cardanoService = configure({ minFeeA: 0, minFeeB: 0 }, { keyDeposit: minKeyDeposit, poolDeposit });
+    cardanoService = configure({ keyDeposit: minKeyDeposit, poolDeposit });
   });
 
   describe('Address type detection', () => {

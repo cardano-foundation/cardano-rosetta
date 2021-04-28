@@ -30,7 +30,7 @@ export const block1000WithoutTxs = {
 };
 
 export const latestBlockHash = '6713e3dbea2a037f0be9401744a8b2be4c6190294a23c496165c212972a82f61';
-export const latestBlockSlot = 11830764;
+export const latestLaunchpadBlockSlot = 7771280;
 export const latestBlockIdentifier = {
   hash: latestBlockHash,
   index: 4853177
