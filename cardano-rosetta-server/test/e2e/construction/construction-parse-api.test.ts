@@ -79,7 +79,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     ]);
   });
 
-  test('Should return 1 input, 2 outputs and signers if a valid signed transaction is set', async () => {
+  test('Should return 1 input with byron address and signers if a valid signed transaction is set', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PARSE_ENDPOINT,
