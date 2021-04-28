@@ -302,38 +302,37 @@ const parseCertsToOperations = (
   certOps: Components.Schemas.Operation[],
   network: number
 ): Components.Schemas.Operation[] => {
-  const certsCount = certOps.length;
   const parsedOperations = [];
-  logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
-
-  for (let i = 0; i < certsCount; i++) {
-    const certOperation = certOps[i];
-    if (StakingOperations.includes(certOperation.type as OperationType)) {
-      const hex = certOperation.metadata?.staking_credential?.hex_bytes;
+  const operationCount = certOps.length;
+  logger.info(`[parseCertsToOperations] About to parse ${operationCount} certs`);
+  for (let i = 0; i < operationCount; i++) {
+    const operation = certOps[i];
+    if (operation.type === OperationType.POOL_RETIREMENT) {
+      const cert = transactionBody.certs()?.get(i);
+      if (cert) {
+        const parsedOperation = parsePoolRetirementToOperation(
+          cert,
+          operation.operation_identifier.index,
+          operation.type
+        );
+        parsedOperations.push({ ...parsedOperation, account: operation.account });
+      }
+    } else {
+      const hex = operation.metadata?.staking_credential?.hex_bytes;
       if (!hex) {
         logger.error('[parseCertsToOperations] Staking key not provided');
         throw ErrorFactory.missingStakingKeyError();
       }
-      const credential = getStakingCredentialFromHex(logger, certOperation.metadata?.staking_credential);
+      const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
       const address = generateRewardAddress(logger, network, credential);
       const cert = transactionBody.certs()?.get(i);
       if (cert) {
         const parsedOperation = parseCertToOperation(
           cert,
-          certOperation.operation_identifier.index,
+          operation.operation_identifier.index,
           hex,
-          certOperation.type,
+          operation.type,
           address
-        );
-        parsedOperations.push(parsedOperation);
-      }
-    } else {
-      const cert = transactionBody.certs()?.get(i);
-      if (cert) {
-        const parsedOperation = parsePoolCertToOperation(
-          cert,
-          certOperation.operation_identifier.index,
-          certOperation.type
         );
         parsedOperations.push(parsedOperation);
       }
