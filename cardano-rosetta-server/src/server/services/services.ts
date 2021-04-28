@@ -1,6 +1,6 @@
 import { Repositories } from '../db/repositories';
 import blockService, { BlockService } from './block-service';
-import cardanoService, { CardanoService, LinearFeeParameters, DepositsParameters } from './cardano-services';
+import cardanoService, { CardanoService, LinearFeeParameters, DepositParameters } from './cardano-services';
 import constructionService, { ConstructionService } from './construction-service';
 import networkService, { NetworkService, TopologyConfig } from './network-service';
 
@@ -23,11 +23,11 @@ export const configure = (
   topologyFile: TopologyConfig,
   DEFAULT_RELATIVE_TTL: number,
   linearFeeParameters: LinearFeeParameters,
-  depositsParameters: DepositsParameters
+  depositParameters: DepositParameters
   // FIXME: we can group networkId and networkMagic in a new type
   // eslint-disable-next-line max-params
 ): Services => {
-  const cardanoServiceInstance = cardanoService(linearFeeParameters, depositsParameters);
+  const cardanoServiceInstance = cardanoService(linearFeeParameters, depositParameters);
   const blockServiceInstance = blockService(repositories.blockchainRepository, cardanoServiceInstance);
   return {
     blockService: blockServiceInstance,

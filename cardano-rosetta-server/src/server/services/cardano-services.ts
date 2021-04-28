@@ -54,7 +54,7 @@ export interface LinearFeeParameters {
   minFeeB: number;
 }
 
-export interface DepositsParameters {
+export interface DepositParameters {
   keyDeposit: number;
   poolDeposit: number;
 }
@@ -198,7 +198,7 @@ export interface CardanoService {
    *
    * @param logger
    */
-  getDepositParameters(logger: Logger): DepositsParameters;
+  getDepositParameters(logger: Logger): DepositParameters;
 }
 
 const calculateFee = (
@@ -248,10 +248,10 @@ const processOperations = (
   logger: Logger,
   network: NetworkIdentifier,
   operations: Components.Schemas.Operation[],
-  depositsParameters: DepositsParameters
+  depositParameters: DepositParameters
 ) => {
   logger.info('[processOperations] About to calculate fee');
-  const { keyDeposit: minKeyDeposit, poolDeposit } = depositsParameters;
+  const { keyDeposit: minKeyDeposit, poolDeposit } = depositParameters;
   const result = OperationsProcessor.convert(logger, network, operations);
   const refundsSum = result.stakeKeyDeRegistrationsCount * minKeyDeposit;
   const keyDepositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
@@ -293,10 +293,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
-const configure = (
-  linearFeeParameters: LinearFeeParameters,
-  depositsParameters: DepositsParameters
-): CardanoService => ({
+const configure = (linearFeeParameters: LinearFeeParameters, depositParameters: DepositParameters): CardanoService => ({
   generateAddress(logger, network, publicKeyString, stakingCredentialString, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${JSON.stringify(
@@ -381,7 +378,7 @@ const configure = (
       logger,
       network,
       operations,
-      depositsParameters
+      depositParameters
     );
 
     logger.info('[createUnsignedTransaction] About to create transaction body');
@@ -473,8 +470,8 @@ const configure = (
     }
   },
   getDepositParameters(logger) {
-    logger.info(depositsParameters, '[getDepositParameters] About to return deposit parameters');
-    return depositsParameters;
+    logger.info(depositParameters, '[getDepositParameters] About to return deposit parameters');
+    return depositParameters;
   }
 });
 
