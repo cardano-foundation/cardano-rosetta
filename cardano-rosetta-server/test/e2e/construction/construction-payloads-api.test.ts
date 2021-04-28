@@ -589,7 +589,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
-      code: 4026,
+      code: 4036,
       message: 'Mandatory parameter is missing: Epoch',
       retriable: false
     });
