@@ -1,7 +1,7 @@
 # Cardano Rosetta Server
 
-A Node.js web service querying the postgres database produced by `cardano-db-sync`, 
-and interfacing with `cardano-node` via `cardano-cli`.  
+A Node.js web service querying the postgres database produced by `cardano-db-sync`,
+and interfacing with `cardano-node` via `cardano-cli`.
 
 ## Develop
 
@@ -44,21 +44,27 @@ BODY_LIMIT=1048576
 ```
 
 ### Install packages from offline cache
+
 The offline cache enables reproducible builds.
+
 ```
 yarn --offline
 ```
 
 ### Run tests
+
 ```
 yarn test
 ```
 
 ### Start the Service Dependencies
+
 ```
 yarn testnet:services:up
 ```
+
 ### Stop the Service Dependencies
+
 ```
 yarn testnet:services:down
 ```
@@ -104,7 +110,7 @@ Steps to generate and use a new snapshot are:
 
 ### 2. Import specific blocks
 
-After introducing staking, it has been realized that it would be impossible to import a mainnet dump as staking operations where introduced after block 4M leading to a `db-snapshot.tar` that is +3.5GB. To avoid such thing which is not practical, a new way to import data has been introduced that helps importing specific blocks. 
+After introducing staking, it has been realized that it would be impossible to import a mainnet dump as staking operations where introduced after block 4M leading to a `db-snapshot.tar` that is +3.5GB. To avoid such thing which is not practical, a new way to import data has been introduced that helps importing specific blocks.
 
 Steps to do so:
 
@@ -148,7 +154,9 @@ test('Launchpad', async () => {
     payload: generatePayload(1)
   });
   expect(response.statusCode).toEqual(StatusCodes.OK);
-  expect(response.json().block.block_identifier.hash).toEqual("da5cfaff39fde97c797cf5a6c3657d10b603cea1daa830f9a83b3a5cc62e4e8a");
+  expect(response.json().block.block_identifier.hash).toEqual(
+    'da5cfaff39fde97c797cf5a6c3657d10b603cea1daa830f9a83b3a5cc62e4e8a'
+  );
 });
 ```
 

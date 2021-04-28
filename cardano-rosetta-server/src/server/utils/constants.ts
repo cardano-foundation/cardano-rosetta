@@ -18,6 +18,8 @@ export const SIGNATURE_LENGTH = 128;
 export const PUBLIC_KEY_BYTES_LENGTH = 64;
 export const POLICY_ID_LENGTH = 56;
 export const ASSET_NAME_LENGTH = 64;
+export const CHAIN_CODE_LENGTH = 68;
+export const ATTRIBUTES_LENGTH = 90;
 
 export enum NonStakeAddressPrefix {
   MAIN = 'addr',
