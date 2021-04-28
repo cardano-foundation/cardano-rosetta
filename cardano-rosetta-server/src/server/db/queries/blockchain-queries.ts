@@ -407,6 +407,15 @@ const findBalanceByAddressAndBlock = `
     AS balance
 `;
 
+const findLatestMinFeeAAndMinFeeB = `
+SELECT 
+  min_fee_a, min_fee_b FROM epoch_param 
+WHERE 
+  min_fee_a is not null and min_fee_b is not null 
+ORDER BY id 
+DESC LIMIT 1
+`;
+
 const Queries = {
   findBalanceByAddressAndBlock,
   findBlock,
@@ -424,8 +433,8 @@ const Queries = {
   findTransactionsByBlock,
   findTransactionsInputs,
   findTransactionsOutputs,
-
-  findUtxoByAddressAndBlock
+  findUtxoByAddressAndBlock,
+  findLatestMinFeeAAndMinFeeB
 };
 
 export default Queries;

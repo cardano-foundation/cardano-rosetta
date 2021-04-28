@@ -74,7 +74,7 @@ const configure = (networkService: NetworkService, cardanoNode: CardanoNode): Ne
               .sort((error1, error2) => error1.code - error2.code),
             historical_balance_lookup: true,
             call_methods: [],
-            balance_exemptions: networkService.getExemptionTypes(),
+            balance_exemptions: networkService.getExemptionTypes(logger),
             mempool_coins: false
           }
         };
