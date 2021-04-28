@@ -1086,7 +1086,7 @@
             "description": "If it's a registration operation, the amount will re returned here.",
             "$ref": "#/components/schemas/Amount"
           },
-          "fundAmount": {
+          "refundAmount": {
             "description": "If it's a deregistration operation, the amount will re returned here.",
             "$ref": "#/components/schemas/Amount"
           },
@@ -1144,6 +1144,9 @@
           },
           "margin": {
             "$ref": "#/components/schemas/PoolMargin"
+          },
+          "margin_percentage": {
+            "type": "string"
           },
           "poolMetadata": {
             "$ref": "#/components/schemas/PoolMetadata"

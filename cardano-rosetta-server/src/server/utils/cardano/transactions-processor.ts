@@ -245,11 +245,14 @@ const parseCertToOperation = (
       staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
     }
   };
-  const delegationCert = cert.as_stake_delegation();
-  if (delegationCert) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
+  if (type === OperationType.STAKE_DELEGATION) {
+    const delegationCert = cert.as_stake_delegation();
+    if (delegationCert) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
+    }
   }
+
   return operation;
 };
 

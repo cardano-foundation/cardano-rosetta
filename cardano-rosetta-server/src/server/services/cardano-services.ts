@@ -35,6 +35,8 @@ import { isEd25519KeyHash } from '../utils/validations';
 export interface Signatures {
   signature: string;
   publicKey: string;
+  chain_code?: string;
+  attributes?: string;
 }
 export interface UnsignedTransaction {
   hash: string;
@@ -190,6 +192,13 @@ export interface CardanoService {
     transaction: string,
     extraData: Components.Schemas.Operation[]
   ): TransactionParsed;
+
+  /**
+   * Returns deposit parameters
+   *
+   * @param logger
+   */
+  getDepositParameters(logger: Logger): DepositsParameters;
 }
 
 const calculateFee = (
@@ -462,6 +471,10 @@ const configure = (
       );
       throw ErrorFactory.cantCreateUnsignedTransactionFromBytes();
     }
+  },
+  getDepositParameters(logger) {
+    logger.info(depositsParameters, '[getDepositParameters] About to return deposit parameters');
+    return depositsParameters;
   }
 });
 
