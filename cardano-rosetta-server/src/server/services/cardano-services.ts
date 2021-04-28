@@ -39,17 +39,6 @@ export interface Signatures {
   attributes?: string;
 }
 
-export interface DepositsParameters {
-  keyDeposit: number;
-  poolDeposit: number;
-}
-
-export interface DepositsSum {
-  keyRefundsSum: bigint;
-  keyDepositsSum: bigint;
-  poolRefundsSum: bigint;
-}
-
 export interface UnsignedTransaction {
   hash: string;
   bytes: string;
