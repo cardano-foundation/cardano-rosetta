@@ -83,12 +83,13 @@ const doRun = async (): Promise<void> => {
   );
 
   keyAddressMapper[paymentAddress] = paymentKeys;
-  const unspents = await waitForBalanceToBe(
+  const { unspents, balances } = await waitForBalanceToBe(
     paymentAddress,
     (response) => response.coins.length !== 0
   );
   const builtOperations = buildOperation(
     unspents,
+    balances,
     paymentAddress,
     SEND_FUNDS_ADDRESS,
     true

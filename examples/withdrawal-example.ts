@@ -11,7 +11,7 @@ import {
   constructionSubmit,
   signPayloads,
   waitForBalanceToBe,
-  buildOperation
+  buildOperation,
 } from "./commons";
 const logger = console;
 
@@ -77,12 +77,13 @@ const doRun = async (): Promise<void> => {
   const stakingPublicKey = Buffer.from(STAKING_KEYS.publicKey).toString("hex");
   keyAddressMapper[STAKE_ADDRESS] = STAKING_KEYS;
   keyAddressMapper[PAYMENT_ADDRESS] = PAYMENT_KEYS;
-  const unspents = await waitForBalanceToBe(
+  const { unspents, balances } = await waitForBalanceToBe(
     PAYMENT_ADDRESS,
     (response) => response.coins.length !== 0
   );
   const builtOperations = buildOperation(
     unspents,
+    balances,
     PAYMENT_ADDRESS,
     SEND_FUNDS_ADDRESS
   );
