@@ -20,6 +20,7 @@ import {
   MULTI_ASSET_DECIMALS,
   NetworkIdentifier,
   OperationType,
+  PoolOperations,
   SIGNATURE_TYPE,
   StakingOperations,
   SUCCESS_STATUS
@@ -126,7 +127,10 @@ const isBlockUtxos = (block: BlockUtxos | BalanceAtBlock): block is BlockUtxos =
  *
  * @param transaction to be mapped
  */
-export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Components.Schemas.Transaction => {
+export const mapToRosettaTransaction = (
+  transaction: PopulatedTransaction,
+  poolDeposit: number
+): Components.Schemas.Transaction => {
   const inputsAsOperations = transaction.inputs.map((input, index) =>
     createOperation(
       index,
@@ -182,7 +186,7 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
         address: deregistration.stakeAddress
       },
       metadata: {
-        fundAmount: mapAmount(deregistration.amount)
+        refundAmount: mapAmount(deregistration.amount)
       }
     })
   );
@@ -201,6 +205,33 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
     }
   }));
   totalOperations.push(delegationsAsOperations);
+  const poolRegistrationsAsOperations: Components.Schemas.Operation[] = transaction.poolRegistrations.map(
+    (poolRegistration, index) => ({
+      operation_identifier: {
+        index: getOperationCurrentIndex(totalOperations, index)
+      },
+      type: OperationType.POOL_REGISTRATION,
+      status: SUCCESS_STATUS,
+      account: {
+        // public cold key
+        address: poolRegistration.poolHash
+      },
+      metadata: {
+        // if this protocol value changes this amount may not be accurate
+        depositAmount: mapAmount(poolDeposit.toString()),
+        poolRegistrationParams: {
+          pledge: poolRegistration.pledge,
+          rewardAddress: poolRegistration.address,
+          cost: poolRegistration.cost,
+          poolOwners: poolRegistration.owners,
+          margin_percentage: poolRegistration.margin,
+          vrfKeyHash: poolRegistration.vrfKeyHash,
+          relays: poolRegistration.relays
+        }
+      }
+    })
+  );
+  totalOperations.push(poolRegistrationsAsOperations);
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
   // refactored to use a reduce)
@@ -238,7 +269,11 @@ export const mapToRosettaTransaction = (transaction: PopulatedTransaction): Comp
  * @param block cardano block
  * @param transactions cardano transactions for the given block
  */
-export const mapToRosettaBlock = (block: Block, transactions: PopulatedTransaction[]): Components.Schemas.Block => ({
+export const mapToRosettaBlock = (
+  block: Block,
+  transactions: PopulatedTransaction[],
+  poolDeposit: number
+): Components.Schemas.Block => ({
   block_identifier: {
     hash: block.hash,
     index: block.number
@@ -255,7 +290,7 @@ export const mapToRosettaBlock = (block: Block, transactions: PopulatedTransacti
     epochNo: block.epochNo,
     slotNo: block.slotNo
   },
-  transactions: transactions.map(mapToRosettaTransaction)
+  transactions: transactions.map(t => mapToRosettaTransaction(t, poolDeposit))
 });
 
 const areEqualUtxos = (firstUtxo: Utxo, secondUtxo: Utxo) =>
@@ -433,7 +468,8 @@ export const encodeExtraData = async (
     .filter(
       operation =>
         operation.coin_change?.coin_action === COIN_SPENT_ACTION ||
-        StakingOperations.includes(operation.type as OperationType)
+        StakingOperations.includes(operation.type as OperationType) ||
+        PoolOperations.includes(operation.type as OperationType)
     );
 
   return (await cbor.encodeAsync([transaction, extraData])).toString('hex');

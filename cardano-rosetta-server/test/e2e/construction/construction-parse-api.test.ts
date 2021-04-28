@@ -17,6 +17,10 @@ import {
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_AND_WITHDRAWAL_RESPONSE,
   CONSTRUCTION_PAYLOADS_STAKE_REGISTRATION_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITHDRAWAL_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION,
@@ -29,6 +33,10 @@ import {
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_MULTIPLE_MA,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_SEVERAL_MA,
   CONSTRUCTION_SIGNED_TX_WITH_MA_WITHOUT_NAME,
+  CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_AND_PLEDGE,
+  CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_WITH_CERT,
+  CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAYS,
+  CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
   CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_EXTRA_DATA,
   CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_WITHDRWAWAL_AND_EXTRA_DATA,
   CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA
@@ -336,5 +344,71 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_REQUEST_WITM_MA_WITHOUT_NAME)
     );
+  });
+  describe('Pool registration requests', () => {
+    test('Should correctly parse operations with pool registrations with pledge ', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PARSE_ENDPOINT,
+        payload: generateParsePayload(
+          'cardano',
+          'mainnet',
+          true,
+          CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_AND_PLEDGE
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json().operations).toEqual(
+        constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE)
+      );
+    });
+    test('Should correctly parse operations with pool registrations with multiple relays', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PARSE_ENDPOINT,
+        payload: generateParsePayload(
+          'cardano',
+          'mainnet',
+          true,
+          CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAYS
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json().operations).toEqual(
+        constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY)
+      );
+    });
+    test('Should correctly parse operations with pool registrations with no pool metadata', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PARSE_ENDPOINT,
+        payload: generateParsePayload(
+          'cardano',
+          'mainnet',
+          true,
+          CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_WITH_NO_METADATA
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json().operations).toEqual(
+        constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA)
+      );
+    });
+    test('Should correctly parse operations with pool registrations with cert', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PARSE_ENDPOINT,
+        payload: generateParsePayload(
+          'cardano',
+          'mainnet',
+          true,
+          CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_WITH_CERT
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json().operations).toEqual(
+        constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT)
+      );
+    });
   });
 });

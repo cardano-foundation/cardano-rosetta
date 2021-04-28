@@ -11,7 +11,7 @@ import CardanoWasm, {
   Value
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
-import { NetworkIdentifier, OperationType } from '../constants';
+import { NetworkIdentifier, OperationType, RelayType } from '../constants';
 import { ErrorFactory } from '../errors';
 import { hexStringToBuffer } from '../formatters';
 import { isPolicyIdValid, isTokenNameValid } from '../validations';
@@ -148,7 +148,7 @@ const processStakeKeyRegistration = (
 
 const validateAndParsePoolKeyHash = (logger: Logger, poolKeyHash?: string): CardanoWasm.Ed25519KeyHash => {
   if (!poolKeyHash) {
-    logger.error('[validateAndParsePoolKeyHash] no pool key hash provided for stake delegation');
+    logger.error('[validateAndParsePoolKeyHash] no pool key hash provided');
     throw ErrorFactory.missingPoolKeyError();
   }
   let parsedPoolKeyHash: CardanoWasm.Ed25519KeyHash;
@@ -159,6 +159,48 @@ const validateAndParsePoolKeyHash = (logger: Logger, poolKeyHash?: string): Card
     throw ErrorFactory.invalidPoolKeyError(error);
   }
   return parsedPoolKeyHash;
+};
+
+const validateAndParseRewardAddress = (logger: Logger, rwrdAddress: string): CardanoWasm.RewardAddress => {
+  let rewardAddress: CardanoWasm.RewardAddress | undefined;
+  try {
+    const address = CardanoWasm.Address.from_bytes(Buffer.from(rwrdAddress, 'hex'));
+    rewardAddress = CardanoWasm.RewardAddress.from_address(address);
+  } catch (error) {
+    logger.error(`[validateAndParseRewardAddress] invalid reward address ${rwrdAddress}`);
+    throw ErrorFactory.invalidAddressError();
+  }
+  if (!rewardAddress) throw ErrorFactory.invalidAddressError();
+  return rewardAddress;
+};
+const validateAndParsePoolRegistrationCert = (
+  logger: Logger,
+  poolRegistrationCert?: string,
+  poolKeyHash?: string
+): { certificate: CardanoWasm.Certificate; poolKeyHash: string } => {
+  if (!poolKeyHash) {
+    logger.error('[validateAndParsePoolRegistrationCert] no cold key provided for pool registration');
+    throw ErrorFactory.missingPoolKeyError();
+  }
+  if (!poolRegistrationCert) {
+    logger.error(
+      '[validateAndParsePoolRegistrationCert] no pool registration certificate provided for pool registration'
+    );
+    throw ErrorFactory.missingPoolCertError();
+  }
+  let parsedCertificate: CardanoWasm.Certificate;
+  try {
+    parsedCertificate = CardanoWasm.Certificate.from_bytes(Buffer.from(poolRegistrationCert, 'hex'));
+  } catch (error) {
+    logger.error('[validateAndParsePoolRegistrationCert] invalid pool registration certificate');
+    throw ErrorFactory.invalidPoolRegistrationCert(error);
+  }
+  const poolRegistration = parsedCertificate.as_pool_registration();
+  if (!poolRegistration) {
+    logger.error('[validateAndParsePoolRegistrationCert] invalid certificate type');
+    throw ErrorFactory.invalidPoolRegistrationCertType();
+  }
+  return { certificate: parsedCertificate, poolKeyHash };
 };
 
 const processOperationCertification = (
@@ -180,6 +222,198 @@ const processOperationCertification = (
     certificate: CardanoWasm.Certificate.new_stake_deregistration(StakeDeregistration.new(credential)),
     address
   };
+};
+
+const validatePort = (logger: Logger, port: string): void => {
+  const parsedPort = Number.parseInt(port, 10);
+  if (!isPositiveNumber(port) || Number.isNaN(parsedPort)) {
+    logger.error(`[validateAndParsePort] Invalid port ${port} received`);
+    throw ErrorFactory.invalidPoolRelaysError(`Invalid port ${port} received`);
+  }
+};
+
+const generateSpecificRelay = (logger: Logger, relay: Components.Schemas.Relay): CardanoWasm.Relay => {
+  try {
+    switch (relay.type) {
+      case RelayType.SINGLE_HOST_ADDR: {
+        return CardanoWasm.Relay.new_single_host_addr(
+          CardanoWasm.SingleHostAddr.new(
+            relay.port ? Number.parseInt(relay.port, 10) : undefined,
+            relay.ipv4 ? CardanoWasm.Ipv4.from_bytes(Buffer.from(relay.ipv4, 'hex')) : undefined,
+            relay.ipv6 ? CardanoWasm.Ipv6.from_bytes(Buffer.from(relay.ipv6, 'hex')) : undefined
+          )
+        );
+      }
+      case RelayType.SINGLE_HOST_NAME: {
+        if (!relay.dnsName) {
+          throw ErrorFactory.missingDnsNameError();
+        }
+        return CardanoWasm.Relay.new_single_host_name(
+          CardanoWasm.SingleHostName.new(
+            relay.port ? Number.parseInt(relay.port, 10) : undefined,
+            CardanoWasm.DNSRecordAorAAAA.new(relay.dnsName)
+          )
+        );
+      }
+      case RelayType.MULTI_HOST_NAME: {
+        if (!relay.dnsName) {
+          throw ErrorFactory.missingDnsNameError();
+        }
+        return CardanoWasm.Relay.new_multi_host_name(
+          CardanoWasm.MultiHostName.new(CardanoWasm.DNSRecordSRV.new(relay.dnsName))
+        );
+      }
+      default: {
+        throw ErrorFactory.invalidPoolRelayTypeError();
+      }
+    }
+  } catch (error) {
+    logger.error('[validateAndParsePoolRelays] invalid pool relay');
+    throw ErrorFactory.invalidPoolRelaysError(error);
+  }
+};
+
+const validateAndParsePoolRelays = (logger: Logger, relays: Components.Schemas.Relay[]): CardanoWasm.Relays => {
+  if (relays.length === 0) throw ErrorFactory.invalidPoolRelaysError('Empty relays received');
+  const generatedRelays = CardanoWasm.Relays.new();
+  for (const relay of relays) {
+    relay.port && validatePort(logger, relay.port);
+    const generatedRelay = generateSpecificRelay(logger, relay);
+    generatedRelays.add(generatedRelay);
+  }
+
+  return generatedRelays;
+};
+
+const validateAndParsePoolOwners = (logger: Logger, owners: Array<string>): CardanoWasm.Ed25519KeyHashes => {
+  try {
+    const parsedOwners = CardanoWasm.Ed25519KeyHashes.new();
+    owners.forEach(owner => {
+      const ownerKey = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(owner, 'hex'));
+      parsedOwners.add(ownerKey);
+    });
+    return parsedOwners;
+  } catch (error) {
+    logger.error('[validateAndParsePoolOwners] there was an error parsing pool owners');
+    throw ErrorFactory.invalidPoolOwnersError(error);
+  }
+};
+
+const validateAndParsePoolRegistationParameters = (
+  logger: Logger,
+  poolRegistrationParameters: Components.Schemas.PoolRegistrationParams
+) => {
+  const denominator = poolRegistrationParameters?.margin?.denominator;
+  const numerator = poolRegistrationParameters?.margin?.numerator;
+
+  if (!denominator || !numerator) {
+    logger.error(
+      '[validateAndParsePoolRegistationParameters] Missing margin parameter at pool registration parameters'
+    );
+    throw ErrorFactory.invalidPoolRegistrationParameters('Missing margin parameter at pool registration parameters');
+  }
+  const poolParameters: { [key: string]: string } = {
+    cost: poolRegistrationParameters.cost,
+    pledge: poolRegistrationParameters.pledge,
+    numerator,
+    denominator
+  };
+  // eslint-disable-next-line unicorn/prevent-abbreviations
+  const parsedPoolParams: { [key: string]: BigNum } = {};
+  try {
+    Object.keys(poolParameters).forEach(k => {
+      const value = poolParameters[k];
+      if (!isPositiveNumber(value)) {
+        logger.error(`[validateAndParsePoolRegistationParameters] Given ${k} ${value} is invalid`);
+        throw ErrorFactory.invalidPoolRegistrationParameters(`Given ${k} ${value} is invalid`);
+      }
+      parsedPoolParams[k] = CardanoWasm.BigNum.from_str(poolParameters[k]);
+    });
+    return parsedPoolParams;
+  } catch (error) {
+    logger.error('[validateAndParsePoolRegistationParameters] Given pool parameters are invalid');
+    throw ErrorFactory.invalidPoolRegistrationParameters(error?.details?.message ? error.details.message : error);
+  }
+};
+
+const validateAndParsePoolMetadata = (
+  logger: Logger,
+  metadata?: Components.Schemas.PoolMetadata
+): CardanoWasm.PoolMetadata | undefined => {
+  let parsedMetadata: CardanoWasm.PoolMetadata | undefined;
+  try {
+    if (metadata)
+      parsedMetadata = CardanoWasm.PoolMetadata.new(
+        CardanoWasm.URL.new(metadata.url),
+        CardanoWasm.MetadataHash.from_bytes(Buffer.from(metadata.hash, 'hex'))
+      );
+  } catch (error) {
+    logger.error('[validateAndParsePoolMetadata] invalid pool metadata');
+    throw ErrorFactory.invalidPoolMetadataError(error);
+  }
+  return parsedMetadata;
+};
+
+const processPoolRegistration = (
+  logger: Logger,
+  operation: Components.Schemas.Operation
+): { certificate: CardanoWasm.Certificate; poolKeyHash: string } => {
+  logger.info('[processPoolRegistration] About to process pool registration operation');
+
+  if (!operation?.metadata?.poolRegistrationParams) {
+    logger.error('[processPoolRegistration] Pool_registration was not provided');
+    throw ErrorFactory.missingPoolRegistrationParameters();
+  }
+  const { pledge, cost, numerator, denominator } = validateAndParsePoolRegistationParameters(
+    logger,
+    operation?.metadata?.poolRegistrationParams
+  );
+  // eslint-disable-next-line camelcase
+  const poolKeyHash = validateAndParsePoolKeyHash(logger, operation.account?.address);
+
+  logger.info('[processPoolRegistration] About to validate and parse reward address');
+  const rewardAddress = validateAndParseRewardAddress(logger, operation.metadata?.poolRegistrationParams.rewardAddress);
+
+  logger.info('[processPoolRegistration] About to generate pool owners');
+  const owners = validateAndParsePoolOwners(logger, operation.metadata?.poolRegistrationParams.poolOwners);
+
+  logger.info('[processPoolRegistration] About to generate pool relays');
+  const relays = validateAndParsePoolRelays(logger, operation.metadata.poolRegistrationParams.relays);
+
+  logger.info('[processPoolRegistration] About to generate pool metadata');
+  const poolMetadata = validateAndParsePoolMetadata(logger, operation.metadata?.poolRegistrationParams.poolMetadata);
+
+  logger.info('[processPoolRegistration] About to generate Pool Registration');
+  const wasmPoolRegistration = CardanoWasm.PoolRegistration.new(
+    CardanoWasm.PoolParams.new(
+      poolKeyHash,
+      CardanoWasm.VRFKeyHash.from_bytes(Buffer.from(operation.metadata?.poolRegistrationParams.vrfKeyHash, 'hex')),
+      pledge,
+      cost,
+      CardanoWasm.UnitInterval.new(numerator, denominator),
+      rewardAddress,
+      owners,
+      relays,
+      poolMetadata
+    )
+  );
+  logger.info('[processPoolRegistration] Generating Pool Registration certificate');
+  const certificate = CardanoWasm.Certificate.new_pool_registration(wasmPoolRegistration);
+  logger.info('[processPoolRegistration] Successfully created Pool Registration certificate');
+
+  return { certificate, poolKeyHash: Buffer.from(poolKeyHash.to_bytes()).toString('hex') };
+};
+
+const processPoolRegistrationWithCert = (
+  logger: Logger,
+  operation: Components.Schemas.Operation
+): { certificate: CardanoWasm.Certificate; poolKeyHash: string } => {
+  const { certificate, poolKeyHash } = validateAndParsePoolRegistrationCert(
+    logger,
+    operation?.metadata?.poolRegistrationCert,
+    operation?.account?.address
+  );
+  return { certificate, poolKeyHash };
 };
 
 const processWithdrawal = (
@@ -241,6 +475,20 @@ const operationProcessor: (
     resultAccumulator.withdrawals.insert(reward, BigNum.from_str(withdrawalAmount.toString()));
     resultAccumulator.addresses.push(address);
     return resultAccumulator;
+  },
+  [OperationType.POOL_REGISTRATION]: () => {
+    const { certificate, poolKeyHash } = processPoolRegistration(logger, operation);
+    resultAccumulator.certificates.add(certificate);
+    resultAccumulator.addresses.push(poolKeyHash);
+    resultAccumulator.poolRegistrationsCount++;
+    return resultAccumulator;
+  },
+  [OperationType.POOL_REGISTRATION_WITH_CERT]: () => {
+    const { certificate, poolKeyHash } = processPoolRegistrationWithCert(logger, operation);
+    resultAccumulator.certificates.add(certificate);
+    resultAccumulator.addresses.push(poolKeyHash);
+    resultAccumulator.poolRegistrationsCount++;
+    return resultAccumulator;
   }
 });
 
@@ -255,6 +503,7 @@ export interface ProcessOperationsResult {
   withdrawalAmounts: bigint[];
   stakeKeyRegistrationsCount: number;
   stakeKeyDeRegistrationsCount: number;
+  poolRegistrationsCount: number;
 }
 
 /**
@@ -283,7 +532,8 @@ export const convert = (
     outputAmounts: [],
     withdrawalAmounts: [],
     stakeKeyRegistrationsCount: 0,
-    stakeKeyDeRegistrationsCount: 0
+    stakeKeyDeRegistrationsCount: 0,
+    poolRegistrationsCount: 0
   };
 
   return operations.reduce<ProcessOperationsResult>((previousResult, operation) => {

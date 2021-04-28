@@ -10,6 +10,7 @@ import {
   Token,
   Transaction,
   TransactionInOut,
+  TransactionPoolRegistrations,
   Utxo,
   MaBalance
 } from '../models';
@@ -24,6 +25,9 @@ import Queries, {
   FindTransactionRegistrations,
   FindTransactionsInputs,
   FindTransactionsOutputs,
+  FindTransactionPoolRegistrationsData,
+  FindTransactionPoolRelays,
+  FindTransactionPoolOwners,
   FindTransactionWithdrawals,
   FindUtxo,
   FindMaBalance
@@ -134,10 +138,43 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
         withdrawals: [],
         registrations: [],
         deregistrations: [],
-        delegations: []
+        delegations: [],
+        poolRegistrations: []
       }
     };
   }, {});
+
+const mapToTransactionPoolRegistrations = (
+  poolRegistrations: FindTransactionPoolRegistrationsData[],
+  poolOwners: FindTransactionPoolOwners[],
+  poolRelays: FindTransactionPoolRelays[]
+): TransactionPoolRegistrations[] =>
+  poolRegistrations.map(poolRegistration => {
+    // mapear por tx hash tmb?
+    const owners = poolOwners.filter(owner => owner.poolId === poolRegistration.poolId).map(o => o.owner);
+
+    const relays = poolRelays
+      .filter(relay => relay.updateId === poolRegistration.updateId)
+      .map(r => ({
+        ipv4: r.ipv4,
+        ipv6: r.ipv6,
+        dnsName: r.dnsName,
+        port: r.port
+      }));
+    return {
+      txHash: poolRegistration.txHash,
+      vrfKeyHash: poolRegistration.vrfKeyHash,
+      pledge: poolRegistration.pledge,
+      margin: poolRegistration.margin,
+      cost: poolRegistration.cost,
+      address: poolRegistration.address,
+      poolHash: poolRegistration.poolHash,
+      owners,
+      relays,
+      metadataUrl: poolRegistration.metadataUrl,
+      metadataHash: poolRegistration.metadataHash
+    };
+  });
 
 type TransactionsMap = NodeJS.Dict<PopulatedTransaction>;
 
@@ -352,6 +389,25 @@ const parseDelegationsRow = (
   })
 });
 
+const parsePoolRegistrationsRows = (
+  transaction: PopulatedTransaction,
+  poolRegistration: TransactionPoolRegistrations
+): PopulatedTransaction => ({
+  ...transaction,
+  poolRegistrations: transaction.poolRegistrations.concat({
+    vrfKeyHash: hexFormatter(poolRegistration.vrfKeyHash),
+    pledge: poolRegistration.pledge,
+    margin: poolRegistration.margin,
+    cost: poolRegistration.cost,
+    address: hexFormatter(poolRegistration.address),
+    poolHash: hexFormatter(poolRegistration.poolHash),
+    owners: poolRegistration.owners.map(o => hexFormatter(o)),
+    relays: poolRegistration.relays,
+    metadataUrl: poolRegistration.metadataUrl,
+    metadataHash: poolRegistration.metadataHash ? hexFormatter(poolRegistration.metadataHash) : undefined
+  })
+});
+
 const populateTransactions = async (
   databaseInstance: Pool,
   transactionsMap: TransactionsMap
@@ -363,9 +419,22 @@ const populateTransactions = async (
     Queries.findTransactionWithdrawals,
     Queries.findTransactionRegistrations,
     Queries.findTransactionDeregistrations,
-    Queries.findTransactionDelegations
+    Queries.findTransactionDelegations,
+    Queries.FindTransactionPoolRegistrationsData,
+    Queries.findTransactionPoolOwners,
+    Queries.findTransactionPoolRelays
   ];
-  const [inputs, outputs, withdrawals, registrations, deregistrations, delegations] = await Promise.all(
+  const [
+    inputs,
+    outputs,
+    withdrawals,
+    registrations,
+    deregistrations,
+    delegations,
+    poolsData,
+    poolsOwners,
+    poolsRelays
+  ] = await Promise.all(
     operationsQueries.map(operationQuery => databaseInstance.query(operationQuery, [transactionsHashes]))
   );
   transactionsMap = populateTransactionField(transactionsMap, inputs.rows, parseInputsRow);
@@ -374,6 +443,9 @@ const populateTransactions = async (
   transactionsMap = populateTransactionField(transactionsMap, registrations.rows, parseRegistrationsRow);
   transactionsMap = populateTransactionField(transactionsMap, deregistrations.rows, parseDeregistrationsRow);
   transactionsMap = populateTransactionField(transactionsMap, delegations.rows, parseDelegationsRow);
+
+  const mappedPoolRegistrations = mapToTransactionPoolRegistrations(poolsData.rows, poolsOwners.rows, poolsRelays.rows);
+  transactionsMap = populateTransactionField(transactionsMap, mappedPoolRegistrations, parsePoolRegistrationsRows);
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore it will never be undefined
@@ -466,6 +538,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       parameters
     );
     logger.debug(`[findTransactionByHashAndBlock] Found ${result.rowCount} transactions`);
+
     if (result.rows.length > 0) {
       const transactionsMap = mapTransactionsToDict(parseTransactionRows(result));
       const [transaction] = await populateTransactions(databaseInstance, transactionsMap);

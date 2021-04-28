@@ -39,7 +39,15 @@ export enum OperationType {
   STAKE_KEY_REGISTRATION = 'stakeKeyRegistration',
   STAKE_DELEGATION = 'stakeDelegation',
   WITHDRAWAL = 'withdrawal',
-  STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration'
+  STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration',
+  POOL_REGISTRATION = 'poolRegistration',
+  POOL_REGISTRATION_WITH_CERT = 'poolRegistrationWithCert'
+}
+
+export enum RelayType {
+  SINGLE_HOST_ADDR = 'single_host_addr',
+  SINGLE_HOST_NAME = 'single_host_name',
+  MULTI_HOST_NAME = 'multi_host_name'
 }
 
 export const OPERATION_TYPES = Object.values(OperationType);
@@ -50,6 +58,8 @@ export const StakingOperations = [
   OperationType.STAKE_KEY_DEREGISTRATION,
   OperationType.WITHDRAWAL
 ];
+
+export const PoolOperations = [OperationType.POOL_REGISTRATION, OperationType.POOL_REGISTRATION_WITH_CERT];
 
 enum OperationTypeStatus {
   SUCCESS = 'success'
@@ -76,7 +86,8 @@ export const SUCCESS_OPERATION_STATE = {
 export enum AddressType {
   ENTERPRISE = 'Enterprise',
   BASE = 'Base',
-  REWARD = 'Reward'
+  REWARD = 'Reward',
+  POOL_KEY_HASH = 'Pool_Hash'
 }
 
 export enum NetworkIdentifier {

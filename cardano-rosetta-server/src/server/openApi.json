@@ -1086,7 +1086,7 @@
             "description": "If it's a registration operation, the amount will re returned here.",
             "$ref": "#/components/schemas/Amount"
           },
-          "fundAmount": {
+          "refundAmount": {
             "description": "If it's a deregistration operation, the amount will re returned here.",
             "$ref": "#/components/schemas/Amount"
           },
@@ -1102,6 +1102,96 @@
             "items": {
               "$ref": "#/components/schemas/TokenBundleItem"
             }
+          },
+          "poolRegistrationCert": {
+            "description": "Certificate of a pool registration encoded as hex string",
+            "type": "string"
+          },
+          "poolRegistrationParams": {
+            "$ref": "#/components/schemas/PoolRegistrationParams"
+          }
+        }
+      },
+      "PoolRegistrationParams": {
+        "type": "object",
+        "required": ["vrfKeyHash", "pledge", "cost", "poolOwners", "relays", "rewardAddress"],
+        "properties": {
+          "vrfKeyHash": {
+            "type": "string"
+          },
+          "rewardAddress": {
+            "type": "string"
+          },
+          "pledge": {
+            "description": "Lovelace amount to pledge",
+            "type": "string"
+          },
+          "cost": {
+            "description": "Operational costs per epoch lovelace",
+            "type": "string"
+          },
+          "poolOwners": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "relays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Relay"
+            }
+          },
+          "margin": {
+            "$ref": "#/components/schemas/PoolMargin"
+          },
+          "margin_percentage": {
+            "type": "string"
+          },
+          "poolMetadata": {
+            "$ref": "#/components/schemas/PoolMetadata"
+          }
+        }
+      },
+      "Relay": {
+        "type": "object",
+        "properties": {
+          "type": { "type": "string" },
+          "ipv4": {
+            "type": "string"
+          },
+          "ipv6": {
+            "type": "string"
+          },
+          "dnsName": {
+            "type": "string"
+          },
+          "port": {
+            "type": "string"
+          }
+        }
+      },
+      "PoolMargin": {
+        "type": "object",
+        "required": ["numerator", "denominator"],
+        "properties": {
+          "numerator": {
+            "type": "string"
+          },
+          "denominator": {
+            "type": "string"
+          }
+        }
+      },
+      "PoolMetadata": {
+        "type": "object",
+        "required": ["url", "hash"],
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "hash": {
+            "type": "string"
           }
         }
       },

@@ -185,6 +185,32 @@ WHERE
   tx.hash = ANY ($1)
 `;
 
+export interface FindTransactionPoolRegistrationsData extends FindTransactionFieldResult {
+  poolId: number;
+  updateId: number;
+  vrfKeyHash: Buffer;
+  pledge: string;
+  margin: string;
+  cost: string;
+  address: Buffer;
+  poolHash: Buffer;
+  metadataUrl: string;
+  metadataHash: Buffer;
+}
+
+export interface FindTransactionPoolOwners extends FindTransactionFieldResult {
+  poolId: number;
+  owner: Buffer;
+}
+export interface FindTransactionPoolRelays extends FindTransactionFieldResult {
+  updateId: number;
+  vrfKeyHash: Buffer;
+  ipv4: string;
+  ipv6: string;
+  dnsName: string;
+  port: string;
+}
+
 const findTransactionRegistrations = `
 SELECT 
   tx.deposit as "amount",
@@ -252,6 +278,63 @@ export interface FindMaBalance {
   policy: Buffer;
   value: string;
 }
+
+const poolRegistrationQuery = `
+  WITH pool_registration AS (
+  SELECT
+    tx.hash as "txHash",
+    tx.id as "txId",
+    pu.id as "updateId",
+    ph.id as "poolId",
+    pu.vrf_key_hash as "vrfKeyHash",
+    pu.pledge as pledge,
+    pu.margin as margin,
+    pu.fixed_cost as cost,
+    pu.reward_addr as address,
+    ph.hash_raw as "poolHash",
+    pm.url as "metadataUrl",
+    pm.hash as "metadataHash"
+  FROM pool_update pu
+  JOIN tx 
+  ON pu.registered_tx_id = tx.id
+  JOIN pool_hash ph
+  ON ph.id = pu.hash_id
+  LEFT JOIN pool_meta_data pm
+  ON pu.meta_id = pm.id
+  WHERE
+    tx.hash = ANY ($1)
+  )
+`;
+
+const FindTransactionPoolRegistrationsData = `
+  ${poolRegistrationQuery}
+    SELECT *
+    FROM pool_registration
+`;
+
+const findTransactionPoolOwners = `
+${poolRegistrationQuery}
+    SELECT 
+      po.pool_hash_id AS "poolId",
+      po.hash AS "owner"
+    FROM pool_registration pr
+    JOIN pool_owner po
+    ON  (po.pool_hash_id = pr."poolId" 
+    AND po.registered_tx_id = pr."txId")
+`;
+
+const findTransactionPoolRelays = `
+${poolRegistrationQuery}
+    SELECT
+      prelay.update_id as "updateId",
+      prelay.ipv4 as ipv4,
+      prelay.ipv6 as ipv6,
+      prelay.port as port,
+      prelay.dns_name as "dnsName"
+    FROM pool_registration pr
+    JOIN pool_relay prelay
+    ON prelay.update_id = pr."updateId"
+`;
 
 const utxoQuery = `
 WITH utxo AS (
@@ -325,20 +408,24 @@ const findBalanceByAddressAndBlock = `
 `;
 
 const Queries = {
+  findBalanceByAddressAndBlock,
   findBlock,
-  findTransactionsByBlock,
-  findTransactionByHashAndBlock,
-  findTransactionsInputs,
-  findTransactionsOutputs,
-  findTransactionWithdrawals,
-  findTransactionRegistrations,
-  findTransactionDeregistrations,
-  findTransactionDelegations,
   findLatestBlockNumber,
   findGenesisBlock,
-  findUtxoByAddressAndBlock,
   findMaBalanceByAddressAndBlock,
-  findBalanceByAddressAndBlock
+  findTransactionByHashAndBlock,
+  findTransactionDelegations,
+  findTransactionDeregistrations,
+  findTransactionPoolOwners,
+  findTransactionPoolRelays,
+  FindTransactionPoolRegistrationsData,
+  findTransactionRegistrations,
+  findTransactionWithdrawals,
+  findTransactionsByBlock,
+  findTransactionsInputs,
+  findTransactionsOutputs,
+
+  findUtxoByAddressAndBlock
 };
 
 export default Queries;

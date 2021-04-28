@@ -46,10 +46,12 @@ export const cardanoNodeMock: CardanoNode = {
     'cardano-node 1.18.0 - linux-x86_64 - ghc-8.6\ngit rev 36ad7b90bfbde8afd41b68ed9b928df3fcab0dbc'
 };
 
-export const linearFeeParameters = { minFeeA: 44, minFeeB: 155381 };
-
-const NETWORK_ID = 'mainnet';
 export const minKeyDeposit = 2000000;
+export const poolDeposit = 500000000;
+
+export const linearFeeParameters = { minFeeA: 44, minFeeB: 155381 };
+export const depositsParameters = { keyDeposit: minKeyDeposit, poolDeposit };
+const NETWORK_ID = 'mainnet';
 
 export const setupServer = (database: Pool): FastifyInstance => {
   // let repositories;
@@ -62,7 +64,7 @@ export const setupServer = (database: Pool): FastifyInstance => {
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
     Number(process.env.DEFAULT_RELATIVE_TTL),
     linearFeeParameters,
-    minKeyDeposit
+    depositsParameters
   );
   return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
     networkId: NETWORK_ID,
@@ -130,11 +132,36 @@ export const modifyCoinChange = (
 
 export const modifyPoolKeyHash = (
   payload: Components.Schemas.ConstructionPayloadsRequest,
+  operationType: OperationType,
   poolKeyHash?: string
 ): Components.Schemas.ConstructionPayloadsRequest =>
   mod(
     'operations',
-    findBy((operation: Components.Schemas.Operation) => operation && operation.type === OperationType.STAKE_DELEGATION),
+    findBy((operation: Components.Schemas.Operation) => operation && operation.type === operationType),
     'metadata',
     'pool_key_hash'
   )(() => poolKeyHash)(payload);
+
+export const modfyPoolParameters = (
+  payload: Components.Schemas.ConstructionPayloadsRequest,
+  poolParameters: Components.Schemas.PoolRegistrationParams
+): Components.Schemas.ConstructionPayloadsRequest =>
+  mod(
+    'operations',
+    findBy(
+      (operation: Components.Schemas.Operation) => operation && operation.type === OperationType.POOL_REGISTRATION
+    ),
+    'metadata',
+    'poolRegistrationParams'
+  )(() => poolParameters)(payload);
+
+export const modifyAccount = (
+  payload: Components.Schemas.ConstructionPayloadsRequest,
+  accountIdentifier: Components.Schemas.AccountIdentifier,
+  operationType: OperationType
+): Components.Schemas.ConstructionPayloadsRequest =>
+  mod(
+    'operations',
+    findBy((operation: Components.Schemas.Operation) => operation && operation.type === operationType),
+    'account'
+  )(() => accountIdentifier)(payload);

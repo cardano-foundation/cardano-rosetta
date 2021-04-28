@@ -30,10 +30,13 @@ import {
 } from '../utils/constants';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
+import { isEd25519KeyHash } from '../utils/validations';
 
 export interface Signatures {
   signature: string;
   publicKey: string;
+  chain_code?: string;
+  attributes?: string;
 }
 export interface UnsignedTransaction {
   hash: string;
@@ -49,6 +52,17 @@ export interface TransactionParsed {
 export interface LinearFeeParameters {
   minFeeA: number;
   minFeeB: number;
+}
+
+export interface DepositsParameters {
+  keyDeposit: number;
+  poolDeposit: number;
+}
+
+export interface DepositsSum {
+  refundsSum: bigint;
+  keyDepositsSum: bigint;
+  poolDepositsSum: bigint;
 }
 
 const SHELLEY_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
@@ -178,19 +192,26 @@ export interface CardanoService {
     transaction: string,
     extraData: Components.Schemas.Operation[]
   ): TransactionParsed;
+
+  /**
+   * Returns deposit parameters
+   *
+   * @param logger
+   */
+  getDepositParameters(logger: Logger): DepositsParameters;
 }
 
 const calculateFee = (
   inputAmounts: string[],
   outputAmounts: string[],
-  refundsSum: bigint,
-  depositsSum: bigint,
-  withdrawalAmounts: bigint[]
+  withdrawalAmounts: bigint[],
+  depositsSum: DepositsSum
 ): BigInt => {
+  const { refundsSum, keyDepositsSum, poolDepositsSum } = depositsSum;
   const inputsSum = inputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0)) * BigInt(-1);
   const outputsSum = outputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0));
   const withdrawalsSum = withdrawalAmounts.reduce((acum, current) => acum + current, BigInt(0));
-  const fee = inputsSum + withdrawalsSum + refundsSum - outputsSum - depositsSum;
+  const fee = inputsSum + withdrawalsSum + refundsSum - outputsSum - keyDepositsSum - poolDepositsSum;
   if (fee < 0) {
     throw ErrorFactory.outputsAreBiggerThanInputsError();
   }
@@ -206,7 +227,11 @@ const signatureProcessor: { [eraType: string]: Signatures } = {
   [EraAddressType.Shelley]: {
     signature: SHELLEY_DUMMY_SIGNATURE,
     publicKey: SHELLEY_DUMMY_PUBKEY
-  } // FIXME: handle this properly when supporting byron in a separate PR
+  }, // FIXME: handle this properly when supporting byron in a separate PR
+  [AddressType.POOL_KEY_HASH]: {
+    signature: SHELLEY_DUMMY_SIGNATURE,
+    publicKey: SHELLEY_DUMMY_PUBKEY
+  }
 };
 
 const getSignerFromOperation = (
@@ -223,19 +248,20 @@ const processOperations = (
   logger: Logger,
   network: NetworkIdentifier,
   operations: Components.Schemas.Operation[],
-  minKeyDeposit: number
+  depositsParameters: DepositsParameters
 ) => {
   logger.info('[processOperations] About to calculate fee');
+  const { keyDeposit: minKeyDeposit, poolDeposit } = depositsParameters;
   const result = OperationsProcessor.convert(logger, network, operations);
   const refundsSum = result.stakeKeyDeRegistrationsCount * minKeyDeposit;
-  const depositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
-  const fee = calculateFee(
-    result.inputAmounts,
-    result.outputAmounts,
-    BigInt(refundsSum),
-    BigInt(depositsSum),
-    result.withdrawalAmounts
-  );
+  const keyDepositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
+  const poolDepositsSum = result.poolRegistrationsCount * poolDeposit;
+  const depositsSum = {
+    refundsSum: BigInt(refundsSum),
+    keyDepositsSum: BigInt(keyDepositsSum),
+    poolDepositsSum: BigInt(poolDepositsSum)
+  };
+  const fee = calculateFee(result.inputAmounts, result.outputAmounts, result.withdrawalAmounts, depositsSum);
   logger.info(`[processOperations] Calculated fee: ${fee}`);
   return {
     transactionInputs: result.transactionInputs,
@@ -267,7 +293,10 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
-const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: number): CardanoService => ({
+const configure = (
+  linearFeeParameters: LinearFeeParameters,
+  depositsParameters: DepositsParameters
+): CardanoService => ({
   generateAddress(logger, network, publicKeyString, stakingCredentialString, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${JSON.stringify(
@@ -352,7 +381,7 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       logger,
       network,
       operations,
-      minKeyDeposit
+      depositsParameters
     );
 
     logger.info('[createUnsignedTransaction] About to create transaction body');
@@ -386,8 +415,14 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
       const eraAddressType = this.getEraAddressType(address);
-      if (eraAddressType === null) throw ErrorFactory.invalidAddressError(address);
-      return signatureProcessor[eraAddressType];
+      if (eraAddressType !== null) {
+        return signatureProcessor[eraAddressType];
+      }
+      // since pool key hash are passed as address, ed25519 hashes must be included
+      if (isEd25519KeyHash(address)) {
+        return signatureProcessor[AddressType.POOL_KEY_HASH];
+      }
+      throw ErrorFactory.invalidAddressError(address);
     });
     const transaction = this.buildTransaction(logger, bytes, signatures);
     // eslint-disable-next-line no-magic-numbers
@@ -436,6 +471,10 @@ const configure = (linearFeeParameters: LinearFeeParameters, minKeyDeposit: numb
       );
       throw ErrorFactory.cantCreateUnsignedTransactionFromBytes();
     }
+  },
+  getDepositParameters(logger) {
+    logger.info(depositsParameters, '[getDepositParameters] About to return deposit parameters');
+    return depositsParameters;
   }
 });
 
