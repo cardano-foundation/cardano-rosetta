@@ -156,3 +156,7 @@ test('Launchpad', async () => {
 
 - Introduce a way to check current schema in order to throw an error if `cardano-db-sync` is updated but it doesn't match the snapshot.
 - Automate snapshots generation as it currently is a semi-manual process.
+
+
+### Notes
+- New Byron Address support.
