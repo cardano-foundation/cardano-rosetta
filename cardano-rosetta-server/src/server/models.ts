@@ -120,6 +120,11 @@ export interface PoolRegistration {
   metadataHash?: string;
 }
 
+export interface PoolRetirement {
+  epoch: number;
+  address: string;
+}
+
 export interface Delegation {
   stakeAddress: string;
   poolHash: string;
@@ -140,6 +145,7 @@ export interface PopulatedTransaction extends Transaction {
   deregistrations: Deregistration[];
   delegations: Delegation[];
   poolRegistrations: PoolRegistration[];
+  poolRetirements: PoolRetirement[];
 }
 
 export interface Network {
