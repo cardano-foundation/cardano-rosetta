@@ -299,7 +299,7 @@ const parseCertsToOperations = (
   network: number
 ): Components.Schemas.Operation[] => {
   const parsedOperations = [];
-  const certsCount = certOps.length;
+  const certsCount = transactionBody.certs()?.len() || 0;
   logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
 
   for (let i = 0; i < certsCount; i++) {
@@ -333,31 +333,6 @@ const parseCertsToOperations = (
         );
         parsedOperations.push({ ...parsedOperation, account: certOperation.account });
       }
-    }
-  }
-
-  return parsedOperations;
-};
-
-const parsePoolRetirementToOperations = (
-  logger: Logger,
-  transactionBody: CardanoWasm.TransactionBody,
-  poolRetirementOps: Components.Schemas.Operation[]
-): Components.Schemas.Operation[] => {
-  const parsedOperations = [];
-  const parsedOperationCount = poolRetirementOps.length;
-  logger.info(`[parsePoolRetirementToOperations] About to parse ${parsedOperationCount} certs`);
-  for (let i = 0; i < parsedOperationCount; i++) {
-    const poolRetirementOp = poolRetirementOps[i];
-
-    const cert = transactionBody.certs()?.get(i);
-    if (cert) {
-      const parsedOperation = parsePoolRetirementToOperation(
-        cert,
-        poolRetirementOp.operation_identifier.index,
-        poolRetirementOp.type
-      );
-      parsedOperations.push({ ...parsedOperation, account: poolRetirementOp.account });
     }
   }
 
