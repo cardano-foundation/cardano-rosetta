@@ -30,6 +30,7 @@ import Queries, {
   FindTransactionPoolRelays,
   FindTransactionPoolOwners,
   FindTransactionWithdrawals,
+  FindPoolRetirements,
   FindUtxo,
   FindMaBalance
 } from './queries/blockchain-queries';
@@ -145,7 +146,8 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
         registrations: [],
         deregistrations: [],
         delegations: [],
-        poolRegistrations: []
+        poolRegistrations: [],
+        poolRetirements: []
       }
     };
   }, {});
@@ -305,6 +307,23 @@ const parseInputsRow = (
   );
 
 /**
+ * Parses a pool retirement row into a pool retirement object
+ *
+ * @param transaction
+ * @param deregistration
+ */
+const parsePoolRetirementRow = (
+  transaction: PopulatedTransaction,
+  poolRetirement: FindPoolRetirements
+): PopulatedTransaction => ({
+  ...transaction,
+  poolRetirements: transaction.poolRetirements.concat({
+    epoch: poolRetirement.epoch,
+    address: hexFormatter(poolRetirement.address)
+  })
+});
+
+/**
  * Updates the transaction appending outputs
  *
  * @param populatedTransaction
@@ -428,7 +447,8 @@ const populateTransactions = async (
     Queries.findTransactionDelegations,
     Queries.FindTransactionPoolRegistrationsData,
     Queries.findTransactionPoolOwners,
-    Queries.findTransactionPoolRelays
+    Queries.findTransactionPoolRelays,
+    Queries.findPoolRetirements
   ];
   const [
     inputs,
@@ -439,7 +459,8 @@ const populateTransactions = async (
     delegations,
     poolsData,
     poolsOwners,
-    poolsRelays
+    poolsRelays,
+    poolRetirements
   ] = await Promise.all(
     operationsQueries.map(operationQuery => databaseInstance.query(operationQuery, [transactionsHashes]))
   );
@@ -449,6 +470,7 @@ const populateTransactions = async (
   transactionsMap = populateTransactionField(transactionsMap, registrations.rows, parseRegistrationsRow);
   transactionsMap = populateTransactionField(transactionsMap, deregistrations.rows, parseDeregistrationsRow);
   transactionsMap = populateTransactionField(transactionsMap, delegations.rows, parseDelegationsRow);
+  transactionsMap = populateTransactionField(transactionsMap, poolRetirements.rows, parsePoolRetirementRow);
 
   const mappedPoolRegistrations = mapToTransactionPoolRegistrations(poolsData.rows, poolsOwners.rows, poolsRelays.rows);
   transactionsMap = populateTransactionField(transactionsMap, mappedPoolRegistrations, parsePoolRegistrationsRows);

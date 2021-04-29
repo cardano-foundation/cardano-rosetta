@@ -279,6 +279,12 @@ export interface FindMaBalance {
   value: string;
 }
 
+export interface FindPoolRetirements extends FindTransactionFieldResult {
+  address: Buffer;
+  poolKeyHash: Buffer;
+  epoch: number;
+}
+
 const poolRegistrationQuery = `
   WITH pool_registration AS (
   SELECT
@@ -358,6 +364,19 @@ WITH utxo AS (
 	  tx_in_tx.id IS NULL
 )`;
 
+const findPoolRetirements = `
+SELECT 
+  pr.retiring_epoch AS "epoch",
+  ph.hash_raw AS "address",
+  tx.hash as "txHash"
+FROM pool_retire pr 
+INNER JOIN pool_hash ph 
+  ON pr.hash_id = ph.id
+INNER JOIN tx
+  ON tx.id = pr.announced_tx_id
+WHERE tx.hash = ANY($1)
+`;
+
 const findUtxoByAddressAndBlock = (currencies?: CurrencyId[]): string => `
   ${utxoQuery}
   SELECT
@@ -432,6 +451,7 @@ const Queries = {
   findTransactionWithdrawals,
   findTransactionsByBlock,
   findTransactionsInputs,
+  findPoolRetirements,
   findTransactionsOutputs,
   findUtxoByAddressAndBlock,
   findLatestMinFeeAAndMinFeeB

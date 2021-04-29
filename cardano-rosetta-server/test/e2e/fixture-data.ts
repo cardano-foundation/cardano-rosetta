@@ -596,6 +596,138 @@ export const transactionBlock4490559WithDelegation = {
   }
 };
 
+export const transactionBlock4853177WithPoolRetirement = {
+  transaction: {
+    transaction_identifier: {
+      hash: 'dcbff41c50c5b4012d49be5be75b11a0c5289515258ef4cf108eb6ec4ed5f37a'
+    },
+    operations: [
+      {
+        operation_identifier: { index: 0 },
+        type: 'input',
+        status: 'success',
+        account: {
+          address:
+            'addr_test1qzyh0zdfjmk997fkdrgcm4xmuhcqqd4qgphkmgm3shryrjhkjhp4qfyx33xada55u94c300knphrrgr577gdw5jpc39srpfmlp'
+        },
+        amount: { value: '-269377901300', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: {
+            identifier: '30ca1269e56ed17c97c202164c14e31a58c104f60927ed5de4252255fc624b6b:0'
+          },
+          coin_action: 'coin_spent'
+        },
+        metadata: {
+          tokenBundle: [
+            {
+              policyId: '202e0181ea963e2fcd206b1a794ce160afbe120dad5fd30a181d3a24',
+              tokens: [
+                {
+                  value: '-1000000000000',
+                  currency: { symbol: '41434c', decimals: 0 }
+                }
+              ]
+            },
+            {
+              policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+              tokens: [
+                {
+                  value: '-9952',
+                  currency: { symbol: '4154414441636f696e', decimals: 0 }
+                },
+                {
+                  value: '-8000000000',
+                  currency: { symbol: '61646f736961', decimals: 0 }
+                },
+                {
+                  value: '-2500',
+                  currency: { symbol: '6d616368746c636f696e', decimals: 0 }
+                }
+              ]
+            },
+            {
+              policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db',
+              tokens: [
+                {
+                  value: '-500',
+                  currency: { symbol: '6d616368746c32636f696e', decimals: 0 }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        operation_identifier: { index: 1 },
+        type: 'poolRetirement',
+        status: 'success',
+        account: {
+          address: 'd6aafa5358b98373449434542e3da3564bc71635ae3247dc1a2b7b0e'
+        },
+        metadata: {
+          epoch: 676
+        }
+      },
+      {
+        operation_identifier: { index: 2, network_index: 0 },
+        related_operations: [{ index: 0 }],
+        type: 'output',
+        status: 'success',
+        account: {
+          address:
+            'addr_test1qzyh0zdfjmk997fkdrgcm4xmuhcqqd4qgphkmgm3shryrjhkjhp4qfyx33xada55u94c300knphrrgr577gdw5jpc39srpfmlp'
+        },
+        amount: { value: '269377714987', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: {
+            identifier: 'dcbff41c50c5b4012d49be5be75b11a0c5289515258ef4cf108eb6ec4ed5f37a:0'
+          },
+          coin_action: 'coin_created'
+        },
+        metadata: {
+          tokenBundle: [
+            {
+              policyId: '202e0181ea963e2fcd206b1a794ce160afbe120dad5fd30a181d3a24',
+              tokens: [
+                {
+                  value: '1000000000000',
+                  currency: { symbol: '41434c', decimals: 0 }
+                }
+              ]
+            },
+            {
+              policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+              tokens: [
+                {
+                  value: '9952',
+                  currency: { symbol: '4154414441636f696e', decimals: 0 }
+                },
+                {
+                  value: '8000000000',
+                  currency: { symbol: '61646f736961', decimals: 0 }
+                },
+                {
+                  value: '2500',
+                  currency: { symbol: '6d616368746c636f696e', decimals: 0 }
+                }
+              ]
+            },
+            {
+              policyId: 'ecd07b4ef62f37a68d145de8efd60c53d288dd5ffc641215120cc3db',
+              tokens: [
+                {
+                  value: '500',
+                  currency: { symbol: '6d616368746c32636f696e', decimals: 0 }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  }
+};
+
 export const transactionBlock4853177WithDeregistration = {
   transaction: {
     operations: [
