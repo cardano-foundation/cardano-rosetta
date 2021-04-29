@@ -317,7 +317,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
-const configure = (depositsParameters: DepositsParameters): CardanoService => ({
+const configure = (depositParameters: DepositParameters): CardanoService => ({
   generateAddress(logger, network, publicKeyString, stakingCredentialString, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${JSON.stringify(

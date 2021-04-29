@@ -22,7 +22,7 @@ export const configure = (
   networkMagic: number,
   topologyFile: TopologyConfig,
   DEFAULT_RELATIVE_TTL: number,
-  depositParameters: DepositsParameters
+  depositParameters: DepositParameters
   // FIXME: we can group networkId and networkMagic in a new type
   // eslint-disable-next-line max-params
 ): Services => {
