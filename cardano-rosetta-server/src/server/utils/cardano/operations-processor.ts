@@ -232,6 +232,22 @@ const validatePort = (logger: Logger, port: string): void => {
   }
 };
 
+const parseIpv4 = (ip?: string): CardanoWasm.Ipv4 | undefined => {
+  if (ip) {
+    const parsedIp = Buffer.from(ip.split('.'));
+    return CardanoWasm.Ipv4.new(parsedIp);
+  }
+  return ip as undefined;
+};
+
+const parseIpv6 = (ip?: string): CardanoWasm.Ipv6 | undefined => {
+  if (ip) {
+    const parsedIp = Buffer.from(ip.replace(/:/g, ''), 'hex');
+    return CardanoWasm.Ipv6.new(parsedIp);
+  }
+  return ip as undefined;
+};
+
 const generateSpecificRelay = (logger: Logger, relay: Components.Schemas.Relay): CardanoWasm.Relay => {
   try {
     switch (relay.type) {
@@ -239,8 +255,8 @@ const generateSpecificRelay = (logger: Logger, relay: Components.Schemas.Relay):
         return CardanoWasm.Relay.new_single_host_addr(
           CardanoWasm.SingleHostAddr.new(
             relay.port ? Number.parseInt(relay.port, 10) : undefined,
-            relay.ipv4 ? CardanoWasm.Ipv4.from_bytes(Buffer.from(relay.ipv4, 'hex')) : undefined,
-            relay.ipv6 ? CardanoWasm.Ipv6.from_bytes(Buffer.from(relay.ipv6, 'hex')) : undefined
+            parseIpv4(relay.ipv4),
+            parseIpv6(relay.ipv6)
           )
         );
       }
