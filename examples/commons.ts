@@ -56,15 +56,11 @@ const constructionDerive = async (
 
 const waitForBalanceToBe = async (
   address: string,
-  cond?: (param: any) => boolean,
-  balanceCond?: (param: any) => boolean
+  coinsCond: (param: any) => boolean = () => true,
+  balanceCond: (param: any) => boolean = () => true
 ) => {
   let fetchAccountBalance;
   let fetchAccountCoins;
-
-  const balanceCondition = balanceCond ? balanceCond : () => true;
-  const coinsCondition = cond ? cond : () => true;
-
   do {
     const response = await httpClient.post("/account/coins", {
       network_identifier,
@@ -78,10 +74,7 @@ const waitForBalanceToBe = async (
         address,
       },
     });
-    if (
-      coinsCondition(response.data) &&
-      balanceCondition(responseBalance.data)
-    ) {
+    if (coinsCond(response.data) && balanceCond(responseBalance.data)) {
       const { balances } = responseBalance.data;
       logger.info("[waitForBalanceToBe] Funds found!");
       balances.forEach((balance) =>
@@ -219,9 +212,10 @@ const constructionPayloads = async (payload: any) => {
 
 const signPayloads = (payloads: any, keyAddressMapper: any) =>
   payloads.map((signing_payload: any) => {
-    const { address } = signing_payload.account_identifier;
-    const publicKey = keyAddressMapper[address].publicKey;
-    const privateKey = keyAddressMapper[address].secretKey;
+    const {
+      account_identifier: { address },
+    } = signing_payload;
+    const { publicKey, privateKey } = keyAddressMapper[address];
     return {
       signing_payload,
       public_key: {
