@@ -786,7 +786,6 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
           operations: CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA.operations
         })
       });
-
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_REGISTRATION_WITH_NO_METADATA) }

@@ -861,21 +861,21 @@ describe('Pool Registration', () => {
             address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+          hex_bytes: '9df6f1a76b989b5fd1ef8ea88bc97cec9a5cc7209cebe647a3c1afa49929f1cf'
         },
         {
           account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+          hex_bytes: '9df6f1a76b989b5fd1ef8ea88bc97cec9a5cc7209cebe647a3c1afa49929f1cf'
         },
         {
           account_identifier: {
             address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+          hex_bytes: '9df6f1a76b989b5fd1ef8ea88bc97cec9a5cc7209cebe647a3c1afa49929f1cf'
         }
       ]
     });
@@ -895,14 +895,14 @@ describe('Pool Registration', () => {
             address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '8da267e32058966c9b81d9e2cdfd88c5bf4322f3fc3bc9455618b15c1985074e'
+          hex_bytes: '940fcaaccde0af4d0ad452301842ce0158d7b24c1662379d712b28556046e3e5'
         },
         {
           account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '8da267e32058966c9b81d9e2cdfd88c5bf4322f3fc3bc9455618b15c1985074e'
+          hex_bytes: '940fcaaccde0af4d0ad452301842ce0158d7b24c1662379d712b28556046e3e5'
         }
       ]
     });
@@ -976,14 +976,14 @@ describe('Pool Registration', () => {
             address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: 'ec473492709615faf136fda72867a012123538b2ebd7a1d9c2a25ba902233b47'
+          hex_bytes: 'f8e0ccbbcb740c31fa44a432132d0e673e3fc422f10808c448b7235d64b3ebfc'
         },
         {
           account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: 'ec473492709615faf136fda72867a012123538b2ebd7a1d9c2a25ba902233b47'
+          hex_bytes: 'f8e0ccbbcb740c31fa44a432132d0e673e3fc422f10808c448b7235d64b3ebfc'
         }
       ]
     });
@@ -1003,21 +1003,21 @@ describe('Pool Registration', () => {
             address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '910d9c578eb9bcda5441a7faabe07e0ec56c6cd58615190199795ac8a7778371'
+          hex_bytes: 'b2249d9f32cef250af411859ec5056f5092ecf2163e8e6c7ef4cf25ebbdeb76d'
         },
         {
           account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '910d9c578eb9bcda5441a7faabe07e0ec56c6cd58615190199795ac8a7778371'
+          hex_bytes: 'b2249d9f32cef250af411859ec5056f5092ecf2163e8e6c7ef4cf25ebbdeb76d'
         },
         {
           account_identifier: {
             address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '910d9c578eb9bcda5441a7faabe07e0ec56c6cd58615190199795ac8a7778371'
+          hex_bytes: 'b2249d9f32cef250af411859ec5056f5092ecf2163e8e6c7ef4cf25ebbdeb76d'
         }
       ]
     });
@@ -1190,7 +1190,7 @@ describe('Pool Registration', () => {
     expect(response.json()).toEqual({
       code: 4030,
       message: 'Pool relays are invalid',
-      details: { message: 'Deserialization: Invalid cbor: not enough bytes, expect 0 bytes but received 0 bytes.' },
+      details: { message: 'RuntimeError: unreachable' },
       retriable: false
     });
   });

@@ -14,6 +14,8 @@ const compareStrings = (a: string, b: string): number => {
   return -1;
 };
 
+const QUARTER = 4;
+
 /* eslint-disable camelcase */
 const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: number): Components.Schemas.Operation => ({
   operation_identifier: { index },
@@ -48,6 +50,27 @@ const parsePoolOwners = (poolParameters: CardanoWasm.PoolParams): Array<string> 
   return poolOwners;
 };
 
+const parseIpv4 = (wasmIp?: CardanoWasm.Ipv4): string | undefined => {
+  if (wasmIp) {
+    const ip = wasmIp.ip().toString();
+    return ip.replace(/,/g, '.');
+  }
+  return wasmIp;
+};
+
+const parseIpv6 = (wasmIp?: CardanoWasm.Ipv6): string | undefined => {
+  if (wasmIp) {
+    const parsedIp = Buffer.from(wasmIp.ip()).toString('hex');
+    const finalParse = [];
+    for (let i = 0; i < parsedIp.length; i += QUARTER) {
+      const end = i + QUARTER;
+      finalParse.push(parsedIp.slice(i, end));
+    }
+    return finalParse.join(':');
+  }
+  return wasmIp;
+};
+
 const parsePoolRelays = (poolParameters: CardanoWasm.PoolParams): Array<Components.Schemas.Relay> => {
   const poolRelays: Array<Components.Schemas.Relay> = [];
   const relaysCount = poolParameters.relays().len();
@@ -69,8 +92,8 @@ const parsePoolRelays = (poolParameters: CardanoWasm.PoolParams): Array<Componen
     }
     const singleHostAddr = relay.as_single_host_addr();
     if (singleHostAddr) {
-      const ipv4 = singleHostAddr.ipv4() ? Buffer.from(singleHostAddr.ipv4()!.to_bytes()).toString('hex') : undefined;
-      const ipv6 = singleHostAddr.ipv6() ? Buffer.from(singleHostAddr.ipv6()!.to_bytes()).toString('hex') : undefined;
+      const ipv4 = parseIpv4(singleHostAddr.ipv4());
+      const ipv6 = parseIpv6(singleHostAddr.ipv6());
       poolRelays.push({ type: RelayType.SINGLE_HOST_ADDR, port: singleHostAddr.port()?.toString(), ipv4, ipv6 });
     }
   }
