@@ -63,7 +63,6 @@ export const setupServer = (database: Pool): FastifyInstance => {
     1097911063,
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
     Number(process.env.DEFAULT_RELATIVE_TTL),
-    linearFeeParameters,
     depositParameters
   );
   return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {

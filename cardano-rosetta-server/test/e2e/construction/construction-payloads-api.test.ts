@@ -52,7 +52,9 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT,
   CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT_TYPE,
-  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_COLD_KEY
+  CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_COLD_KEY,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT,
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT_RESPONSE
 } from '../fixture-data';
 import {
   SIGNATURE_TYPE,
@@ -121,6 +123,27 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '333a6ccaaa639f7b451ce93764f54f654ef499fdb7b8b24374ee9d99eab9d795'
+        }
+      ]
+    });
+  });
+
+  test('Should return a valid unsigned transaction hash whenever a input with Byron Address is send', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'Ae2tdPwUPEZFRbyhz3cpfC2CumGzNkFBN2L42rcUc2yjQpEkxDbkPodpMAi'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '4691ebf945f37962153f74e198ba2553177e6dc8e464303e37589077f634397c'
         }
       ]
     });

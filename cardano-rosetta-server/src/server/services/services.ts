@@ -22,12 +22,11 @@ export const configure = (
   networkMagic: number,
   topologyFile: TopologyConfig,
   DEFAULT_RELATIVE_TTL: number,
-  linearFeeParameters: LinearFeeParameters,
-  depositParameters: DepositParameters
+  depositParameters: DepositsParameters
   // FIXME: we can group networkId and networkMagic in a new type
   // eslint-disable-next-line max-params
 ): Services => {
-  const cardanoServiceInstance = cardanoService(linearFeeParameters, depositParameters);
+  const cardanoServiceInstance = cardanoService(depositParameters);
   const blockServiceInstance = blockService(repositories.blockchainRepository, cardanoServiceInstance);
   return {
     blockService: blockServiceInstance,

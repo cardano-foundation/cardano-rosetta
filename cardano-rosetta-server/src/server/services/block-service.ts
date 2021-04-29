@@ -10,7 +10,7 @@ import {
 } from '../models';
 import { ErrorFactory } from '../utils/errors';
 import { BlockchainRepository } from '../db/blockchain-repository';
-import { CardanoService } from './cardano-services';
+import { CardanoService, LinearFeeParameters } from './cardano-services';
 
 /* eslint-disable camelcase */
 export interface BlockService {
@@ -62,6 +62,13 @@ export interface BlockService {
    * @param logger
    */
   getGenesisBlock(logger: Logger): Promise<GenesisBlock>;
+
+  /**
+   * Returns the linear fee parameters
+   *
+   * @param logger
+   */
+  getLinearFeeParameters(logger: Logger): Promise<LinearFeeParameters>;
 
   /**
    * Returns the best block (tip of the chain)
@@ -158,6 +165,10 @@ const configure = (repository: BlockchainRepository, cardanoService: CardanoServ
     }
     logger.debug({ genesisBlock }, '[getGenesisBlock] Returning genesis block');
     return genesisBlock;
+  },
+  getLinearFeeParameters(logger) {
+    logger.info('[getLinearFeeParameters] Getting linear fee parameters from epoch_param');
+    return repository.getLinearFeeParameters(logger);
   },
   async findBalanceDataByAddressAndBlock(logger, address, number, hash) {
     const block = await this.findBlock(logger, number, hash);

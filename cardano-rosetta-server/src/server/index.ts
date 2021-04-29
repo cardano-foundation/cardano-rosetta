@@ -16,11 +16,8 @@ import { LinearFeeParameters, DepositParameters } from './services/cardano-servi
 const genesis = JSON.parse(fs.readFileSync(path.resolve(process.env.GENESIS_SHELLEY_PATH)).toString());
 const networkMagic = genesis.networkMagic;
 const networkId = genesis.networkId.toLowerCase();
-const linearFeeParameters: LinearFeeParameters = {
-  minFeeA: genesis.protocolParams.minFeeA,
-  minFeeB: genesis.protocolParams.minFeeB
-};
-const depositParameters: DepositParameters = {
+
+const depositParameters: DepositsParameters = {
   keyDeposit: genesis.protocolParams.keyDeposit,
   poolDeposit: genesis.protocolParams.poolDeposit
 };
@@ -40,7 +37,6 @@ const start = async (databaseInstance: Pool) => {
       networkMagic,
       environment.TOPOLOGY_FILE,
       environment.DEFAULT_RELATIVE_TTL,
-      linearFeeParameters,
       depositParameters
     );
     server = buildServer(services, cardanoCli, cardanoNode, environment.LOGGER_LEVEL, {
