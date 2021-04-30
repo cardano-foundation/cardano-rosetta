@@ -49,38 +49,49 @@ const constructionDerive = async (
       });
   }
   const response = await httpClient.post("/construction/derive", request);
-  const address = response.data.address;
+  const address = response.data.account_identifier.address;
   logger.debug(`[constructionDerive] Retrieved address ${address}`);
   return address;
 };
 
 const waitForBalanceToBe = async (
   address: string,
-  cond: (param: any) => boolean
+  coinsCond: (param: any) => boolean = () => true,
+  balanceCond: (param: any) => boolean = () => true
 ) => {
   let fetchAccountBalance;
+  let fetchAccountCoins;
   do {
-    const response = await httpClient.post("/account/balance", {
+    const response = await httpClient.post("/account/coins", {
       network_identifier,
       account_identifier: {
         address,
       },
     });
-    if (cond(response.data)) {
-      const { balances } = response.data;
+    const responseBalance = await httpClient.post("/account/balance", {
+      network_identifier,
+      account_identifier: {
+        address,
+      },
+    });
+    if (coinsCond(response.data) && balanceCond(responseBalance.data)) {
+      const { balances } = responseBalance.data;
       logger.info("[waitForBalanceToBe] Funds found!");
       balances.forEach((balance) =>
-        logger.info(`[waitForBalanceToBe] ${balance.value} ${balance.currency.symbol}`)
+        logger.info(
+          `[waitForBalanceToBe] ${balance.value} ${balance.currency.symbol}`
+        )
       );
-      fetchAccountBalance = response.data;
+      fetchAccountBalance = responseBalance.data;
+      fetchAccountCoins = response.data;
     } else {
       logger.debug(
         "[waitForBalanceToBe] Condition not met, waiting for a few seconds."
       );
       await delay(30 * 1000);
     }
-  } while (!fetchAccountBalance);
-  return fetchAccountBalance;
+  } while (!fetchAccountBalance || !fetchAccountCoins);
+  return { balances: fetchAccountBalance, unspents: fetchAccountCoins };
 };
 const constructionPreprocess = async (
   operations: any,
@@ -103,6 +114,7 @@ const constructionMetadata = async (options: any) => {
 
 const buildOperation = (
   unspents: any,
+  balances: any,
   address: string,
   destination: string,
   isRegisteringStakeKey: boolean = false
@@ -144,7 +156,7 @@ const buildOperation = (
     return operation;
   });
   // TODO: No proper fees estimation is being done (it should be transaction size based)
-  const adaBalance = BigInt(unspents.balances[0].value);
+  const adaBalance = BigInt(balances.balances[0].value);
   let outputAmount = (adaBalance * BigInt(95)) / BigInt(100);
   if (isRegisteringStakeKey) {
     let i = 0;
@@ -200,8 +212,10 @@ const constructionPayloads = async (payload: any) => {
 
 const signPayloads = (payloads: any, keyAddressMapper: any) =>
   payloads.map((signing_payload: any) => {
-    const publicKey = keyAddressMapper[signing_payload.address].publicKey;
-    const privateKey = keyAddressMapper[signing_payload.address].secretKey;
+    const {
+      account_identifier: { address },
+    } = signing_payload;
+    const { publicKey, privateKey } = keyAddressMapper[address];
     return {
       signing_payload,
       public_key: {

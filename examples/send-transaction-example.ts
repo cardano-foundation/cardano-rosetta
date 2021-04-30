@@ -31,11 +31,16 @@ const doRun = async (): Promise<void> => {
     Buffer.from(keys.publicKey).toString("hex")
   );
   keyAddressMapper[address] = keys;
-  const unspents = await waitForBalanceToBe(
+  const { unspents, balances } = await waitForBalanceToBe(
     address,
     (response) => response.coins.length !== 0
   );
-  const builtOperations = buildOperation(unspents, address, SEND_FUNDS_ADDRESS);
+  const builtOperations = buildOperation(
+    unspents,
+    balances,
+    address,
+    SEND_FUNDS_ADDRESS
+  );
   const preprocess = await constructionPreprocess(
     builtOperations.operations,
     1000

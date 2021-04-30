@@ -50,9 +50,10 @@ const doRun = async (): Promise<void> => {
     );
 
   logger.info(`[doRun] address ${PAYMENT_ADDRESS} expects to receive funds.`);
-  const unspents = await waitForBalanceToBe(PAYMENT_ADDRESS, responseCondition);
+  const { unspents, balances } = await waitForBalanceToBe(PAYMENT_ADDRESS, responseCondition);
   const builtOperations = buildOperation(
     unspents,
+    balances,
     PAYMENT_ADDRESS,
     SEND_FUNDS_ADDRESS
   );
