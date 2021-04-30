@@ -150,6 +150,11 @@ const allow = {
       retriable: false
     },
     {
+      code: 4036,
+      message: 'Mandatory parameter is missing: Epoch',
+      retriable: false
+    },
+    {
       code: 5000,
       message: 'An error occurred',
       retriable: true

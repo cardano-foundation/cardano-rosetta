@@ -4,6 +4,7 @@ import CardanoWasm, {
   Assets,
   BigNum,
   MultiAsset,
+  PoolRetirement,
   ScriptHash,
   StakeDelegation,
   StakeDeregistration,
@@ -432,6 +433,23 @@ const processPoolRegistrationWithCert = (
   return { certificate, poolKeyHash };
 };
 
+const processPoolRetirement = (
+  logger: Logger,
+  operation: Components.Schemas.Operation
+): { certificate: CardanoWasm.Certificate; poolKeyHash: string } => {
+  logger.info(`[processPoolRetiring] About to process operation of type ${operation.type}`);
+  if (operation.metadata?.epoch && operation.account?.address) {
+    const epoch = operation.metadata.epoch;
+    const keyHash = validateAndParsePoolKeyHash(logger, operation.account?.address);
+    return {
+      certificate: CardanoWasm.Certificate.new_pool_retirement(PoolRetirement.new(keyHash, epoch)),
+      poolKeyHash: operation.account?.address
+    };
+  }
+  logger.error('[processPoolRetiring] Epoch operation metadata is missing');
+  throw ErrorFactory.missingMetadataParametersForPoolRetirement();
+};
+
 const processWithdrawal = (
   logger: Logger,
   network: NetworkIdentifier,
@@ -505,6 +523,13 @@ const operationProcessor: (
     resultAccumulator.addresses.push(poolKeyHash);
     resultAccumulator.poolRegistrationsCount++;
     return resultAccumulator;
+  },
+  [OperationType.POOL_RETIREMENT]: () => {
+    const { certificate, poolKeyHash } = processPoolRetirement(logger, operation);
+    resultAccumulator.certificates.add(certificate);
+    resultAccumulator.addresses.push(poolKeyHash);
+    resultAccumulator.poolRetirementsCount++;
+    return resultAccumulator;
   }
 });
 
@@ -520,6 +545,7 @@ export interface ProcessOperationsResult {
   stakeKeyRegistrationsCount: number;
   stakeKeyDeRegistrationsCount: number;
   poolRegistrationsCount: number;
+  poolRetirementsCount: number;
 }
 
 /**
@@ -549,7 +575,8 @@ export const convert = (
     withdrawalAmounts: [],
     stakeKeyRegistrationsCount: 0,
     stakeKeyDeRegistrationsCount: 0,
-    poolRegistrationsCount: 0
+    poolRegistrationsCount: 0,
+    poolRetirementsCount: 0
   };
 
   return operations.reduce<ProcessOperationsResult>((previousResult, operation) => {

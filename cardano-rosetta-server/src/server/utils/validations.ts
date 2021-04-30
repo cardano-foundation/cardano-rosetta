@@ -26,7 +26,6 @@ export const validateCurrencies = (currencies: Components.Schemas.Currency[]): v
       throw ErrorFactory.invalidPolicyIdError(`Given policy id is ${metadata.policyId}`);
   });
 };
-
 export const isEd25519KeyHash = (hash: string): boolean => {
   let edd25519Hash: CardanoWasm.Ed25519KeyHash;
   try {

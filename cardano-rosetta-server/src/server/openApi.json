@@ -1096,6 +1096,9 @@
           "pool_key_hash": {
             "type": "string"
           },
+          "epoch": {
+            "type" : "number"
+          },
           "tokenBundle": {
             "description": "A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.",
             "type": "array",

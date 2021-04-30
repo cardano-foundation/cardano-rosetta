@@ -203,11 +203,11 @@ const parseOutputToOperation = (
   output: CardanoWasm.TransactionOutput,
   index: number,
   relatedOperations: Components.Schemas.OperationIdentifier[],
-  addressPrefix: string
+  address: string
 ): Components.Schemas.Operation => ({
   operation_identifier: { index },
   related_operations: relatedOperations,
-  account: { address: parseAddress(output.address(), addressPrefix) },
+  account: { address },
   amount: {
     value: output
       .amount()
@@ -225,31 +225,30 @@ const parsePoolCertToOperation = (
   index: number,
   type: string
 ): Components.Schemas.Operation => {
-  let address = '';
-  const metadata: Components.Schemas.OperationMetadata = {};
-  const poolRegistrationCert = cert.as_pool_registration();
-  if (poolRegistrationCert) {
-    address = Buffer.from(
-      poolRegistrationCert
-        .pool_params()
-        .operator()
-        .to_bytes()
-    ).toString('hex');
-    if (type === OperationType.POOL_REGISTRATION) {
-      metadata.poolRegistrationParams = parsePoolRegistration(poolRegistrationCert);
-    }
-    if (type === OperationType.POOL_REGISTRATION_WITH_CERT) {
-      const parsedPoolCert = Buffer.from(poolRegistrationCert.to_bytes()).toString('hex');
-      metadata.poolRegistrationCert = parsedPoolCert;
-    }
-  }
-  return {
+  const operation: Components.Schemas.Operation = {
     operation_identifier: { index },
     status: '',
     type,
-    account: { address },
-    metadata
+    metadata: {}
   };
+
+  if (type === OperationType.POOL_RETIREMENT) {
+    const poolRetirementCert = cert.as_pool_retirement();
+    if (poolRetirementCert) {
+      operation.metadata!.epoch = poolRetirementCert.epoch();
+    }
+  } else {
+    const poolRegistrationCert = cert.as_pool_registration();
+    if (poolRegistrationCert) {
+      if (type === OperationType.POOL_REGISTRATION) {
+        operation.metadata!.poolRegistrationParams = parsePoolRegistration(poolRegistrationCert);
+      } else {
+        const parsedPoolCert = Buffer.from(poolRegistrationCert.to_bytes()).toString('hex');
+        operation.metadata!.poolRegistrationCert = parsedPoolCert;
+      }
+    }
+  }
+  return operation;
 };
 
 const parseCertToOperation = (
@@ -268,25 +267,39 @@ const parseCertToOperation = (
       staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
     }
   };
-  if (type === OperationType.STAKE_DELEGATION) {
-    const delegationCert = cert.as_stake_delegation();
-    if (delegationCert) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
-    }
+  const delegationCert = cert.as_stake_delegation();
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+  if (delegationCert)
+    operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
+  return operation;
+};
+
+const parsePoolRetirementToOperation = (
+  cert: CardanoWasm.Certificate,
+  index: number,
+  type: string
+): Components.Schemas.Operation => {
+  const operation: Components.Schemas.Operation = {
+    operation_identifier: { index },
+    status: '',
+    type,
+    metadata: {}
+  };
+  const poolRetirementCert = cert.as_pool_retirement();
+  if (poolRetirementCert) {
+    operation.metadata!.epoch = poolRetirementCert.epoch();
   }
 
   return operation;
 };
-
 const parseCertsToOperations = (
   logger: Logger,
   transactionBody: CardanoWasm.TransactionBody,
   certOps: Components.Schemas.Operation[],
-  certsCount: number,
   network: number
 ): Components.Schemas.Operation[] => {
   const parsedOperations = [];
+  const certsCount = transactionBody.certs()?.len() || 0;
   logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
 
   for (let i = 0; i < certsCount; i++) {
@@ -318,7 +331,7 @@ const parseCertsToOperations = (
           certOperation.operation_identifier.index,
           certOperation.type
         );
-        parsedOperations.push(parsedOperation);
+        parsedOperations.push({ ...parsedOperation, account: certOperation.account });
       }
     }
   }
@@ -405,26 +418,22 @@ export const convert = (
   logger.info(`[parseOperationsFromTransactionBody] About to parse ${outputsCount} outputs`);
   for (let i = 0; i < outputsCount; i++) {
     const output = transactionBody.outputs().get(i);
-    const outputParsed = parseOutputToOperation(
-      logger,
-      output,
-      operations.length,
-      relatedOperations,
-      getAddressPrefix(network)
-    );
+    const address = parseAddress(output.address(), getAddressPrefix(network));
+    const outputParsed = parseOutputToOperation(logger, output, operations.length, relatedOperations, address);
     operations.push(outputParsed);
   }
+
   const certOps = extraData.filter(({ type }) =>
     [
       OperationType.STAKE_KEY_REGISTRATION,
       OperationType.STAKE_KEY_DEREGISTRATION,
       OperationType.STAKE_DELEGATION,
       OperationType.POOL_REGISTRATION,
-      OperationType.POOL_REGISTRATION_WITH_CERT
+      OperationType.POOL_REGISTRATION_WITH_CERT,
+      OperationType.POOL_RETIREMENT
     ].includes(type as OperationType)
   );
-  const certsCount = transactionBody.certs()?.len() || 0;
-  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, certOps, certsCount, network);
+  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, certOps, network);
   operations.push(...parsedCertOperations);
   const withdrawalOps = extraData.filter(({ type }) => type === OperationType.WITHDRAWAL);
   const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;

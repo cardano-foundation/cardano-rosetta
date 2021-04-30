@@ -54,7 +54,10 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT_TYPE,
   CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_COLD_KEY,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT,
-  CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT_RESPONSE
+  CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH,
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE
 } from '../fixture-data';
 import {
   SIGNATURE_TYPE,
@@ -546,6 +549,49 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
           hex_bytes: '9c0f4e7fa746738d3df3665fc7cd11b2e3115e3268a047e0435f2454ed41fdc5'
         }
       ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool retirement', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'f3025002e2bf1004367b423e7f0815250062b4034271e1f81bf0a9b2a464e10a'
+        },
+        {
+          account_identifier: {
+            address: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'f3025002e2bf1004367b423e7f0815250062b4034271e1f81bf0a9b2a464e10a'
+        }
+      ]
+    });
+  });
+
+  test('Should throw an error when no epoch was sent on pool retirement operation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4036,
+      message: 'Mandatory parameter is missing: Epoch',
+      retriable: false
     });
   });
 
