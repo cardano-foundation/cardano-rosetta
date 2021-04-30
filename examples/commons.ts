@@ -117,7 +117,8 @@ const buildOperation = (
   balances: any,
   address: string,
   destination: string,
-  isRegisteringStakeKey: boolean = false
+  isRegisteringStakeKey: boolean = false,
+  outputsPerc: number
 ) => {
   let tokenBundle = [];
   const inputs = unspents.coins.map((coin: any, index: number) => {
@@ -157,11 +158,11 @@ const buildOperation = (
   });
   // TODO: No proper fees estimation is being done (it should be transaction size based)
   const adaBalance = BigInt(balances.balances[0].value);
-  let outputAmount = (adaBalance * BigInt(95)) / BigInt(100);
+  let outputAmount = (adaBalance * BigInt(outputsPerc)) / BigInt(100);
   if (isRegisteringStakeKey) {
     let i = 0;
     do {
-      let dividend = 95 - i;
+      let dividend = 45 - i;
       outputAmount = (adaBalance * BigInt(dividend)) / BigInt(100);
       i += 5;
       if (outputAmount < 2500000)
@@ -252,7 +253,28 @@ const constructionSubmit = async (signed_transaction: any) => {
   return response.data;
 };
 
+const buildDelegationOperation = (
+  stakingKey: string,
+  currentIndex: number,
+  poolKeyHash: string
+) => ({
+  operation_identifier: {
+    index: currentIndex + 1,
+  },
+  type: "stakeDelegation",
+  status: "success",
+  metadata: {
+    staking_credential: {
+      hex_bytes: stakingKey,
+      curve_type: "edwards25519",
+    },
+    pool_key_hash: poolKeyHash,
+  },
+});
+
 export {
+  buildDelegationOperation,
+  buildOperation,
   constructionDerive,
   constructionPreprocess,
   constructionMetadata,
@@ -261,6 +283,5 @@ export {
   constructionSubmit,
   signPayloads,
   waitForBalanceToBe,
-  buildOperation,
   generateKeys,
 };
