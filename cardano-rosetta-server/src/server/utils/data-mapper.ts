@@ -175,6 +175,24 @@ export const mapToRosettaTransaction = (
     })
   );
   totalOperations.push(registrationsAsOperations);
+  const poolRetirementOperations: Components.Schemas.Operation[] = transaction.poolRetirements.map(
+    (poolRetirement, index) => ({
+      operation_identifier: {
+        index: getOperationCurrentIndex(totalOperations, index)
+      },
+      type: OperationType.POOL_RETIREMENT,
+      status: SUCCESS_STATUS,
+      account: {
+        address: poolRetirement.address
+      },
+      metadata: {
+        epoch: poolRetirement.epoch,
+        refundAmount: mapAmount((poolDeposit * -1).toString())
+      }
+    })
+  );
+  totalOperations.push(poolRetirementOperations);
+
   const deregistrationsAsOperations: Components.Schemas.Operation[] = transaction.deregistrations.map(
     (deregistration, index) => ({
       operation_identifier: {
