@@ -911,6 +911,13 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
+            address: 'stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '9df6f1a76b989b5fd1ef8ea88bc97cec9a5cc7209cebe647a3c1afa49929f1cf'
+        },
+        {
+          account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           signature_type: SIGNATURE_TYPE,
@@ -920,8 +927,8 @@ describe('Pool Registration', () => {
           account_identifier: {
             address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
-          signature_type: SIGNATURE_TYPE,
-          hex_bytes: '9df6f1a76b989b5fd1ef8ea88bc97cec9a5cc7209cebe647a3c1afa49929f1cf'
+          hex_bytes: '9df6f1a76b989b5fd1ef8ea88bc97cec9a5cc7209cebe647a3c1afa49929f1cf',
+          signature_type: 'ed25519'
         }
       ]
     });
@@ -945,10 +952,24 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
-            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+            address: 'stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '940fcaaccde0af4d0ad452301842ce0158d7b24c1662379d712b28556046e3e5'
+        },
+        {
+          account_identifier: {
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          hex_bytes: '940fcaaccde0af4d0ad452301842ce0158d7b24c1662379d712b28556046e3e5',
+          signature_type: 'ed25519'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          hex_bytes: '940fcaaccde0af4d0ad452301842ce0158d7b24c1662379d712b28556046e3e5',
+          signature_type: 'ed25519'
         }
       ]
     });
@@ -972,10 +993,24 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
-            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+            address: 'stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '621bfe084e502ec8d7246390a3215404f6de65e9d4f93f1896f3df36f0872c9e'
+        },
+        {
+          account_identifier: {
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          hex_bytes: '621bfe084e502ec8d7246390a3215404f6de65e9d4f93f1896f3df36f0872c9e',
+          signature_type: 'ed25519'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          hex_bytes: '621bfe084e502ec8d7246390a3215404f6de65e9d4f93f1896f3df36f0872c9e',
+          signature_type: 'ed25519'
         }
       ]
     });
@@ -999,7 +1034,21 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
+            address: 'stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '15803239bcc181181b91c4f6b2f3818216c8152e406ed75ed39309c84bb69a8a'
+        },
+        {
+          account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '15803239bcc181181b91c4f6b2f3818216c8152e406ed75ed39309c84bb69a8a'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '15803239bcc181181b91c4f6b2f3818216c8152e406ed75ed39309c84bb69a8a'
@@ -1026,10 +1075,24 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
+            address: 'stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'f8e0ccbbcb740c31fa44a432132d0e673e3fc422f10808c448b7235d64b3ebfc'
+        },
+        {
+          account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'f8e0ccbbcb740c31fa44a432132d0e673e3fc422f10808c448b7235d64b3ebfc'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          hex_bytes: 'f8e0ccbbcb740c31fa44a432132d0e673e3fc422f10808c448b7235d64b3ebfc',
+          signature_type: 'ed25519'
         }
       ]
     });
@@ -1053,6 +1116,13 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
+            address: 'stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'b2249d9f32cef250af411859ec5056f5092ecf2163e8e6c7ef4cf25ebbdeb76d'
+        },
+        {
+          account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           signature_type: SIGNATURE_TYPE,
@@ -1062,8 +1132,8 @@ describe('Pool Registration', () => {
           account_identifier: {
             address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
-          signature_type: SIGNATURE_TYPE,
-          hex_bytes: 'b2249d9f32cef250af411859ec5056f5092ecf2163e8e6c7ef4cf25ebbdeb76d'
+          hex_bytes: 'b2249d9f32cef250af411859ec5056f5092ecf2163e8e6c7ef4cf25ebbdeb76d',
+          signature_type: 'ed25519'
         }
       ]
     });
@@ -1594,7 +1664,21 @@ describe('Pool Registration with certification', () => {
         },
         {
           account_identifier: {
+            address: 'stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+        },
+        {
+          account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
+        },
+        {
+          account_identifier: {
+            address: 'addr1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cmpqcax'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'

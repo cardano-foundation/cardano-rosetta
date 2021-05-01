@@ -40,7 +40,7 @@ const parsePoolMetadata = (poolParameters: CardanoWasm.PoolParams): Components.S
   }
 };
 
-const parsePoolOwners = (poolParameters: CardanoWasm.PoolParams): Array<string> => {
+export const parsePoolOwners = (poolParameters: CardanoWasm.PoolParams): Array<string> => {
   const poolOwners: Array<string> = [];
   const ownersCount = poolParameters.pool_owners().len();
   for (let i = 0; i < ownersCount; i++) {
@@ -49,6 +49,14 @@ const parsePoolOwners = (poolParameters: CardanoWasm.PoolParams): Array<string> 
   }
   return poolOwners;
 };
+
+export const parsePoolRewardAccount = (poolParameters: CardanoWasm.PoolParams): string =>
+  Buffer.from(
+    poolParameters
+      .reward_account()
+      .to_address()
+      .to_bytes()
+  ).toString('hex');
 
 const parseIpv4 = (wasmIp?: CardanoWasm.Ipv4): string | undefined => {
   if (wasmIp) {
@@ -117,12 +125,7 @@ const parsePoolRegistration = (
   const poolParameters = poolRegistration.pool_params();
   return {
     vrfKeyHash: Buffer.from(poolParameters.vrf_keyhash().to_bytes()).toString('hex'),
-    rewardAddress: Buffer.from(
-      poolParameters
-        .reward_account()
-        .to_address()
-        .to_bytes()
-    ).toString('hex'),
+    rewardAddress: parsePoolRewardAccount(poolParameters),
     pledge: poolParameters.pledge().to_str(),
     cost: poolParameters.cost().to_str(),
     poolOwners: parsePoolOwners(poolParameters),
