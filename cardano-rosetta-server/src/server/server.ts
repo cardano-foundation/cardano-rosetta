@@ -15,6 +15,11 @@ interface ExtraParams {
   pageSize: number;
 }
 
+const getBodyLimit = (): number | undefined => {
+  const bodyLimit = parseInt(process.env.BODY_LIMIT, 10);
+  return !Number.isNaN(bodyLimit) ? bodyLimit : undefined;
+};
+
 /**
  * This function builds a Fastify instance connecting the services with the
  * corresponding fastify route handlers.
@@ -29,7 +34,7 @@ const buildServer = (
   logLevel: string,
   extraParameters: ExtraParams
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
-  const server = fastify({ logger: { level: logLevel }, bodyLimit: process.env.BODY_LIMIT });
+  const server = fastify({ logger: { level: logLevel }, bodyLimit: getBodyLimit() });
   const { networkId, pageSize } = extraParameters;
   server.register(fastifyBlipp);
   server.register(openapiGlue, {
