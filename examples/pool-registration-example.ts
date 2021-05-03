@@ -58,6 +58,21 @@ const paymentKeys = {
   ),
 };
 
+const OWNER_ADDRESS = 'e0be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa';
+const ownerAddress = 'stake_test1uzly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sfnz8a7';
+
+
+const ownerKeys = {
+  privateKey: Buffer.from(
+    "36fd67052b79b46425054d57d82da2f0f2e2dc5c5d4dcbeb9b244fca8ac74c7eacc912f01c207532754f4d47c853e87a8950b788f8dfa0c8d1dfd2a564760a83",
+    "hex"
+  ),
+  publicKey: Buffer.from(
+    "acc912f01c207532754f4d47c853e87a8950b788f8dfa0c8d1dfd2a564760a83",
+    "hex"
+  ),
+};
+
 const buildRegistrationOperation = (
   stakingKey: string,
   currentIndex: number
@@ -89,7 +104,7 @@ const buildPoolRegistrationOperation = (
       rewardAddress: rewardAddress,
       pledge: "0",
       cost: "340000000",
-      poolOwners: ["7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f00"], // check
+      poolOwners: ['e0be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
       relays: [
         {
           type: "multi_host_name",
@@ -113,7 +128,7 @@ const doRun = async (): Promise<void> => {
     "stake_test1upe5agdl7f5slkxjgw2cf32fadw628j9paxkuhyzzzac9rcatcdje";
   logger.info(`[doRun] stake address is ${stakeAddress}`);
   keyAddressMapper[stakeAddress] = stakingKeys;
-
+  keyAddressMapper[ownerAddress] = ownerKeys;
   keyAddressMapper[POOL_KEY_HASH] = coldKeys;
 
   const paymentAddress = await constructionDerive(
