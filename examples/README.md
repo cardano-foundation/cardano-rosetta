@@ -96,3 +96,23 @@ In order to execute the example, run:
 ```javascript
 $ yarn ma-transfer-example
 ```
+
+## Sending transactions with pool registration and pledge
+
+Sends a transaction that registers a pool and delegates a staking key in order to honor the pledge. So:
+
+1. All the ADA is sent to a predefined address `SEND_FUNDS_ADDRESS`
+2. A predefined `POOL_KEY_HASH` is the Ed25519KeyHash as hex string corresponding to `coldKeys`.
+3. A predefined `REWARD_ADDRESS_AS_HEX` is the [Address](https://github.com/Emurgo/cardano-serialization-lib/blob/master/rust/src/address.rs#L270) passed as hex string of pool creator corresponding to `stakingKeys`.
+4. A predefined `OWNER_ADDRESS_AS_HEX` is the Address passed as hex string of pool owner corresponding to `ownerKeys`.
+
+Important notes:
+- Staking keys of the creator are used to register a stakey key and delegate that to the pool in order to honor the pledge.
+- A minimum of 503 ADA + fees balance is needed in order to pay for pool registration deposit and stake key registration deposit.
+- Funds will be sent to `SEND_FUNDS_ADDRESS` by default as it's the address where testnet funds should be returned.
+
+In order to execute the example, run:
+
+```javascript
+$ yarn pool-registration-example
+```

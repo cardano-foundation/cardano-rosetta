@@ -10,6 +10,7 @@ import {
   constructionPayloads,
   constructionCombine,
   constructionSubmit,
+  generateKeys,
   signPayloads,
   waitForBalanceToBe,
   buildOperation,
@@ -48,18 +49,6 @@ const stakingKeys = {
   ),
   publicKey: Buffer.from(
     "99ddae6333170907688233365ab90470adc34812482b93268019935cfcec0a67",
-    "hex"
-  ),
-};
-
-// payment keys
-const paymentKeys = {
-  secretKey: Buffer.from(
-    "d7f9df87b5cd44e979bafb007b882c40c970d429e37d90b5dbaca40344f5e5777de218220642953feeff2f0f52dc1bdcc1fb5da08e0a5c9616cda23f7fd18992",
-    "hex"
-  ),
-  publicKey: Buffer.from(
-    "7de218220642953feeff2f0f52dc1bdcc1fb5da08e0a5c9616cda23f7fd18992",
     "hex"
   ),
 };
@@ -130,13 +119,17 @@ const buildPoolRegistrationOperation = (
 
 const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};
-  const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
-
   const stakingPublicKey = Buffer.from(stakingKeys.publicKey).toString("hex");
 
   keyAddressMapper[stakeAddress] = stakingKeys;
   keyAddressMapper[ownerAddress] = ownerKeys;
   keyAddressMapper[POOL_KEY_HASH] = coldKeys;
+
+  const paymentKeys = generateKeys();
+  logger.info(
+    `[doRun] secretKey ${Buffer.from(paymentKeys.secretKey).toString("hex")}`
+  );
+  const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
 
   const paymentAddress = await constructionDerive(
     paymentPublicKey,
