@@ -16,8 +16,8 @@ interface ExtraParams {
 }
 
 const getBodyLimit = (): number | undefined => {
-  const bodyLimit = parseInt(process.env.BODY_LIMIT);
-  return !isNaN(bodyLimit) ? bodyLimit : undefined;
+  const bodyLimit = parseInt(process.env.BODY_LIMIT, 10);
+  return !Number.isNaN(bodyLimit) ? bodyLimit : undefined;
 };
 
 /**
