@@ -48,6 +48,19 @@ Send Transaction finished
 Done in 6.14s
 ```
 
+## Sending transactions with Byron input
+
+Uses a predefined Byron address to send ADA to `SEND_FUNDS_ADDRESS` address.
+
+Important notes:
+  - Byron address is generated outside Rosetta.
+
+In order to execute the example, run:
+
+```javascript
+$ yarn send-transaction-with-byron-example
+```
+
 ## Staking key registration and delegation
 
 Uses the staking credentials based on a predefined private key and generates an address from a different predefined private key, asks for funds and once found the address is drained and sent to a specific address.
