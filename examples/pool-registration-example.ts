@@ -13,42 +13,48 @@ import {
   signPayloads,
   waitForBalanceToBe,
   buildOperation,
-  generateKeys,
 } from "./commons";
 const logger = console;
 
 const SEND_FUNDS_ADDRESS =
   "addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3";
 
+// cold keys
 const coldKeys = {
-  privateKey: Buffer.from(
-    "4e14d6b87dc1c2fb2b077dd3a861f8e2966793285dbf069aab9559f11a54d615969c8ef677173916b06d366617c895c6667f49fe014a9498b280aa22e7a15bc2",
+  secretKey: Buffer.from(
+    "45ad0a9123f966e5d584140c1fe49d8f8430ee9f55c8c4177bdf632191dca496cb18b6cb54eb79376134cd6c19f8d4bf2f9dfe1503d53547c4f8800897b50d3a",
     "hex"
   ),
   publicKey: Buffer.from(
-    "969c8ef677173916b06d366617c895c6667f49fe014a9498b280aa22e7a15bc2",
+    "cb18b6cb54eb79376134cd6c19f8d4bf2f9dfe1503d53547c4f8800897b50d3a",
     "hex"
   ),
 };
-const POOL_KEY_HASH =
-  "ef776aeaf431fb31a90e58d0d5cf7b891dbdeb3116f51dd6483591d1";
 
-const REWARD_ADDRESS =
-  "e0734ea1bff2690fd8d2439584c549eb5da51e450f4d6e5c8210bb828f";
+const POOL_KEY_HASH =
+  "1677d50dcecc49c58bdad62cf2ad9bef6e7adb8a722665c11a0cfec2";
+
+// staking keys
+const REWARD_ADDRESS_AS_HEX =
+  "e02443e8390f0637f9ea2a5e19cae70fdaa0db24a02d17186bbb33a70e";
+
+const stakeAddress =
+  "stake_test1uqjy86pepurr07029f0pnjh8pld2pkey5qk3wxrthve6wrsrre4cp";
 
 const stakingKeys = {
-  privateKey: Buffer.from(
-    "bff0aa615cde3494d55a7aeffca9c6b1737e9304f96447250183f9b1a6b9fb5d91af9ec2ca3b1e62416f1aaa22a75446deb113526906d14fa766f57481c2979e",
+  secretKey: Buffer.from(
+    "24dc9e946a6242f6571e0f2cda0193afaf93bf4a30a4211970d3f83695874a6e99ddae6333170907688233365ab90470adc34812482b93268019935cfcec0a67",
     "hex"
   ),
   publicKey: Buffer.from(
-    "91af9ec2ca3b1e62416f1aaa22a75446deb113526906d14fa766f57481c2979e",
+    "99ddae6333170907688233365ab90470adc34812482b93268019935cfcec0a67",
     "hex"
   ),
 };
 
+// payment keys
 const paymentKeys = {
-  privateKey: Buffer.from(
+  secretKey: Buffer.from(
     "d7f9df87b5cd44e979bafb007b882c40c970d429e37d90b5dbaca40344f5e5777de218220642953feeff2f0f52dc1bdcc1fb5da08e0a5c9616cda23f7fd18992",
     "hex"
   ),
@@ -58,12 +64,15 @@ const paymentKeys = {
   ),
 };
 
-const OWNER_ADDRESS = 'e0be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa';
-const ownerAddress = 'stake_test1uzly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sfnz8a7';
+// owner staking keys
+const OWNER_ADDRESS_AS_HEX =
+  "e0be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa";
 
+const ownerAddress =
+  "stake_test1uzly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sfnz8a7";
 
 const ownerKeys = {
-  privateKey: Buffer.from(
+  secretKey: Buffer.from(
     "36fd67052b79b46425054d57d82da2f0f2e2dc5c5d4dcbeb9b244fca8ac74c7eacc912f01c207532754f4d47c853e87a8950b788f8dfa0c8d1dfd2a564760a83",
     "hex"
   ),
@@ -102,9 +111,9 @@ const buildPoolRegistrationOperation = (
       vrfKeyHash:
         "9586F48442694EF028BCF67605B4EF650AB9F0F1CD81E181D2DB8D9D5A387E84",
       rewardAddress: rewardAddress,
-      pledge: "0",
+      pledge: "4000000",
       cost: "340000000",
-      poolOwners: ['e0be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: [OWNER_ADDRESS_AS_HEX],
       relays: [
         {
           type: "multi_host_name",
@@ -124,9 +133,7 @@ const doRun = async (): Promise<void> => {
   const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
 
   const stakingPublicKey = Buffer.from(stakingKeys.publicKey).toString("hex");
-  const stakeAddress =
-    "stake_test1upe5agdl7f5slkxjgw2cf32fadw628j9paxkuhyzzzac9rcatcdje";
-  logger.info(`[doRun] stake address is ${stakeAddress}`);
+
   keyAddressMapper[stakeAddress] = stakingKeys;
   keyAddressMapper[ownerAddress] = ownerKeys;
   keyAddressMapper[POOL_KEY_HASH] = coldKeys;
@@ -148,20 +155,26 @@ const doRun = async (): Promise<void> => {
     paymentAddress,
     SEND_FUNDS_ADDRESS,
     true,
-    45
+    45 // outputs percentage of total inputs
   );
   const currentIndex = builtOperations.operations.length - 1;
   const builtRegistrationOperation = buildRegistrationOperation(
     stakingPublicKey,
     currentIndex
   );
+  const builtDelegationOperation = buildDelegationOperation(
+    stakingPublicKey,
+    currentIndex + 1,
+    POOL_KEY_HASH
+  );
   const builtPoolRegistrationOperation = buildPoolRegistrationOperation(
-    REWARD_ADDRESS,
-    currentIndex,
+    REWARD_ADDRESS_AS_HEX,
+    currentIndex + 2,
     POOL_KEY_HASH
   );
   builtOperations.operations.push(builtRegistrationOperation);
   builtOperations.operations.push(builtPoolRegistrationOperation);
+  builtOperations.operations.push(builtDelegationOperation);
   logger.info(
     `[doRun] operations to be sent are ${JSON.stringify(
       builtOperations.operations

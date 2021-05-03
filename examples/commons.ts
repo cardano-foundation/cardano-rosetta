@@ -118,7 +118,7 @@ const buildOperation = (
   address: string,
   destination: string,
   isRegisteringStakeKey: boolean = false,
-  outputsPerc: number
+  outputsPerc: number = 95
 ) => {
   let tokenBundle = [];
   const inputs = unspents.coins.map((coin: any, index: number) => {
@@ -162,7 +162,7 @@ const buildOperation = (
   if (isRegisteringStakeKey) {
     let i = 0;
     do {
-      let dividend = 45 - i;
+      let dividend = outputsPerc - i;
       outputAmount = (adaBalance * BigInt(dividend)) / BigInt(100);
       i += 5;
       if (outputAmount < 2500000)
@@ -216,7 +216,7 @@ const signPayloads = (payloads: any, keyAddressMapper: any) =>
     const {
       account_identifier: { address },
     } = signing_payload;
-    const { publicKey, privateKey } = keyAddressMapper[address];
+    const { publicKey, secretKey } = keyAddressMapper[address];
     return {
       signing_payload,
       public_key: {
@@ -227,7 +227,7 @@ const signPayloads = (payloads: any, keyAddressMapper: any) =>
       hex_bytes: Buffer.from(
         NaCl.sign.detached(
           Buffer.from(signing_payload.hex_bytes, "hex"),
-          privateKey
+          secretKey
         )
       ).toString("hex"),
     };
@@ -272,9 +272,25 @@ const buildDelegationOperation = (
   },
 });
 
+const buildRegistrationOperation = (
+  stakingKey: string,
+  currentIndex: number
+) => ({
+  operation_identifier: { index: currentIndex + 1 },
+  type: "stakeKeyRegistration",
+  status: "success",
+  metadata: {
+    staking_credential: {
+      hex_bytes: stakingKey,
+      curve_type: "edwards25519",
+    },
+  },
+});
+
 export {
   buildDelegationOperation,
   buildOperation,
+  buildRegistrationOperation,
   constructionDerive,
   constructionPreprocess,
   constructionMetadata,
