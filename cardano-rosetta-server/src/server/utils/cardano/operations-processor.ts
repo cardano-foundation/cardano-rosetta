@@ -22,7 +22,7 @@ import {
   generateAddress,
   parseAddress,
   getAddressPrefix,
-  generateEnterpriseAddress
+  parseToRewardAddress
 } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 import { parsePoolOwners, parsePoolRewardAccount } from './transactions-processor';
@@ -174,8 +174,7 @@ const validateAndParsePoolKeyHash = (logger: Logger, poolKeyHash?: string): Card
 const validateAndParseRewardAddress = (logger: Logger, rwrdAddress: string): CardanoWasm.RewardAddress => {
   let rewardAddress: CardanoWasm.RewardAddress | undefined;
   try {
-    const address = CardanoWasm.Address.from_bytes(Buffer.from(rwrdAddress, 'hex'));
-    rewardAddress = CardanoWasm.RewardAddress.from_address(address);
+    rewardAddress = parseToRewardAddress(rwrdAddress);
   } catch (error) {
     logger.error(`[validateAndParseRewardAddress] invalid reward address ${rwrdAddress}`);
     throw ErrorFactory.invalidAddressError();
@@ -185,17 +184,22 @@ const validateAndParseRewardAddress = (logger: Logger, rwrdAddress: string): Car
 };
 
 const validateAndParsePoolOwners = (logger: Logger, owners: Array<string>): CardanoWasm.Ed25519KeyHashes => {
+  const parsedOwners = CardanoWasm.Ed25519KeyHashes.new();
   try {
-    const parsedOwners = CardanoWasm.Ed25519KeyHashes.new();
     owners.forEach(owner => {
-      const ownerKey = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(owner, 'hex'));
-      parsedOwners.add(ownerKey);
+      const rewardAddress = parseToRewardAddress(owner);
+      if (rewardAddress) {
+        const ownerKey = rewardAddress.payment_cred().to_keyhash();
+        ownerKey && parsedOwners.add(ownerKey);
+      }
     });
-    return parsedOwners;
   } catch (error) {
     logger.error('[validateAndParsePoolOwners] there was an error parsing pool owners');
     throw ErrorFactory.invalidPoolOwnersError(error);
   }
+  if (parsedOwners.len() !== owners.length)
+    throw ErrorFactory.invalidPoolOwnersError('Invalid pool owners addresses provided');
+  return parsedOwners;
 };
 
 const parseKeysToAddresses = (
@@ -248,7 +252,7 @@ const validateAndParsePoolRegistrationCert = (
     throw ErrorFactory.invalidPoolRegistrationCertType();
   }
   const poolParameters = poolRegistration.pool_params();
-  const owners = validateAndParsePoolOwners(logger, parsePoolOwners(poolParameters));
+  const owners = validateAndParsePoolOwners(logger, parsePoolOwners(logger, network, poolParameters));
   const rewardAddress = parsePoolRewardAccount(poolParameters);
   const wasmAddress = CardanoWasm.Address.from_bytes(Buffer.from(rewardAddress, 'hex'));
   const parsedRewardAddress = parseAddress(wasmAddress, getAddressPrefix(network));

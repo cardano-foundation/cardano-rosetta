@@ -1,11 +1,19 @@
 import CardanoWasm, { PoolParams } from '@emurgo/cardano-serialization-lib-nodejs';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
-import { ADA, ADA_DECIMALS, CurveType, OperationType, RelayType, StakingOperations } from '../constants';
+import {
+  ADA,
+  ADA_DECIMALS,
+  CurveType,
+  OperationType,
+  RelayType,
+  StakingOperations,
+  StakeAddressPrefix
+} from '../constants';
 import { mapAmount } from '../data-mapper';
 import { ErrorFactory } from '../errors';
 import { hexFormatter } from '../formatters';
-import { generateRewardAddress, getAddressPrefix, parseAddress } from './addresses';
+import { generateRewardAddress, getAddressPrefix, parseAddress, getRewardAddressAsHex } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
 const compareStrings = (a: string, b: string): number => {
@@ -40,12 +48,17 @@ const parsePoolMetadata = (poolParameters: CardanoWasm.PoolParams): Components.S
   }
 };
 
-export const parsePoolOwners = (poolParameters: CardanoWasm.PoolParams): Array<string> => {
+export const parsePoolOwners = (
+  logger: Logger,
+  network: number,
+  poolParameters: CardanoWasm.PoolParams
+): Array<string> => {
   const poolOwners: Array<string> = [];
   const ownersCount = poolParameters.pool_owners().len();
   for (let i = 0; i < ownersCount; i++) {
     const owner = poolParameters.pool_owners().get(i);
-    poolOwners.push(Buffer.from(owner.to_bytes()).toString('hex'));
+    const address = getRewardAddressAsHex(logger, network, CardanoWasm.StakeCredential.from_keyhash(owner));
+    poolOwners.push(address);
   }
   return poolOwners;
 };
@@ -120,6 +133,8 @@ const parsePoolMargin = (poolParameters: CardanoWasm.PoolParams): Components.Sch
 });
 
 const parsePoolRegistration = (
+  logger: Logger,
+  network: number,
   poolRegistration: CardanoWasm.PoolRegistration
 ): Components.Schemas.PoolRegistrationParams => {
   const poolParameters = poolRegistration.pool_params();
@@ -128,7 +143,7 @@ const parsePoolRegistration = (
     rewardAddress: parsePoolRewardAccount(poolParameters),
     pledge: poolParameters.pledge().to_str(),
     cost: poolParameters.cost().to_str(),
-    poolOwners: parsePoolOwners(poolParameters),
+    poolOwners: parsePoolOwners(logger, network, poolParameters),
     relays: parsePoolRelays(poolParameters),
     margin: parsePoolMargin(poolParameters),
     poolMetadata: parsePoolMetadata(poolParameters)
@@ -224,6 +239,8 @@ const parseOutputToOperation = (
 });
 
 const parsePoolCertToOperation = (
+  logger: Logger,
+  network: number,
   cert: CardanoWasm.Certificate,
   index: number,
   type: string
@@ -244,7 +261,7 @@ const parsePoolCertToOperation = (
     const poolRegistrationCert = cert.as_pool_registration();
     if (poolRegistrationCert) {
       if (type === OperationType.POOL_REGISTRATION) {
-        operation.metadata!.poolRegistrationParams = parsePoolRegistration(poolRegistrationCert);
+        operation.metadata!.poolRegistrationParams = parsePoolRegistration(logger, network, poolRegistrationCert);
       } else {
         const parsedPoolCert = Buffer.from(poolRegistrationCert.to_bytes()).toString('hex');
         operation.metadata!.poolRegistrationCert = parsedPoolCert;
@@ -330,6 +347,8 @@ const parseCertsToOperations = (
       const cert = transactionBody.certs()?.get(i);
       if (cert) {
         const parsedOperation = parsePoolCertToOperation(
+          logger,
+          network,
           cert,
           certOperation.operation_identifier.index,
           certOperation.type
