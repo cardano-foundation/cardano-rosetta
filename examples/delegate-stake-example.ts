@@ -3,6 +3,8 @@
 /* eslint-disable new-cap */
 /* eslint-disable no-console */
 import {
+  buildDelegationOperation,
+  buildRegistrationOperation,
   constructionDerive,
   constructionPreprocess,
   constructionMetadata,
@@ -20,40 +22,6 @@ const SEND_FUNDS_ADDRESS =
   "addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3";
 const STAKE_POOL_KEY_HASH =
   "6be215192dc01e5ca4cfba0959586f581a865bfccc2984478dad1657";
-
-const buildRegistrationOperation = (
-  stakingKey: string,
-  currentIndex: number
-) => ({
-  operation_identifier: { index: currentIndex + 1 },
-  type: "stakeKeyRegistration",
-  status: "success",
-  metadata: {
-    staking_credential: {
-      hex_bytes: stakingKey,
-      curve_type: "edwards25519",
-    },
-  },
-});
-
-const buildDelegationOperation = (
-  stakingKey: string,
-  currentIndex: number,
-  poolKeyHash: string
-) => ({
-  operation_identifier: {
-    index: currentIndex + 1,
-  },
-  type: "stakeDelegation",
-  status: "success",
-  metadata: {
-    staking_credential: {
-      hex_bytes: stakingKey,
-      curve_type: "edwards25519",
-    },
-    pool_key_hash: poolKeyHash,
-  },
-});
 
 const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};

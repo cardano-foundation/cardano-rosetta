@@ -117,7 +117,8 @@ const buildOperation = (
   balances: any,
   address: string,
   destination: string,
-  isRegisteringStakeKey: boolean = false
+  isRegisteringStakeKey: boolean = false,
+  outputsPerc: number = 95
 ) => {
   let tokenBundle = [];
   const inputs = unspents.coins.map((coin: any, index: number) => {
@@ -157,11 +158,11 @@ const buildOperation = (
   });
   // TODO: No proper fees estimation is being done (it should be transaction size based)
   const adaBalance = BigInt(balances.balances[0].value);
-  let outputAmount = (adaBalance * BigInt(95)) / BigInt(100);
+  let outputAmount = (adaBalance * BigInt(outputsPerc)) / BigInt(100);
   if (isRegisteringStakeKey) {
     let i = 0;
     do {
-      let dividend = 95 - i;
+      let dividend = outputsPerc - i;
       outputAmount = (adaBalance * BigInt(dividend)) / BigInt(100);
       i += 5;
       if (outputAmount < 2500000)
@@ -215,7 +216,7 @@ const signPayloads = (payloads: any, keyAddressMapper: any) =>
     const {
       account_identifier: { address },
     } = signing_payload;
-    const { publicKey, privateKey } = keyAddressMapper[address];
+    const { publicKey, secretKey } = keyAddressMapper[address];
     return {
       signing_payload,
       public_key: {
@@ -226,7 +227,7 @@ const signPayloads = (payloads: any, keyAddressMapper: any) =>
       hex_bytes: Buffer.from(
         NaCl.sign.detached(
           Buffer.from(signing_payload.hex_bytes, "hex"),
-          privateKey
+          secretKey
         )
       ).toString("hex"),
     };
@@ -252,7 +253,44 @@ const constructionSubmit = async (signed_transaction: any) => {
   return response.data;
 };
 
+const buildDelegationOperation = (
+  stakingKey: string,
+  currentIndex: number,
+  poolKeyHash: string
+) => ({
+  operation_identifier: {
+    index: currentIndex + 1,
+  },
+  type: "stakeDelegation",
+  status: "success",
+  metadata: {
+    staking_credential: {
+      hex_bytes: stakingKey,
+      curve_type: "edwards25519",
+    },
+    pool_key_hash: poolKeyHash,
+  },
+});
+
+const buildRegistrationOperation = (
+  stakingKey: string,
+  currentIndex: number
+) => ({
+  operation_identifier: { index: currentIndex + 1 },
+  type: "stakeKeyRegistration",
+  status: "success",
+  metadata: {
+    staking_credential: {
+      hex_bytes: stakingKey,
+      curve_type: "edwards25519",
+    },
+  },
+});
+
 export {
+  buildDelegationOperation,
+  buildOperation,
+  buildRegistrationOperation,
   constructionDerive,
   constructionPreprocess,
   constructionMetadata,
@@ -261,6 +299,5 @@ export {
   constructionSubmit,
   signPayloads,
   waitForBalanceToBe,
-  buildOperation,
   generateKeys,
 };

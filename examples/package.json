@@ -6,6 +6,7 @@
     "delegate-stake-example": "ts-node ./delegate-stake-example.ts",
     "withdrawal-example": "ts-node ./withdrawal-example.ts",
     "ma-transfer-example": "ts-node ./ma-transfer-example.ts",
+    "pool-registration-example": "ts-node ./pool-registration-example.ts",
     "send-transaction-postman-example": "node ./postman/send-transaction-example send_transaction_postman_environment.json"
   },
   "dependencies": {
