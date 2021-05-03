@@ -20,7 +20,7 @@ const SEND_FUNDS_ADDRESS =
   "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
 const keys = {
   publicKey: Buffer.from(
-    "dacc560aed9739c1dda740409b2afaefbbbaf570c740b7ba7aee4dfcd456bf7808e84602fc45033d660a4f62d89884e7bf0ca92d78dca498af9100645c4a6204",
+    "dacc560aed9739c1dda740409b2afaefbbbaf570c740b7ba7aee4dfcd456bf78",
     "hex"
   ),
   secretKey: Buffer.from(
