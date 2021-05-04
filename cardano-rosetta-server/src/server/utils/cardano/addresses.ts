@@ -111,27 +111,10 @@ export const parseAddress = (address: Address, addressPrefix?: string): string =
 };
 
 /**
- * Returns Reward Address type from hex string
- * @param bytes reward address as hex string
+ * Returns Reward Address type from bech32
+ * @param address reward address as bech32
  */
-export const parseToRewardAddress = (bytes: string): CardanoWasm.RewardAddress | undefined => {
-  const address = CardanoWasm.Address.from_bytes(Buffer.from(bytes, 'hex'));
-  return CardanoWasm.RewardAddress.from_address(address);
-};
-
-/**
- * Returns reward address as hex string
- * @param logger
- * @param network
- * @param paymentCredential
- */
-export const getRewardAddressAsHex = (
-  logger: Logger,
-  network: NetworkIdentifier,
-  paymentCredential: StakeCredential
-): string => {
-  logger.info('[generateRewardAddressBytes] Deriving cardano reward address from valid public staking key');
-  const rewardAddress = CardanoWasm.RewardAddress.new(network, paymentCredential);
-  const addressBytes = rewardAddress.to_address().to_bytes();
-  return Buffer.from(addressBytes).toString('hex');
+export const parseToRewardAddress = (address: string): CardanoWasm.RewardAddress | undefined => {
+  const wasmAddress = CardanoWasm.Address.from_bech32(address);
+  return CardanoWasm.RewardAddress.from_address(wasmAddress);
 };

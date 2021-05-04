@@ -116,8 +116,8 @@ Sends a transaction that registers a pool and delegates a staking key in order t
 
 1. All the ADA is sent to a predefined address `SEND_FUNDS_ADDRESS`
 2. A predefined `POOL_KEY_HASH` is the Ed25519KeyHash as hex string corresponding to `coldKeys`.
-3. A predefined `REWARD_ADDRESS_AS_HEX` is the [Address](https://github.com/Emurgo/cardano-serialization-lib/blob/master/rust/src/address.rs#L270) passed as hex string of pool creator corresponding to `stakingKeys`.
-4. A predefined `OWNER_ADDRESS_AS_HEX` is the Address passed as hex string of pool owner corresponding to `ownerKeys`.
+3. A predefined `stakingAddress` is the reward address of pool creator corresponding to `stakingKeys`.
+4. A predefined `ownerAddress` is the reward address of a pool owner corresponding to `ownerKeys`.
 
 Important notes:
 - Staking keys of the creator are used to register a stakey key and delegate that to the pool in order to honor the pledge.

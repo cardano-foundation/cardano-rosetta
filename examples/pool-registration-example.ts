@@ -4,6 +4,7 @@
 /* eslint-disable no-console */
 import {
   buildDelegationOperation,
+  buildRegistrationOperation,
   constructionDerive,
   constructionPreprocess,
   constructionMetadata,
@@ -36,9 +37,6 @@ const POOL_KEY_HASH =
   "1677d50dcecc49c58bdad62cf2ad9bef6e7adb8a722665c11a0cfec2";
 
 // staking keys
-const REWARD_ADDRESS_AS_HEX =
-  "e02443e8390f0637f9ea2a5e19cae70fdaa0db24a02d17186bbb33a70e";
-
 const stakeAddress =
   "stake_test1uqjy86pepurr07029f0pnjh8pld2pkey5qk3wxrthve6wrsrre4cp";
 
@@ -54,9 +52,6 @@ const stakingKeys = {
 };
 
 // owner staking keys
-const OWNER_ADDRESS_AS_HEX =
-  "e0be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa";
-
 const ownerAddress =
   "stake_test1uzly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sfnz8a7";
 
@@ -70,21 +65,6 @@ const ownerKeys = {
     "hex"
   ),
 };
-
-const buildRegistrationOperation = (
-  stakingKey: string,
-  currentIndex: number
-) => ({
-  operation_identifier: { index: currentIndex + 1 },
-  type: "stakeKeyRegistration",
-  status: "success",
-  metadata: {
-    staking_credential: {
-      hex_bytes: stakingKey,
-      curve_type: "edwards25519",
-    },
-  },
-});
 
 const buildPoolRegistrationOperation = (
   rewardAddress: string,
@@ -102,7 +82,7 @@ const buildPoolRegistrationOperation = (
       rewardAddress: rewardAddress,
       pledge: "4000000",
       cost: "340000000",
-      poolOwners: [OWNER_ADDRESS_AS_HEX],
+      poolOwners: [ownerAddress],
       relays: [
         {
           type: "multi_host_name",
@@ -161,7 +141,7 @@ const doRun = async (): Promise<void> => {
     POOL_KEY_HASH
   );
   const builtPoolRegistrationOperation = buildPoolRegistrationOperation(
-    REWARD_ADDRESS_AS_HEX,
+    stakeAddress,
     currentIndex + 2,
     POOL_KEY_HASH
   );
