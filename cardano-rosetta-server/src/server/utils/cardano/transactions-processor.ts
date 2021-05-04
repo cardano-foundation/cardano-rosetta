@@ -13,7 +13,7 @@ import {
 import { mapAmount } from '../data-mapper';
 import { ErrorFactory } from '../errors';
 import { hexFormatter } from '../formatters';
-import { generateRewardAddress, getAddressPrefix, parseAddress, getRewardAddressAsHex } from './addresses';
+import { generateRewardAddress, getAddressPrefix, parseAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
 const compareStrings = (a: string, b: string): number => {
@@ -57,19 +57,17 @@ export const parsePoolOwners = (
   const ownersCount = poolParameters.pool_owners().len();
   for (let i = 0; i < ownersCount; i++) {
     const owner = poolParameters.pool_owners().get(i);
-    const address = getRewardAddressAsHex(logger, network, CardanoWasm.StakeCredential.from_keyhash(owner));
+    const address = generateRewardAddress(logger, network, CardanoWasm.StakeCredential.from_keyhash(owner));
     poolOwners.push(address);
   }
   return poolOwners;
 };
 
-export const parsePoolRewardAccount = (poolParameters: CardanoWasm.PoolParams): string =>
-  Buffer.from(
-    poolParameters
-      .reward_account()
-      .to_address()
-      .to_bytes()
-  ).toString('hex');
+export const parsePoolRewardAccount = (
+  logger: Logger,
+  network: number,
+  poolParameters: CardanoWasm.PoolParams
+): string => generateRewardAddress(logger, network, poolParameters.reward_account().payment_cred());
 
 const parseIpv4 = (wasmIp?: CardanoWasm.Ipv4): string | undefined => {
   if (wasmIp) {
@@ -140,7 +138,7 @@ const parsePoolRegistration = (
   const poolParameters = poolRegistration.pool_params();
   return {
     vrfKeyHash: Buffer.from(poolParameters.vrf_keyhash().to_bytes()).toString('hex'),
-    rewardAddress: parsePoolRewardAccount(poolParameters),
+    rewardAddress: parsePoolRewardAccount(logger, network, poolParameters),
     pledge: poolParameters.pledge().to_str(),
     cost: poolParameters.cost().to_str(),
     poolOwners: parsePoolOwners(logger, network, poolParameters),
@@ -294,24 +292,6 @@ const parseCertToOperation = (
   return operation;
 };
 
-const parsePoolRetirementToOperation = (
-  cert: CardanoWasm.Certificate,
-  index: number,
-  type: string
-): Components.Schemas.Operation => {
-  const operation: Components.Schemas.Operation = {
-    operation_identifier: { index },
-    status: '',
-    type,
-    metadata: {}
-  };
-  const poolRetirementCert = cert.as_pool_retirement();
-  if (poolRetirementCert) {
-    operation.metadata!.epoch = poolRetirementCert.epoch();
-  }
-
-  return operation;
-};
 const parseCertsToOperations = (
   logger: Logger,
   transactionBody: CardanoWasm.TransactionBody,

@@ -918,14 +918,14 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
-            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '19d2feaca112ef7df5b703509a2ae37a743fcc174b8aa3898e0e9f4f577b4c80'
         },
         {
           account_identifier: {
-            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           hex_bytes: '19d2feaca112ef7df5b703509a2ae37a743fcc174b8aa3898e0e9f4f577b4c80',
           signature_type: 'ed25519'
@@ -959,14 +959,14 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
-            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
           hex_bytes: '53f456cca6b8a6869301509cbd8c91f24dfef5b924b8c1e46934396cb3e47479',
           signature_type: 'ed25519'
         },
         {
           account_identifier: {
-            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           hex_bytes: '53f456cca6b8a6869301509cbd8c91f24dfef5b924b8c1e46934396cb3e47479',
           signature_type: 'ed25519'
@@ -1000,14 +1000,14 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
-            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
           hex_bytes: 'ad36f2e07fb6d0a0864bcda0deea6c081770ddb3390eac85c7696479930be608',
           signature_type: 'ed25519'
         },
         {
           account_identifier: {
-            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           hex_bytes: 'ad36f2e07fb6d0a0864bcda0deea6c081770ddb3390eac85c7696479930be608',
           signature_type: 'ed25519'
@@ -1041,14 +1041,14 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
-            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'bd874d7253af650d7d265a5dd259a16d838593e99252d3ed5409b84a2d3e864e'
         },
         {
           account_identifier: {
-            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'bd874d7253af650d7d265a5dd259a16d838593e99252d3ed5409b84a2d3e864e'
@@ -1082,14 +1082,14 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
-            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'f7eb90cf4a22f0f214f37feaa00000683857e4216999ca089bab94cc012d83a9'
         },
         {
           account_identifier: {
-            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           hex_bytes: 'f7eb90cf4a22f0f214f37feaa00000683857e4216999ca089bab94cc012d83a9',
           signature_type: 'ed25519'
@@ -1123,14 +1123,14 @@ describe('Pool Registration', () => {
         },
         {
           account_identifier: {
-            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '4c860e86b15288caf28e719ec322da4943401bed4a31c4039052d46526a1d835'
         },
         {
           account_identifier: {
-            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+            address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
           },
           hex_bytes: '4c860e86b15288caf28e719ec322da4943401bed4a31c4039052d46526a1d835',
           signature_type: 'ed25519'
@@ -1180,10 +1180,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with empty pool relays', async () => {
     const emptyPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [],
       margin: {
         numerator: '1',
@@ -1211,10 +1211,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with invalid pool relay type', async () => {
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'invalidType' }],
       margin: {
         numerator: '1',
@@ -1245,10 +1245,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with missing pool relay type', async () => {
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ dnsName: 'dnsName', port: '2020' }],
       margin: {
         numerator: '1',
@@ -1279,10 +1279,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with invalid pool relays with invalid ipv4', async () => {
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'single_host_addr', ipv4: 'notAHexString' }],
       margin: {
         numerator: '1',
@@ -1313,10 +1313,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with invalid pool relays with invalid port', async () => {
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'single_host_name', dnsName: 'dnsName', port: 'NaN' }],
       margin: {
         numerator: '1',
@@ -1350,10 +1350,10 @@ describe('Pool Registration', () => {
     const invalidMetadataHash = 'invalidMetadataHash';
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
       margin: {
         numerator: '1',
@@ -1385,10 +1385,10 @@ describe('Pool Registration', () => {
     });
   });
   test('Should throw an error when there are operations including pool registration with pool relays with invalid pool owners', async () => {
-    const invalidPoolOwner = 'notAHexString';
+    const invalidPoolOwner = 'notAValidAddress';
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
       poolOwners: [invalidPoolOwner],
@@ -1416,7 +1416,8 @@ describe('Pool Registration', () => {
       code: 4034,
       message: 'Invalid pool owners received',
       details: {
-        message: 'RuntimeError: unreachable'
+        // eslint-disable-next-line quotes
+        message: `missing human-readable separator, \"1\"`
       },
       retriable: false
     });
@@ -1424,10 +1425,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with negative cost', async () => {
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '-3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
       margin: {
         numerator: '1',
@@ -1460,10 +1461,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with pool relays with negative pledge', async () => {
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '-5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
       margin: {
         numerator: '1',
@@ -1496,10 +1497,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with pool relays with negative denominator', async () => {
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
       margin: {
         numerator: '1',
@@ -1532,10 +1533,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with pool relays with alphabetical numerator', async () => {
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
       margin: {
         numerator: '1asad',
@@ -1569,10 +1570,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with no margin', async () => {
     const invalidPoolRelays = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb',
+      rewardAddress: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
       poolMetadata: {
         url: 'poolMetadataUrl',
@@ -1601,10 +1602,10 @@ describe('Pool Registration', () => {
   test('Should throw an error when there are operations including pool registration with invalid reward address', async () => {
     const payloadWithInvalidAddress = {
       vrfKeyHash: '8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0',
-      rewardAddress: 'notAHexString',
+      rewardAddress: 'notAValidAddress',
       pledge: '5000000',
       cost: '3000000',
-      poolOwners: ['e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa'],
+      poolOwners: ['stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'],
       relays: [{ type: 'single_host_addr', dnsName: 'dnsName', port: '2020' }],
       margin: {
         numerator: '1',
@@ -1671,13 +1672,6 @@ describe('Pool Registration with certification', () => {
         {
           account_identifier: {
             address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
-          },
-          signature_type: SIGNATURE_TYPE,
-          hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
-        },
-        {
-          account_identifier: {
-            address: 'addr1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cmpqcax'
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: '36939bdede6c9170adea85911197806bca6a25bb56ef2d09ed7c407a31789eb8'
