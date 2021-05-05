@@ -2,8 +2,13 @@ request_funds(1){
 
   find_account{
 
+    payment_account_identifier = get_blob({
+      "key":"payment_account_identifier"
+    });
+
     currency = {"symbol":"ADA", "decimals":6};
     random_account = find_balance({
+      "account_identifier": {{payment_account_identifier}},
       "minimum_balance":{
         "value": "0",
         "currency": {{currency}}
@@ -16,8 +21,13 @@ request_funds(1){
   // the address we are using to request funds does not
   // get rolled back if funds do not yet exist.
   request{
+
+    payment_account_identifier = get_blob({
+      "key":"payment_account_identifier"
+    });
+
     loaded_account = find_balance({
-      "account_identifier": {{random_account.account_identifier}},
+      "account_identifier": {{payment_account_identifier}},
       "minimum_balance":{
         "value": "10000000",
         "currency": {{currency}}
@@ -29,32 +39,45 @@ request_funds(1){
 
 create_account(1){
   create{
+
     network = {"network":"testnet", "blockchain":"cardano"};
-    key = generate_key({"curve_type": "edwards25519"});
-    account = derive({
+    payment_key = generate_key({"curve_type": "edwards25519"});
+    set_blob({
+      "key":"payment_key",
+      "value":{{payment_key}}
+    });
+
+    payment_account = derive({
       "network_identifier": {{network}},
-      "public_key": {{key.public_key}}
+      "public_key": {{payment_key.public_key}}
     });
 
     // If the account is not saved, the key will be lost!
     save_account({
-      "account_identifier": {{account.account_identifier}},
-      "keypair": {{key}}
+      "account_identifier": {{payment_account.account_identifier}},
+      "keypair": {{payment_key}}
+    });
+    set_blob({
+      "key":"payment_account_identifier",
+      "value":{{payment_account.account_identifier}}
+    });
+    
+    print_message({
+      "Send funds to": {{payment_account.account_identifier}}
     });
 
-    public_cold_key = load_env("COLD_PUBLIC_KEY");
-    private_cold_key = load_env("COLD_PRIVATE_KEY");
+    public_cold_key = load_env("COLD_KEY_PUBLIC");
+    private_cold_key = load_env("COLD_KEY_PRIVATE");
     pool_key_hash = load_env("POOL_KEY_HASH");
 
     print_message({
-      "public_cold_key": {{public_cold_key}},
-      "private_cold_key": {{private_cold_key}},
-      "pool_key_hash": {{pool_key_hash}}
+     "pool_key_hash": {{pool_key_hash}},
+     "public_cold_key": {{public_cold_key}},
+     "private_cold_key": {{private_cold_key}}
     });
 
-    cold_account_identifier = {"address": {{pool_key_hash}}};
-    cold_key = {"private_key": {{private_cold_key}}, "public_key": {"hex_bytes": {{public_cold_key}},"curve_type":"edwards25519"}};
-
+    cold_key = {"private_key": {{private_cold_key}},"public_key": {"hex_bytes": {{public_cold_key}},"curve_type":"edwards25519"}};
+    cold_account_identifier = {"address": {{pool_key_hash}}};   
     save_account({
       "account_identifier": {{cold_account_identifier}},
       "keypair": {{cold_key}}
@@ -77,18 +100,20 @@ pool-retirement(10){
     dust_amount = "1000000";
     max_fee_amount = "5000000";
     send_buffer = {{dust_amount}} + {{max_fee_amount}};
+    print_message({
+      "send buffer is": {{send_buffer}}
+    });
 
     // We look for a coin of value >= the reserved_amount to create
     // a transfer with change (reserved_amount is max_fee_amount + dust_amount x 2).
-    reserved_amount = "7000000";
+    transfer_dry_run.reserved_amount = "9000000";
     sender = find_balance({
       "minimum_balance":{
-        "value": {{reserved_amount}},
+        "value": {{transfer_dry_run.reserved_amount}},
         "currency": {{currency}}
       },
       "require_coin": true
     });
-
     // The amount we send to the recipient is a random value
     // between the dust_amount and the value of the entire coin (minus
     // the amount reserved for fee payment and covering the dust minimum
@@ -112,13 +137,12 @@ pool-retirement(10){
       "change_amount":{{change_amount}}
     });
 
-    // We load the recipient address from an ENV.
     // Faucet return address is `addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3`
     recipient_address = load_env("RECIPIENT");
     print_message({
       "refund recipient address": {{recipient_address}}
     });
-    recipient = {"address": {{recipient_address}}};
+    transfer_dry_run.recipient = {"address": {{recipient_address}}};
 
     transfer_dry_run.epoch = load_env("EPOCH");
     print_message({
@@ -126,10 +150,11 @@ pool-retirement(10){
     });
 
     transfer_dry_run.cold_account_identifier = get_blob({
-      "key":"cold_account_identifier" 
+      "key":"cold_account_identifier"
     });
 
     sender_amount = 0 - {{sender.balance.value}};
+  
     transfer_dry_run.confirmation_depth = "1";
     transfer_dry_run.dry_run = true;
     transfer_dry_run.operations = [
@@ -143,7 +168,7 @@ pool-retirement(10){
       {
         "operation_identifier":{"index":1},
         "type":"output",
-        "account":{{recipient}},
+        "account":{{transfer_dry_run.recipient}},
         "amount":{"value":{{recipient_amount}},"currency":{{currency}}}
       },
       {
@@ -152,16 +177,17 @@ pool-retirement(10){
         "account":{{sender.account_identifier}},
         "amount":{"value":{{change_amount}},"currency":{{currency}}}
       },
-       {
+      {
         "operation_identifier":{"index":3},
         "type":"poolRetirement",
         "account":{{transfer_dry_run.cold_account_identifier}},
-        "amount":{"value":{{change_amount}},"currency":{{currency}}},
-        "metadata":{
-          "epoch": {{transfer_dry_run.epoch}}
-        }
+        "metadata": {"epoch":{{transfer_dry_run.epoch}}}
       }
     ];
+
+    print_message({
+      "transfer dry run operations": {{transfer_dry_run.operations}}
+    });
   },
   transfer{
     // The suggested_fee is returned in the /construction/metadata
@@ -171,11 +197,19 @@ pool-retirement(10){
       "amounts":{{transfer_dry_run.suggested_fee}}
     });
 
+    print_message({
+      "suggested fee": {{suggested_fee}}
+    });
+
     // We can access the variables of other scenarios, so we don't
     // need to recalculate raw_change_amount.
     change_amount = {{raw_change_amount}} - {{suggested_fee.value}};
     transfer.network = {{transfer_dry_run.network}};
     transfer.confirmation_depth = {{transfer_dry_run.confirmation_depth}};
+    
+    // recipient_address = transfer_dry_run.recipient_address;
+    recipient = {"address": {{recipient_address}}};
+
     transfer.operations = [
       {
         "operation_identifier":{"index":0},
@@ -187,7 +221,7 @@ pool-retirement(10){
       {
         "operation_identifier":{"index":1},
         "type":"output",
-        "account": {{recipient}},
+        "account":{{transfer_dry_run.recipient}},
         "amount":{"value":{{recipient_amount}},"currency":{{currency}}}
       },
       {
@@ -196,15 +230,16 @@ pool-retirement(10){
         "account":{{sender.account_identifier}},
         "amount":{"value":{{change_amount}},"currency":{{currency}}}
       },
-       {
+      {
         "operation_identifier":{"index":3},
         "type":"poolRetirement",
         "account":{{transfer_dry_run.cold_account_identifier}},
-        "amount":{"value":{{change_amount}},"currency":{{currency}}},
-        "metadata":{
-          "epoch": {{transfer_dry_run.epoch}}
-        }
+        "metadata": {"epoch":{{transfer_dry_run.epoch}}}
       }
-    ];
+    ]; 
+
+    print_message({
+      "transfer operations": {{transfer.operations}}
+    });
   }
 }

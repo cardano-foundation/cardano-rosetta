@@ -134,6 +134,26 @@ DENOMINATOR="1"
 RECIPIENT="\"addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3\"" 
 OWNER_PRIVATE_KEY="\"86387448c67abb1dbab25639ab19e1b18d50d433af3996c88c0bd7a24a9453f7\"" OWNER_PUBLIC_KEY="\"cf0659968dee763ae0cbd4d65468346c48b6b8fdc51d5fcef960632fb37d70ca\"" OWNER_ADDRESS="\"stake_test1updrc9hjghc6s8ewckxyqxqxedmqtddz3vdq7k6xmafeefg4fcmey\"" ./bin/rosetta-cli check:construction --configuration-file ./configuration/construction/transfer-multiple-ma.json
 ```
+### Pool retirement
+
+This workflow generates a transaction that:
+
+1. Create payment keys
+2. Generates an address
+3. Waits for funds in the created address
+4. Creates a transaction that retires  a pool provided as environment variable
+5. Broadcasts the transaction and receives the change in the specified address
+
+_In order to run this example is necessary to pass a previous registered pool and the creator's keys._
+
+``` bash
+# COLD_KEY_PUBLIC Hex encoded cold public key of pool creator
+# COLD_KEY_PRIVATE Hex encoded cold private key of pool creator
+# POOL_KEY_HASH Hex encoded pool key hash
+# RECIPIENT address that will receive the remaining ADA
+
+RECIPIENT="\"addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3\"" COLD_KEY_PUBLIC="\"2e2a68224bbbc35031fee909852f87723d2806323bf179c0df99fdd513eecee2\"" COLD_KEY_PRIVATE="\"6c3eab942c6be633bbd2759b131f528c96c664d02241270069a8e96429b0853d\"" POOL_KEY_HASH="\"5778942c610c2f1acf5cdac5c32c10ba5870879674781351e0226326\"" EPOCH=135 ./bin/rosetta-cli check:construction --configuration-file ./pool-retirement-configuration.json
+```
 
 See the [QA doc] for implementation detail.
 
