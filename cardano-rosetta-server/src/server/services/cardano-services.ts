@@ -66,7 +66,6 @@ export interface DepositsSum {
   keyRefundsSum: bigint;
   keyDepositsSum: bigint;
   poolDepositsSum: bigint;
-  poolRefundsSum: bigint;
 }
 
 // Shelley
@@ -219,12 +218,11 @@ const calculateFee = (
   withdrawalAmounts: bigint[],
   depositsSum: DepositsSum
 ): BigInt => {
-  const { poolRefundsSum, keyRefundsSum, keyDepositsSum, poolDepositsSum } = depositsSum;
+  const { keyRefundsSum, keyDepositsSum, poolDepositsSum } = depositsSum;
   const inputsSum = inputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0)) * BigInt(-1);
   const outputsSum = outputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0));
   const withdrawalsSum = withdrawalAmounts.reduce((acum, current) => acum + current, BigInt(0));
-  const fee =
-    poolRefundsSum + inputsSum + withdrawalsSum + keyRefundsSum - outputsSum - keyDepositsSum - poolDepositsSum;
+  const fee = inputsSum + withdrawalsSum + keyRefundsSum - outputsSum - keyDepositsSum - poolDepositsSum;
   if (fee < 0) {
     throw ErrorFactory.outputsAreBiggerThanInputsError();
   }
@@ -275,13 +273,11 @@ const processOperations = (
   const refundsSum = result.stakeKeyDeRegistrationsCount * minKeyDeposit;
   const keyDepositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
   const poolDepositsSum = result.poolRegistrationsCount * poolDeposit;
-  const poolRefundsSum = result.poolRetirementsCount * poolDeposit;
 
   const depositsSum = {
     keyRefundsSum: BigInt(refundsSum),
     keyDepositsSum: BigInt(keyDepositsSum),
-    poolDepositsSum: BigInt(poolDepositsSum),
-    poolRefundsSum: BigInt(poolRefundsSum)
+    poolDepositsSum: BigInt(poolDepositsSum)
   };
   const fee = calculateFee(result.inputAmounts, result.outputAmounts, result.withdrawalAmounts, depositsSum);
   logger.info(`[processOperations] Calculated fee: ${fee}`);

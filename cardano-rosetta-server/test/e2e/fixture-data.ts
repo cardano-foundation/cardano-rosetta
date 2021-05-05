@@ -665,8 +665,7 @@ export const transactionBlock4853177WithPoolRetirement = {
           address: 'd6aafa5358b98373449434542e3da3564bc71635ae3247dc1a2b7b0e'
         },
         metadata: {
-          epoch: 676,
-          refundAmount: { value: '-500000000', currency: { symbol: 'ADA', decimals: 6 } }
+          epoch: 676
         }
       },
       {
@@ -4296,7 +4295,7 @@ export const CONSTRUCTION_PAYLOADS_STAKE_DEREGISTRATION_RESPONSE = cbor
 
 export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE = cbor
   .encode([
-    'a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f010180021a1dcec490031903e804818304581c153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf18c8',
+    'a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f010180021a00015f90031903e804818304581c153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf18c8',
     constructionExtraData(CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT)
   ])
   .toString('hex');
