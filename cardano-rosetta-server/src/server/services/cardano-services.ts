@@ -219,12 +219,11 @@ const calculateFee = (
   withdrawalAmounts: bigint[],
   depositsSum: DepositsSum
 ): BigInt => {
-  const { poolRefundsSum, keyRefundsSum, keyDepositsSum, poolDepositsSum } = depositsSum;
+  const { keyRefundsSum, keyDepositsSum, poolDepositsSum } = depositsSum;
   const inputsSum = inputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0)) * BigInt(-1);
   const outputsSum = outputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0));
   const withdrawalsSum = withdrawalAmounts.reduce((acum, current) => acum + current, BigInt(0));
-  const fee =
-    poolRefundsSum + inputsSum + withdrawalsSum + keyRefundsSum - outputsSum - keyDepositsSum - poolDepositsSum;
+  const fee = inputsSum + withdrawalsSum + keyRefundsSum - outputsSum - keyDepositsSum - poolDepositsSum;
   if (fee < 0) {
     throw ErrorFactory.outputsAreBiggerThanInputsError();
   }
