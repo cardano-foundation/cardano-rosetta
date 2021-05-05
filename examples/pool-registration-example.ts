@@ -24,29 +24,40 @@ const SEND_FUNDS_ADDRESS =
 // cold keys
 const coldKeys = {
   secretKey: Buffer.from(
-    "45ad0a9123f966e5d584140c1fe49d8f8430ee9f55c8c4177bdf632191dca496cb18b6cb54eb79376134cd6c19f8d4bf2f9dfe1503d53547c4f8800897b50d3a",
+    "a9945927a6329a4fa61bc71e4a8c9963198047808cf68a933c67b8dc5b86bf4c281a3bd9b3c03bb591d9a411c23e1cedfd7c1a5bb6c88c76631ebbb00d9539bc",
     "hex"
   ),
   publicKey: Buffer.from(
-    "cb18b6cb54eb79376134cd6c19f8d4bf2f9dfe1503d53547c4f8800897b50d3a",
+    "281a3bd9b3c03bb591d9a411c23e1cedfd7c1a5bb6c88c76631ebbb00d9539bc",
     "hex"
   ),
 };
 
 const POOL_KEY_HASH =
-  "1677d50dcecc49c58bdad62cf2ad9bef6e7adb8a722665c11a0cfec2";
+  "c50d06bd9bbd388b97f36959b2079520744e6fbd0f5e368e03c9e922";
 
 // staking keys
 const stakeAddress =
-  "stake_test1uqjy86pepurr07029f0pnjh8pld2pkey5qk3wxrthve6wrsrre4cp";
+  "stake_test1uzm2t6xd7pqq8wk6wngrqxul0hjeqphf8dl5glfudk77u7czj5qk0";
 
 const stakingKeys = {
   secretKey: Buffer.from(
-    "24dc9e946a6242f6571e0f2cda0193afaf93bf4a30a4211970d3f83695874a6e99ddae6333170907688233365ab90470adc34812482b93268019935cfcec0a67",
+    "e3b26eccf92f0b58377a8176829ac1ba8ddcdc3996a777defef4db297de9397a262ebd72a95c40ed6c779651bb1c7a76ab8f2ebafd4c3b9aa8daca5b9de7a257",
     "hex"
   ),
   publicKey: Buffer.from(
-    "99ddae6333170907688233365ab90470adc34812482b93268019935cfcec0a67",
+    "262ebd72a95c40ed6c779651bb1c7a76ab8f2ebafd4c3b9aa8daca5b9de7a257",
+    "hex"
+  ),
+};
+
+const paymentKeys = {
+  secretKey: Buffer.from(
+    "5999079ac830afee7a4e94eb538472a538f9fa8c75bdfd8397e67cfda84829f8e1b56e9979563668e65cd628d8b1a644cf7d1bce8af12bf9247326f5d2cdca9c",
+    "hex"
+  ),
+  publicKey: Buffer.from(
+    "e1b56e9979563668e65cd628d8b1a644cf7d1bce8af12bf9247326f5d2cdca9c",
     "hex"
   ),
 };
@@ -105,18 +116,19 @@ const doRun = async (): Promise<void> => {
   keyAddressMapper[ownerAddress] = ownerKeys;
   keyAddressMapper[POOL_KEY_HASH] = coldKeys;
 
-  const paymentKeys = generateKeys();
-  logger.info(
-    `[doRun] secretKey ${Buffer.from(paymentKeys.secretKey).toString("hex")}`
-  );
-  const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
+  // const paymentKeys = generateKeys();
+  // logger.info(
+  //   `[doRun] secretKey ${Buffer.from(paymentKeys.secretKey).toString("hex")}`
+  // );
+  // const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
 
-  const paymentAddress = await constructionDerive(
-    paymentPublicKey,
-    "Base",
-    stakingPublicKey
-  );
+  // const paymentAddress = await constructionDerive(
+  //   paymentPublicKey,
+  //   "Base",
+  //   stakingPublicKey
+  // );
 
+  const paymentAddress = "addr_test1qpp2t2ptsu5fakh2gwgpzxq5wppexln6hpspullwqw8l953yg05rjrcxxlu752j7r89wwr765rdjfgpdzuvxhwen5u8q6pmdfh";
   keyAddressMapper[paymentAddress] = paymentKeys;
   const { unspents, balances } = await waitForBalanceToBe(
     paymentAddress,

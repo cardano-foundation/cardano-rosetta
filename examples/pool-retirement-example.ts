@@ -27,17 +27,28 @@ const SEND_FUNDS_ADDRESS =
 // cold keys
 const coldKeys = {
   secretKey: Buffer.from(
-    "45ad0a9123f966e5d584140c1fe49d8f8430ee9f55c8c4177bdf632191dca496cb18b6cb54eb79376134cd6c19f8d4bf2f9dfe1503d53547c4f8800897b50d3a",
+    "a9945927a6329a4fa61bc71e4a8c9963198047808cf68a933c67b8dc5b86bf4c281a3bd9b3c03bb591d9a411c23e1cedfd7c1a5bb6c88c76631ebbb00d9539bc",
     "hex"
   ),
   publicKey: Buffer.from(
-    "cb18b6cb54eb79376134cd6c19f8d4bf2f9dfe1503d53547c4f8800897b50d3a",
+    "281a3bd9b3c03bb591d9a411c23e1cedfd7c1a5bb6c88c76631ebbb00d9539bc",
     "hex"
   ),
 };
 
 const POOL_KEY_HASH =
-  "1677d50dcecc49c58bdad62cf2ad9bef6e7adb8a722665c11a0cfec2";
+  "c50d06bd9bbd388b97f36959b2079520744e6fbd0f5e368e03c9e922";
+
+const paymentKeys = {
+  secretKey: Buffer.from(
+    "5999079ac830afee7a4e94eb538472a538f9fa8c75bdfd8397e67cfda84829f8e1b56e9979563668e65cd628d8b1a644cf7d1bce8af12bf9247326f5d2cdca9c",
+    "hex"
+  ),
+  publicKey: Buffer.from(
+    "e1b56e9979563668e65cd628d8b1a644cf7d1bce8af12bf9247326f5d2cdca9c",
+    "hex"
+  ),
+};
 
 const buildPoolRetirementOperation = (
   currentIndex: number,
@@ -57,13 +68,12 @@ const doRun = async (): Promise<void> => {
 
   keyAddressMapper[POOL_KEY_HASH] = coldKeys;
 
-  const paymentKeys = generateKeys(PRIVATE_KEY);
-  logger.info(
-    `[doRun] secretKey ${Buffer.from(paymentKeys.secretKey).toString("hex")}`
-  );
+  // const paymentKeys = generateKeys(PRIVATE_KEY);
+  // logger.info(
+  //   `[doRun] secretKey ${Buffer.from(paymentKeys.secretKey).toString("hex")}`
+  // );
   const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
-
-  const paymentAddress = await constructionDerive(paymentPublicKey);
+  const paymentAddress = "addr_test1qpp2t2ptsu5fakh2gwgpzxq5wppexln6hpspullwqw8l953yg05rjrcxxlu752j7r89wwr765rdjfgpdzuvxhwen5u8q6pmdfh";
 
   keyAddressMapper[paymentAddress] = paymentKeys;
   const { unspents, balances } = await waitForBalanceToBe(
@@ -75,14 +85,13 @@ const doRun = async (): Promise<void> => {
     balances,
     paymentAddress,
     SEND_FUNDS_ADDRESS,
-    true,
-    45
+    true
   );
 
   const currentIndex = builtOperations.operations.length - 1;
 
   const builtPoolRetirementOperation = buildPoolRetirementOperation(
-    currentIndex + 1,
+    currentIndex,
     POOL_KEY_HASH
   );
   builtOperations.operations.push(builtPoolRetirementOperation);
