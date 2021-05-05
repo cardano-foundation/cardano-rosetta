@@ -186,8 +186,7 @@ export const mapToRosettaTransaction = (
         address: poolRetirement.address
       },
       metadata: {
-        epoch: poolRetirement.epoch,
-        refundAmount: mapAmount((poolDeposit * -1).toString())
+        epoch: poolRetirement.epoch
       }
     })
   );

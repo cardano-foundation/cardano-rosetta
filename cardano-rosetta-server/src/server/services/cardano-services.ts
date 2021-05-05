@@ -66,7 +66,6 @@ export interface DepositsSum {
   keyRefundsSum: bigint;
   keyDepositsSum: bigint;
   poolDepositsSum: bigint;
-  poolRefundsSum: bigint;
 }
 
 // Shelley
@@ -274,13 +273,11 @@ const processOperations = (
   const refundsSum = result.stakeKeyDeRegistrationsCount * minKeyDeposit;
   const keyDepositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
   const poolDepositsSum = result.poolRegistrationsCount * poolDeposit;
-  const poolRefundsSum = result.poolRetirementsCount * poolDeposit;
 
   const depositsSum = {
     keyRefundsSum: BigInt(refundsSum),
     keyDepositsSum: BigInt(keyDepositsSum),
-    poolDepositsSum: BigInt(poolDepositsSum),
-    poolRefundsSum: BigInt(poolRefundsSum)
+    poolDepositsSum: BigInt(poolDepositsSum)
   };
   const fee = calculateFee(result.inputAmounts, result.outputAmounts, result.withdrawalAmounts, depositsSum);
   logger.info(`[processOperations] Calculated fee: ${fee}`);
