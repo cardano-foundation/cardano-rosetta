@@ -24,40 +24,29 @@ const SEND_FUNDS_ADDRESS =
 // cold keys
 const coldKeys = {
   secretKey: Buffer.from(
-    "a9945927a6329a4fa61bc71e4a8c9963198047808cf68a933c67b8dc5b86bf4c281a3bd9b3c03bb591d9a411c23e1cedfd7c1a5bb6c88c76631ebbb00d9539bc",
+    "e1a37517351be84cc54bb34fcb31064fb0a7648c7f20e08ce872e082a943360e55ad29a820ecb70f5b49557f566f6635b4258a1c4a8a2039ce71f703deec698b",
     "hex"
   ),
   publicKey: Buffer.from(
-    "281a3bd9b3c03bb591d9a411c23e1cedfd7c1a5bb6c88c76631ebbb00d9539bc",
+    "55ad29a820ecb70f5b49557f566f6635b4258a1c4a8a2039ce71f703deec698b",
     "hex"
   ),
 };
 
 const POOL_KEY_HASH =
-  "c50d06bd9bbd388b97f36959b2079520744e6fbd0f5e368e03c9e922";
+  "138864a67cbf60d7a70eceb814b749711df2af65a6ba5512efad68f2";
 
 // staking keys
 const stakeAddress =
-  "stake_test1uzm2t6xd7pqq8wk6wngrqxul0hjeqphf8dl5glfudk77u7czj5qk0";
+  "stake_test1uqwzh620u8rrzckxs66xgt9v35hv3qfjnq3suxhpzdyc9aqwkdr0e";
 
 const stakingKeys = {
   secretKey: Buffer.from(
-    "e3b26eccf92f0b58377a8176829ac1ba8ddcdc3996a777defef4db297de9397a262ebd72a95c40ed6c779651bb1c7a76ab8f2ebafd4c3b9aa8daca5b9de7a257",
+    "2fa32eeaf905c3c4083ed8caac87e925e629bd038fb09b605091c105425cb04038b132eb550d1eb7d5645d04d2c7e7c554cfd2b7663211049183a8b0a01554d0",
     "hex"
   ),
   publicKey: Buffer.from(
-    "262ebd72a95c40ed6c779651bb1c7a76ab8f2ebafd4c3b9aa8daca5b9de7a257",
-    "hex"
-  ),
-};
-
-const paymentKeys = {
-  secretKey: Buffer.from(
-    "5999079ac830afee7a4e94eb538472a538f9fa8c75bdfd8397e67cfda84829f8e1b56e9979563668e65cd628d8b1a644cf7d1bce8af12bf9247326f5d2cdca9c",
-    "hex"
-  ),
-  publicKey: Buffer.from(
-    "e1b56e9979563668e65cd628d8b1a644cf7d1bce8af12bf9247326f5d2cdca9c",
+    "38b132eb550d1eb7d5645d04d2c7e7c554cfd2b7663211049183a8b0a01554d0",
     "hex"
   ),
 };
@@ -77,10 +66,14 @@ const ownerKeys = {
   ),
 };
 
+// vrf key hash
+const VRF_KEY_HASH = "9586F48442694EF028BCF67605B4EF650AB9F0F1CD81E181D2DB8D9D5A387E84";
+
 const buildPoolRegistrationOperation = (
   rewardAddress: string,
   currentIndex: number,
-  poolKeyHash: string
+  poolKeyHash: string,
+  vrfKeyHash: string
 ) => ({
   operation_identifier: { index: currentIndex + 1 },
   type: "poolRegistration",
@@ -88,8 +81,7 @@ const buildPoolRegistrationOperation = (
   account: { address: poolKeyHash },
   metadata: {
     poolRegistrationParams: {
-      vrfKeyHash:
-        "9586F48442694EF028BCF67605B4EF650AB9F0F1CD81E181D2DB8D9D5A387E84",
+      vrfKeyHash: vrfKeyHash,
       rewardAddress: rewardAddress,
       pledge: "4000000",
       cost: "340000000",
@@ -116,19 +108,18 @@ const doRun = async (): Promise<void> => {
   keyAddressMapper[ownerAddress] = ownerKeys;
   keyAddressMapper[POOL_KEY_HASH] = coldKeys;
 
-  // const paymentKeys = generateKeys();
-  // logger.info(
-  //   `[doRun] secretKey ${Buffer.from(paymentKeys.secretKey).toString("hex")}`
-  // );
-  // const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
+  const paymentKeys = generateKeys();
+  logger.info(
+    `[doRun] secretKey ${Buffer.from(paymentKeys.secretKey).toString("hex")}`
+  );
+  const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
 
-  // const paymentAddress = await constructionDerive(
-  //   paymentPublicKey,
-  //   "Base",
-  //   stakingPublicKey
-  // );
+  const paymentAddress = await constructionDerive(
+    paymentPublicKey,
+    "Base",
+    stakingPublicKey
+  );
 
-  const paymentAddress = "addr_test1qpp2t2ptsu5fakh2gwgpzxq5wppexln6hpspullwqw8l953yg05rjrcxxlu752j7r89wwr765rdjfgpdzuvxhwen5u8q6pmdfh";
   keyAddressMapper[paymentAddress] = paymentKeys;
   const { unspents, balances } = await waitForBalanceToBe(
     paymentAddress,
@@ -155,7 +146,8 @@ const doRun = async (): Promise<void> => {
   const builtPoolRegistrationOperation = buildPoolRegistrationOperation(
     stakeAddress,
     currentIndex + 2,
-    POOL_KEY_HASH
+    POOL_KEY_HASH,
+    VRF_KEY_HASH
   );
   builtOperations.operations.push(builtRegistrationOperation);
   builtOperations.operations.push(builtPoolRegistrationOperation);

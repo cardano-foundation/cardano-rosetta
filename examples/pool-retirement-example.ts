@@ -3,7 +3,6 @@
 /* eslint-disable new-cap */
 /* eslint-disable no-console */
 import {
-  buildDelegationOperation,
   constructionDerive,
   constructionPreprocess,
   constructionMetadata,
@@ -17,7 +16,6 @@ import {
 } from "./commons";
 const logger = console;
 
-
 const PRIVATE_KEY =
   "41d9523b87b9bd89a4d07c9b957ae68a7472d8145d7956a692df1a8ad91957a2c117d9dd874447f47306f50a650f1e08bf4bec2cfcb2af91660f23f2db912977";
 
@@ -27,63 +25,55 @@ const SEND_FUNDS_ADDRESS =
 // cold keys
 const coldKeys = {
   secretKey: Buffer.from(
-    "a9945927a6329a4fa61bc71e4a8c9963198047808cf68a933c67b8dc5b86bf4c281a3bd9b3c03bb591d9a411c23e1cedfd7c1a5bb6c88c76631ebbb00d9539bc",
+    "e1a37517351be84cc54bb34fcb31064fb0a7648c7f20e08ce872e082a943360e55ad29a820ecb70f5b49557f566f6635b4258a1c4a8a2039ce71f703deec698b",
     "hex"
   ),
   publicKey: Buffer.from(
-    "281a3bd9b3c03bb591d9a411c23e1cedfd7c1a5bb6c88c76631ebbb00d9539bc",
+    "55ad29a820ecb70f5b49557f566f6635b4258a1c4a8a2039ce71f703deec698b",
     "hex"
   ),
 };
 
 const POOL_KEY_HASH =
-  "c50d06bd9bbd388b97f36959b2079520744e6fbd0f5e368e03c9e922";
+  "138864a67cbf60d7a70eceb814b749711df2af65a6ba5512efad68f2";
 
-const paymentKeys = {
-  secretKey: Buffer.from(
-    "5999079ac830afee7a4e94eb538472a538f9fa8c75bdfd8397e67cfda84829f8e1b56e9979563668e65cd628d8b1a644cf7d1bce8af12bf9247326f5d2cdca9c",
-    "hex"
-  ),
-  publicKey: Buffer.from(
-    "e1b56e9979563668e65cd628d8b1a644cf7d1bce8af12bf9247326f5d2cdca9c",
-    "hex"
-  ),
-};
+const EPOCH_TO_RETIRE = 135;
 
 const buildPoolRetirementOperation = (
   currentIndex: number,
-  poolKeyHash: string
+  poolKeyHash: string,
+  epochToRetire: number
 ) => ({
   operation_identifier: { index: currentIndex + 1 },
   type: "poolRetirement",
   status: "success",
   account: { address: poolKeyHash },
   metadata: {
-    epoch: 135
+    epoch: epochToRetire,
   },
 });
 
 const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};
-
   keyAddressMapper[POOL_KEY_HASH] = coldKeys;
 
-  // const paymentKeys = generateKeys(PRIVATE_KEY);
-  // logger.info(
-  //   `[doRun] secretKey ${Buffer.from(paymentKeys.secretKey).toString("hex")}`
-  // );
-  const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
-  const paymentAddress = "addr_test1qpp2t2ptsu5fakh2gwgpzxq5wppexln6hpspullwqw8l953yg05rjrcxxlu752j7r89wwr765rdjfgpdzuvxhwen5u8q6pmdfh";
+  const keys = generateKeys(PRIVATE_KEY);
+  logger.info(
+    `[doRun] secretKey ${Buffer.from(keys.secretKey).toString("hex")}`
+  );
+  const address = await constructionDerive(
+    Buffer.from(keys.publicKey).toString("hex")
+  );
+  keyAddressMapper[address] = keys;
 
-  keyAddressMapper[paymentAddress] = paymentKeys;
   const { unspents, balances } = await waitForBalanceToBe(
-    paymentAddress,
+    address,
     (response) => response.coins.length !== 0
   );
   const builtOperations = buildOperation(
     unspents,
     balances,
-    paymentAddress,
+    address,
     SEND_FUNDS_ADDRESS,
     true
   );
@@ -92,7 +82,8 @@ const doRun = async (): Promise<void> => {
 
   const builtPoolRetirementOperation = buildPoolRetirementOperation(
     currentIndex,
-    POOL_KEY_HASH
+    POOL_KEY_HASH,
+    EPOCH_TO_RETIRE
   );
   builtOperations.operations.push(builtPoolRetirementOperation);
   logger.info(
