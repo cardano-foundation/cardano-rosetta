@@ -118,14 +118,31 @@ Sends a transaction that registers a pool and delegates a staking key in order t
 2. A predefined `POOL_KEY_HASH` is the Ed25519KeyHash as hex string corresponding to `coldKeys`.
 3. A predefined `stakingAddress` is the reward address of pool creator corresponding to `stakingKeys`.
 4. A predefined `ownerAddress` is the reward address of a pool owner corresponding to `ownerKeys`.
+5. A predefined `VRF key hash` is provided to create the pool certificate.
 
 Important notes:
 - Staking keys of the creator are used to register a stakey key and delegate that to the pool in order to honor the pledge.
-- A minimum of 503 ADA + fees balance is needed in order to pay for pool registration deposit and stake key registration deposit.
+- A minimum of 502 ADA + fees balance is needed in order to pay for pool registration deposit and stake key registration deposit.
 - Funds will be sent to `SEND_FUNDS_ADDRESS` by default as it's the address where testnet funds should be returned.
 
 In order to execute the example, run:
 
 ```javascript
 $ yarn pool-registration-example
+```
+
+## Sending transactions with pool retirement
+
+Sends a transaction that retires a pool. So:
+
+1. All the ADA is sent to a predefined address `SEND_FUNDS_ADDRESS`.
+2. Uses predefined cold keys of pool owner to make the retirement.
+3. Uses a predefined `POOL_KEY_HASH` corresponding to those cold keys.
+4. Creates payment keys from a predefined `PRIVATE_KEY`.
+5. `EPOCH_TO_RETIRE` is the epoch where the pool will be retired.
+
+In order to execute the example, run:
+
+```javascript
+$ yarn pool-retirement-example
 ```
