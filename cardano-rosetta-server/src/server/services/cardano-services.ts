@@ -284,6 +284,7 @@ const getPoolSigners = (
     // pool retirement case
     default: {
       if (operation.account?.address) signers.push(operation.account?.address);
+      break;
     }
   }
   logger.info(`[getPoolSigners] About to return ${signers.length} signers for ${operation.type} operation`);
@@ -295,7 +296,7 @@ const getSignerFromOperation = (
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
 ): Array<string> => {
-  if (PoolOperations.includes(OperationType.POOL_REGISTRATION)) {
+  if (PoolOperations.includes(operation.type as OperationType)) {
     return getPoolSigners(logger, network, operation);
   }
   if (operation.account?.address) {
