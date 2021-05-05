@@ -26,9 +26,11 @@ import {
   EraAddressType,
   NetworkIdentifier,
   PREFIX_LENGTH,
+  PoolOperations,
   PUBLIC_KEY_BYTES_LENGTH,
   SIGNATURE_LENGTH,
-  StakeAddressPrefix
+  StakeAddressPrefix,
+  OperationType
 } from '../utils/constants';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
@@ -251,14 +253,56 @@ const signatureProcessor: { [eraType: string]: Signatures } = {
   }
 };
 
+const getPoolSigners = (
+  logger: Logger,
+  network: NetworkIdentifier,
+  operation: Components.Schemas.Operation
+): string[] => {
+  const signers = [];
+  switch (operation.type) {
+    case OperationType.POOL_REGISTRATION: {
+      const poolRegistrationParameters = operation.metadata?.poolRegistrationParams;
+      if (operation.account?.address) signers.push(operation.account?.address);
+      if (poolRegistrationParameters) {
+        const { rewardAddress, poolOwners } = poolRegistrationParameters;
+        signers.push(rewardAddress);
+        signers.push(...poolOwners);
+      }
+      break;
+    }
+    case OperationType.POOL_REGISTRATION_WITH_CERT: {
+      const poolCertAsHex = operation.metadata?.poolRegistrationCert;
+      const { addresses } = OperationsProcessor.validateAndParsePoolRegistrationCert(
+        logger,
+        network,
+        poolCertAsHex,
+        operation.account?.address
+      );
+      signers.push(...addresses);
+      break;
+    }
+    // pool retirement case
+    default: {
+      if (operation.account?.address) signers.push(operation.account?.address);
+    }
+  }
+  logger.info(`[getPoolSigners] About to return ${signers.length} signers for ${operation.type} operation`);
+  return signers;
+};
+
 const getSignerFromOperation = (
   logger: Logger,
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
-): string => {
-  if (operation.account?.address) return operation.account?.address;
+): Array<string> => {
+  if (PoolOperations.includes(OperationType.POOL_REGISTRATION)) {
+    return getPoolSigners(logger, network, operation);
+  }
+  if (operation.account?.address) {
+    return [operation.account?.address];
+  }
   const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
-  return generateRewardAddress(logger, network, credential);
+  return [generateRewardAddress(logger, network, credential)];
 };
 
 const processOperations = (
@@ -469,7 +513,10 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
       logger.info(operations, '[parseSignedTransaction] Returning operations');
       const accountIdentifierSigners = getUniqueAccountIdentifiers(
-        extraData.map(data => getSignerFromOperation(logger, networkId, data))
+        extraData.reduce(
+          (accum, data) => accum.concat(getSignerFromOperation(logger, networkId, data)),
+          [] as Array<string>
+        )
       );
       return { operations, account_identifier_signers: accountIdentifierSigners };
     } catch (error) {

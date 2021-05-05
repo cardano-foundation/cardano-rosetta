@@ -397,6 +397,20 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       expect(response.json().operations).toEqual(
         constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE)
       );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        },
+        {
+          address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+        },
+        {
+          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+        },
+        {
+          address: 'stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'
+        }
+      ]);
     });
     test('Should correctly parse operations with pool registrations with multiple relays', async () => {
       const response = await server.inject({
@@ -413,6 +427,20 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       expect(response.json().operations).toEqual(
         constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY)
       );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        },
+        {
+          address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+        },
+        {
+          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+        },
+        {
+          address: 'stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'
+        }
+      ]);
     });
     test('Should correctly parse operations with pool registrations with no pool metadata', async () => {
       const response = await server.inject({
@@ -429,6 +457,20 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       expect(response.json().operations).toEqual(
         constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA)
       );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        },
+        {
+          address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+        },
+        {
+          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+        },
+        {
+          address: 'stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'
+        }
+      ]);
     });
     test('Should correctly parse operations with pool registrations with cert', async () => {
       const response = await server.inject({
@@ -445,6 +487,20 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       expect(response.json().operations).toEqual(
         constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT)
       );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        },
+        {
+          address: 'stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p'
+        },
+        {
+          address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+        },
+        {
+          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+        }
+      ]);
     });
   });
 });
