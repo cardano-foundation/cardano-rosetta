@@ -1,0 +1,422 @@
+request_funds(1){
+
+  find_account{
+
+    payment_account_identifier = get_blob({
+      "key":"payment_account_identifier"
+    });
+
+    currency = {"symbol":"ADA", "decimals":6};
+    random_account = find_balance({
+      "account_identifier": {{payment_account_identifier}},
+      "minimum_balance":{
+        "value": "0",
+        "currency": {{currency}}
+      },
+      "create_limit":1
+    });
+  },
+
+  // Create a separate scenario to request funds so that
+  // the address we are using to request funds does not
+  // get rolled back if funds do not yet exist.
+  request{
+
+    payment_account_identifier = get_blob({
+      "key":"payment_account_identifier"
+    });
+
+    loaded_account = find_balance({
+      "account_identifier": {{payment_account_identifier}},
+      "minimum_balance":{
+        "value": "10000000",
+        "currency": {{currency}}
+      },
+      "require_coin":true
+    });
+  }
+}
+
+create_account(1){
+  create{
+
+    network = {"network":"testnet", "blockchain":"cardano"};
+    payment_key = generate_key({"curve_type": "edwards25519"});
+    
+    set_blob({
+      "key":"payment_key",
+      "value":{{payment_key}}
+    });
+    staking_key = generate_key({"curve_type": "edwards25519"});
+    print_message({"staking_key": {{staking_key}} });
+    set_blob({
+      "key":"staking_key",
+      "value":{{staking_key}}
+    });
+    public_cold_key = load_env("PUBLIC_COLD_KEY");
+    private_cold_key = load_env("PRIVATE_COLD_KEY");
+    owner_public_key = load_env("OWNER_PUBLIC_KEY");
+    owner_private_key = load_env("OWNER_PRIVATE_KEY");
+
+    print_message{
+      "public_cold_key": {{public_cold_key}},
+      "private_cold_key": {{private_cold_key}},
+      "owner_public_key": {{owner_public_key}},
+      "owner_private_key": {{owner_private_key}}
+    }
+
+    owner_key = {"private_key": {{owner_private_key}},"public_key": {"hex_bytes": {{owner_public_key}},"curve_type":"edwards25519"}};
+    cold_key = {"private_key": {{private_cold_key}},"public_key": {"hex_bytes": {{public_cold_key}},"curve_type":"edwards25519"}};
+
+    owner_address = load_env("OWNER_ADDRESS");
+    print_message({"owner_address": {{owner_address}} });
+
+    owner_account_identifier = {"address": {{owner_address}}};    
+    save_account({
+      "account_identifier": {{owner_account_identifier}},
+      "keypair": {{owner_key}}
+    });
+
+    pool_key_hash = load_env("POOL_KEY_HASH");
+    print_message({"pool_key_hash": {{pool_key_hash}} });
+
+    cold_account_identifier = {"address": {{pool_key_hash}}};   
+    save_account({
+      "account_identifier": {{cold_account_identifier}},
+      "keypair": {{cold_key}}
+    });
+
+    set_blob({
+      "key":"cold_account_identifier",
+      "value":{{cold_account_identifier}}
+    });
+
+    set_blob({
+      "key":"pool_key_hash",
+      "value":{{pool_key_hash}}
+    });
+    
+    set_blob({
+      "key":"owner_address",
+      "value":{{owner_address}}
+    });
+
+    payment_account = derive({
+      "network_identifier": {{network}},
+      "public_key": {{payment_key.public_key}},
+      "metadata": {
+        "staking_credential": {{staking_key.public_key}},
+        "address_type": "Base"
+      }
+    });
+
+    // If the account is not saved, the key will be lost!
+    save_account({
+      "account_identifier": {{payment_account.account_identifier}},
+      "keypair": {{payment_key}}
+    });
+    set_blob({
+      "key":"payment_account_identifier",
+      "value":{{payment_account.account_identifier}}
+    });
+    
+    print_message({
+      "Send funds to": {{payment_account.account_identifier}}
+    });
+
+    staking_account = derive({
+      "network_identifier": {{network}},
+      "public_key": {{staking_key.public_key}},
+      "metadata": {
+        "address_type": "Reward"
+      }
+    });
+
+    print_message({ 
+      "staking account": {{staking_account.account_identifier}}
+    });
+
+    save_account({
+      "account_identifier": {{staking_account.account_identifier}},
+      "keypair": {{staking_key}}
+    });
+
+    set_blob({
+      "key":"staking_account_identifier",
+      "value":{{staking_account.account_identifier}}
+    });
+  }
+}
+
+pool_registration(10){
+  transfer_dry_run{
+    transfer_dry_run.network = {"network":"testnet", "blockchain":"cardano"};
+    currency = {"symbol":"ADA", "decimals":6};
+    // We set the max_fee_amount to know how much buffer we should
+    // leave for fee payment when selecting a sender account.
+    dust_amount = "1000000";
+    max_fee_amount = "5000000";
+    stake_key_registration = "2000000";
+    pool_registration_deposit = "500000000";
+
+    send_buffer = {{dust_amount}} + {{max_fee_amount}};
+    send_buffer = {{send_buffer}} + {{stake_key_registration}};
+    send_buffer = {{send_buffer}} + {{pool_registration_deposit}};
+    print_message({
+      "send buffer is": {{send_buffer}}
+    });
+
+    // We look for a coin of value >= the reserved_amount to create
+    // a transfer with change (reserved_amount is max_fee_amount + dust_amount x 2 + stake registration payment 2 ADA + pool registration payment 500 ADA).
+    transfer_dry_run.reserved_amount = "509000000";
+    sender = find_balance({
+      "minimum_balance":{
+        "value": {{transfer_dry_run.reserved_amount}},
+        "currency": {{currency}}
+      },
+      "require_coin": true
+    });
+    // The amount we send to the recipient is a random value
+    // between the dust_amount and the value of the entire coin (minus
+    // the amount reserved for fee payment and covering the dust minimum
+    // of the change UTXO).
+    receivable_amount = {{sender.balance.value}} - {{send_buffer}};
+    recipient_amount = random_number({
+      "minimum": {{dust_amount}},
+      "maximum": {{receivable_amount}}
+    });
+    print_message({
+      "recipient_amount":{{recipient_amount}}
+    });
+
+    // The change amount is what we aren't sending to the recipient
+    // minus the maximum fee. Don't worry, we will adjust this
+    // amount to avoid overpaying the fee after the dry run
+    // completes.
+    raw_change_amount = {{sender.balance.value}} - {{recipient_amount}};
+    // stake registration
+    raw_change_amount = {{raw_change_amount}} - {{stake_key_registration}};
+    // pool registration
+    raw_change_amount = {{raw_change_amount}} - {{pool_registration_deposit}}; 
+    change_amount = {{raw_change_amount}} - {{max_fee_amount}};
+    print_message({
+      "change_amount":{{change_amount}}
+    });
+
+    // Faucet return address is `addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3`
+    recipient_address = load_env("RECIPIENT");
+    print_message({
+      "refund recipient address": {{recipient_address}}
+    });
+    transfer_dry_run.recipient = {"address": {{recipient_address}}};
+
+    // Load variables necessary to create the pool registration cert, for more information about them read README.md
+    transfer_dry_run.verf_key_hash = load_env("VRF_KEY_HASH");
+    transfer_dry_run.dns_name = load_env("DNS_NAME");
+    transfer_dry_run.cost = load_env("COST");
+    transfer_dry_run.pledge = load_env("PLEDGE");
+    transfer_dry_run.numerator = load_env("NUMERATOR");
+    transfer_dry_run.denominator = load_env("DENOMINATOR");
+
+    print_message({
+      "vrf key hash": {{transfer_dry_run.verf_key_hash}},
+      "dns name": {{transfer_dry_run.dns_name}},
+      "cost": {{transfer_dry_run.cost}},
+      "pledge": {{transfer_dry_run.pledge}},
+      "numerator": {{transfer_dry_run.numerator}},
+      "denominator": {{transfer_dry_run.denominator}}
+    });
+    
+    transfer_dry_run.pool_key_hash = get_blob({
+      "key": "pool_key_hash"
+    });
+
+    transfer_dry_run.owner_address = get_blob({
+      "key": "owner_address"
+    });
+
+    staking_key = get_blob({
+      "key":"staking_key"
+    });
+
+    transfer_dry_run.staking_account_identifier = get_blob({
+      "key":"staking_account_identifier" 
+    });
+
+    transfer_dry_run.cold_account_identifier = get_blob({
+      "key":"cold_account_identifier" 
+    });
+
+    sender_amount = 0 - {{sender.balance.value}};
+    transfer_dry_run.confirmation_depth = "1";
+    transfer_dry_run.dry_run = true;
+    transfer_dry_run.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"input",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{sender_amount}},"currency":{{currency}}},
+        "coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}}
+      },
+      {
+        "operation_identifier":{"index":1},
+        "type":"output",
+        "account":{{transfer_dry_run.recipient}},
+        "amount":{"value":{{recipient_amount}},"currency":{{currency}}}
+      },
+      {
+        "operation_identifier":{"index":2},
+        "type":"output",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{change_amount}},"currency":{{currency}}}
+      },
+      {
+        "operation_identifier": {"index": 3},
+        "type": "stakeKeyRegistration",
+        "account":{{transfer_dry_run.staking_account_identifier}},
+        "metadata": {
+          "staking_credential": {{staking_key.public_key}}
+        }
+      },
+       {
+        "operation_identifier": {"index": 4},
+        "type": "poolRegistration",
+        "account":{{transfer_dry_run.cold_account_identifier}},
+        "metadata": {
+          "poolRegistrationParams": {
+            "vrfKeyHash":
+              {{transfer_dry_run.verf_key_hash}},
+            "rewardAddress": {{transfer_dry_run.staking_account_identifier.address}},
+            "pledge": {{transfer_dry_run.pledge}},
+            "cost": {{transfer_dry_run.cost}},
+            "poolOwners": [{{transfer_dry_run.owner_address}}],
+            "relays": [
+              {
+                "type": "multi_host_name",
+                "dnsName": {{transfer_dry_run.dns_name}}
+              }
+            ],
+            "margin": {
+              "numerator": {{transfer_dry_run.numerator}},
+              "denominator": {{transfer_dry_run.denominator}}
+            }
+          }
+        }
+      },
+      {
+        "operation_identifier": {"index": 5},
+        "type": "stakeDelegation",
+        "account":{{transfer_dry_run.staking_account_identifier}},
+        "metadata": {
+          "staking_credential": {{staking_key.public_key}},
+          "pool_key_hash": {{transfer_dry_run.pool_key_hash}}
+        }
+      }
+    ];
+
+    print_message({
+      "transfer dry run operations": {{transfer_dry_run.operations}}
+    });
+  },
+  transfer{
+    // The suggested_fee is returned in the /construction/metadata
+    // response and saved to transfer_dry_run.suggested_fee.
+    suggested_fee = find_currency_amount({
+      "currency":{{currency}},
+      "amounts":{{transfer_dry_run.suggested_fee}}
+    });
+
+    print_message({
+      "suggested fee": {{suggested_fee}}
+    });
+
+    // We can access the variables of other scenarios, so we don't
+    // need to recalculate raw_change_amount.
+    change_amount = {{raw_change_amount}} - {{suggested_fee.value}};
+    transfer.network = {{transfer_dry_run.network}};
+    transfer.confirmation_depth = {{transfer_dry_run.confirmation_depth}};
+    staking_credential = get_blob({
+      "key":"staking_key"
+    });
+    print_message({
+      "staking_credential":{{staking_credential}}
+    });
+    
+    // recipient_address = transfer_dry_run.recipient_address;
+    recipient = {"address": {{recipient_address}}};
+
+    transfer.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"input",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{sender_amount}},"currency":{{currency}}},
+        "coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}}
+      },
+      {
+        "operation_identifier":{"index":1},
+        "type":"output",
+        "account":{{transfer_dry_run.recipient}},
+        "amount":{"value":{{recipient_amount}},"currency":{{currency}}}
+      },
+      {
+        "operation_identifier":{"index":2},
+        "type":"output",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{change_amount}},"currency":{{currency}}}
+      },
+      {
+        "operation_identifier": { "index": 3 },
+        "type": "stakeKeyRegistration",
+        "account":{{transfer_dry_run.staking_account_identifier}},
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": {{staking_key.public_key.hex_bytes}},
+            "curve_type": {{staking_key.public_key.curve_type}}
+          }
+        }
+      },
+      {
+        "operation_identifier": {"index": 4},
+        "type": "poolRegistration",
+        "account":{{transfer_dry_run.cold_account_identifier}},
+        "metadata": {
+          "poolRegistrationParams": {
+            "vrfKeyHash":
+              {{transfer_dry_run.verf_key_hash}},
+            "rewardAddress": {{transfer_dry_run.staking_account_identifier.address}},
+            "pledge": "4000000",
+            "cost": "340000000",
+            "poolOwners": [{{transfer_dry_run.owner_address}}],
+            "relays": [
+              {
+                "type": "multi_host_name",
+                "dnsName": {{transfer_dry_run.dns_name}}
+              }
+            ],
+            "margin": {
+              "numerator": "1",
+              "denominator": "1"
+            }
+          }
+        }
+      },
+      {
+        "operation_identifier": {"index": 5},
+        "type": "stakeDelegation",
+        "account":{{transfer_dry_run.staking_account_identifier}},
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": {{staking_key.public_key.hex_bytes}},
+            "curve_type": {{staking_key.public_key.curve_type}}
+          },
+          "pool_key_hash": {{transfer_dry_run.pool_key_hash}}
+        }
+      }
+    ]; 
+
+    print_message({
+      "transfer operations": {{transfer.operations}}
+    });
+  }
+}
