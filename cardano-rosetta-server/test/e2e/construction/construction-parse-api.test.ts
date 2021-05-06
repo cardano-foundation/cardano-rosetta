@@ -37,13 +37,13 @@ import {
   CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_WITH_CERT,
   CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAYS,
   CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_WITH_NO_METADATA,
+  CONSTRUCTION_SIGNED_TX_WITH_POOL_RETIREMENT,
   CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_EXTRA_DATA,
   CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_WITHDRWAWAL_AND_EXTRA_DATA,
   CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA,
   CONSTRUCTION_SIGNED_TX_INPUT_WITH_BYRON_ADDRESS_AND_EXTRA_DATA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT,
-  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
-  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT
 } from '../fixture-data';
 import { setupOfflineDatabase, setupServer } from '../utils/test-utils';
 
@@ -201,18 +201,6 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION)
     );
-    expect(response.json().account_identifier_signers).toEqual([]);
-  });
-
-  // eslint-disable-next-line max-len
-  test('Should return 1 input, 2 outputs, 1 pool retirement and empty signers if a valid unsigned transaction is set', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: CONSTRUCTION_PARSE_ENDPOINT,
-      payload: generateParsePayload('cardano', 'mainnet', false, CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE)
-    });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().operations).toEqual(constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT));
     expect(response.json().account_identifier_signers).toEqual([]);
   });
 
@@ -397,6 +385,20 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       expect(response.json().operations).toEqual(
         constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE)
       );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        },
+        {
+          address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+        },
+        {
+          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+        },
+        {
+          address: 'stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'
+        }
+      ]);
     });
     test('Should correctly parse operations with pool registrations with multiple relays', async () => {
       const response = await server.inject({
@@ -413,6 +415,20 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       expect(response.json().operations).toEqual(
         constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY)
       );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        },
+        {
+          address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+        },
+        {
+          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+        },
+        {
+          address: 'stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'
+        }
+      ]);
     });
     test('Should correctly parse operations with pool registrations with no pool metadata', async () => {
       const response = await server.inject({
@@ -429,6 +445,20 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       expect(response.json().operations).toEqual(
         constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA)
       );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        },
+        {
+          address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+        },
+        {
+          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+        },
+        {
+          address: 'stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er'
+        }
+      ]);
     });
     test('Should correctly parse operations with pool registrations with cert', async () => {
       const response = await server.inject({
@@ -445,6 +475,42 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       expect(response.json().operations).toEqual(
         constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT)
       );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        },
+        {
+          address: 'stake1u9af5n26dtr6nkrs9qv05049x0jkcncau9k6vyd8xrhr7qq8tez5p'
+        },
+        {
+          address: '1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5'
+        },
+        {
+          address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+        }
+      ]);
+    });
+  });
+  describe('Pool retirement requests', () => {
+    // eslint-disable-next-line max-len
+    test('Should return 1 input, 2 outputs, 1 pool retirement and empty signers if a valid unsigned transaction is set', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PARSE_ENDPOINT,
+        payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TX_WITH_POOL_RETIREMENT)
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json().operations).toEqual(
+        constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT)
+      );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        },
+        {
+          address: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf'
+        }
+      ]);
     });
   });
 });

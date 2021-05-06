@@ -201,7 +201,7 @@ const validateAndParsePoolOwners = (logger: Logger, owners: Array<string>): Card
   return parsedOwners;
 };
 
-const validateAndParsePoolRegistrationCert = (
+export const validateAndParsePoolRegistrationCert = (
   logger: Logger,
   network: NetworkIdentifier,
   poolRegistrationCert?: string,
