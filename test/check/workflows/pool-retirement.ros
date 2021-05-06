@@ -1,0 +1,245 @@
+request_funds(1){
+
+  find_account{
+
+    payment_account_identifier = get_blob({
+      "key":"payment_account_identifier"
+    });
+
+    currency = {"symbol":"ADA", "decimals":6};
+    random_account = find_balance({
+      "account_identifier": {{payment_account_identifier}},
+      "minimum_balance":{
+        "value": "0",
+        "currency": {{currency}}
+      },
+      "create_limit":1
+    });
+  },
+
+  // Create a separate scenario to request funds so that
+  // the address we are using to request funds does not
+  // get rolled back if funds do not yet exist.
+  request{
+
+    payment_account_identifier = get_blob({
+      "key":"payment_account_identifier"
+    });
+
+    loaded_account = find_balance({
+      "account_identifier": {{payment_account_identifier}},
+      "minimum_balance":{
+        "value": "10000000",
+        "currency": {{currency}}
+      },
+      "require_coin":true
+    });
+  }
+}
+
+create_account(1){
+  create{
+
+    network = {"network":"testnet", "blockchain":"cardano"};
+    payment_key = generate_key({"curve_type": "edwards25519"});
+    set_blob({
+      "key":"payment_key",
+      "value":{{payment_key}}
+    });
+
+    payment_account = derive({
+      "network_identifier": {{network}},
+      "public_key": {{payment_key.public_key}}
+    });
+
+    // If the account is not saved, the key will be lost!
+    save_account({
+      "account_identifier": {{payment_account.account_identifier}},
+      "keypair": {{payment_key}}
+    });
+    set_blob({
+      "key":"payment_account_identifier",
+      "value":{{payment_account.account_identifier}}
+    });
+    
+    print_message({
+      "Send funds to": {{payment_account.account_identifier}}
+    });
+
+    public_cold_key = load_env("COLD_KEY_PUBLIC");
+    private_cold_key = load_env("COLD_KEY_PRIVATE");
+    pool_key_hash = load_env("POOL_KEY_HASH");
+
+    print_message({
+     "pool_key_hash": {{pool_key_hash}},
+     "public_cold_key": {{public_cold_key}},
+     "private_cold_key": {{private_cold_key}}
+    });
+
+    cold_key = {"private_key": {{private_cold_key}},"public_key": {"hex_bytes": {{public_cold_key}},"curve_type":"edwards25519"}};
+    cold_account_identifier = {"address": {{pool_key_hash}}};   
+    save_account({
+      "account_identifier": {{cold_account_identifier}},
+      "keypair": {{cold_key}}
+    });
+
+    set_blob({
+      "key":"cold_account_identifier",
+      "value":{{cold_account_identifier}}
+    });
+  }
+}
+
+pool-retirement(10){
+  transfer_dry_run{
+    transfer_dry_run.network = {"network":"testnet", "blockchain":"cardano"};
+    currency = {"symbol":"ADA", "decimals":6};
+
+    // We set the max_fee_amount to know how much buffer we should
+    // leave for fee payment when selecting a sender account.
+    dust_amount = "1000000";
+    max_fee_amount = "5000000";
+    send_buffer = {{dust_amount}} + {{max_fee_amount}};
+    print_message({
+      "send buffer is": {{send_buffer}}
+    });
+
+    // We look for a coin of value >= the reserved_amount to create
+    // a transfer with change (reserved_amount is max_fee_amount + dust_amount x 2).
+    transfer_dry_run.reserved_amount = "9000000";
+    sender = find_balance({
+      "minimum_balance":{
+        "value": {{transfer_dry_run.reserved_amount}},
+        "currency": {{currency}}
+      },
+      "require_coin": true
+    });
+    // The amount we send to the recipient is a random value
+    // between the dust_amount and the value of the entire coin (minus
+    // the amount reserved for fee payment and covering the dust minimum
+    // of the change UTXO).
+    receivable_amount = {{sender.balance.value}} - {{send_buffer}};
+    recipient_amount = random_number({
+      "minimum": {{dust_amount}},
+      "maximum": {{receivable_amount}}
+    });
+    print_message({
+      "recipient_amount":{{recipient_amount}}
+    });
+
+    // The change amount is what we aren't sending to the recipient
+    // minus the maximum fee. Don't worry, we will adjust this
+    // amount to avoid overpaying the fee after the dry run
+    // completes.
+    raw_change_amount = {{sender.balance.value}} - {{recipient_amount}};
+    change_amount = {{raw_change_amount}} - {{max_fee_amount}};
+    print_message({
+      "change_amount":{{change_amount}}
+    });
+
+    // Faucet return address is `addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3`
+    recipient_address = load_env("RECIPIENT");
+    print_message({
+      "refund recipient address": {{recipient_address}}
+    });
+    transfer_dry_run.recipient = {"address": {{recipient_address}}};
+
+    transfer_dry_run.epoch = load_env("EPOCH");
+    print_message({
+      "Epoch": {{transfer_dry_run.epoch}}
+    });
+
+    transfer_dry_run.cold_account_identifier = get_blob({
+      "key":"cold_account_identifier"
+    });
+
+    sender_amount = 0 - {{sender.balance.value}};
+  
+    transfer_dry_run.confirmation_depth = "1";
+    transfer_dry_run.dry_run = true;
+    transfer_dry_run.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"input",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{sender_amount}},"currency":{{currency}}},
+        "coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}}
+      },
+      {
+        "operation_identifier":{"index":1},
+        "type":"output",
+        "account":{{transfer_dry_run.recipient}},
+        "amount":{"value":{{recipient_amount}},"currency":{{currency}}}
+      },
+      {
+        "operation_identifier":{"index":2},
+        "type":"output",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{change_amount}},"currency":{{currency}}}
+      },
+      {
+        "operation_identifier":{"index":3},
+        "type":"poolRetirement",
+        "account":{{transfer_dry_run.cold_account_identifier}},
+        "metadata": {"epoch":{{transfer_dry_run.epoch}}}
+      }
+    ];
+
+    print_message({
+      "transfer dry run operations": {{transfer_dry_run.operations}}
+    });
+  },
+  transfer{
+    // The suggested_fee is returned in the /construction/metadata
+    // response and saved to transfer_dry_run.suggested_fee.
+    suggested_fee = find_currency_amount({
+      "currency":{{currency}},
+      "amounts":{{transfer_dry_run.suggested_fee}}
+    });
+
+    print_message({
+      "suggested fee": {{suggested_fee}}
+    });
+
+    // We can access the variables of other scenarios, so we don't
+    // need to recalculate raw_change_amount.
+    change_amount = {{raw_change_amount}} - {{suggested_fee.value}};
+    transfer.network = {{transfer_dry_run.network}};
+    transfer.confirmation_depth = {{transfer_dry_run.confirmation_depth}};
+    
+    // recipient_address = transfer_dry_run.recipient_address;
+    recipient = {"address": {{recipient_address}}};
+
+    transfer.operations = [
+      {
+        "operation_identifier":{"index":0},
+        "type":"input",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{sender_amount}},"currency":{{currency}}},
+        "coin_change":{"coin_action":"coin_spent", "coin_identifier":{{sender.coin}}}
+      },
+      {
+        "operation_identifier":{"index":1},
+        "type":"output",
+        "account":{{transfer_dry_run.recipient}},
+        "amount":{"value":{{recipient_amount}},"currency":{{currency}}}
+      },
+      {
+        "operation_identifier":{"index":2},
+        "type":"output",
+        "account":{{sender.account_identifier}},
+        "amount":{"value":{{change_amount}},"currency":{{currency}}}
+      },
+      {
+        "operation_identifier":{"index":3},
+        "type":"poolRetirement",
+        "account":{{transfer_dry_run.cold_account_identifier}},
+        "metadata": {"epoch":{{transfer_dry_run.epoch}}}
+      }
+    ]; 
+
+    print_message({
+      "transfer operations": {{transfer.operations}}
+    });
+  }
+}
