@@ -131,6 +131,25 @@ In order to execute the example, run:
 $ yarn pool-registration-example
 ```
 
+## Sending transactions with pool registration with cert and pledge
+
+This example does the same as the above one except that the pool registration operation is built through the pool cert. So, a predefined pool cert has been created with the following data:
+
+1. Has as owners the two predefined `ownerAddress`and `ownerTwoAddress`.
+2. Pool hash the predefined `POOL_KEY_HASH`.
+3. A reward address predfined as `stakingAddress`.
+
+Important notes:
+- The hash `POOL_KEY_HASH` corresponds to the pool creator keys `coldKeys`.
+- Both owners keys are provided, otherwise it won't be possible to sign payloads.
+- A minimum of 502 ADA + fees balance is needed in order to pay for pool registration deposit and stake key registration deposit.
+
+In order to execute the example, run:
+
+```javascript
+$ yarn pool-registration-with-cert-example
+```
+
 ## Sending transactions with pool retirement
 
 Sends a transaction that retires a pool. So:
