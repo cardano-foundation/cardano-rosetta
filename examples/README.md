@@ -133,7 +133,7 @@ $ yarn pool-registration-example
 
 ## Sending transactions with pool registration with cert and pledge
 
-This example does the same as the above one except that the pool registration operation is build through the pool cert. So, a predefined pool cert has been created with the following data:
+This example does the same as the above one except that the pool registration operation is built through the pool cert. So, a predefined pool cert has been created with the following data:
 
 1. Has as owners the two predefined `ownerAddress`and `ownerTwoAddress`.
 2. Pool hash the predefined `POOL_KEY_HASH`.
