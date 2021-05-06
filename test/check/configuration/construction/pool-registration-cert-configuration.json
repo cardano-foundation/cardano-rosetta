@@ -24,7 +24,7 @@
       "constructor_dsl_file": "./pool-registration-with-cert.ros",
       "end_conditions": {
         "create_account": 1,
-        "pool_registration": 1
+        "pool_registration_with_cert": 1
       }
     }
   }

@@ -151,7 +151,7 @@ create_account(1){
   }
 }
 
-pool_registration(10){
+pool_registration_with_cert(10){
   transfer_dry_run{
     transfer_dry_run.network = {"network":"testnet", "blockchain":"cardano"};
     currency = {"symbol":"ADA", "decimals":6};
