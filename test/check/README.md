@@ -104,7 +104,7 @@ This workflow generates a transaction that:
 2. Generates a staking and base address
 3. Waits for funds in the base address
 4. Creates a transaction that registers the stake certificate and the pool certificate
-5. In order to honor the pledge the stake key is registered to the registered pool that is provided as environment variable
+5. In order to honor the pledge the stake key is delegated to the registered pool that is provided as environment variable
 6. Broadcasts the transaction and receives the change in the specified address
 
 _Note: Since this example can get quite complex in terms of variable amounts, the minimum of variables was used to create a pool registration certificate. That's the reason why this certificate only has one relay of type "multi host name" since it is the most simple._
@@ -153,6 +153,35 @@ _In order to run this example is necessary to pass a previous registered pool an
 # RECIPIENT address that will receive the remaining ADA
 
 RECIPIENT="\"addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3\"" COLD_KEY_PUBLIC="\"2e2a68224bbbc35031fee909852f87723d2806323bf179c0df99fdd513eecee2\"" COLD_KEY_PRIVATE="\"6c3eab942c6be633bbd2759b131f528c96c664d02241270069a8e96429b0853d\"" POOL_KEY_HASH="\"5778942c610c2f1acf5cdac5c32c10ba5870879674781351e0226326\"" EPOCH=135 ./bin/rosetta-cli check:construction --configuration-file ./pool-retirement-configuration.json
+```
+
+### Pool registration with cert and pledge
+
+This workflow generates a transaction that:
+
+1. Creates payment keys
+2. Generates a base address
+3. Waits for funds in the base address
+4. Creates a transaction that registers the stake certificate and the pool certificate received as environment variable
+5. In order to honor the pledge the stake key is delegated to the registered pool that is provided as environment variable
+6. Broadcasts the transaction and receives the change in the specified address
+
+_Important Note: Using this example with Rosetta cli will submit the transaction to the blockchain but will throw the following error "confirmed transaction did not match intent". This happens because this type of operations are returned as "poolRegistration" at /block endpoint while they are created as "poolRegistrationWithCert". Since db-sync doesn't have support for pool registration certs there is no workaround._
+
+``` bash
+# POOL_REGISTRATION_CERT Hex encoded Pool Registration Cert
+# PUBLIC_COLD_KEY Hex encoded public pool creator key
+# PRIVATE_COLD_KEY Hex encoded private pool creator key
+# POOL_KEY_HASH hash of the pool that will be registered and delegated to
+# STAKE_PRIVATE_KEY Hex encoded public stake key builded in pool cert
+# STAKE_PUBLIC_KEY Hex encoded private stake key builded in pool cert
+# STAKE_ADDRESS Reward address of pool owner
+# OWNER_PRIVATE_KEY Hex encoded public owner key
+# OWNER_PUBLIC_KEY Hex encoded private owner key
+# OWNER_ADDRESS Reward address of pool owner
+# RECIPIENT address that will receive the remaining ADA
+
+POOL_REGISTRATION_CERT="\"8a03581cedbfa6ee799f2fd314540b592f41cd403e8c42c800e3c3c40a77f7fa582074511e297e8d8670729af5a4eb08ff8b49f0247f1100f28ce5599b44f07b57b41b000000ba22eeea801a1443fd00d81e820101581de030c6748e04a7b6a90ea072ae6e4dc40e29e63136d1e4a9b56471312081581c76a0a426c3d525811b8c484057bd8ad546a49788e6c285d97661c5c3818202782872656c6179732e63617264616e6f2d6c61756e63687061642e636861696e6372756369616c2e696ff6\"" PUBLIC_COLD_KEY="\"c55291e38ce98c5275c75a2ddb4f2ee61cc56894205120aaf4ceb083d6f68d7c\"" PRIVATE_COLD_KEY="\"41f9a26b347bcd683ce647892adab319679b2235a482c66a4f36b132a93c8ec8\"" POOL_KEY_HASH="\"edbfa6ee799f2fd314540b592f41cd403e8c42c800e3c3c40a77f7fa\"" OWNER_PRIVATE_KEY="\"cc31ead80859f931b94781444a9c0e76461300ceb125b9f2ed76b802c8fda89b\"" OWNER_PUBLIC_KEY="\"c0f3fd1cfc648d1d29b9bf7d1f80159a5b67c0dac69531ca5964381c68bad979\"" OWNER_ADDRESS="\"stake_test1upm2pfpxc02jtqgm33yyq4aa3t25dfyh3rnv9pwewesutsceq6xzf\"" STAKE_PRIVATE_KEY="\"def396f2574704fc9870d9ff98b20b20849c8b65ada9785249a4d1aa491d99df\"" STAKE_PUBLIC_KEY="\"2bf1d767bf8783deb6cdc2a3a071102267762c10cfbbbd0fbec2e796b6ee5017\"" RECIPIENT="\"addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3\"" STAKE_ADDRESS="\"stake_test1uqcvvaywqjnmd2gw5pe2umjdcs8zne33xmg7f2d4v3cnzgqaukjjl\"" ./bin/rosetta-cli check:construction --configuration-file ./pool-cert-configuration.json
 ```
 
 See the [QA doc] for implementation detail.
