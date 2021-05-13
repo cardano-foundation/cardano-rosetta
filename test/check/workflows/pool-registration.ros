@@ -58,12 +58,12 @@ create_account(1){
     owner_public_key = load_env("OWNER_PUBLIC_KEY");
     owner_private_key = load_env("OWNER_PRIVATE_KEY");
 
-    print_message{
+    print_message({
       "public_cold_key": {{public_cold_key}},
       "private_cold_key": {{private_cold_key}},
       "owner_public_key": {{owner_public_key}},
       "owner_private_key": {{owner_private_key}}
-    }
+    });
 
     owner_key = {"private_key": {{owner_private_key}},"public_key": {"hex_bytes": {{owner_public_key}},"curve_type":"edwards25519"}};
     cold_key = {"private_key": {{private_cold_key}},"public_key": {"hex_bytes": {{public_cold_key}},"curve_type":"edwards25519"}};
@@ -385,8 +385,8 @@ pool_registration(10){
             "vrfKeyHash":
               {{transfer_dry_run.verf_key_hash}},
             "rewardAddress": {{transfer_dry_run.staking_account_identifier.address}},
-            "pledge": "4000000",
-            "cost": "340000000",
+            "pledge": {{transfer_dry_run.pledge}},
+            "cost": {{transfer_dry_run.cost}},
             "poolOwners": [{{transfer_dry_run.owner_address}}],
             "relays": [
               {
@@ -395,8 +395,8 @@ pool_registration(10){
               }
             ],
             "margin": {
-              "numerator": "1",
-              "denominator": "1"
+              "numerator": {{transfer_dry_run.numerator}},
+              "denominator": {{transfer_dry_run.denominator}}
             }
           }
         }
