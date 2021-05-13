@@ -132,7 +132,7 @@ PLEDGE="\"799450000000\""
 NUMERATOR="1"
 DENOMINATOR="1"
 RECIPIENT="\"addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3\"" 
-OWNER_PRIVATE_KEY="\"86387448c67abb1dbab25639ab19e1b18d50d433af3996c88c0bd7a24a9453f7\"" OWNER_PUBLIC_KEY="\"cf0659968dee763ae0cbd4d65468346c48b6b8fdc51d5fcef960632fb37d70ca\"" OWNER_ADDRESS="\"stake_test1updrc9hjghc6s8ewckxyqxqxedmqtddz3vdq7k6xmafeefg4fcmey\"" ./bin/rosetta-cli check:construction --configuration-file ./configuration/construction/transfer-multiple-ma.json
+OWNER_PRIVATE_KEY="\"86387448c67abb1dbab25639ab19e1b18d50d433af3996c88c0bd7a24a9453f7\"" OWNER_PUBLIC_KEY="\"cf0659968dee763ae0cbd4d65468346c48b6b8fdc51d5fcef960632fb37d70ca\"" OWNER_ADDRESS="\"stake_test1updrc9hjghc6s8ewckxyqxqxedmqtddz3vdq7k6xmafeefg4fcmey\"" ./bin/rosetta-cli check:construction --configuration-file ./configuration/construction/pool-registration-configuration.json
 ```
 ### Pool retirement
 
@@ -163,7 +163,7 @@ This workflow generates a transaction that:
 2. Generates a base address
 3. Waits for funds in the base address
 4. Creates a transaction that registers the stake certificate and the pool certificate received as environment variable
-5. In order to honor the pledge the stake key is delegated to the registered pool that is provided as environment variable
+5. In order to honor the pledge, the stake key is delegated to the registered pool that is provided as environment variable
 6. Broadcasts the transaction and receives the change in the specified address
 
 _Important Note: Using this example with Rosetta cli will submit the transaction to the blockchain but will throw the following error "confirmed transaction did not match intent". This happens because this type of operations are returned as "poolRegistration" at /block endpoint while they are created as "poolRegistrationWithCert". Since db-sync doesn't have support for pool registration certs there is no workaround._
