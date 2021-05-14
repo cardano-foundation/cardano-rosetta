@@ -152,7 +152,7 @@ _In order to run this example is necessary to pass a previous registered pool an
 # POOL_KEY_HASH Hex encoded pool key hash
 # RECIPIENT address that will receive the remaining ADA
 
-RECIPIENT="\"addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3\"" COLD_KEY_PUBLIC="\"2e2a68224bbbc35031fee909852f87723d2806323bf179c0df99fdd513eecee2\"" COLD_KEY_PRIVATE="\"6c3eab942c6be633bbd2759b131f528c96c664d02241270069a8e96429b0853d\"" POOL_KEY_HASH="\"5778942c610c2f1acf5cdac5c32c10ba5870879674781351e0226326\"" EPOCH=135 ./bin/rosetta-cli check:construction --configuration-file ./pool-retirement-configuration.json
+RECIPIENT="\"addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3\"" COLD_KEY_PUBLIC="\"2e2a68224bbbc35031fee909852f87723d2806323bf179c0df99fdd513eecee2\"" COLD_KEY_PRIVATE="\"6c3eab942c6be633bbd2759b131f528c96c664d02241270069a8e96429b0853d\"" POOL_KEY_HASH="\"5778942c610c2f1acf5cdac5c32c10ba5870879674781351e0226326\"" EPOCH=135 ./bin/rosetta-cli check:construction --configuration-file ./configuration/construction/pool-retirement-configuration.json
 ```
 
 ### Pool registration with cert and pledge
