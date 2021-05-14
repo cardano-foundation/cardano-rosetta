@@ -52,7 +52,7 @@
 					"response": []
 				},
 				{
-					"name": "/account/balance",
+					"name": "/account/coins",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -122,7 +122,7 @@
 							}
 						},
 						"url": {
-							"raw": "{{URL}}/account/balance",
+							"raw": "{{URL}}/account/coins",
 							"host": [
 								"{{URL}}"
 							],
