@@ -3,6 +3,7 @@
   "license": "Apache-2.0",
   "scripts": {
     "send-transactions-example": "ts-node ./send-transaction-example.ts",
+    "send-transaction-using-cardano-address-example": "ts-node ./send-transaction-using-cardano-address-example.ts",
     "delegate-stake-example": "ts-node ./delegate-stake-example.ts",
     "withdrawal-example": "ts-node ./withdrawal-example.ts",
     "ma-transfer-example": "ts-node ./ma-transfer-example.ts",
@@ -17,6 +18,7 @@
     "@types/node": "14.14.10",
     "@types/temp-write": "4.0.0",
     "axios": "0.21.1",
+    "bip39": "3.0.4",
     "delay": "4.4.0",
     "express": "^4.17.1",
     "express-validator": "^6.10.0",
