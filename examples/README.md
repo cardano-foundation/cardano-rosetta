@@ -48,6 +48,19 @@ Send Transaction finished
 Done in 6.14s
 ```
 
+## Sending transactions with cardano-address example
+This example uses extended keys that have been created using [`cardano-address`](https://github.com/input-output-hk/cardano-addresses) with the following commands:
+```bash
+echo "gasp below arrange frown canvas heart pet hole lunar card matter mom very bounce rug tobacco debris raw margin assist source also tuition cluster" > seed.txt
+cardano-address key from-recovery-phrase Shelley < seed.txt > root.xsk
+cardano-address key child 1852H/1815H/0H/0/0 < root.xsk | cardano-address key public --with-chain-code > addr.xvk
+cardano-address address payment --network-tag testnet < addr.xvk > payment.addr
+```
+In order to execute the example, run:
+```javascript
+$ yarn send-transaction-using-cardano-address-example
+```
+
 ## Sending transactions with Byron input
 
 Uses a predefined Byron address to send ADA to `SEND_FUNDS_ADDRESS` address.

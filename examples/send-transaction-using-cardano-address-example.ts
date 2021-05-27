@@ -26,14 +26,6 @@ const mnemonic =
 const SEND_FUNDS_ADDRESS =
   "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
 
-/**
- * The following example will work using extended keys as they were created using `cardano-address` with the following commands:
- *
- * echo "gasp below arrange frown canvas heart pet hole lunar card matter mom very bounce rug tobacco debris raw margin assist source also tuition cluster" > seed.txt
- * cardano-address key from-recovery-phrase Shelley < seed.txt > root.xsk
- * cardano-address key child 1852H/1815H/0H/0/0 < root.xsk | cardano-address key public --with-chain-code > addr.xvk
- * cardano-address address payment --network-tag testnet < addr.xvk > payment.addr
- */
 const doRun = async (): Promise<void> => {
   const entropy = Bip39.mnemonicToEntropy(mnemonic);
   // See https://github.com/cardano-foundation/CIPs/blob/master/CIP-1852/CIP-1852.md
