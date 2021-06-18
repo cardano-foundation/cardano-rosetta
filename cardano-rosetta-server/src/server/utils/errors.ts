@@ -87,6 +87,10 @@ export const Errors = {
     message: 'Mandatory parameter is missing: Epoch',
     code: 4036
   },
+  OUTSIDE_VALIDITY_INTERVAL_UTXO: {
+    message: 'Error when sending the transaction - OutsideValidityIntervalUTxO',
+    code: 4037
+  },
   UNSPECIFIED_ERROR: { message: 'An error occurred', code: 5000 },
   NOT_IMPLEMENTED: { message: 'Not implemented', code: 5001 },
   ADDRESS_GENERATION_ERROR: { message: 'Address generation error', code: 5002 },
@@ -171,6 +175,8 @@ const tokenBundleAssetsMissingError: CreateErrorFunction = type =>
   buildApiError(Errors.TOKEN_BUNDLE_ASSETS_MISSING, false, type);
 const tokenAssetValueMissingError: CreateErrorFunction = type =>
   buildApiError(Errors.TOKEN_ASSET_VALUE_MISSING, false, type);
+const sendOutsideValidityIntervalUtxoError: CreateErrorFunction = (details?: string) =>
+  buildApiError(Errors.OUTSIDE_VALIDITY_INTERVAL_UTXO, false, details);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -207,6 +213,7 @@ export const ErrorFactory = {
   cantCreateUnsignedTransactionFromBytes,
   missingMetadataParametersForPoolRetirement,
   sendTransactionError,
+  sendOutsideValidityIntervalUtxoError,
   transactionInputDeserializationError,
   transactionOutputDeserializationError,
   invalidPolicyIdError,

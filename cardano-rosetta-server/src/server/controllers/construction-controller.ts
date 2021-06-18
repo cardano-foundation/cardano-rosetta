@@ -51,6 +51,8 @@ export interface ConstructionController {
   ): Promise<Components.Schemas.TransactionIdentifierResponse | Components.Schemas.Error>;
 }
 
+const OUTSIDE_VALIDITY_UTXO = new RegExp('OutsideValidityIntervalUTxO');
+
 const configure = (
   constructionService: ConstructionService,
   cardanoService: CardanoService,
@@ -279,6 +281,9 @@ const configure = (
           return { transaction_identifier: { hash: transactionHash } };
         } catch (error) {
           request.log.error(error);
+          if (OUTSIDE_VALIDITY_UTXO.test(error.message)) {
+            return ErrorFactory.sendOutsideValidityIntervalUtxoError(error.message);
+          }
           return ErrorFactory.sendTransactionError(error.message);
         }
       },
