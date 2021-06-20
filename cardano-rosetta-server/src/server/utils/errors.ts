@@ -227,3 +227,37 @@ export const ErrorFactory = {
 
 export const configNotFoundError: CreateServerErrorFunction = () =>
   new ServerError('Environment configurations needed to run server were not found');
+
+export type nodeOutputToError = {
+  error: Error;
+  inputPattern: RegExp;
+  retriable: boolean;
+};
+
+const nodeErrorToRosettaErrorMap: Array<nodeOutputToError> = [
+  {
+    error: Errors.OUTSIDE_VALIDITY_INTERVAL_UTXO,
+    inputPattern: new RegExp('OutsideValidityIntervalUTxO'),
+    retriable: false
+  }
+];
+
+const resolveApiErrorFromNodeSourced = (
+  nodeErrorMessage: string,
+  errorMappings: nodeOutputToError[]
+): Promise<ApiError> => {
+  const found: nodeOutputToError[] = errorMappings.filter(error => error.inputPattern.test(nodeErrorMessage));
+  if (found.length > 0) {
+    const error = found[0].error;
+    return Promise.resolve(new ApiError(error.code, error.message, found[0].retriable));
+  }
+  return Promise.reject('error not found');
+};
+
+const resolveApiErrorFromNodeError = (nodeErrorMessage: string): Promise<ApiError> =>
+  resolveApiErrorFromNodeSourced(nodeErrorMessage, nodeErrorToRosettaErrorMap);
+
+export const ErrorUtils = {
+  resolveApiErrorFromNodeSourced,
+  resolveApiErrorFromNodeError
+};

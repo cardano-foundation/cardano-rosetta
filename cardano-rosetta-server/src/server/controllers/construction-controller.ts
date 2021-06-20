@@ -9,13 +9,16 @@ import {
   mapAmount,
   mapToConstructionHashResponse
 } from '../utils/data-mapper';
-import { ErrorFactory } from '../utils/errors';
+import { ErrorFactory, ErrorUtils } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
 import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
 import { NetworkService } from '../services/network-service';
 import { AddressType } from '../utils/constants';
 import { isAddressTypeValid, isKeyValid } from '../utils/validations';
 import { BlockService } from '../services/block-service';
+import { appendFile } from 'fs';
+import ApiError from '../api-error';
+import { map } from 'shades';
 
 export interface ConstructionController {
   constructionDerive(
@@ -50,8 +53,6 @@ export interface ConstructionController {
     request: FastifyRequest<unknown, unknown, unknown, unknown, Components.Schemas.ConstructionSubmitRequest>
   ): Promise<Components.Schemas.TransactionIdentifierResponse | Components.Schemas.Error>;
 }
-
-const OUTSIDE_VALIDITY_UTXO = new RegExp('OutsideValidityIntervalUTxO');
 
 const configure = (
   constructionService: ConstructionService,
@@ -281,10 +282,9 @@ const configure = (
           return { transaction_identifier: { hash: transactionHash } };
         } catch (error) {
           request.log.error(error);
-          if (OUTSIDE_VALIDITY_UTXO.test(error.message)) {
-            return ErrorFactory.sendOutsideValidityIntervalUtxoError(error.message);
-          }
-          return ErrorFactory.sendTransactionError(error.message);
+          return ErrorUtils.resolveApiErrorFromNodeError(error.message)
+            .then((mappedError: ApiError) => mappedError)
+            .catch(() => ErrorFactory.sendTransactionError(error.message));
         }
       },
       request.log,
