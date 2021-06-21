@@ -16,9 +16,7 @@ import { NetworkService } from '../services/network-service';
 import { AddressType } from '../utils/constants';
 import { isAddressTypeValid, isKeyValid } from '../utils/validations';
 import { BlockService } from '../services/block-service';
-import { appendFile } from 'fs';
 import ApiError from '../api-error';
-import { map } from 'shades';
 
 export interface ConstructionController {
   constructionDerive(
