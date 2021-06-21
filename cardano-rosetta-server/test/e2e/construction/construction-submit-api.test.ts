@@ -128,9 +128,6 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
     expect((cardanoCliMock.submitTransaction as jest.Mock).mock.calls.length).toBe(1);
     expect(response.json()).toEqual({
       code: 4037,
-      details: {
-        message: ERROR_OUTSIDE_VALIDITY_INTERVAL_UTXO
-      },
       message: ERROR_OUTSIDE_VALIDITY_INTERVAL_UTXO,
       retriable: false
     });
