@@ -9,13 +9,13 @@ describe('Node to Rosetta error (ApiError) mapper test', () => {
     }
   ];
 
-  it('should resolve ApiError from node error', async () => {
+  it('should resolve if the error is present', async () => {
     const resolved = ErrorUtils.resolveApiErrorFromNodeSourced('OutsideValidityIntervalUTxO', errors);
 
     await expect(resolved).resolves.toEqual(ErrorFactory.sendOutsideValidityIntervalUtxoError());
   });
 
-  it('should not resolve ApiError from node error', async () => {
+  it('should reject if the error is unknown', async () => {
     const resolved = ErrorUtils.resolveApiErrorFromNodeSourced('Some', errors);
 
     await expect(resolved).rejects.toMatch('error not found');
