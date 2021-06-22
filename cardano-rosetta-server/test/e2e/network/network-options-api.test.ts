@@ -155,6 +155,11 @@ const allow = {
       retriable: false
     },
     {
+      message: 'Error when sending the transaction - OutsideValidityIntervalUTxO',
+      code: 4037,
+      retriable: false
+    },
+    {
       code: 5000,
       message: 'An error occurred',
       retriable: true
