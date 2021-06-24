@@ -33,7 +33,7 @@ echo "ALTER TABLE public.tx ADD COLUMN invalid_before word64type NULL;" >> $OUT_
 echo "ALTER TABLE public.tx ADD COLUMN invalid_hereafter word64type NULL;" >> $OUT_FILE;
 
 echo "ALTER TABLE public.block DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.block (id, hash, epoch_no, slot_no, epoch_slot_no, block_no, previous_id, merkel_root, slot_leader_id, size, "time", tx_count, proto_major, proto_minor, vrf_key, op_cert) FROM stdin WITH CSV;' >> $OUT_FILE
+echo 'COPY public.block (id, hash, epoch_no, slot_no, epoch_slot_no, block_no, previous_id, slot_leader_id, size, "time", tx_count, proto_major, proto_minor, vrf_key, op_cert) FROM stdin WITH CSV;' >> $OUT_FILE
 psql -c "\copy (SELECT * from block WHERE block_no in ($BLOCKS_TO_EXPORT)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -52,7 +52,7 @@ psql -c "\copy (SELECT * from tx_in WHERE tx_in_id IN $SELECT_TX_ID) to STDOUT W
 echo "\." >> $OUT_FILE;
 
 # Inputs require the source tx to be able to compute the amount
-# TODO: Check if this query can be imporved as it's a copy from the one we use to query the data
+# TODO: Check if this query can be improved as it's a copy from the one we use to query the data
 INPUT_TX_QUERY="
   tx
 JOIN tx_in

@@ -305,7 +305,7 @@ const poolRegistrationQuery = `
   ON pu.registered_tx_id = tx.id
   JOIN pool_hash ph
   ON ph.id = pu.hash_id
-  LEFT JOIN pool_meta_data pm
+  LEFT JOIN pool_metadata_ref pm
   ON pu.meta_id = pm.id
   WHERE
     tx.hash = ANY ($1)
