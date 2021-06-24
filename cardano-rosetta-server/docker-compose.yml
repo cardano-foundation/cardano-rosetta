@@ -67,7 +67,7 @@ services:
       context: ..
       target: cardano-rosetta-server
     environment:
-      - BIND_ADDRESS='0.0.0.0'
+      - BIND_ADDRESS=0.0.0.0
       - CARDANO_CLI_PATH=/usr/local/bin/cardano-cli
       - CARDANO_NODE_PATH=/usr/local/bin/cardano-node
       - CARDANO_NODE_SOCKET_PATH=/node-ipc/node.socket
