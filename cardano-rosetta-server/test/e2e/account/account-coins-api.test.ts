@@ -8,9 +8,10 @@ import { Pool } from 'pg';
 import { CARDANO, ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from '../../../src/server/utils/constants';
 import {
   latestBlockIdentifier,
-  latestBlockIdentifierMAServer,
-  address1vpfCoins,
-  coinIdentifier95e1
+  coinsWithSpecifiedTokens,
+  coinsWithEmptyMa,
+  allCoinsOfAddr1q8,
+  coinsWithEmptyNameToken
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
@@ -34,18 +35,14 @@ const ACCOUNT_COINS_ENDPOINT = '/account/coins';
 describe('/account/coins endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
-  let multiassetsDatabase: Pool;
-  let serverWithMultiassetsSupport: FastifyInstance;
+
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
-    multiassetsDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
-    serverWithMultiassetsSupport = setupServer(multiassetsDatabase);
   });
 
   afterAll(async () => {
     await database.end();
-    await multiassetsDatabase.end();
   });
 
   test('should only consider coins till latest block', async () => {
@@ -123,153 +120,77 @@ describe('/account/coins endpoint', () => {
   });
 
   test('should return coins with multi assets currencies', async () => {
-    const response = await serverWithMultiassetsSupport.inject({
+    const response = await server.inject({
       method: 'post',
       url: ACCOUNT_COINS_ENDPOINT,
-      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc')
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+      )
     });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().block_identifier).toEqual(latestBlockIdentifierMAServer);
-    expect(response.json().coins).toHaveLength(address1vpfCoins.length);
-    address1vpfCoins.forEach(address1vpfCoin => expect(response.json().coins).toContainEqual(address1vpfCoin));
-  });
-  test('should return coins for ma with empty name', async () => {
-    const response = await serverWithMultiassetsSupport.inject({
-      method: 'post',
-      url: ACCOUNT_COINS_ENDPOINT,
-      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y')
-    });
-
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      block_identifier: latestBlockIdentifierMAServer,
-      coins: [
-        {
-          coin_identifier: coinIdentifier95e1,
-          amount: {
-            currency: { decimals: 6, symbol: 'ADA' },
-            value: '4600000'
-          },
-          metadata: {
-            '95e1117558c2d075a4cd110ab0772460340f72a19ac5bc4691c6498e28055339:0': [
-              {
-                policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e',
-                tokens: [
-                  {
-                    value: '20',
-                    currency: {
-                      decimals: 0,
-                      symbol: '\\x',
-                      metadata: {
-                        policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
-                      }
-                    }
-                  },
-                  {
-                    value: '30',
-                    currency: {
-                      decimals: 0,
-                      symbol: '486173414e616d65',
-                      metadata: {
-                        policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d',
-                tokens: [
-                  {
-                    value: '10',
-                    currency: {
-                      decimals: 0,
-                      symbol: '7376c3a57274',
-                      metadata: {
-                        policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d'
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ]
+      block_identifier: latestBlockIdentifier,
+      coins: allCoinsOfAddr1q8
+    });
+  });
+  test('should return coins for ma with empty name', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_COINS_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr1qx5d5d8aqn0970nl3km63za5q87fwh2alm79zwuxvh6rh9lg96s8las2lwer5psc7yr59kmafzkz2l5jz4dyxghs7pvqj24sft'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      block_identifier: latestBlockIdentifier,
+      coins: coinsWithEmptyMa
     });
   });
   test('should return coins for one specified currency', async () => {
-    const response = await serverWithMultiassetsSupport.inject({
+    const response = await server.inject({
       method: 'post',
       url: ACCOUNT_COINS_ENDPOINT,
-      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vpqwk50mnckqnjvzdd7lhln2685xep2xf84jmhd9njd5kucdqnufv', [
-        {
-          decimals: 0,
-          symbol: '4154414441636f696e',
-          metadata: {
-            policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg',
+        [
+          {
+            decimals: 0,
+            symbol: '46555a5a',
+            metadata: {
+              policyId: 'cebbcd14c5b11ca83d7ef93b02acfc0bcb372066bdee259f6cd9ae6c'
+            }
           }
-        }
-      ])
+        ]
+      )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      block_identifier: latestBlockIdentifierMAServer,
+      block_identifier: latestBlockIdentifier,
       coins: [
         {
-          coin_identifier: { identifier: 'b352ea2f50d47851bda890ba2baed955f2f9aa3667ea69136454fa2a2de11ffe:0' },
+          coin_identifier: { identifier: '038e318f0deef63f44be78a8224c06d3faae683f48eb0215a448ab13fd1eb540:0' },
           amount: {
-            value: '5000000',
-            currency: {
-              decimals: 6,
-              symbol: 'ADA'
-            }
+            value: '2000000',
+            currency: { decimals: 6, symbol: 'ADA' }
           },
           metadata: {
-            'b352ea2f50d47851bda890ba2baed955f2f9aa3667ea69136454fa2a2de11ffe:0': [
+            '038e318f0deef63f44be78a8224c06d3faae683f48eb0215a448ab13fd1eb540:0': [
               {
-                policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
+                policyId: 'cebbcd14c5b11ca83d7ef93b02acfc0bcb372066bdee259f6cd9ae6c',
                 tokens: [
                   {
-                    value: '1',
+                    value: '1000000',
                     currency: {
-                      symbol: '4154414441636f696e',
+                      symbol: '46555a5a',
                       decimals: 0,
-                      metadata: { policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518' }
-                    }
-                  },
-                  {
-                    value: '1',
-                    currency: {
-                      symbol: '61646f736961',
-                      decimals: 0,
-                      metadata: { policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518' }
-                    }
-                  }
-                ]
-              },
-              {
-                policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd',
-                tokens: [
-                  {
-                    value: '2',
-                    currency: {
-                      symbol: '42435348',
-                      decimals: 0,
-                      metadata: { policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd' }
-                    }
-                  }
-                ]
-              },
-              {
-                policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9',
-                tokens: [
-                  {
-                    value: '1',
-                    currency: {
-                      symbol: '676f6c64',
-                      decimals: 0,
-                      metadata: { policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9' }
+                      metadata: { policyId: 'cebbcd14c5b11ca83d7ef93b02acfc0bcb372066bdee259f6cd9ae6c' }
                     }
                   }
                 ]
@@ -281,322 +202,82 @@ describe('/account/coins endpoint', () => {
     });
   });
   test('should return coins for multiple specified currencies', async () => {
-    const response = await serverWithMultiassetsSupport.inject({
+    const response = await server.inject({
       method: 'post',
       url: ACCOUNT_COINS_ENDPOINT,
-      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vpqwk50mnckqnjvzdd7lhln2685xep2xf84jmhd9njd5kucdqnufv', [
-        {
-          decimals: 0,
-          symbol: '4154414441636f696e',
-          metadata: {
-            policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg',
+        [
+          {
+            decimals: 0,
+            symbol: '46555a5a',
+            metadata: {
+              policyId: 'cebbcd14c5b11ca83d7ef93b02acfc0bcb372066bdee259f6cd9ae6c'
+            }
+          },
+          {
+            decimals: 0,
+            symbol: '4f47',
+            metadata: {
+              policyId: '818c4c891e543a4d9487b6c18e8b7ed7f0f0870158c45f94e547e7b1'
+            }
           }
-        },
-        {
-          decimals: 0,
-          symbol: '676f6c64',
-          metadata: {
-            policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9'
-          }
-        }
-      ])
+        ]
+      )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      block_identifier: latestBlockIdentifierMAServer,
-      coins: [
-        {
-          coin_identifier: { identifier: 'b352ea2f50d47851bda890ba2baed955f2f9aa3667ea69136454fa2a2de11ffe:0' },
-          amount: {
-            value: '5000000',
-            currency: {
-              decimals: 6,
-              symbol: 'ADA'
-            }
-          },
-          metadata: {
-            'b352ea2f50d47851bda890ba2baed955f2f9aa3667ea69136454fa2a2de11ffe:0': [
-              {
-                policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
-                tokens: [
-                  {
-                    value: '1',
-                    currency: {
-                      symbol: '4154414441636f696e',
-                      decimals: 0,
-                      metadata: { policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518' }
-                    }
-                  },
-                  {
-                    value: '1',
-                    currency: {
-                      symbol: '61646f736961',
-                      decimals: 0,
-                      metadata: { policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518' }
-                    }
-                  }
-                ]
-              },
-              {
-                policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd',
-                tokens: [
-                  {
-                    value: '2',
-                    currency: {
-                      symbol: '42435348',
-                      decimals: 0,
-                      metadata: { policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd' }
-                    }
-                  }
-                ]
-              },
-              {
-                policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9',
-                tokens: [
-                  {
-                    value: '1',
-                    currency: {
-                      symbol: '676f6c64',
-                      decimals: 0,
-                      metadata: { policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9' }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          coin_identifier: { identifier: 'e58247e88790192246039816d27b58501c6686ab1f945cffec5262feedba4d23:0' },
-          amount: {
-            currency: { decimals: 6, symbol: 'ADA' },
-            value: '2000000'
-          },
-          metadata: {
-            'e58247e88790192246039816d27b58501c6686ab1f945cffec5262feedba4d23:0': [
-              {
-                policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9',
-                tokens: [
-                  {
-                    value: '5',
-                    currency: {
-                      symbol: '676f6c64',
-                      decimals: 0,
-                      metadata: { policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9' }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ]
+      block_identifier: latestBlockIdentifier,
+      coins: coinsWithSpecifiedTokens
     });
   });
   test('should return all coins when ADA is specified as currency', async () => {
-    const response = await serverWithMultiassetsSupport.inject({
+    const response = await server.inject({
       method: 'post',
       url: ACCOUNT_COINS_ENDPOINT,
-      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vpqwk50mnckqnjvzdd7lhln2685xep2xf84jmhd9njd5kucdqnufv', [
-        {
-          decimals: 0,
-          symbol: '4154414441636f696e',
-          metadata: {
-            policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518'
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg',
+        [
+          {
+            decimals: 6,
+            symbol: 'ADA'
           }
-        },
-        {
-          decimals: 6,
-          symbol: 'ADA'
-        }
-      ])
+        ]
+      )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      block_identifier: latestBlockIdentifierMAServer,
-      coins: [
-        {
-          coin_identifier: { identifier: '7260f6b728bf49a95095da74ca9ec88cdbfb414eea81eaeb7d1939bbe6745b12:0' },
-          amount: {
-            currency: { decimals: 6, symbol: 'ADA' },
-            value: '2000000'
-          },
-          metadata: {
-            '7260f6b728bf49a95095da74ca9ec88cdbfb414eea81eaeb7d1939bbe6745b12:0': [
-              {
-                policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd',
-                tokens: [
-                  {
-                    value: '50',
-                    currency: {
-                      symbol: '42435348',
-                      decimals: 0,
-                      metadata: { policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd' }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          coin_identifier: { identifier: 'b352ea2f50d47851bda890ba2baed955f2f9aa3667ea69136454fa2a2de11ffe:0' },
-          amount: {
-            value: '5000000',
-            currency: {
-              decimals: 6,
-              symbol: 'ADA'
-            }
-          },
-          metadata: {
-            'b352ea2f50d47851bda890ba2baed955f2f9aa3667ea69136454fa2a2de11ffe:0': [
-              {
-                policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518',
-                tokens: [
-                  {
-                    value: '1',
-                    currency: {
-                      symbol: '4154414441636f696e',
-                      decimals: 0,
-                      metadata: { policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518' }
-                    }
-                  },
-                  {
-                    value: '1',
-                    currency: {
-                      symbol: '61646f736961',
-                      decimals: 0,
-                      metadata: { policyId: '34250edd1e9836f5378702fbf9416b709bc140e04f668cc355208518' }
-                    }
-                  }
-                ]
-              },
-              {
-                policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd',
-                tokens: [
-                  {
-                    value: '2',
-                    currency: {
-                      symbol: '42435348',
-                      decimals: 0,
-                      metadata: { policyId: '438918d2b57ef161987da24bc010b364dc852a70f9d5a3607d4c30cd' }
-                    }
-                  }
-                ]
-              },
-              {
-                policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9',
-                tokens: [
-                  {
-                    value: '1',
-                    currency: {
-                      symbol: '676f6c64',
-                      decimals: 0,
-                      metadata: { policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9' }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        {
-          coin_identifier: { identifier: 'e58247e88790192246039816d27b58501c6686ab1f945cffec5262feedba4d23:0' },
-          amount: {
-            currency: { decimals: 6, symbol: 'ADA' },
-            value: '2000000'
-          },
-          metadata: {
-            'e58247e88790192246039816d27b58501c6686ab1f945cffec5262feedba4d23:0': [
-              {
-                policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9',
-                tokens: [
-                  {
-                    value: '5',
-                    currency: {
-                      symbol: '676f6c64',
-                      decimals: 0,
-                      metadata: { policyId: 'a52d2133008537f40f755932383466434543e87dbf8b99143fa7b5d9' }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ]
+      block_identifier: latestBlockIdentifier,
+      coins: allCoinsOfAddr1q8
     });
   });
   test('should return coins for multi asset currency with empty name', async () => {
-    const response = await serverWithMultiassetsSupport.inject({
+    const response = await server.inject({
       method: 'post',
       url: ACCOUNT_COINS_ENDPOINT,
-      payload: generatePayload(CARDANO, 'mainnet', 'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y', [
-        {
-          decimals: 0,
-          symbol: '\\x',
-          metadata: {
-            policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr1qx5d5d8aqn0970nl3km63za5q87fwh2alm79zwuxvh6rh9lg96s8las2lwer5psc7yr59kmafzkz2l5jz4dyxghs7pvqj24sft',
+        [
+          {
+            decimals: 0,
+            symbol: '\\x',
+            metadata: {
+              policyId: '9b9ddbada8dc9cd08509ed660d5b3a65da8f36178def7ced99fa0333'
+            }
           }
-        }
-      ])
+        ]
+      )
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      block_identifier: latestBlockIdentifierMAServer,
-      coins: [
-        {
-          coin_identifier: coinIdentifier95e1,
-          amount: {
-            currency: { decimals: 6, symbol: 'ADA' },
-            value: '4600000'
-          },
-          metadata: {
-            '95e1117558c2d075a4cd110ab0772460340f72a19ac5bc4691c6498e28055339:0': [
-              {
-                policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e',
-                tokens: [
-                  {
-                    value: '20',
-                    currency: {
-                      decimals: 0,
-                      symbol: '\\x',
-                      metadata: {
-                        policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
-                      }
-                    }
-                  },
-                  {
-                    value: '30',
-                    currency: {
-                      decimals: 0,
-                      symbol: '486173414e616d65',
-                      metadata: {
-                        policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
-                      }
-                    }
-                  }
-                ]
-              },
-              {
-                policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d',
-                tokens: [
-                  {
-                    value: '10',
-                    currency: {
-                      decimals: 0,
-                      symbol: '7376c3a57274',
-                      metadata: {
-                        policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d'
-                      }
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ]
+      block_identifier: latestBlockIdentifier,
+      coins: coinsWithEmptyNameToken
     });
   });
 

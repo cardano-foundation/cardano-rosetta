@@ -43,18 +43,13 @@ const ACCOUNT_BALANCE_ENDPOINT = '/account/balance';
 describe('/account/balance endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
-  let multiassetsDatabase: Pool;
-  let serverWithMultiassetsSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
-    multiassetsDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
-    serverWithMultiassetsSupport = setupServer(multiassetsDatabase);
   });
 
   afterAll(async () => {
     await database.end();
-    await multiassetsDatabase.end();
   });
 
   test('should return all utxos until last block if no block number is specified', async () => {
@@ -277,9 +272,9 @@ describe('/account/balance endpoint', () => {
       ]
     });
   });
-  // At this point the total amount of rewards is 112588803 (at block 4597779) + 111979582 (at block 4619221)
+  // At this point the total amount of rewards is 1658277357 (at epoch 224)
   // and the total amount of withdrawals is 112588803 (at block 4597861)
-  test('should sum all rewards and subtract all withdrawals till block 4876885', async () => {
+  test('should sum all rewards and subtract all withdrawals till block 4853177', async () => {
     const response = await server.inject({
       method: 'post',
       url: ACCOUNT_BALANCE_ENDPOINT,
@@ -299,7 +294,7 @@ describe('/account/balance endpoint', () => {
       },
       balances: [
         {
-          value: '111979582',
+          value: '1545688554',
           currency: {
             decimals: 6,
             symbol: 'ADA'
@@ -309,138 +304,217 @@ describe('/account/balance endpoint', () => {
     });
   });
 
-  test('should properly count ADA value if there are two new UTXO to the same address', async () => {
-    const response = await serverWithMultiassetsSupport.inject({
-      method: 'post',
-      url: ACCOUNT_BALANCE_ENDPOINT,
-      payload: generatePayload(
-        CARDANO,
-        'mainnet',
-        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
-        197619
-      )
-    });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().balances[0]).toEqual({
-      currency: {
-        decimals: 6,
-        symbol: 'ADA'
-      },
-      value: '199999482509'
-    });
-  });
-
   // should return a list of ma utxos and sum the corresponding ones to obtain the balances
   test('should return payment balance and list of ma balances', async () => {
-    const response = await serverWithMultiassetsSupport.inject({
+    const response = await server.inject({
       method: 'post',
       url: ACCOUNT_BALANCE_ENDPOINT,
       payload: generatePayload(
         CARDANO,
         'mainnet',
-        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
-        347898,
-        '1f391a9c0d5799e96aae4df2b22c361346bc98d3e46a2c3496632fdcae52f65b'
+        'addr1v87w8qgp8adh98jt3rkd57nptzz96ejf40fqgz50y6zrexqr8mz54',
+        5406842,
+        'c2c6a77e1c1ce1c75043bbf468d3af1e0f6e865e01f4285535be83773ec059f8'
       )
     });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().block_identifier).toEqual({
-      index: 347898,
-      hash: '1f391a9c0d5799e96aae4df2b22c361346bc98d3e46a2c3496632fdcae52f65b'
-    });
-    expect(response.json().balances).toHaveLength(address1vpfAccountBalances.length);
-    address1vpfAccountBalances.forEach(accountBalance =>
-      expect(response.json().balances).toContainEqual(accountBalance)
-    );
-  });
-
-  // eslint-disable-next-line max-len
-  test('given a block with ma balances and the total amount of one of them are transferred in the current block, that token balance should not be seen at the address balance for the next block', async () => {
-    const responseAtBlock213891 = await serverWithMultiassetsSupport.inject({
-      method: 'post',
-      url: ACCOUNT_BALANCE_ENDPOINT,
-      payload: generatePayload(
-        CARDANO,
-        'mainnet',
-        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
-        213891,
-        'ee0c724096119dd8a1feda1c528ca3c3e54b875bbdc67def25b6a244dab43099'
-      )
-    });
-    const responseAtBlock213892 = await serverWithMultiassetsSupport.inject({
-      method: 'post',
-      url: ACCOUNT_BALANCE_ENDPOINT,
-      payload: generatePayload(
-        CARDANO,
-        'mainnet',
-        'addr_test1vpfwv0ezc5g8a4mkku8hhy3y3vp92t7s3ul8g778g5yegsgalc6gc',
-        213892,
-        'f2a86b45724e1d6e37796abca3dce176ba817537b7f15a477bf4bd5927d24e1e'
-      )
-    });
-
-    expect(responseAtBlock213891.statusCode).toEqual(StatusCodes.OK);
-    expect(responseAtBlock213891.json().block_identifier).toEqual({
-      index: 213891,
-      hash: 'ee0c724096119dd8a1feda1c528ca3c3e54b875bbdc67def25b6a244dab43099'
-    });
-
-    expect(responseAtBlock213891.json().balances.length).toEqual(balancesAtBlock213891.length);
-    balancesAtBlock213891.forEach(accountBalance =>
-      expect(responseAtBlock213891.json().balances).toContainEqual(accountBalance)
-    );
-    expect(responseAtBlock213892.statusCode).toEqual(StatusCodes.OK);
-    expect(responseAtBlock213892.json().block_identifier).toEqual({
-      index: 213892,
-      hash: 'f2a86b45724e1d6e37796abca3dce176ba817537b7f15a477bf4bd5927d24e1e'
-    });
-    balancesAtBlock213892.forEach(accountBalance =>
-      expect(responseAtBlock213892.json().balances).toContainEqual(accountBalance)
-    );
-  });
-
-  test('should return balances for ma with empty name', async () => {
-    const response = await serverWithMultiassetsSupport.inject({
-      method: 'post',
-      url: ACCOUNT_BALANCE_ENDPOINT,
-      payload: generatePayload(
-        CARDANO,
-        'mainnet',
-        'addr_test1vre2sc6w0zftnhselly9fd6kqqnmfmklful9zcmdh92mewszqs66y',
-        382733,
-        '50bb3491000528b19a074291bd958b77dd0b8b1cf3003bf14d1ac24a62073f1e'
-      )
-    });
-
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       block_identifier: {
-        index: 382733,
-        hash: '50bb3491000528b19a074291bd958b77dd0b8b1cf3003bf14d1ac24a62073f1e'
+        index: 5406842,
+        hash: 'c2c6a77e1c1ce1c75043bbf468d3af1e0f6e865e01f4285535be83773ec059f8'
       },
       balances: [
-        { value: '4800000', currency: { symbol: 'ADA', decimals: 6 } },
+        { value: '24800000', currency: { symbol: 'ADA', decimals: 6 } },
         {
-          value: '20',
+          value: '1000000',
           currency: {
-            symbol: '\\x',
+            symbol: '64697361736d',
             decimals: 0,
-            metadata: {
-              policyId: '181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e'
-            }
+            metadata: { policyId: '41fa383bbfccd0378c6855326129fbef8e631a27d938dc238a2fc97c' }
           }
         },
         {
-          value: '10',
+          value: '1000000',
           currency: {
-            symbol: '7376c3a57274',
+            symbol: '72617473',
             decimals: 0,
-            metadata: {
-              policyId: 'fc5a8a0aac159f035a147e5e2e3eb04fa3b5e67257c1b971647a717d'
-            }
+            metadata: { policyId: 'd0cec3ba7bc826892d18ee2c7acd14be050b04a7c15c0ec98647c563' }
           }
         }
       ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test(
+    'given a block with ma balances and the total amount of one of them are transferred in the current block, ' +
+      'that token balance should not be seen at the address balance for the next block',
+    async () => {
+      const responseAtBlock5406841 = await server.inject({
+        method: 'post',
+        url: ACCOUNT_BALANCE_ENDPOINT,
+        payload: generatePayload(
+          CARDANO,
+          'mainnet',
+          'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw',
+          5406841,
+          '185107d5ecd969cb4961949ab279703476dbc668f833f80a2d075a9c2d1e80cc'
+        )
+      });
+      const responseAtBlock5406842 = await server.inject({
+        method: 'post',
+        url: ACCOUNT_BALANCE_ENDPOINT,
+        payload: generatePayload(
+          CARDANO,
+          'mainnet',
+          'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw',
+          5406842,
+          'c2c6a77e1c1ce1c75043bbf468d3af1e0f6e865e01f4285535be83773ec059f8'
+        )
+      });
+
+      expect(responseAtBlock5406841.statusCode).toEqual(StatusCodes.OK);
+      expect(responseAtBlock5406841.json().block_identifier).toEqual({
+        index: 5406841,
+        hash: '185107d5ecd969cb4961949ab279703476dbc668f833f80a2d075a9c2d1e80cc'
+      });
+      expect(responseAtBlock5406841.json()).toEqual({
+        block_identifier: { index: 5406841, hash: '185107d5ecd969cb4961949ab279703476dbc668f833f80a2d075a9c2d1e80cc' },
+        balances: [
+          { value: '110370442', currency: { decimals: 6, symbol: 'ADA' } },
+          {
+            value: '35000000000000',
+            currency: {
+              decimals: 0,
+              symbol: '494e4459',
+              metadata: { policyId: '5d9d887de76a2c9d057b3e5d34d5411f7f8dc4d54f0c06e8ed2eb4a9' }
+            }
+          },
+          {
+            value: '21000000000000',
+            currency: {
+              decimals: 0,
+              symbol: '4c51',
+              metadata: { policyId: 'da8c30857834c6ae7203935b89278c532b3995245295456f993e1d24' }
+            }
+          }
+        ]
+      });
+      expect(responseAtBlock5406842.statusCode).toEqual(StatusCodes.OK);
+      expect(responseAtBlock5406842.json()).toEqual({
+        block_identifier: {
+          index: 5406842,
+          hash: 'c2c6a77e1c1ce1c75043bbf468d3af1e0f6e865e01f4285535be83773ec059f8'
+        },
+        balances: [
+          { value: '107181709', currency: { symbol: 'ADA', decimals: 6 } },
+          {
+            value: '35000000000000',
+            currency: {
+              decimals: 0,
+              symbol: '494e4459',
+              metadata: { policyId: '5d9d887de76a2c9d057b3e5d34d5411f7f8dc4d54f0c06e8ed2eb4a9' }
+            }
+          }
+        ]
+      });
+    }
+  );
+
+  test('should return balances for ma with empty name', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr1qx5d5d8aqn0970nl3km63za5q87fwh2alm79zwuxvh6rh9lg96s8las2lwer5psc7yr59kmafzkz2l5jz4dyxghs7pvqj24sft',
+        5455974,
+        '16d14ca745d5956021e20656175bd8b548798ea04a27d9bf5e9f2090ea200434'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    const balanceWithEmptyToken = [
+      { value: '106236428', currency: { symbol: 'ADA', decimals: 6 } },
+      {
+        value: '97614924',
+        currency: {
+          symbol: '4552474f',
+          decimals: 0,
+          metadata: { policyId: '5ee467ea4ef07b6f41d88d26ea4c872db6f47ddf27c0d7d3745462a8' }
+        }
+      },
+      {
+        value: '999999999999',
+        currency: {
+          symbol: '7370616365636f696e73',
+          decimals: 0,
+          metadata: { policyId: '5ee467ea4ef07b6f41d88d26ea4c872db6f47ddf27c0d7d3745462a8' }
+        }
+      },
+      {
+        value: '44999685001',
+        currency: {
+          symbol: '416461',
+          decimals: 0,
+          metadata: { policyId: '7a8414dcb7037abcc155a8edb7d56f7a3d24fa14d57635c5fd5a185f' }
+        }
+      },
+      {
+        value: '9223372036854775000',
+        currency: {
+          symbol: '54686973546f6b656e57696c6c53656c664465737472756374496e53657665',
+          decimals: 0,
+          metadata: { policyId: '7a8414dcb7037abcc155a8edb7d56f7a3d24fa14d57635c5fd5a185f' }
+        }
+      },
+      {
+        value: '9223372036854775807',
+        currency: {
+          symbol: '\\x',
+          decimals: 0,
+          metadata: { policyId: '9b9ddbada8dc9cd08509ed660d5b3a65da8f36178def7ced99fa0333' }
+        }
+      },
+      {
+        value: '998000000',
+        currency: {
+          symbol: '4469616d6f6e64',
+          decimals: 0,
+          metadata: { policyId: '9b9ddbada8dc9cd08509ed660d5b3a65da8f36178def7ced99fa0333' }
+        }
+      },
+      {
+        value: '1000000000000000001',
+        currency: {
+          symbol: '46726565646f6d546f4e6176616c6e79436f696e',
+          decimals: 0,
+          metadata: { policyId: '9b9ddbada8dc9cd08509ed660d5b3a65da8f36178def7ced99fa0333' }
+        }
+      },
+      {
+        value: '45000000000000000',
+        currency: {
+          symbol: '4c6f76656c616365',
+          decimals: 0,
+          metadata: { policyId: '9b9ddbada8dc9cd08509ed660d5b3a65da8f36178def7ced99fa0333' }
+        }
+      },
+      {
+        value: '999000000',
+        currency: {
+          symbol: 'd091d180d0b8d0bbd0bbd0b8d0b0d0bdd182',
+          decimals: 0,
+          metadata: { policyId: '9b9ddbada8dc9cd08509ed660d5b3a65da8f36178def7ced99fa0333' }
+        }
+      }
+    ];
+    expect(response.json()).toEqual({
+      block_identifier: {
+        index: 5455974,
+        hash: '16d14ca745d5956021e20656175bd8b548798ea04a27d9bf5e9f2090ea200434'
+      },
+      balances: balanceWithEmptyToken
     });
   });
 });

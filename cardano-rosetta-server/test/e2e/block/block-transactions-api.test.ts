@@ -4,15 +4,15 @@ import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import {
   block23236WithTransactions,
-  launchpad235546WithPoolRegistration,
-  transaction344050WithTokenBundle,
+  transactionWithPoolRegistration,
+  transaction5407534WithTokenBundle,
   transaction987aOnGenesis,
   transactionBlock4490558WithRegistrations,
   transactionBlock4490559WithDelegation,
   transactionBlock4597861WithWithdrawals,
   transactionBlock4853177WithDeregistration,
   transactionBlock4853177WithPoolRetirement,
-  launchpad236643PoolRegistrationWithSeveralOwners
+  transactionWithPoolRegistrationWithMultipleOwners
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
@@ -34,14 +34,9 @@ const generatePayload = (index?: number, hash?: string, blockchain?: string, net
 describe('/block/transactions endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
-  let multiassetsDatabase: Pool;
-  let serverWithMultiassetsSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
-
-    multiassetsDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
-    serverWithMultiassetsSupport = setupServer(multiassetsDatabase);
   });
 
   afterAll(async () => {
@@ -202,7 +197,6 @@ describe('/block/transactions endpoint', () => {
         }
       }
     });
-
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(transactionBlock4597861WithWithdrawals);
   });
@@ -260,12 +254,12 @@ describe('/block/transactions endpoint', () => {
   });
 
   test('should return a pool retirement transaction', async () => {
-    const transaction = 'dcbff41c50c5b4012d49be5be75b11a0c5289515258ef4cf108eb6ec4ed5f37a';
-    const response = await serverWithMultiassetsSupport.inject({
+    const transaction = '896cf8fefad1eaf0fa056ba3adf28bfb26b06d1beed64cf790deb595dcb2687a';
+    const response = await server.inject({
       method: 'post',
       url: BLOCK_TRANSACTION_ENDPOINT,
       payload: {
-        ...generatePayload(236746, 'b389d1c4975563bf4199afeaa1434dfd1b406e30ac4eda884a03ecef8cd0a87a'),
+        ...generatePayload(4491210, 'ddb008b4a1cad00db90f524b5ba94da94f84b2aabe7de6ff4a0d27d89ed222dd'),
         // eslint-disable-next-line camelcase
         transaction_identifier: {
           hash: transaction
@@ -277,12 +271,12 @@ describe('/block/transactions endpoint', () => {
   });
 
   test('should be able to return multiasset token transactions with several tokens in the bundle', async () => {
-    const transaction = '863783d4460647b8227411eb7b0cf8fac82c29f6f4ac52baf7e4d74fabb7884b';
-    const response = await serverWithMultiassetsSupport.inject({
+    const transaction = '8d67291066037f46f092bfc098241cc7143fa1ec2b14b6c23b945878ccf9fe0f';
+    const response = await server.inject({
       method: 'post',
       url: BLOCK_TRANSACTION_ENDPOINT,
       payload: {
-        ...generatePayload(344050, '50dfb1d3d82d89d392d3c5118e43d60146a37eea0d6fe81bf475133e21b6d82f'),
+        ...generatePayload(5407534, '6d48a3e7af71698268ea3efaf67a2f012e237b19e10131eb77cd22448fd4183c'),
         // eslint-disable-next-line camelcase
         transaction_identifier: {
           hash: transaction
@@ -290,33 +284,33 @@ describe('/block/transactions endpoint', () => {
       }
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual({ transaction: transaction344050WithTokenBundle });
+    expect(response.json()).toEqual({ transaction: transaction5407534WithTokenBundle });
   });
 
   test('should return transaction pool registrations', async () => {
-    const transaction = '2468895f6f8e7b00a298aab49647712ff55b453e35d14e32f737691a014c26eb';
-    const response = await serverWithMultiassetsSupport.inject({
+    const transaction = '29a76dd58c6309cd9cde855c0c50d81d63f921959359b1e544401ac1dbc9b472';
+    const response = await server.inject({
       method: 'post',
       url: BLOCK_TRANSACTION_ENDPOINT,
       payload: {
-        ...generatePayload(235546, 'beb6a8ac14ec7f51ef63f0db92ec4e7e03236f2b664b80fda568fba15191ab72'),
+        ...generatePayload(4597779, '8839b697618eb1b3167bcd2658e10008d9c1d11bd32b305abf497371cd79dafa'),
         // eslint-disable-next-line camelcase
         transaction_identifier: {
           hash: transaction
         }
       }
     });
-
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual(launchpad235546WithPoolRegistration);
+    expect(response.json()).toEqual(transactionWithPoolRegistration);
   });
-  test('should return transaction pool registrations with several owners', async () => {
-    const transaction = 'ea8e02abc93b863c386d25e31132866ddd61703f913b71d22af7d51843dd2bbe';
-    const response = await serverWithMultiassetsSupport.inject({
+
+  test('should return transaction pool registrations with multiple owners', async () => {
+    const transaction = '51d67e194d749df2abf4e2e11cea63ca6e1c630042a366f555939e795a6ddecf';
+    const response = await server.inject({
       method: 'post',
       url: BLOCK_TRANSACTION_ENDPOINT,
       payload: {
-        ...generatePayload(279711, 'f9db8c8da4fd42fb19f7c7f8b627faf3122dc63d3bd5b85172c5141c009fc2c0'),
+        ...generatePayload(4490593, 'a5f1a0e14e1ca218fd07e1601792545945c8cb552d7978967e230d6d3b2710fd'),
         // eslint-disable-next-line camelcase
         transaction_identifier: {
           hash: transaction
@@ -324,6 +318,6 @@ describe('/block/transactions endpoint', () => {
       }
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual(launchpad236643PoolRegistrationWithSeveralOwners);
+    expect(response.json()).toEqual(transactionWithPoolRegistrationWithMultipleOwners);
   });
 });
