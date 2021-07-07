@@ -198,7 +198,7 @@ describe('/block/transactions endpoint', () => {
       }
     });
     console.log('response', response);
-    console.log('expected response', transactionBlock4597861WithWithdrawals);
+    console.log('expected response ', transactionBlock4597861WithWithdrawals);
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(transactionBlock4597861WithWithdrawals);
   });
