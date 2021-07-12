@@ -371,22 +371,7 @@ export const transactionBlock4597861WithWithdrawals = {
         metadata: { withdrawalAmount: { value: '-112588803', currency: { symbol: 'ADA', decimals: 6 } } }
       },
       {
-        operation_identifier: { index: 2, network_index: 1 },
-        related_operations: [{ index: 0 }, { index: 1 }],
-        type: 'output',
-        status: 'success',
-        account: {
-          address:
-            'DdzFFzCqrhsm61hrcAFrwush9Amq6PU8UkFjqPefDTKb4u6TkBa5c7MHWbsbmcDCMV2xSc6jGaUWAu9kqaSLS4CX7nkrakUDdCrdkLoe'
-        },
-        amount: { value: '800000000', currency: { symbol: 'ADA', decimals: 6 } },
-        coin_change: {
-          coin_identifier: { identifier: '2974845ecc7e02e86285d32961c69f3945662a80d5e2caae8a1086e652936f42:1' },
-          coin_action: 'coin_created'
-        }
-      },
-      {
-        operation_identifier: { index: 3, network_index: 0 },
+        operation_identifier: { index: 2, network_index: 0 },
         related_operations: [{ index: 0 }, { index: 1 }],
         type: 'output',
         status: 'success',
@@ -397,6 +382,21 @@ export const transactionBlock4597861WithWithdrawals = {
         amount: { value: '5158722796', currency: { symbol: 'ADA', decimals: 6 } },
         coin_change: {
           coin_identifier: { identifier: '2974845ecc7e02e86285d32961c69f3945662a80d5e2caae8a1086e652936f42:0' },
+          coin_action: 'coin_created'
+        }
+      },
+      {
+        operation_identifier: { index: 3, network_index: 1 },
+        related_operations: [{ index: 0 }, { index: 1 }],
+        type: 'output',
+        status: 'success',
+        account: {
+          address:
+            'DdzFFzCqrhsm61hrcAFrwush9Amq6PU8UkFjqPefDTKb4u6TkBa5c7MHWbsbmcDCMV2xSc6jGaUWAu9kqaSLS4CX7nkrakUDdCrdkLoe'
+        },
+        amount: { value: '800000000', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: { identifier: '2974845ecc7e02e86285d32961c69f3945662a80d5e2caae8a1086e652936f42:1' },
           coin_action: 'coin_created'
         }
       }
