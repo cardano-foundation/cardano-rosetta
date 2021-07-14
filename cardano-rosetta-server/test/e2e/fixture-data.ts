@@ -1462,7 +1462,6 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TTL: Components.Schemas.Const
   }
 };
 
-
 export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_STAKE_OUTPUT_ADDR: Components.Schemas.ConstructionPayloadsRequest = {
   network_identifier: {
     blockchain: 'cardano',
@@ -4929,7 +4928,7 @@ export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_TTL = cbor
   .encode([SIGNED_TRANSACTION, constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TTL)])
   .toString('hex');
 
-  export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_STAKE_OUTPUT_ADDR = cbor
+export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_STAKE_OUTPUT_ADDR = cbor
   .encode([SIGNED_TRANSACTION, constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST_INVALID_STAKE_OUTPUT_ADDR)])
   .toString('hex');
 
