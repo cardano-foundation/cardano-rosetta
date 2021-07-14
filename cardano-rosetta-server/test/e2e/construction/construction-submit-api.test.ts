@@ -7,7 +7,8 @@ import { cardanoCliMock, setupOfflineDatabase, setupServer } from '../utils/test
 import { ErrorFactory, Errors } from '../../../src/server/utils/errors';
 import {
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
-  CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_TTL
+  CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_TTL,
+  CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_STAKE_OUTPUT_ADDR
 } from '../fixture-data';
 
 const CONSTRUCTION_SUBMIT_ENDPOINT = '/construction/submit';
@@ -131,5 +132,20 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
       message: ERROR_OUTSIDE_VALIDITY_INTERVAL_UTXO,
       retriable: false
     });
+  });
+
+  it('Should return a valid error when output adresss is a stake one', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_SUBMIT_ENDPOINT,
+      payload: generatePayloadWithSignedTransaction(
+        'cardano',
+        'mainnet',
+        CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_STAKE_OUTPUT_ADDR
+      )
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    console.log(response);
   });
 });

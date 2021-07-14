@@ -1462,6 +1462,88 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TTL: Components.Schemas.Const
   }
 };
 
+
+export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_STAKE_OUTPUT_ADDR: Components.Schemas.ConstructionPayloadsRequest = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: OperationType.INPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: OperationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'stake1u999hv7g20rgvy6uh7l6cdz6s4csdzvmx8cp990gdd3v4xsrfs242'
+      },
+      amount: {
+        value: '10000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 2
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: OperationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '40000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    }
+  ],
+  metadata: {
+    ttl: '1'
+  }
+};
+
 export const CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT: Components.Schemas.ConstructionPayloadsRequest = {
   network_identifier: {
     blockchain: 'cardano',
@@ -4845,6 +4927,10 @@ export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
 
 export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_TTL = cbor
   .encode([SIGNED_TRANSACTION, constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TTL)])
+  .toString('hex');
+
+  export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_STAKE_OUTPUT_ADDR = cbor
+  .encode([SIGNED_TRANSACTION, constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST_INVALID_STAKE_OUTPUT_ADDR)])
   .toString('hex');
 
 export const CONSTRUCTION_SIGNED_TX_WITH_POOL_REGISTRATION_AND_PLEDGE = cbor
