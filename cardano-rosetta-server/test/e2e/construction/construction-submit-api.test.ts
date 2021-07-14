@@ -146,6 +146,5 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
     });
 
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    console.log(response);
   });
 });
