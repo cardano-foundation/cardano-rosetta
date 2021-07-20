@@ -152,7 +152,10 @@ LEFT JOIN ma_tx_out
   ON ma_tx_out.tx_out_id = tx_out.id
 WHERE
   tx.hash = ANY ($1)
-ORDER BY policy, name
+ORDER BY 
+  policy,
+  name, 
+  id
 `;
 
 export interface FindTransactionWithdrawals extends FindTransactionFieldResult {
@@ -302,11 +305,11 @@ const poolRegistrationQuery = `
     pm.hash as "metadataHash"
   FROM pool_update pu
   JOIN tx 
-  ON pu.registered_tx_id = tx.id
+    ON pu.registered_tx_id = tx.id
   JOIN pool_hash ph
-  ON ph.id = pu.hash_id
-  LEFT JOIN pool_meta_data pm
-  ON pu.meta_id = pm.id
+    ON ph.id = pu.hash_id
+  LEFT JOIN pool_metadata_ref pm
+    ON pu.meta_id = pm.id
   WHERE
     tx.hash = ANY ($1)
   )
@@ -322,11 +325,13 @@ const findTransactionPoolOwners = `
 ${poolRegistrationQuery}
     SELECT 
       po.pool_hash_id AS "poolId",
-      po.hash AS "owner"
+      sa."view" AS "owner"
     FROM pool_registration pr
     JOIN pool_owner po
-    ON  (po.pool_hash_id = pr."poolId" 
-    AND po.registered_tx_id = pr."txId")
+      ON  (po.pool_hash_id = pr."poolId" 
+      AND po.registered_tx_id = pr."txId")
+    JOIN stake_address sa
+      ON po.addr_id = sa.id
 `;
 
 const findTransactionPoolRelays = `
@@ -413,10 +418,8 @@ const findBalanceByAddressAndBlock = `
       FROM reward r
     JOIN stake_address ON 
         stake_address.id = r.addr_id
-    JOIN block ON
-        block.id = r.block_id
     WHERE stake_address.view = $1
-    AND block.id <= (SELECT id FROM block WHERE hash = $2))- 
+    AND r.epoch_no <= (SELECT epoch_no FROM block WHERE hash = $2))- 
     (SELECT COALESCE(SUM(w.amount),0) 
     FROM withdrawal w
     JOIN tx ON tx.id = w.tx_id AND 

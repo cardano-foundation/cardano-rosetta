@@ -10,7 +10,7 @@ import {
   setupServer,
   testInvalidNetworkParameters
 } from '../utils/test-utils';
-import { latestLaunchpadBlockSlot, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
+import { latestBlockSlot, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 
@@ -26,21 +26,21 @@ const generateMetadataPayload = (blockchain: string, network: string, relativeTt
 });
 
 describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
-  let multiassetsDatabase: Pool;
+  let database: Pool;
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    multiassetsDatabase = setupOfflineDatabase();
-    server = setupServer(multiassetsDatabase);
+    database = setupOfflineDatabase();
+    server = setupServer(database);
   });
 
   afterAll(async () => {
-    await multiassetsDatabase.end();
+    await database.end();
   });
 
   beforeAll(async () => {
-    multiassetsDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'launchpad');
-    server = setupServer(multiassetsDatabase);
+    database = setupDatabase();
+    server = setupServer(database);
   });
 
   test('Should return a valid TTL when the parameters are valid', async () => {
@@ -53,7 +53,7 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       metadata: {
-        ttl: (latestLaunchpadBlockSlot + relativeTtl).toString()
+        ttl: (latestBlockSlot + relativeTtl).toString()
       },
       suggested_fee: [
         {
@@ -61,7 +61,7 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
             decimals: 6,
             symbol: 'ADA'
           },
-          // ttl is encoded as 5 bytes but metadaa comes with one already
+          // ttl is encoded as 5 bytes but metadata comes with one already
           value: (
             (TRANSACTION_SIZE_IN_BYTES + 4) * linearFeeParameters.minFeeA +
             linearFeeParameters.minFeeB
