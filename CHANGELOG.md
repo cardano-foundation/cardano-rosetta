@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.2.1...1.3.0) (2021-07-21)
+
+
+### Features
+
+* add pool registration with cert example and doc ([#366](https://github.com/input-output-hk/cardano-rosetta/issues/366)) ([3a5e057](https://github.com/input-output-hk/cardano-rosetta/commit/3a5e057740c6feeb6b9095eecee1c5591bbc9771))
+* adding pool retirement operations ([#345](https://github.com/input-output-hk/cardano-rosetta/issues/345)) ([4f8beef](https://github.com/input-output-hk/cardano-rosetta/commit/4f8beef9e3aa17d3297ccbc239a46179d9fb2121))
+* changed minFeeA and minFeeB sources. Got them from database ([#341](https://github.com/input-output-hk/cardano-rosetta/issues/341)) ([5956b0c](https://github.com/input-output-hk/cardano-rosetta/commit/5956b0c60b55a51f4742e8b9d699529a94a1d36b))
+* changing serialization lib to 6.0.0 ([#338](https://github.com/input-output-hk/cardano-rosetta/issues/338)) ([1bae758](https://github.com/input-output-hk/cardano-rosetta/commit/1bae758e948aec1c5b365cc3f3abcf3bd3d95527))
+* increment max body limit by optional env ([cc83cdd](https://github.com/input-output-hk/cardano-rosetta/commit/cc83cddd17f89a638452a62f15b12068329d7741))
+* **payloads:** invalid pool key hash error handling ([c602256](https://github.com/input-output-hk/cardano-rosetta/commit/c602256040cb596e0af7206aa566790c6eea1091)), closes [#286](https://github.com/input-output-hk/cardano-rosetta/issues/286)
+* pool retirement documentation support ([#353](https://github.com/input-output-hk/cardano-rosetta/issues/353)) ([5c57241](https://github.com/input-output-hk/cardano-rosetta/commit/5c5724103e45b7f03857c0141fdb334913c5778c))
+* pool retirement operation in block transaction endpoints ([#352](https://github.com/input-output-hk/cardano-rosetta/issues/352)) ([8d33c69](https://github.com/input-output-hk/cardano-rosetta/commit/8d33c69b039d1440d5d3f2e10b835d90fff97c58))
+
+
+### Bug Fixes
+
+* add pool owners addresses at payloads ([#354](https://github.com/input-output-hk/cardano-rosetta/issues/354)) ([46188b1](https://github.com/input-output-hk/cardano-rosetta/commit/46188b1c83d2c6b37297947f939ec8385ee92b98))
+* add pool owners to signer list of construction parse response ([#363](https://github.com/input-output-hk/cardano-rosetta/issues/363)) ([8314222](https://github.com/input-output-hk/cardano-rosetta/commit/831422271ef99bd977357c65d6db43a7cba98c17))
+* body limit fixed from environment variables ([#355](https://github.com/input-output-hk/cardano-rosetta/issues/355)) ([bb45cb1](https://github.com/input-output-hk/cardano-rosetta/commit/bb45cb1b2a348dc120114784b7d77427a316dc7f))
+* fix examples tests ([#346](https://github.com/input-output-hk/cardano-rosetta/issues/346)) ([ce6474f](https://github.com/input-output-hk/cardano-rosetta/commit/ce6474f92bf7b186dddebbefa9600a130a296e75))
+* remove quotes from yaml string in docker-compose ([2ae54c2](https://github.com/input-output-hk/cardano-rosetta/commit/2ae54c26e25476806bdae66275b1d07df2005204))
+* Catch OutsideValidityIntervalUTxO node error in construction ([e095247](https://github.com/input-output-hk/cardano-rosetta/commit/e0952474122814a30174b90f0b0db74567677782))
+
 ### [1.2.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.2.0...1.2.1) (2021-03-17)
 
 
