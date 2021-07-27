@@ -73,11 +73,7 @@
 									"pm.test(\"Status code is 200\", function () {",
 									"        pm.response.to.have.status(200);",
 									"    });",
-									"",
-									"pm.test(\"Body includes correct rosetta version\", function () {",
-									"    const rosettaVersion = pm.globals.get(\"rosettaVersion\");",
-									"    pm.expect(pm.response.json().version.rosetta_version).to.eql(rosettaVersion);",
-									"});"
+									""
 								],
 								"type": "text/javascript"
 							}
