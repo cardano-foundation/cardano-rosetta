@@ -9,21 +9,14 @@ import CardanoWasm, {
   StakeDelegation,
   StakeDeregistration,
   StakeRegistration,
-  Value,
-  Ed25519KeyHashes
-} from '@emurgo/cardano-serialization-lib-nodejs';
+  Value
+} from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
-import { NetworkIdentifier, OperationType, RelayType, StakeAddressPrefix } from '../constants';
+import { NetworkIdentifier, OperationType, RelayType } from '../constants';
 import { ErrorFactory } from '../errors';
 import { hexStringToBuffer } from '../formatters';
 import { isPolicyIdValid, isTokenNameValid } from '../validations';
-import {
-  generateRewardAddress,
-  generateAddress,
-  parseAddress,
-  getAddressPrefix,
-  parseToRewardAddress
-} from './addresses';
+import { generateRewardAddress, generateAddress, parseToRewardAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 import { parsePoolOwners, parsePoolRewardAccount } from './transactions-processor';
 
@@ -379,7 +372,7 @@ const validateAndParsePoolMetadata = (
     if (metadata)
       parsedMetadata = CardanoWasm.PoolMetadata.new(
         CardanoWasm.URL.new(metadata.url),
-        CardanoWasm.MetadataHash.from_bytes(Buffer.from(metadata.hash, 'hex'))
+        CardanoWasm.PoolMetadataHash.from_bytes(Buffer.from(metadata.hash, 'hex'))
       );
   } catch (error) {
     logger.error('[validateAndParsePoolMetadata] invalid pool metadata');

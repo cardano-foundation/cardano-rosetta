@@ -1,15 +1,7 @@
-import CardanoWasm, { PoolParams } from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm, { PoolParams } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
-import {
-  ADA,
-  ADA_DECIMALS,
-  CurveType,
-  OperationType,
-  RelayType,
-  StakingOperations,
-  StakeAddressPrefix
-} from '../constants';
+import { ADA, ADA_DECIMALS, CurveType, OperationType, RelayType, StakingOperations } from '../constants';
 import { mapAmount } from '../data-mapper';
 import { ErrorFactory } from '../errors';
 import { hexFormatter } from '../formatters';
@@ -42,7 +34,7 @@ const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: numbe
 const parsePoolMetadata = (poolParameters: CardanoWasm.PoolParams): Components.Schemas.PoolMetadata | undefined => {
   const metadata = poolParameters.pool_metadata();
   if (metadata) {
-    const hash = Buffer.from(metadata.metadata_hash().to_bytes()).toString('hex');
+    const hash = Buffer.from(metadata.pool_metadata_hash().to_bytes()).toString('hex');
     const url = metadata.url().url();
     return { url, hash };
   }
