@@ -1,0 +1,76 @@
+name: Refresh Configurations
+
+on:
+  schedule:
+    - cron: '00 01 * * *'
+  workflow_dispatch:
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v2.3.3
+
+    - name: Get latest Hydra Build
+      id: latest
+      shell: bash
+      run: |
+        latest=$(curl -I https://hydra.iohk.io/job/Cardano/iohk-nix/cardano-deployment/latest-finished/download/1/index.html | grep location | sed "s@location: \(.*\)/index.html@\1@")
+        echo "::set-output name=url::$latest"
+
+    - name: Download from Hydra (mainnet)
+      shell: bash
+      run: |
+        .github/scripts/download-all.sh $CARDANO_CONFIG_URL $CARDANO_NETWORK
+      env:
+        CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}
+        CARDANO_NETWORK: mainnet
+
+    - name: Download from Hydra (testnet)
+      shell: bash
+      run: |
+        .github/scripts/download-all.sh $CARDANO_CONFIG_URL $CARDANO_NETWORK
+      env:
+        CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}
+        CARDANO_NETWORK: testnet
+
+    - name: Download from Hydra (staging)
+      shell: bash
+      run: |
+        .github/scripts/download-all.sh $CARDANO_CONFIG_URL $CARDANO_NETWORK
+      env:
+        CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}
+        CARDANO_NETWORK: staging
+
+    - name: Download from Hydra (shelley_qa)
+      shell: bash
+      run: |
+        .github/scripts/download-all.sh $CARDANO_CONFIG_URL $CARDANO_NETWORK
+      env:
+        CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}
+        CARDANO_NETWORK: shelley_qa
+
+    - name: Download from Hydra (alonzo-qa)
+      shell: bash
+      run: |
+        .github/scripts/download-all.sh $CARDANO_CONFIG_URL $CARDANO_NETWORK
+      env:
+        CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}
+        CARDANO_NETWORK: alonzo-qa
+
+    - name: Download from Hydra (alonzo-white)
+      shell: bash
+      run: |
+        .github/scripts/download-all.sh $CARDANO_CONFIG_URL $CARDANO_NETWORK
+      env:
+        CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}
+        CARDANO_NETWORK: alonzo-white
+
+    - name: Push new configurations
+      shell: bash
+      run: |
+        .github/scripts/update-when-new.sh $CARDANO_CONFIG_URL
+      env:
+        CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}
