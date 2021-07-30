@@ -33,6 +33,19 @@ Docker builds are pushed to Docker Hub in both the [post-integration workflow], 
 [post-release workflow]. The former maintains the build cache source and can be useful during 
 testing, and the latter delivers versioned builds that also takes the `latest` tag.
 
+## Cardano Configurations
+`/config` is a squashed git subtree from the master branch of 
+[input-output-hk/cardano-configurations].
+
+### Setup remote
+```console
+git remote add -f cardano-configurations https://github.com/input-output-hk/cardano-configurations.git
+```
+### Update to latest
+```console
+git subtree pull --prefix config cardano-configurations master --squash
+```
+
 [cardano-node]: https://github.com/input-output-hk/cardano-node/releases
 [cardano-db-sync]: https://github.com/input-output-hk/cardano-db-sync/releases
 [PostgreSQL]: https://www.postgresql.org/
@@ -42,3 +55,4 @@ testing, and the latter delivers versioned builds that also takes the `latest` t
 [2]: https://github.com/input-output-hk/iohk-nix/blob/91b67f54420dabb229c58d16fb1d18e74f9e3c9e/overlays/crypto/libsodium.nix#L9
 [post-integration workflow]: ../.github/workflows/post_integration.yml
 [post-release workflow]: ../.github/workflows/post_release.yml
+[input-output-hk/cardano-configurations]: https://github.com/input-output-hk/cardano-configurations
