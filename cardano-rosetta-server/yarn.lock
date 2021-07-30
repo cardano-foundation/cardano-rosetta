@@ -1875,9 +1875,9 @@ capture-exit@^2.0.0:
   dependencies:
     rsvp "^4.8.4"
 
-"cardano-serialization-lib@file:./packages-cache/cardano-serialization-lib-7.0.0-39f84394c18e780cb6d3475999a92b6ccede4038.tgz":
+cardano-serialization-lib@packages-cache/cardano-serialization-lib-7.0.0-39f84394c18e780cb6d3475999a92b6ccede4038.tgz:
   version "7.0.0"
-  resolved "file:./packages-cache/cardano-serialization-lib-7.0.0-39f84394c18e780cb6d3475999a92b6ccede4038.tgz#2acd28ca4090d99017e362fd2519bf0d99d274e3"
+  resolved packages-cache/cardano-serialization-lib-7.0.0-39f84394c18e780cb6d3475999a92b6ccede4038.tgz#b64435fa9fdda6c2a21be6348d6165b7db4262ee
 
 caseless@~0.12.0:
   version "0.12.0"
