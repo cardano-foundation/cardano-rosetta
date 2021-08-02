@@ -103,7 +103,12 @@ export const Errors = {
     message: 'Cant build witnesses set for transaction probably because of provided signatures',
     code: 5005
   },
-  SEND_TRANSACTION_ERROR: { message: 'Error when sending the transaction', code: 5006 }
+  SEND_TRANSACTION_ERROR: { message: 'Error when sending the transaction', code: 5006 },
+  VOTING_NONCE_NOT_VALID: { message: 'Voting nonce not valid', code: 5007 },
+  INVALID_VOTING_SIGNATURE: { message: 'Invalid voting signature', code: 5008 },
+  MISSING_VOTING_KEY: { message: 'Voting key is missing', code: 5009 },
+  INVALID_VOTING_KEY_FORMAT: { message: 'Voting key format is invalid', code: 5010 },
+  MISSING_VOTE_REGISTRATION_METADATA: { message: 'Missing vote registration metadata', code: 5011 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -176,7 +181,13 @@ const tokenBundleAssetsMissingError: CreateErrorFunction = type =>
 const tokenAssetValueMissingError: CreateErrorFunction = type =>
   buildApiError(Errors.TOKEN_ASSET_VALUE_MISSING, false, type);
 const sendOutsideValidityIntervalUtxoError: CreateErrorFunction = (details?: string) =>
-  buildApiError(Errors.OUTSIDE_VALIDITY_INTERVAL_UTXO, false, details);
+  buildApiError(Errors.OUTSIDE_VALIDITY_INTERVAL_UTXO, false);
+const votingNonceNotValid: CreateErrorFunction = () => buildApiError(Errors.VOTING_NONCE_NOT_VALID, false);
+const invalidVotingSignature: CreateErrorFunction = () => buildApiError(Errors.INVALID_VOTING_SIGNATURE, false);
+const missingVotingKeyError: CreateErrorFunction = () => buildApiError(Errors.MISSING_VOTING_KEY, false);
+const invalidVotingKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_VOTING_KEY_FORMAT, false);
+const missingVoteRegistrationMetadata: CreateErrorFunction = () =>
+  buildApiError(Errors.MISSING_VOTE_REGISTRATION_METADATA, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -222,7 +233,12 @@ export const ErrorFactory = {
   invalidAddressTypeError,
   invalidOperationTypeError,
   tokenBundleAssetsMissingError,
-  tokenAssetValueMissingError
+  tokenAssetValueMissingError,
+  votingNonceNotValid,
+  invalidVotingSignature,
+  missingVotingKeyError,
+  invalidVotingKeyFormat,
+  missingVoteRegistrationMetadata
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>

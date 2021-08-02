@@ -326,7 +326,8 @@ const processOperations = (
     certificates: result.certificates,
     withdrawals: result.withdrawals,
     addresses: getUniqueAddresses(result.addresses),
-    fee
+    fee,
+    voteRegistrationMetadata: result.voteRegistrationMetadata
   };
 };
 
@@ -438,12 +439,15 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
     logger.info(
       `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
     );
-    const { transactionInputs, transactionOutputs, certificates, withdrawals, addresses, fee } = processOperations(
-      logger,
-      network,
-      operations,
-      depositParameters
-    );
+    const {
+      transactionInputs,
+      transactionOutputs,
+      certificates,
+      withdrawals,
+      addresses,
+      fee,
+      voteRegistrationMetadata
+    } = processOperations(logger, network, operations, depositParameters);
 
     logger.info('[createUnsignedTransaction] About to create transaction body');
     const transactionBody = CardanoWasm.TransactionBody.new(
@@ -452,6 +456,11 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       BigNum.from_str(fee.toString()),
       ttl
     );
+    if (voteRegistrationMetadata) {
+      logger.info('[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body');
+      const metadataHash = CardanoWasm.hash_metadata(voteRegistrationMetadata);
+      transactionBody.set_metadata_hash(metadataHash);
+    }
 
     if (certificates.len() > 0) transactionBody.set_certs(certificates);
     if (withdrawals.len() > 0) transactionBody.set_withdrawals(withdrawals);

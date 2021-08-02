@@ -44,7 +44,8 @@ export enum OperationType {
   STAKE_KEY_DEREGISTRATION = 'stakeKeyDeregistration',
   POOL_REGISTRATION = 'poolRegistration',
   POOL_REGISTRATION_WITH_CERT = 'poolRegistrationWithCert',
-  POOL_RETIREMENT = 'poolRetirement'
+  POOL_RETIREMENT = 'poolRetirement',
+  VOTE_REGISTRATION = 'voteRegistration'
 }
 
 export enum RelayType {
@@ -110,4 +111,9 @@ export enum NetworkIdentifier {
 export enum EraAddressType {
   Shelley,
   Byron
+}
+
+export enum CatalystLabels {
+  DATA = '61284',
+  SIG = '61285'
 }

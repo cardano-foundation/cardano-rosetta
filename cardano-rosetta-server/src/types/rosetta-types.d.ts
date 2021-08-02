@@ -754,6 +754,10 @@ declare namespace Components {
        */
       poolRegistrationCert?: string;
       poolRegistrationParams?: PoolRegistrationParams;
+      /**
+       * A Catalyst registration transaction is a regular Cardano transaction with a specific transaction metadata associated with it.
+       */
+      voteRegistrationMetadata?: /* Catalyst registration metadata format */ VoteRegistrationMetadata;
     }
     /**
      * OperationStatus is utilized to indicate which Operation status are considered successful.
@@ -1102,6 +1106,31 @@ declare namespace Components {
        * Any other information that may be useful about versioning of dependent services should be returned here.
        */
       metadata?: {};
+    }
+    /**
+     * Catalyst registration metadata format
+     */
+    export interface VoteRegistrationMetadata {
+      /**
+       * The staking key on the Cardano network
+       */
+      stakeKey: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
+      /**
+       * Catalyst voting key
+       */
+      votingKey: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
+      /**
+       * Shelley address to receive rewards
+       */
+      rewardAddress: string;
+      /**
+       * Unsigned integer (of CBOR major type 0). Current slot number
+       */
+      votingNonce: number;
+      /**
+       * ED25119 signature CBOR byte array of blake2b-256 hash of the registration metadata signed using the staking key
+       */
+      votingSignature: string;
     }
   }
 }

@@ -16,3 +16,7 @@ export const isEmptyHexString = (toCheck: string): boolean => toCheck === EMPTY_
 export const hexFormatter = (buffer: Buffer): string => buffer.toString('hex');
 
 export const hexStringToBuffer = (input: string): Buffer => Buffer.from(isEmptyHexString(input) ? '' : input, 'hex');
+
+export const bytesToHex = (bytes: Uint8Array): string => hexFormatter(Buffer.from(bytes));
+
+export const add0xPrefix = (hex: string): string => (hex.startsWith('0x') ? hex : '0x' + hex);
