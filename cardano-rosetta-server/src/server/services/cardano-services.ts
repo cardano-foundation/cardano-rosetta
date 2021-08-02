@@ -192,7 +192,7 @@ export interface CardanoService {
     networkId: NetworkIdentifier,
     transaction: string,
     extraData: Components.Schemas.Operation[],
-    transactionMetadata: AuxiliaryData
+    transactionMetadata?: AuxiliaryData
   ): TransactionParsed;
 
   /**
@@ -207,7 +207,7 @@ export interface CardanoService {
     networkId: NetworkIdentifier,
     transaction: string,
     extraData: Components.Schemas.Operation[],
-    transactionMetadata: AuxiliaryData
+    transactionMetadata?: AuxiliaryData
   ): TransactionParsed;
 
   /**

@@ -397,9 +397,14 @@ const getRelatedOperationsFromInputs = (
 const parseVoteMetadataToOperation = (
   logger: Logger,
   index: number,
-  transactionMetadata: AuxiliaryData
+  transactionMetadata?: AuxiliaryData
 ): Components.Schemas.Operation => {
   logger.info('[parseVoteMetadataToOperation] About to parse a vote registration operation');
+  if (!transactionMetadata) {
+    logger.error('[parseVoteMetadataToOperation] Missing vote registration metadata');
+    throw ErrorFactory.missingVoteRegistrationMetadata();
+  }
+
   const generalMetadata = CardanoWasm.GeneralTransactionMetadata.from_bytes(
     CardanoWasm.MetadataList.from_bytes(transactionMetadata.to_bytes())
       .get(0)
@@ -453,7 +458,7 @@ export const convert = (
   transactionBody: CardanoWasm.TransactionBody,
   extraData: Components.Schemas.Operation[],
   network: number,
-  transactionMetadata: AuxiliaryData
+  transactionMetadata?: AuxiliaryData
 ): Components.Schemas.Operation[] => {
   const operations = [];
   const inputsCount = transactionBody.inputs().len();

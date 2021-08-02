@@ -499,13 +499,12 @@ export const encodeExtraData = async (
         PoolOperations.includes(operation.type as OperationType) ||
         VoteOperations.includes(operation.type as OperationType)
     );
-
   return (await cbor.encodeAsync([transaction, extraData, transactionMetadata])).toString('hex');
 };
 
 export const decodeExtraData = async (
   encoded: string
-): Promise<[string, Components.Schemas.Operation[], AuxiliaryData]> => {
+): Promise<[string, Components.Schemas.Operation[], AuxiliaryData | undefined]> => {
   const [decoded] = await cbor.decodeAll(encoded);
   return decoded;
 };

@@ -221,7 +221,7 @@ const configure = (
       async () => {
         const logger = request.log;
         logger.info('[constructionCombine] Request received to sign a transaction');
-        const [transaction, extraData] = await decodeExtraData(request.body.unsigned_transaction);
+        const [transaction, extraData, transactionMetadata] = await decodeExtraData(request.body.unsigned_transaction);
         const signedTransaction = cardanoService.buildTransaction(
           logger,
           transaction,
@@ -232,7 +232,7 @@ const configure = (
         );
         logger.info({ signedTransaction }, '[constructionCombine] About to return signed transaction');
         // eslint-disable-next-line camelcase
-        return { signed_transaction: await encodeExtraData(signedTransaction, extraData) };
+        return { signed_transaction: await encodeExtraData(signedTransaction, extraData, transactionMetadata) };
       },
       request.log,
       networkService
