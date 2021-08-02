@@ -203,7 +203,11 @@ const configure = (
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         return {
           // eslint-disable-next-line camelcase
-          unsigned_transaction: await encodeExtraData(unsignedTransaction.bytes, request.body.operations),
+          unsigned_transaction: await encodeExtraData(
+            unsignedTransaction.bytes,
+            request.body.operations,
+            unsignedTransaction.metadata
+          ),
           payloads
         };
       },
@@ -242,19 +246,31 @@ const configure = (
         const signed = request.body.signed;
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         logger.info(request.body.transaction, '[constructionParse] Processing');
-        const [transaction, extraData] = await decodeExtraData(request.body.transaction);
-        logger.info({ transaction, extraData }, '[constructionParse] Decoded');
+        const [transaction, extraData, transactionMetadata] = await decodeExtraData(request.body.transaction);
+        logger.info({ transaction, extraData, transactionMetadata }, '[constructionParse] Decoded');
         if (signed) {
           return {
             // eslint-disable-next-line camelcase
             network_identifier: request.body.network_identifier,
-            ...cardanoService.parseSignedTransaction(logger, networkIdentifier, transaction, extraData)
+            ...cardanoService.parseSignedTransaction(
+              logger,
+              networkIdentifier,
+              transaction,
+              extraData,
+              transactionMetadata
+            )
           };
         }
         return {
           // eslint-disable-next-line camelcase
           network_identifier: request.body.network_identifier,
-          ...cardanoService.parseUnsignedTransaction(logger, networkIdentifier, transaction, extraData)
+          ...cardanoService.parseUnsignedTransaction(
+            logger,
+            networkIdentifier,
+            transaction,
+            extraData,
+            transactionMetadata
+          )
         };
       },
       request.log,

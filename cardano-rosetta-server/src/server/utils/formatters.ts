@@ -19,4 +19,6 @@ export const hexStringToBuffer = (input: string): Buffer => Buffer.from(isEmptyH
 
 export const bytesToHex = (bytes: Uint8Array): string => hexFormatter(Buffer.from(bytes));
 
-export const add0xPrefix = (hex: string): string => (hex.startsWith('0x') ? hex : '0x' + hex);
+export const add0xPrefix = (hex: string): string => (hex.startsWith('0x') ? hex : `0x${hex}`);
+
+export const remove0xPrefix = (hex: string): string => (hex.startsWith('0x') ? hex.slice('0x'.length) : hex);

@@ -13,17 +13,24 @@ import CardanoWasm, {
   StakeDelegation,
   StakeDeregistration,
   StakeRegistration,
-  TransactionMetadata,
+  AuxiliaryData,
   TransactionMetadatum,
   Value
 } from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
-import { CatalystLabels, NetworkIdentifier, OperationType, RelayType } from '../constants';
+import {
+  CatalystDataIndexes,
+  CatalystLabels,
+  CatalystSigIndexes,
+  NetworkIdentifier,
+  OperationType,
+  RelayType
+} from '../constants';
 import { ErrorFactory } from '../errors';
 import { add0xPrefix, bytesToHex, hexStringToBuffer } from '../formatters';
 import { isEd25519Signature, isKeyValid, isPolicyIdValid, isTokenNameValid } from '../validations';
 import { generateRewardAddress, generateAddress, parseToRewardAddress } from './addresses';
-import { getStakingCredentialFromHex } from './staking-credentials';
+import { getPublicKey, getStakingCredentialFromHex } from './staking-credentials';
 import { parsePoolOwners, parsePoolRewardAccount } from './transactions-processor';
 
 const isPositiveNumber = (value: string): boolean => /^\+?\d+/.test(value);
@@ -179,19 +186,6 @@ const validateAndParseRewardAddress = (logger: Logger, rwrdAddress: string): Car
   }
   if (!rewardAddress) throw ErrorFactory.invalidAddressError();
   return rewardAddress;
-};
-
-const validateAndParseStakeKey = (logger: Logger, stakeKey: Components.Schemas.PublicKey): PublicKey => {
-  if (!stakeKey.hex_bytes) {
-    logger.error('[validateAndParsePublicKey] Stake key not provided');
-    throw ErrorFactory.missingStakingKeyError();
-  }
-  if (!isKeyValid(stakeKey.hex_bytes, stakeKey.curve_type)) {
-    logger.info('[validateAndParsePublicKey] Stake key has an invalid format');
-    throw ErrorFactory.invalidStakingKeyFormat();
-  }
-  const publicKeyBuffer = hexStringToBuffer(stakeKey.hex_bytes);
-  return PublicKey.from_bytes(publicKeyBuffer);
 };
 
 const validateAndParseVotingKey = (logger: Logger, votingKey: Components.Schemas.PublicKey): PublicKey => {
@@ -422,7 +416,7 @@ const validateAndParseVoteRegistrationMetadata = (
   logger.info('[validateAndParseVoteRegistrationMetadata] About to validate and parse voting key');
   const parsedVotingKey = validateAndParseVotingKey(logger, votingKey);
   logger.info('[validateAndParseVoteRegistrationMetadata] About to validate and parse stake key');
-  const parsedStakeKey = validateAndParseStakeKey(logger, stakeKey);
+  const parsedStakeKey = getPublicKey(logger, stakeKey);
   logger.info('[validateAndParseVoteRegistrationMetadata] About to validate and parse reward address');
   const parsedAddress = validateAndParseRewardAddress(logger, rewardAddress);
 
@@ -549,7 +543,7 @@ const processWithdrawal = (
   return { reward: CardanoWasm.RewardAddress.new(network, credential), address };
 };
 
-const processVoteRegistration = (logger: Logger, operation: Components.Schemas.Operation): TransactionMetadata => {
+const processVoteRegistration = (logger: Logger, operation: Components.Schemas.Operation): AuxiliaryData => {
   logger.info('[processVoteRegistration] About to process vote registration');
   if (!operation?.metadata?.voteRegistrationMetadata) {
     logger.error('[processVoteRegistration] Vote registration metadata was not provided');
@@ -562,23 +556,22 @@ const processVoteRegistration = (logger: Logger, operation: Components.Schemas.O
   );
   const registrationMetadata = CardanoWasm.encode_json_str_to_metadatum(
     JSON.stringify({
-      1: votingKey,
-      2: stakeKey,
-      3: rewardAddress,
-      4: votingNonce
+      [CatalystDataIndexes.VOTING_KEY]: votingKey,
+      [CatalystDataIndexes.STAKE_KEY]: stakeKey,
+      [CatalystDataIndexes.REWARD_ADDRESS]: rewardAddress,
+      [CatalystDataIndexes.VOTING_NONCE]: votingNonce
     }),
     MetadataJsonSchema.BasicConversions
   );
 
   const signatureMetadata = CardanoWasm.encode_json_str_to_metadatum(
     JSON.stringify({
-      1: votingSignature
+      [CatalystSigIndexes.VOTING_SIGNATURE]: votingSignature
     }),
     MetadataJsonSchema.BasicConversions
   );
 
   const generalMetadata = GeneralTransactionMetadata.new();
-
   generalMetadata.insert(BigNum.from_str(CatalystLabels.DATA), registrationMetadata);
   generalMetadata.insert(BigNum.from_str(CatalystLabels.SIG), signatureMetadata);
 
@@ -586,7 +579,7 @@ const processVoteRegistration = (logger: Logger, operation: Components.Schemas.O
   metadataList.add(TransactionMetadatum.from_bytes(generalMetadata.to_bytes()));
   metadataList.add(TransactionMetadatum.new_list(MetadataList.new()));
 
-  return TransactionMetadata.from_bytes(metadataList.to_bytes());
+  return AuxiliaryData.from_bytes(metadataList.to_bytes());
 };
 
 const operationProcessor: (
@@ -676,7 +669,7 @@ export interface ProcessOperationsResult {
   stakeKeyRegistrationsCount: number;
   stakeKeyDeRegistrationsCount: number;
   poolRegistrationsCount: number;
-  voteRegistrationMetadata: CardanoWasm.TransactionMetadata | undefined;
+  voteRegistrationMetadata: CardanoWasm.AuxiliaryData | undefined;
 }
 
 /**

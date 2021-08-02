@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 
+import { AuxiliaryData } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import {
   BalanceAtBlock,
@@ -24,7 +25,8 @@ import {
   PoolOperations,
   SIGNATURE_TYPE,
   StakingOperations,
-  SUCCESS_STATUS
+  SUCCESS_STATUS,
+  VoteOperations
 } from './constants';
 import { hexStringFormatter } from './formatters';
 
@@ -485,7 +487,8 @@ export const getNetworkIdentifierByRequestParameters = (
  */
 export const encodeExtraData = async (
   transaction: string,
-  operations: Components.Schemas.Operation[]
+  operations: Components.Schemas.Operation[],
+  transactionMetadata?: AuxiliaryData
 ): Promise<string> => {
   const extraData: Components.Schemas.Operation[] = operations
     // eslint-disable-next-line camelcase
@@ -493,13 +496,16 @@ export const encodeExtraData = async (
       operation =>
         operation.coin_change?.coin_action === COIN_SPENT_ACTION ||
         StakingOperations.includes(operation.type as OperationType) ||
-        PoolOperations.includes(operation.type as OperationType)
+        PoolOperations.includes(operation.type as OperationType) ||
+        VoteOperations.includes(operation.type as OperationType)
     );
 
-  return (await cbor.encodeAsync([transaction, extraData])).toString('hex');
+  return (await cbor.encodeAsync([transaction, extraData, transactionMetadata])).toString('hex');
 };
 
-export const decodeExtraData = async (encoded: string): Promise<[string, Components.Schemas.Operation[]]> => {
+export const decodeExtraData = async (
+  encoded: string
+): Promise<[string, Components.Schemas.Operation[], AuxiliaryData]> => {
   const [decoded] = await cbor.decodeAll(encoded);
   return decoded;
 };

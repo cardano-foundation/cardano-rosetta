@@ -1,6 +1,5 @@
 import ApiError from '../api-error';
 import ServerError from '../server-error';
-import { destination } from 'pino';
 
 export interface Error {
   message: string;

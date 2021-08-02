@@ -1,6 +1,6 @@
 import { Repositories } from '../db/repositories';
 import blockService, { BlockService } from './block-service';
-import cardanoService, { CardanoService, LinearFeeParameters, DepositParameters } from './cardano-services';
+import cardanoService, { CardanoService, DepositParameters } from './cardano-services';
 import constructionService, { ConstructionService } from './construction-service';
 import networkService, { NetworkService, TopologyConfig } from './network-service';
 
