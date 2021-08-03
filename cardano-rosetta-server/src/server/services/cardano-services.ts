@@ -1,12 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable wrap-regex */
-import CardanoWasm, {
-  BigNum,
-  Ed25519Signature,
-  PublicKey,
-  StakeCredential,
-  Vkey
-} from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm, { BigNum, Ed25519Signature, PublicKey, StakeCredential, Vkey } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
 import {

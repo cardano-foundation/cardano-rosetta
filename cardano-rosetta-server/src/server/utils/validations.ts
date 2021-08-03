@@ -1,7 +1,7 @@
 import { PUBLIC_KEY_BYTES_LENGTH, ADA, AddressType, CurveType, ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from './constants';
 import { ErrorFactory } from './errors';
 import { isEmptyHexString } from './formatters';
-import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm from 'cardano-serialization-lib';
 
 const tokenNameValidation = new RegExp(`^[0-9a-fA-F]{0,${ASSET_NAME_LENGTH}}$`);
 

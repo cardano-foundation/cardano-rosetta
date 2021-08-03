@@ -1306,7 +1306,10 @@ describe('Pool Registration', () => {
     expect(response.json()).toEqual({
       code: 4030,
       message: 'Pool relays are invalid',
-      details: { message: 'RuntimeError: unreachable' },
+      details: {
+        // eslint-disable-next-line quotes
+        message: `Deserialization failed in Ipv4 because: Invalid cbor: expected tuple 'Ipv4 address length' of length 4 but got length Len(1).`
+      },
       retriable: false
     });
   });
@@ -1379,7 +1382,7 @@ describe('Pool Registration', () => {
       message: 'Pool metadata is invalid',
       details: {
         // eslint-disable-next-line quotes
-        message: `Deserialization failed in MetadataHash because: Invalid cbor: expected tuple 'hash length' of length 32 but got length Len(0).`
+        message: `Deserialization failed in PoolMetadataHash because: Invalid cbor: expected tuple 'hash length' of length 32 but got length Len(0).`
       },
       retriable: false
     });

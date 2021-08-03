@@ -324,11 +324,6 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@emurgo/cardano-serialization-lib-nodejs@6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@emurgo/cardano-serialization-lib-nodejs/-/cardano-serialization-lib-nodejs-6.0.0.tgz#6496fbe34e5ac0af522ed0fe6919c34bedb00283"
-  integrity sha512-8PaFFGqd2hD0KcSMcFh2f6VZx3G6wpzl4KhwiwyuEhUd+NWYT5ITQNFBmST0pJ6yQPP99/6Z3nc1L1dk60fGGA==
-
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
@@ -1879,6 +1874,10 @@ capture-exit@^2.0.0:
   integrity sha512-PiT/hQmTonHhl/HFGN+Lx3JJUznrVYJ3+AQsnthneZbvW7x+f08Tk7yLJTLEOUvBTbduLeeBkxEaYXUOUrRq6g==
   dependencies:
     rsvp "^4.8.4"
+
+cardano-serialization-lib@packages-cache/cardano-serialization-lib-7.0.0-39f84394c18e780cb6d3475999a92b6ccede4038.tgz:
+  version "7.0.0"
+  resolved packages-cache/cardano-serialization-lib-7.0.0-39f84394c18e780cb6d3475999a92b6ccede4038.tgz#b64435fa9fdda6c2a21be6348d6165b7db4262ee
 
 caseless@~0.12.0:
   version "0.12.0"
