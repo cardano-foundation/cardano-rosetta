@@ -12,7 +12,7 @@ import {
   RelayType,
   StakingOperations
 } from '../constants';
-import { mapAmount } from '../data-mapper';
+import { mapAmount, TransactionExtraData } from '../data-mapper';
 import { ErrorFactory } from '../errors';
 import { hexFormatter, remove0xPrefix } from '../formatters';
 import { generateRewardAddress, getAddressPrefix, parseAddress } from './addresses';
@@ -456,9 +456,8 @@ const parseVoteMetadataToOperation = (
 export const convert = (
   logger: Logger,
   transactionBody: CardanoWasm.TransactionBody,
-  extraData: Components.Schemas.Operation[],
-  network: number,
-  transactionMetadata?: AuxiliaryData
+  extraData: TransactionExtraData,
+  network: number
 ): Components.Schemas.Operation[] => {
   const operations = [];
   const inputsCount = transactionBody.inputs().len();
@@ -467,7 +466,7 @@ export const convert = (
   for (let i = 0; i < inputsCount; i++) {
     const input = transactionBody.inputs().get(i);
     const inputParsed = parseInputToOperation(input, operations.length);
-    operations.push({ ...inputParsed, ...extraData[i], status: '' });
+    operations.push({ ...inputParsed, ...extraData.operations[i], status: '' });
   }
   // till this line operations only contains inputs
   const relatedOperations = getRelatedOperationsFromInputs(operations);
@@ -479,7 +478,7 @@ export const convert = (
     operations.push(outputParsed);
   }
 
-  const certOps = extraData.filter(({ type }) =>
+  const certOps = extraData.operations.filter(({ type }) =>
     [
       OperationType.STAKE_KEY_REGISTRATION,
       OperationType.STAKE_KEY_DEREGISTRATION,
@@ -491,16 +490,16 @@ export const convert = (
   );
   const parsedCertOperations = parseCertsToOperations(logger, transactionBody, certOps, network);
   operations.push(...parsedCertOperations);
-  const withdrawalOps = extraData.filter(({ type }) => type === OperationType.WITHDRAWAL);
+  const withdrawalOps = extraData.operations.filter(({ type }) => type === OperationType.WITHDRAWAL);
   const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
   parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations, network);
 
-  const voteOp = extraData.find(({ type }) => type === OperationType.VOTE_REGISTRATION);
+  const voteOp = extraData.operations.find(({ type }) => type === OperationType.VOTE_REGISTRATION);
   if (voteOp) {
     const parsedVoteOperations = parseVoteMetadataToOperation(
       logger,
       voteOp.operation_identifier.index,
-      transactionMetadata
+      extraData.transactionMetadata
     );
     operations.push(parsedVoteOperations);
   }

@@ -203,11 +203,10 @@ const configure = (
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         return {
           // eslint-disable-next-line camelcase
-          unsigned_transaction: await encodeExtraData(
-            unsignedTransaction.bytes,
-            request.body.operations,
-            unsignedTransaction.metadata
-          ),
+          unsigned_transaction: await encodeExtraData(unsignedTransaction.bytes, {
+            operations: request.body.operations,
+            transactionMetadata: unsignedTransaction.metadata
+          }),
           payloads
         };
       },
@@ -221,7 +220,7 @@ const configure = (
       async () => {
         const logger = request.log;
         logger.info('[constructionCombine] Request received to sign a transaction');
-        const [transaction, extraData, transactionMetadata] = await decodeExtraData(request.body.unsigned_transaction);
+        const [transaction, extraData] = await decodeExtraData(request.body.unsigned_transaction);
         const signedTransaction = cardanoService.buildTransaction(
           logger,
           transaction,
@@ -232,7 +231,7 @@ const configure = (
         );
         logger.info({ signedTransaction }, '[constructionCombine] About to return signed transaction');
         // eslint-disable-next-line camelcase
-        return { signed_transaction: await encodeExtraData(signedTransaction, extraData, transactionMetadata) };
+        return { signed_transaction: await encodeExtraData(signedTransaction, extraData) };
       },
       request.log,
       networkService
@@ -246,31 +245,19 @@ const configure = (
         const signed = request.body.signed;
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         logger.info(request.body.transaction, '[constructionParse] Processing');
-        const [transaction, extraData, transactionMetadata] = await decodeExtraData(request.body.transaction);
-        logger.info({ transaction, extraData, transactionMetadata }, '[constructionParse] Decoded');
+        const [transaction, extraData] = await decodeExtraData(request.body.transaction);
+        logger.info({ transaction, extraData }, '[constructionParse] Decoded');
         if (signed) {
           return {
             // eslint-disable-next-line camelcase
             network_identifier: request.body.network_identifier,
-            ...cardanoService.parseSignedTransaction(
-              logger,
-              networkIdentifier,
-              transaction,
-              extraData,
-              transactionMetadata
-            )
+            ...cardanoService.parseSignedTransaction(logger, networkIdentifier, transaction, extraData)
           };
         }
         return {
           // eslint-disable-next-line camelcase
           network_identifier: request.body.network_identifier,
-          ...cardanoService.parseUnsignedTransaction(
-            logger,
-            networkIdentifier,
-            transaction,
-            extraData,
-            transactionMetadata
-          )
+          ...cardanoService.parseUnsignedTransaction(logger, networkIdentifier, transaction, extraData)
         };
       },
       request.log,
