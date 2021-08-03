@@ -30,6 +30,7 @@ import Queries, {
   FindTransactionPoolRelays,
   FindTransactionPoolOwners,
   FindTransactionWithdrawals,
+  FindTransactionMetadata,
   FindPoolRetirements,
   FindUtxo,
   FindMaBalance
@@ -327,6 +328,20 @@ const parsePoolRetirementRow = (
 });
 
 /**
+ * Parses a vote row into a vote object
+ *
+ * @param transaction
+ * @param vote
+ */
+const parseVoteRow = (transaction: PopulatedTransaction, metadata: FindTransactionMetadata): PopulatedTransaction => ({
+  ...transaction,
+  voteRegistrations: transaction.voteRegistrations.concat({
+    data: metadata.data,
+    signature: metadata.signature
+  })
+});
+
+/**
  * Updates the transaction appending outputs
  *
  * @param populatedTransaction
@@ -448,7 +463,8 @@ const populateTransactions = async (
     Queries.findTransactionRegistrations,
     Queries.findTransactionDeregistrations,
     Queries.findTransactionDelegations,
-    Queries.FindTransactionPoolRegistrationsData,
+    Queries.findTransactionMetadata,
+    Queries.findTransactionPoolRegistrationsData,
     Queries.findTransactionPoolOwners,
     Queries.findTransactionPoolRelays,
     Queries.findPoolRetirements
@@ -460,6 +476,7 @@ const populateTransactions = async (
     registrations,
     deregistrations,
     delegations,
+    votes,
     poolsData,
     poolsOwners,
     poolsRelays,
@@ -474,6 +491,7 @@ const populateTransactions = async (
   transactionsMap = populateTransactionField(transactionsMap, deregistrations.rows, parseDeregistrationsRow);
   transactionsMap = populateTransactionField(transactionsMap, delegations.rows, parseDelegationsRow);
   transactionsMap = populateTransactionField(transactionsMap, poolRetirements.rows, parsePoolRetirementRow);
+  transactionsMap = populateTransactionField(transactionsMap, votes.rows, parseVoteRow);
 
   const mappedPoolRegistrations = mapToTransactionPoolRegistrations(poolsData.rows, poolsOwners.rows, poolsRelays.rows);
   transactionsMap = populateTransactionField(transactionsMap, mappedPoolRegistrations, parsePoolRegistrationsRows);

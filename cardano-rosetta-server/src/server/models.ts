@@ -125,6 +125,11 @@ export interface PoolRetirement {
   address: string;
 }
 
+export interface VoteRegistration {
+  signature: string;
+  data: string;
+}
+
 export interface Delegation {
   stakeAddress: string;
   poolHash: string;
@@ -148,6 +153,7 @@ export interface PopulatedTransaction extends Transaction {
   delegations: Delegation[];
   poolRegistrations: PoolRegistration[];
   poolRetirements: PoolRetirement[];
+  voteRegistrations: VoteRegistration[];
 }
 
 export interface Network {

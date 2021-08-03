@@ -1,3 +1,5 @@
+import { CatalystLabels } from '../../utils/constants';
+
 const findBlock = (blockNumber?: number, blockHash?: string): string => `
 SELECT 
   b.hash as hash,
@@ -298,6 +300,11 @@ export interface FindPoolRetirements extends FindTransactionFieldResult {
   epoch: number;
 }
 
+export interface FindTransactionMetadata extends FindTransactionFieldResult {
+  data: string;
+  signature: string;
+}
+
 const poolRegistrationQuery = `
   WITH pool_registration AS (
   SELECT
@@ -325,7 +332,7 @@ const poolRegistrationQuery = `
   )
 `;
 
-const FindTransactionPoolRegistrationsData = `
+const findTransactionPoolRegistrationsData = `
   ${poolRegistrationQuery}
     SELECT *
     FROM pool_registration
@@ -365,6 +372,40 @@ const validTxQuery = `
     FROM tx
     WHERE valid_contract = TRUE
   )
+`;
+
+const findTransactionMetadata = `
+WITH metadata AS (
+  SELECT
+    metadata.json,
+    metadata.key,
+    tx.hash as "txHash"
+  FROM tx_metadata AS metadata
+  JOIN tx
+    ON tx.id = metadata.tx_id
+  WHERE tx.hash = ANY($1)
+  ),
+  metadata_data AS (
+    SELECT 
+      json AS data,
+      metadata."txHash"
+    FROM metadata
+    WHERE key = ${CatalystLabels.DATA}
+  ),
+  metadata_sig AS (
+    SELECT 
+      json AS signature,
+      metadata."txHash"
+    FROM metadata
+    WHERE key = ${CatalystLabels.SIG}
+  )
+  SELECT 
+  data,
+  signature,
+  metadata_data."txHash"
+  FROM metadata_data
+  FULL OUTER JOIN metadata_sig
+    ON metadata_data."txHash" = metadata_sig."txHash"
 `;
 
 const utxoQuery = `
@@ -472,9 +513,10 @@ const Queries = {
   findTransactionByHashAndBlock,
   findTransactionDelegations,
   findTransactionDeregistrations,
+  findTransactionMetadata,
   findTransactionPoolOwners,
   findTransactionPoolRelays,
-  FindTransactionPoolRegistrationsData,
+  findTransactionPoolRegistrationsData,
   findTransactionRegistrations,
   findTransactionWithdrawals,
   findTransactionsByBlock,
