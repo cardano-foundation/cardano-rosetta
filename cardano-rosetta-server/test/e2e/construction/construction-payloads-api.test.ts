@@ -57,7 +57,9 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH,
-  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE
 } from '../fixture-data';
 import {
   SIGNATURE_TYPE,
@@ -1718,5 +1720,42 @@ describe('Pool Registration with certification', () => {
       message: 'Invalid certificate type. Expected pool registration certificate',
       retriable: false
     });
+  });
+});
+
+describe.only('Vote Registration', () => {
+  let database: Pool;
+  let server: FastifyInstance;
+
+  beforeAll(async () => {
+    database = setupOfflineDatabase();
+    server = setupServer(database);
+  });
+
+  afterAll(async () => {
+    await database.end();
+  });
+
+  test('Should return a valid unsigned transaction hash when sending valid operations with a vote registration', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '91dd32dbf59dc3295f53f1dc0ac02d317e139b1c4a26fef4c4172b4b9b0a2de1'
+        }
+      ]
+    });
+
+    // TODO: decode extra data and check that the auxiliary data matches the construction metadata
   });
 });
