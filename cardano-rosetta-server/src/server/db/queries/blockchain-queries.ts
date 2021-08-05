@@ -55,7 +55,7 @@ const currenciesQuery = (currencies: CurrencyId[]): string =>
 const findTransactionsByBlock = (blockNumber?: number, blockHash?: string): string => `
 SELECT 
   tx.*,
-  block.hash as blockHash
+  block.hash as "blockHash"
 FROM tx
 JOIN block ON block.id = tx.block_id
 WHERE
@@ -419,7 +419,7 @@ const findBalanceByAddressAndBlock = `
     JOIN stake_address ON 
         stake_address.id = r.addr_id
     WHERE stake_address.view = $1
-    AND r.epoch_no <= (SELECT epoch_no FROM block WHERE hash = $2))- 
+    AND r.spendable_epoch <= (SELECT epoch_no FROM block WHERE hash = $2))- 
     (SELECT COALESCE(SUM(w.amount),0) 
     FROM withdrawal w
     JOIN tx ON tx.id = w.tx_id AND 
