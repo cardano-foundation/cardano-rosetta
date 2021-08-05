@@ -163,10 +163,11 @@ ARG NETWORK=mainnet
 ENV DEFAULT_RELATIVE_TTL=1000 LOGGER_MIN_SEVERITY=info PAGE_SIZE=25
 COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
-COPY config/ecosystem.config.js .
+COPY ecosystem.config.js .
+COPY postgresql.conf /etc/postgresql/12/main/postgresql.conf
 COPY scripts/start_cardano-db-sync.sh /scripts/
-COPY config/postgres/postgresql.conf /etc/postgresql/12/main/postgresql.conf
 COPY config/network/${NETWORK} /config/
 ENV PGPASSFILE=/config/cardano-db-sync/pgpass
-RUN chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
+RUN echo "/var/run/postgresql:5432:cexplorer:*:*" > $PGPASSFILE &&\
+ chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
 COPY scripts/entrypoint.sh .

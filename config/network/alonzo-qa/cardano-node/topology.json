@@ -1,7 +1,7 @@
 {
   "Producers": [
     {
-      "addr": "relays-new.shelley-qa.dev.cardano.org",
+      "addr": "relays.alonzo-qa.dev.cardano.org",
       "port": 3001,
       "valency": 2
     }

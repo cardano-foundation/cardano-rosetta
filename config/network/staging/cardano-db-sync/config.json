@@ -1,9 +1,9 @@
 {
   "EnableLogMetrics": false,
   "EnableLogging": true,
-  "NetworkName": "testnet",
+  "NetworkName": "staging",
   "NodeConfigFile": "../cardano-node/config.json",
-  "RequiresNetworkMagic": "RequiresMagic",
+  "RequiresNetworkMagic": "RequiresNoMagic",
   "defaultBackends": [
     "KatipBK"
   ],

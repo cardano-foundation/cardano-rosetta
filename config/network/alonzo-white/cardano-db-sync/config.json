@@ -1,7 +1,7 @@
 {
   "EnableLogMetrics": false,
   "EnableLogging": true,
-  "NetworkName": "testnet",
+  "NetworkName": "alonzo-white",
   "NodeConfigFile": "../cardano-node/config.json",
   "RequiresNetworkMagic": "RequiresMagic",
   "defaultBackends": [
