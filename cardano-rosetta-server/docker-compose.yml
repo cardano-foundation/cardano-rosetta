@@ -22,7 +22,7 @@ services:
         max-size: "200k"
         max-file: "10"
   cardano-node:
-    image: inputoutput/cardano-node:${CARDANO_NODE_VERSION:-alonzo-white-1.4}
+    image: inputoutput/cardano-node:${CARDANO_NODE_VERSION:-alonzo-purple-1.0}
     environment:
       - NETWORK=${NETWORK:-mainnet}
     volumes:
