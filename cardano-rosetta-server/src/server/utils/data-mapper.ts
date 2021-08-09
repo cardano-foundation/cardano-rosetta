@@ -20,6 +20,7 @@ import {
   MULTI_ASSET_DECIMALS,
   NetworkIdentifier,
   OperationType,
+  OperationTypeStatus,
   PoolOperations,
   SIGNATURE_TYPE,
   StakingOperations,
@@ -131,11 +132,12 @@ export const mapToRosettaTransaction = (
   transaction: PopulatedTransaction,
   poolDeposit: number
 ): Components.Schemas.Transaction => {
+  const status = transaction.validContract ? OperationTypeStatus.SUCCESS : OperationTypeStatus.INVALID;
   const inputsAsOperations = transaction.inputs.map((input, index) =>
     createOperation(
       index,
       OperationType.INPUT,
-      SUCCESS_STATUS,
+      status,
       input.address,
       mapValue(input.value, true),
       undefined,
@@ -150,7 +152,7 @@ export const mapToRosettaTransaction = (
       index: getOperationCurrentIndex(totalOperations, index)
     },
     type: OperationType.WITHDRAWAL,
-    status: SUCCESS_STATUS,
+    status,
     account: {
       address: withdrawal.stakeAddress
     },
@@ -165,7 +167,7 @@ export const mapToRosettaTransaction = (
         index: getOperationCurrentIndex(totalOperations, index)
       },
       type: OperationType.STAKE_KEY_REGISTRATION,
-      status: SUCCESS_STATUS,
+      status,
       account: {
         address: registration.stakeAddress
       },
@@ -181,7 +183,7 @@ export const mapToRosettaTransaction = (
         index: getOperationCurrentIndex(totalOperations, index)
       },
       type: OperationType.POOL_RETIREMENT,
-      status: SUCCESS_STATUS,
+      status,
       account: {
         address: poolRetirement.address
       },
@@ -198,7 +200,7 @@ export const mapToRosettaTransaction = (
         index: getOperationCurrentIndex(totalOperations, index)
       },
       type: OperationType.STAKE_KEY_DEREGISTRATION,
-      status: SUCCESS_STATUS,
+      status,
       account: {
         address: deregistration.stakeAddress
       },
@@ -213,7 +215,7 @@ export const mapToRosettaTransaction = (
       index: getOperationCurrentIndex(totalOperations, index)
     },
     type: OperationType.STAKE_DELEGATION,
-    status: SUCCESS_STATUS,
+    status,
     account: {
       address: delegation.stakeAddress
     },
@@ -228,7 +230,7 @@ export const mapToRosettaTransaction = (
         index: getOperationCurrentIndex(totalOperations, index)
       },
       type: OperationType.POOL_REGISTRATION,
-      status: SUCCESS_STATUS,
+      status,
       account: {
         // public cold key
         address: poolRegistration.poolHash
@@ -260,7 +262,7 @@ export const mapToRosettaTransaction = (
     createOperation(
       getOperationCurrentIndex(totalOperations, index),
       OperationType.OUTPUT,
-      SUCCESS_STATUS,
+      status,
       output.address,
       output.value,
       relatedOperations,

@@ -14,6 +14,10 @@ const allow = {
     {
       status: 'success',
       successful: true
+    },
+    {
+      status: 'invalid',
+      successful: false
     }
   ],
   operation_types: OPERATION_TYPES,

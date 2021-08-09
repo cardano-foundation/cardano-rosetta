@@ -122,7 +122,8 @@ const parseTransactionRows = (result: QueryResult<FindTransaction>): Transaction
     hash: hexFormatter(row.hash),
     blockHash: row.blockHash && hexFormatter(row.blockHash),
     fee: row.fee,
-    size: row.size
+    size: row.size,
+    validContract: row.validContract
   }));
 
 /**
@@ -140,6 +141,7 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
         blockHash: transaction.blockHash,
         fee: transaction.fee,
         size: transaction.size,
+        validContract: transaction.validContract,
         inputs: [],
         outputs: [],
         withdrawals: [],
@@ -171,6 +173,7 @@ const mapToTransactionPoolRegistrations = (
       }));
     return {
       txHash: poolRegistration.txHash,
+      validContract: poolRegistration.validContract,
       vrfKeyHash: poolRegistration.vrfKeyHash,
       pledge: poolRegistration.pledge,
       margin: poolRegistration.margin,
@@ -301,7 +304,8 @@ const parseInputsRow = (
       address: queryResult.address,
       value: queryResult.value,
       sourceTransactionHash: hexFormatter(queryResult.sourceTxHash),
-      sourceTransactionIndex: queryResult.sourceTxIndex
+      sourceTransactionIndex: queryResult.sourceTxIndex,
+      validContract: queryResult.validContract
     }),
     (updatedTransaction, updatedCollection) => ({ ...updatedTransaction, inputs: updatedCollection })
   );

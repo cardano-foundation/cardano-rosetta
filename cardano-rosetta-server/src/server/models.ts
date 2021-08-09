@@ -95,6 +95,7 @@ export interface PoolRelay {
 
 export interface TransactionPoolRegistrations {
   txHash: Buffer;
+  validContract: boolean;
   vrfKeyHash: Buffer;
   pledge: string;
   margin: string;
@@ -135,6 +136,7 @@ export interface Transaction {
   blockHash: string;
   fee: string;
   size: number;
+  validContract: boolean;
 }
 
 export interface PopulatedTransaction extends Transaction {
