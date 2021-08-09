@@ -41,16 +41,20 @@ const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};
   keyAddressMapper[PAYMENT_ADDRESS] = PAYMENT_KEYS;
 
-  const responseCondition = (response) =>
-    response.coins.length !== 0 &&
-    response.balances.some(
+  const coinsCondition = (response) => response.coins.length !== 0;
+  const balanceCondition = (response) =>
+    response.balances?.some(
       (balance) =>
         balance.currency.symbol === EXPECTED_TOKEN.symbol &&
         balance.currency?.metadata?.policyId === EXPECTED_TOKEN.policy
     );
 
   logger.info(`[doRun] address ${PAYMENT_ADDRESS} expects to receive funds.`);
-  const { unspents, balances } = await waitForBalanceToBe(PAYMENT_ADDRESS, responseCondition);
+  const { unspents, balances } = await waitForBalanceToBe(
+    PAYMENT_ADDRESS,
+    coinsCondition,
+    balanceCondition
+  );
   const builtOperations = buildOperation(
     unspents,
     balances,

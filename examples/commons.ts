@@ -79,7 +79,7 @@ const waitForBalanceToBe = async (
       logger.info("[waitForBalanceToBe] Funds found!");
       balances.forEach((balance) =>
         logger.info(
-          `[waitForBalanceToBe] ${balance.value} ${balance.currency.symbol}`
+          `[waitForBalanceToBe] ${balance.value} amount of ${balance.currency.symbol}`
         )
       );
       fetchAccountBalance = responseBalance.data;
