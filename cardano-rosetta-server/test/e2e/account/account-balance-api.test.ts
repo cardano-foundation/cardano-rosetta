@@ -272,7 +272,7 @@ describe('/account/balance endpoint', () => {
       ]
     });
   });
-  // At this point the total amount of rewards is 1658277357 (at epoch 224)
+  // At this point the total amount of rewards is 1426461123 (at epoch 224)
   // and the total amount of withdrawals is 112588803 (at block 4597861)
   test('should sum all rewards and subtract all withdrawals till block 4853177', async () => {
     const response = await server.inject({
@@ -294,7 +294,7 @@ describe('/account/balance endpoint', () => {
       },
       balances: [
         {
-          value: '1545688554',
+          value: '1313872320',
           currency: {
             decimals: 6,
             symbol: 'ADA'

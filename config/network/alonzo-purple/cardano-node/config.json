@@ -1,0 +1,107 @@
+{
+  "AlonzoGenesisFile": "../genesis/alonzo.json",
+  "AlonzoGenesisHash": "44d65c89cce5f717e839a86fed28af924252ff46eca5aaf15b47ec0dd6a59578",
+  "ApplicationName": "cardano-sl",
+  "ApplicationVersion": 0,
+  "ByronGenesisFile": "../genesis/byron.json",
+  "ByronGenesisHash": "6d58e8c626cb355ac2a4b040e1adb8266753a69f63593274e4558d6bd0c41eac",
+  "LastKnownBlockVersion-Alt": 0,
+  "LastKnownBlockVersion-Major": 5,
+  "LastKnownBlockVersion-Minor": 1,
+  "MaxKnownMajorProtocolVersion": 5,
+  "PBftSignatureThreshold": 1.1,
+  "Protocol": "Cardano",
+  "RequiresNetworkMagic": "RequiresMagic",
+  "ShelleyGenesisFile": "../genesis/shelley.json",
+  "ShelleyGenesisHash": "b143c75727f4b2fb372db713e719f9b958bb428e305a668bda6190443db4c191",
+  "TestAllegraHardForkAtEpoch": 2,
+  "TestAlonzoHardForkAtEpoch": 4,
+  "TestEnableDevelopmentHardForkEras": true,
+  "TestEnableDevelopmentNetworkProtocols": true,
+  "TestMaryHardForkAtEpoch": 3,
+  "TestShelleyHardForkAtEpoch": 1,
+  "TraceBlockFetchClient": false,
+  "TraceBlockFetchDecisions": false,
+  "TraceBlockFetchProtocol": false,
+  "TraceBlockFetchProtocolSerialised": false,
+  "TraceBlockFetchServer": false,
+  "TraceChainDb": true,
+  "TraceChainSyncBlockServer": false,
+  "TraceChainSyncClient": false,
+  "TraceChainSyncHeaderServer": false,
+  "TraceChainSyncProtocol": false,
+  "TraceConnectionManager": true,
+  "TraceDNSResolver": true,
+  "TraceDNSSubscription": true,
+  "TraceDiffusionInitialization": true,
+  "TraceErrorPolicy": true,
+  "TraceForge": true,
+  "TraceHandshake": false,
+  "TraceInboundGovernor": true,
+  "TraceIpSubscription": true,
+  "TraceLedgerPeers": true,
+  "TraceLocalChainSyncProtocol": false,
+  "TraceLocalErrorPolicy": true,
+  "TraceLocalHandshake": false,
+  "TraceLocalRootPeers": true,
+  "TraceLocalTxSubmissionProtocol": false,
+  "TraceLocalTxSubmissionServer": false,
+  "TraceMempool": true,
+  "TraceMux": false,
+  "TracePeerSelection": true,
+  "TracePeerSelectionActions": true,
+  "TracePublicRootPeers": true,
+  "TraceServer": true,
+  "TraceTxInbound": false,
+  "TraceTxOutbound": false,
+  "TraceTxSubmissionProtocol": false,
+  "TracingVerbosity": "NormalVerbosity",
+  "TurnOnLogMetrics": true,
+  "TurnOnLogging": true,
+  "defaultBackends": [
+    "KatipBK"
+  ],
+  "defaultScribes": [
+    [
+      "StdoutSK",
+      "stdout"
+    ]
+  ],
+  "hasEKG": 12788,
+  "hasPrometheus": [
+    "127.0.0.1",
+    12798
+  ],
+  "minSeverity": "Debug",
+  "options": {
+    "mapBackends": {
+      "cardano.node.metrics": [
+        "EKGViewBK"
+      ],
+      "cardano.node.resources": [
+        "EKGViewBK"
+      ]
+    },
+    "mapSubtrace": {
+      "cardano.node.metrics": {
+        "subtrace": "Neutral"
+      }
+    }
+  },
+  "rotation": {
+    "rpKeepFilesNum": 10,
+    "rpLogLimitBytes": 5000000,
+    "rpMaxAgeHours": 24
+  },
+  "setupBackends": [
+    "KatipBK"
+  ],
+  "setupScribes": [
+    {
+      "scFormat": "ScText",
+      "scKind": "StdoutSK",
+      "scName": "stdout",
+      "scRotation": null
+    }
+  ]
+}
