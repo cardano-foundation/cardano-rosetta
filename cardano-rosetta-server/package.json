@@ -19,6 +19,9 @@
   "lint-staged": {
     "src/**/*.{js,ts}": [
       "npm run lint"
+    ],
+    "test/**/*.{js,ts}": [
+      "npm run lint"
     ]
   },
   "husky": {

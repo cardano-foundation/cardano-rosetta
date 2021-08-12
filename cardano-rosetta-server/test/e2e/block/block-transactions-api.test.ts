@@ -336,6 +336,7 @@ describe('/block/transactions endpoint', () => {
       url: BLOCK_TRANSACTION_ENDPOINT,
       payload: {
         ...generatePayload(blockNumber, blockHash),
+        // eslint-disable-next-line camelcase
         transaction_identifier: {
           hash: invalidTxHash
         }
