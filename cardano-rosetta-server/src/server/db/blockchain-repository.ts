@@ -123,6 +123,7 @@ const parseTransactionRows = (result: QueryResult<FindTransaction>): Transaction
     blockHash: row.blockHash && hexFormatter(row.blockHash),
     fee: row.fee,
     size: row.size,
+    scriptSize: row.scriptSize,
     validContract: row.validContract
   }));
 
@@ -141,6 +142,7 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
         blockHash: transaction.blockHash,
         fee: transaction.fee,
         size: transaction.size,
+        scriptSize: transaction.scriptSize,
         validContract: transaction.validContract,
         inputs: [],
         outputs: [],
@@ -160,7 +162,6 @@ const mapToTransactionPoolRegistrations = (
   poolRelays: FindTransactionPoolRelays[]
 ): TransactionPoolRegistrations[] =>
   poolRegistrations.map(poolRegistration => {
-    // mapear por tx hash tmb?
     const owners = poolOwners.filter(owner => owner.poolId === poolRegistration.poolId).map(o => o.owner);
 
     const relays = poolRelays
