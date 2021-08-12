@@ -34,7 +34,7 @@ services:
         max-size: "400k"
         max-file: "20"
   cardano-db-sync:
-    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-alonzo-purple-1.0}
+    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-alonzo-purple-1.0.1}
     command: [
       "--config", "/config/cardano-db-sync/config.json",
       "--socket-path", "/node-ipc/node.socket",
