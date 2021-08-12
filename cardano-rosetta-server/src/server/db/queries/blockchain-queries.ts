@@ -35,6 +35,7 @@ export interface FindTransaction {
   blockHash: Buffer;
   fee: string;
   size: number;
+  scriptSize: number;
   validContract: boolean;
 }
 
@@ -59,6 +60,7 @@ SELECT
   tx.fee,
   tx.size,
   tx.valid_contract AS "validContract",
+  tx.script_size AS "scriptSize",
   block.hash as "blockHash"
 FROM tx
 JOIN block ON block.id = tx.block_id
@@ -89,6 +91,7 @@ SELECT
   tx.fee,
   tx.size,
   tx.valid_contract AS "validContract",
+  tx.script_size AS "scriptSize",
   block.hash as "blockHash"
 FROM tx
 JOIN block ON block.id = tx.block_id
