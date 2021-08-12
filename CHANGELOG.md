@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0-beta.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.2.1...1.4.0-beta.0) (2021-08-12)
+
+
+### Features
+
+* add alonzo era when submitting tx ([2d2d831](https://github.com/input-output-hk/cardano-rosetta/commit/2d2d83127f96f3dfc79a90a932989b25e35fe19e))
+* filter invalid txs from utxo and balance queries ([#401](https://github.com/input-output-hk/cardano-rosetta/issues/401)) ([2298321](https://github.com/input-output-hk/cardano-rosetta/commit/2298321e51f5244a8c3e38266e1b9ae986fa6f2d)), closes [#108](https://github.com/input-output-hk/cardano-rosetta/issues/108)
+
+### Bug Fixes
+
+* fix ma-transfer example ([b3c2a01](https://github.com/input-output-hk/cardano-rosetta/commit/b3c2a01af1730db431a01b7bb6f96ca1420dc7a3))
+* pool registration workflow config fix ([2bf6401](https://github.com/input-output-hk/cardano-rosetta/commit/2bf64015ce87af455c5730b48a4c0949d23c47b7))
+
+
 ## [1.3.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.2.1...1.3.0) (2021-07-21)
 
 
