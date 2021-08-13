@@ -1045,6 +1045,10 @@ export const invalidAlonzoTransaction = {
         }
       }
     ],
+    metadata: {
+      size: 352,
+      scriptSize: 30
+    },
     transaction_identifier: {
       hash: '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c'
     }
