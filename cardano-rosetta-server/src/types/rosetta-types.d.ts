@@ -848,7 +848,15 @@ declare namespace Components {
     }
     export interface Relay {
       type?: string;
+      /**
+       * example:
+       * 127.0.0.1
+       */
       ipv4?: string;
+      /**
+       * example:
+       * 2345:0425:2ca1:0000:0000:0567:5673:23b5
+       */
       ipv6?: string;
       dnsName?: string;
       port?: string;
@@ -1037,7 +1045,10 @@ declare namespace Components {
        *   "lockTime": 1582272577
        * }
        */
-      metadata?: {};
+      metadata?: {
+        size: number;
+        scriptSize: number;
+      };
     }
     /**
      * The transaction_identifier uniquely identifies a transaction in a particular network and block or in the mempool.

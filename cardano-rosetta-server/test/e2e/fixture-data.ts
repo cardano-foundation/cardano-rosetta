@@ -117,7 +117,11 @@ export const block23236WithTransactions = {
               }
             }
           }
-        ]
+        ],
+        metadata: {
+          size: 134,
+          scriptSize: 0
+        }
       },
       {
         transaction_identifier: {
@@ -177,7 +181,11 @@ export const block23236WithTransactions = {
               }
             }
           }
-        ]
+        ],
+        metadata: {
+          size: 134,
+          scriptSize: 0
+        }
       }
     ]
   }
@@ -205,6 +213,10 @@ export const block7134WithTxs = {
       {
         transaction_identifier: {
           hash: 'c950e0d7d898a392ccf458a75728aa35afd4bd3776f118cbf0e0abb315205bc4'
+        },
+        metadata: {
+          size: 212,
+          scriptSize: 0
         },
         operations: [
           {
@@ -403,6 +415,10 @@ export const transactionBlock4597861WithWithdrawals = {
     ],
     transaction_identifier: {
       hash: '2974845ecc7e02e86285d32961c69f3945662a80d5e2caae8a1086e652936f42'
+    },
+    metadata: {
+      size: 451,
+      scriptSize: 0
     }
   }
 };
@@ -466,6 +482,10 @@ export const transactionBlock4490558WithRegistrations = {
     ],
     transaction_identifier: {
       hash: '91f88c21679fdc95cb0712dc8a755eab20fdf9e919871c3c668515c830572090'
+    },
+    metadata: {
+      scriptSize: 0,
+      size: 361
     }
   }
 };
@@ -535,6 +555,10 @@ export const transactionBlock4490559WithDelegation = {
     ],
     transaction_identifier: {
       hash: 'f0024159d124a128db522031c4a3e7b255ee511600afa92ff52b2504702e4e1d'
+    },
+    metadata: {
+      scriptSize: 0,
+      size: 429
     }
   }
 };
@@ -581,7 +605,11 @@ export const transactionBlock4853177WithPoolRetirement = {
           coin_action: 'coin_created'
         }
       }
-    ]
+    ],
+    metadata: {
+      size: 365,
+      scriptSize: 0
+    }
   }
 };
 
@@ -631,6 +659,10 @@ export const transactionBlock4853177WithDeregistration = {
     ],
     transaction_identifier: {
       hash: '5fe53eece38ff4eb102c33c6cbdf34947c8232eefaae0731fdf8f746b81763fc'
+    },
+    metadata: {
+      size: 365,
+      scriptSize: 0
     }
   }
 };
@@ -695,6 +727,10 @@ export const transactionWithPoolRegistration = {
     ],
     transaction_identifier: {
       hash: '29a76dd58c6309cd9cde855c0c50d81d63f921959359b1e544401ac1dbc9b472'
+    },
+    metadata: {
+      size: 723,
+      scriptSize: 0
     }
   }
 };
@@ -769,6 +805,10 @@ export const transactionWithPoolRegistrationWithMultipleOwners = {
     ],
     transaction_identifier: {
       hash: '51d67e194d749df2abf4e2e11cea63ca6e1c630042a366f555939e795a6ddecf'
+    },
+    metadata: {
+      scriptSize: 0,
+      size: 1011
     }
   }
 };
@@ -873,6 +913,10 @@ export const transaction5407534WithTokenBundle = {
       }
     }
   ],
+  metadata: {
+    size: 543,
+    scriptSize: 0
+  },
   transaction_identifier: {
     hash: '8d67291066037f46f092bfc098241cc7143fa1ec2b14b6c23b945878ccf9fe0f'
   }
@@ -952,6 +996,10 @@ export const transaction987aOnGenesis = {
         }
       }
     ],
+    metadata: {
+      size: 0,
+      scriptSize: 0
+    },
     transaction_identifier: {
       hash: '927edb96f3386ab91b5f5d85d84cb4253c65b1c2f65fa7df25f81fab1d62987a'
     }
@@ -997,6 +1045,10 @@ export const invalidAlonzoTransaction = {
         }
       }
     ],
+    metadata: {
+      size: 352,
+      scriptSize: 30
+    },
     transaction_identifier: {
       hash: '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c'
     }

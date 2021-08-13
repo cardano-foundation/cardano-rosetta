@@ -136,6 +136,7 @@ export interface Transaction {
   fee: string;
   size: number;
   validContract: boolean;
+  scriptSize: number;
 }
 
 export interface PopulatedTransaction extends Transaction {

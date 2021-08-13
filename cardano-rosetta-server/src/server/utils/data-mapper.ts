@@ -274,11 +274,16 @@ export const mapToRosettaTransaction = (
   totalOperations.push(outputsAsOperations);
 
   const operations = totalOperations.reduce((accum, operation) => accum.concat(operation), []);
+  const { size, scriptSize } = transaction;
   return {
     transaction_identifier: {
       hash: transaction.hash
     },
-    operations
+    operations,
+    metadata: {
+      size,
+      scriptSize
+    }
   };
 };
 
