@@ -958,6 +958,51 @@ export const transaction987aOnGenesis = {
   }
 };
 
+export const invalidAlonzoTransaction = {
+  transaction: {
+    operations: [
+      {
+        operation_identifier: { index: 0 },
+        type: 'input',
+        status: 'invalid',
+        account: { address: 'addr_test1vpdvkurqk92detyluym8s6pg3gkf5nlah834rag4rntylzs9p3d0g' },
+        amount: { value: '-10000000', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: { identifier: 'b2cf437085d433e75b273adc4efe62fffcdc7fa3d3c821d3994814301df911b0:1' },
+          coin_action: 'coin_spent'
+        }
+      },
+      {
+        operation_identifier: { index: 1, network_index: 0 },
+        related_operations: [{ index: 0 }],
+        type: 'output',
+        status: 'invalid',
+        account: { address: 'addr_test1vpdvkurqk92detyluym8s6pg3gkf5nlah834rag4rntylzs9p3d0g' },
+        amount: { value: '1828955', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: { identifier: '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c:0' },
+          coin_action: 'coin_created'
+        }
+      },
+      {
+        operation_identifier: { index: 2, network_index: 1 },
+        related_operations: [{ index: 0 }],
+        type: 'output',
+        status: 'invalid',
+        account: { address: 'addr_test1vpdvkurqk92detyluym8s6pg3gkf5nlah834rag4rntylzs9p3d0g' },
+        amount: { value: '3000000', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: { identifier: '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c:1' },
+          coin_action: 'coin_created'
+        }
+      }
+    ],
+    transaction_identifier: {
+      hash: '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c'
+    }
+  }
+};
+
 // The following test vectors
 // ./cardano-cli shelley transaction build-raw --tx-in 2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f#1 \
 //  --tx-out addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx +10000 \

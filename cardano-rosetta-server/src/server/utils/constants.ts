@@ -68,8 +68,9 @@ export const PoolOperations = [
   OperationType.POOL_REGISTRATION_WITH_CERT
 ];
 
-enum OperationTypeStatus {
-  SUCCESS = 'success'
+export enum OperationTypeStatus {
+  SUCCESS = 'success',
+  INVALID = 'invalid'
 }
 
 export enum CurveType {
@@ -88,6 +89,10 @@ export const MAIN_TESTNET_NETWORK_MAGIC = 1097911063;
 export const SUCCESS_OPERATION_STATE = {
   status: OperationTypeStatus.SUCCESS,
   successful: true
+};
+export const INVALID_OPERATION_STATE = {
+  status: OperationTypeStatus.INVALID,
+  successful: false
 };
 
 export enum AddressType {

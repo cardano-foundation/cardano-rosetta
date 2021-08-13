@@ -1,7 +1,13 @@
 import { FastifyRequest } from 'fastify';
 import { NetworkService } from '../services/network-service';
 import { CardanoNode } from '../utils/cardano/cli/cardano-node';
-import { MIDDLEWARE_VERSION, OPERATION_TYPES, ROSETTA_VERSION, SUCCESS_OPERATION_STATE } from '../utils/constants';
+import {
+  INVALID_OPERATION_STATE,
+  MIDDLEWARE_VERSION,
+  OPERATION_TYPES,
+  ROSETTA_VERSION,
+  SUCCESS_OPERATION_STATE
+} from '../utils/constants';
 import { mapToNetworkList, mapToNetworkStatusResponse } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
@@ -66,7 +72,7 @@ const configure = (networkService: NetworkService, cardanoNode: CardanoNode): Ne
             metadata: {}
           },
           allow: {
-            operation_statuses: [SUCCESS_OPERATION_STATE],
+            operation_statuses: [SUCCESS_OPERATION_STATE, INVALID_OPERATION_STATE],
             operation_types: OPERATION_TYPES,
             errors: Object.values(ErrorFactory)
               .map(fn => fn())

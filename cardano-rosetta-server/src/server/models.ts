@@ -135,6 +135,7 @@ export interface Transaction {
   blockHash: string;
   fee: string;
   size: number;
+  validContract: boolean;
 }
 
 export interface PopulatedTransaction extends Transaction {

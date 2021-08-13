@@ -35,6 +35,7 @@ export interface FindTransaction {
   blockHash: Buffer;
   fee: string;
   size: number;
+  validContract: boolean;
 }
 
 export interface CurrencyId {
@@ -54,7 +55,10 @@ const currenciesQuery = (currencies: CurrencyId[]): string =>
 // Also, genesis number is 0, thats why $2 = 0.
 const findTransactionsByBlock = (blockNumber?: number, blockHash?: string): string => `
 SELECT 
-  tx.*,
+  tx.hash,
+  tx.fee,
+  tx.size,
+  tx.valid_contract AS "validContract",
   block.hash as "blockHash"
 FROM tx
 JOIN block ON block.id = tx.block_id
@@ -81,8 +85,11 @@ export interface FindTransactionInOutResult extends FindTransactionFieldResult {
 // Also, genesis number is 0, thats why $2 = 0.
 const findTransactionByHashAndBlock = `
 SELECT 
-  tx.*,
-  block.hash as blockHash
+  tx.hash,
+  tx.fee,
+  tx.size,
+  tx.valid_contract AS "validContract",
+  block.hash as "blockHash"
 FROM tx
 JOIN block ON block.id = tx.block_id
 WHERE
@@ -325,7 +332,8 @@ const findTransactionPoolOwners = `
 ${poolRegistrationQuery}
     SELECT 
       po.pool_hash_id AS "poolId",
-      sa."view" AS "owner"
+      sa."view" AS "owner",
+      pr."txHash"
     FROM pool_registration pr
     JOIN pool_owner po
       ON  (po.pool_hash_id = pr."poolId" 
@@ -341,7 +349,8 @@ ${poolRegistrationQuery}
       prelay.ipv4 as ipv4,
       prelay.ipv6 as ipv6,
       prelay.port as port,
-      prelay.dns_name as "dnsName"
+      prelay.dns_name as "dnsName",
+      pr."txHash"
     FROM pool_registration pr
     JOIN pool_relay prelay
     ON prelay.update_id = pr."updateId"
@@ -429,7 +438,7 @@ const findBalanceByAddressAndBlock = `
     SELECT COALESCE(SUM(r.amount),0) 
       FROM reward r
     JOIN stake_address ON 
-        stake_address.id = r.addr_id
+      stake_address.id = r.addr_id
     WHERE stake_address.view = $1
     AND r.spendable_epoch <= (SELECT epoch_no FROM block WHERE hash = $2)
   ) - (
