@@ -173,7 +173,6 @@ const mapToTransactionPoolRegistrations = (
       }));
     return {
       txHash: poolRegistration.txHash,
-      validContract: poolRegistration.validContract,
       vrfKeyHash: poolRegistration.vrfKeyHash,
       pledge: poolRegistration.pledge,
       margin: poolRegistration.margin,
@@ -304,8 +303,7 @@ const parseInputsRow = (
       address: queryResult.address,
       value: queryResult.value,
       sourceTransactionHash: hexFormatter(queryResult.sourceTxHash),
-      sourceTransactionIndex: queryResult.sourceTxIndex,
-      validContract: queryResult.validContract
+      sourceTransactionIndex: queryResult.sourceTxIndex
     }),
     (updatedTransaction, updatedCollection) => ({ ...updatedTransaction, inputs: updatedCollection })
   );
