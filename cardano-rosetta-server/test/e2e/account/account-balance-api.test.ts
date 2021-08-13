@@ -43,9 +43,13 @@ const ACCOUNT_BALANCE_ENDPOINT = '/account/balance';
 describe('/account/balance endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
+  let alonzoDatabase: Pool;
+  let serverWithAlonzoSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
+    alonzoDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'purple');
+    serverWithAlonzoSupport = setupServer(alonzoDatabase);
   });
 
   afterAll(async () => {
@@ -241,6 +245,29 @@ describe('/account/balance endpoint', () => {
           }
         }
       ]
+    });
+  });
+  // at this block there is a total amount of 4828955 that are part of an invalid tx
+  // and shouldn't be counted
+  test('should not count utxos of an invalid tx', async () => {
+    const response = await serverWithAlonzoSupport.inject({
+      method: 'post',
+      url: ACCOUNT_BALANCE_ENDPOINT,
+      payload: generatePayload(
+        CARDANO,
+        'mainnet',
+        'addr_test1vpdvkurqk92detyluym8s6pg3gkf5nlah834rag4rntylzs9p3d0g',
+        25050,
+        '1f58250b82bc7c7c408028ba01173bdfa37fc82dde34060c5b49a3ea644d9439'
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      balances: [{ currency: { decimals: 6, symbol: 'ADA' }, value: '999972560720' }],
+      block_identifier: {
+        index: 25050,
+        hash: '1f58250b82bc7c7c408028ba01173bdfa37fc82dde34060c5b49a3ea644d9439'
+      }
     });
   });
   test('should return 0 for the balance of stake account at block with no earned rewards', async () => {
