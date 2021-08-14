@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0-beta.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0-beta.0...1.4.0-beta.1) (2021-08-15)
+
+### Chores
+* build and push alonzo-purple images to Docker Hub ([6d3433d](https://github.com/input-output-hk/cardano-rosetta/commit/6d3433d3978626932ccc084522e143bf05b503d2))
+* improve docs to cover Docker Hub repository ([98bb9c4](https://github.com/input-output-hk/cardano-rosetta/commit/98bb9c4207f67239249d5a0d6848c7d3db1e6d0b))
+
+
 ## [1.4.0-beta.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.2.1...1.4.0-beta.0) (2021-08-12)
 
 
