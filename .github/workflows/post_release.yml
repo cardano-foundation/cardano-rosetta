@@ -16,6 +16,7 @@ jobs:
         with:
           build-context: ${{ github.workspace }}
           tag: ${{ github.event.release.tag_name }}
+          
       - name: Build Cardano Rosetta - testnet
         uses: ./.github/actions/build_cardano_rosetta
         with:
@@ -23,23 +24,37 @@ jobs:
           build-context: ${{ github.workspace }}
           network-identifier: testnet
           tag: ${{ github.event.release.tag_name }}-testnet
+          
+      - name: Build Cardano Rosetta - alonzo-purple
+        uses: ./.github/actions/build_cardano_rosetta
+        with:
+          build-cache-image: cardano-rosetta:${{ github.event.release.tag_name }}
+          build-context: ${{ github.workspace }}
+          network-identifier: alonzo-purple
+          tag: ${{ github.event.release.tag_name }}-alonzo-purple
+          
       - name: Smoke test Cardano Rosetta image
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
           tag: ${{ github.event.release.tag_name }}
           test-exe: ./test/smoke_test.sh
+          
       - name: Apply latest tag
         run: |
           docker tag cardano-rosetta:${{ github.event.release.tag_name }} inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}
           docker tag cardano-rosetta:${{ github.event.release.tag_name }} inputoutput/cardano-rosetta:latest
           docker tag cardano-rosetta:${{ github.event.release.tag_name }}-testnet inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-testnet
+          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-alonzo-purple inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-alonzo-purple
+      
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
+      
       - name: Push to Docker Hub
         run: |
           docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}
           docker push inputoutput/cardano-rosetta:latest
           docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-testnet
+          docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-alonzo-purple
