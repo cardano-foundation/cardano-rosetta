@@ -10,8 +10,8 @@ schema]. Skip to [run](#run) if wishing to use a pre-built image from the [Docke
 ### [From anywhere]
 
 ```console
-docker build -t cardano-rosetta:1.4.0-beta.0 https://github.com/input-output-hk/cardano-rosetta.
-git#1.4.0-beta.0
+docker build -t cardano-rosetta:1.4.0-beta.1 https://github.com/input-output-hk/cardano-rosetta.
+git#1.4.0-beta.1
 ```
 ### With local source code
 ```
