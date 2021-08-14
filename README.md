@@ -1,7 +1,10 @@
 # Cardano Rosetta
 [![CI][img_src_CI]][workflow_CI] [![Nightly][img_src_Nightly]][workflow_Nightly] [![Postman Send Transaction Example](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml/badge.svg)](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml)
 
-An implementation of [Rosetta] for [Cardano], targeting the version defined in the [OpenApi schema]
+An implementation of [Rosetta] for [Cardano], targeting the version defined in the [OpenApi 
+schema]. Skip to [run](#run) if wishing to use a pre-built image from the [Docker Hub repository]. 
+
+
 ## Build
 
 ### [From anywhere]
@@ -23,29 +26,72 @@ docker build -t cardano-rosetta .
 
 **_Optionally_** use cached build layers to reduce the initialization time. Suits dev and demo 
 use-cases:
+
+### mainnet
 ```console
 export DOCKER_BUILDKIT=1
 docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --cache-from=inputoutput/cardano-rosetta:master \
-    -t cardano-rosetta:1.4.0-beta.0 \
-    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.0
+    -t inputoutput/cardano-rosetta:1.4.0-beta.1 \
+    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
+```
+
+### testnet
+```console
+export DOCKER_BUILDKIT=1
+docker build \
+    --build-arg BUILDKIT_INLINE_CACHE=1 \
+    --cache-from=inputoutput/cardano-rosetta:master \
+    -t inputoutput/cardano-rosetta:1.4.0-beta.1-testnet \
+    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
+```
+
+### alonzo-purple
+```console
+export DOCKER_BUILDKIT=1
+docker build \
+    --build-arg BUILDKIT_INLINE_CACHE=1 \
+    --cache-from=inputoutput/cardano-rosetta:master \
+    -t inputoutput/cardano-rosetta:1.4.0-beta.1-alonzo-purple \
+    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
 ```
 
 ## Run
+Run the locally built or pre-built images and mount a single volume into the [standard storage 
+location], map the server port to the host, and allocate a suitably-sized `/dev/shm`. See the 
+complete [Docker run reference] for full control.
 
-Mount a single volume into the [standard storage location], mapping the server port to the host, 
-and allocating a suitably-sized `/dev/shm`. See the complete [Docker run reference] for full 
-control.
-
+### mainnet
 ```console
 docker run \
   --name cardano-rosetta \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
   --shm-size=2g \
-  cardano-rosetta:1.4.0-beta.0
+  inputoutput/cardano-rosetta:1.4.0-beta.1
 ```
+
+### testnet
+```console
+docker run \
+  --name cardano-rosetta-testnet \
+  -p 8081:8080 \
+  -v cardano-rosetta-testnet:/data \
+  --shm-size=2g \
+  inputoutput/cardano-rosetta:1.4.0-beta.1-testnet
+```
+
+### alonzo-purple
+```console
+docker run \
+  --name cardano-rosetta-alonzo-purple \
+  -p 8082:8080 \
+  -v cardano-rosetta-alonzo-purple:/data \
+  --shm-size=2g \
+  inputoutput/cardano-rosetta:1.4.0-beta.1-alonzo-purple
+```
+
 ### Configuration
 
 Set ENVs for optional runtime configuration
@@ -108,6 +154,7 @@ Now create a new container using the run instructions above. Sync progress will 
 [Rosetta]: https://www.rosetta-api.org/docs/welcome.html
 [Cardano]: https://cardano.org/
 [OpenApi schema]: cardano-rosetta-server/src/server/openApi.json#L4
+[Docker Hub repository]: https://hub.docker.com/r/inputoutput/cardano-rosetta/tags?page=1&ordering=last_updated
 [From anywhere]: https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere
 [network]: config/network
 [standard storage location]: https://www.rosetta-api.org/docs/standard_storage_location.html
