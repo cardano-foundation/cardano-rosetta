@@ -27,7 +27,9 @@ docker build -t cardano-rosetta .
 **_Optionally_** use cached build layers to reduce the initialization time. Suits dev and demo 
 use-cases:
 
-### mainnet
+<details open>
+  <summary>mainnet</summary>
+
 ```console
 export DOCKER_BUILDKIT=1
 docker build \
@@ -37,7 +39,11 @@ docker build \
     https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
 ```
 
-### testnet
+</details>
+
+<details>
+  <summary>testnet</summary>
+
 ```console
 export DOCKER_BUILDKIT=1
 docker build \
@@ -47,7 +53,11 @@ docker build \
     https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
 ```
 
-### alonzo-purple
+</details>
+
+<details>
+  <summary>alonzo-purple</summary>
+
 ```console
 export DOCKER_BUILDKIT=1
 docker build \
@@ -57,12 +67,17 @@ docker build \
     https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
 ```
 
+</details>
+
+
 ## Run
 Run the locally built or pre-built images and mount a single volume into the [standard storage 
 location], map the server port to the host, and allocate a suitably-sized `/dev/shm`. See the 
 complete [Docker run reference] for full control.
 
-### mainnet
+<details open>
+  <summary>mainnet</summary>
+
 ```console
 docker run \
   --name cardano-rosetta \
@@ -72,7 +87,11 @@ docker run \
   inputoutput/cardano-rosetta:1.4.0-beta.1
 ```
 
-### testnet
+</details>
+
+<details>
+  <summary>testnet</summary>
+
 ```console
 docker run \
   --name cardano-rosetta-testnet \
@@ -82,7 +101,11 @@ docker run \
   inputoutput/cardano-rosetta:1.4.0-beta.1-testnet
 ```
 
-### alonzo-purple
+</details>
+
+<details>
+  <summary>alonzo-purple</summary>
+
 ```console
 docker run \
   --name cardano-rosetta-alonzo-purple \
@@ -91,6 +114,8 @@ docker run \
   --shm-size=2g \
   inputoutput/cardano-rosetta:1.4.0-beta.1-alonzo-purple
 ```
+
+</details>
 
 ### Configuration
 
