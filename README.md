@@ -48,6 +48,7 @@ docker build \
 DOCKER_BUILDKIT=1 \
 docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
+    --build-arg NETWORK=testnet \
     --cache-from=inputoutput/cardano-rosetta:master \
     -t inputoutput/cardano-rosetta:1.4.0-beta.1-testnet \
     https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
@@ -62,6 +63,7 @@ docker build \
 DOCKER_BUILDKIT=1 \ 
 docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
+    --build-arg NETWORK=alonzo-purple \
     --cache-from=inputoutput/cardano-rosetta:master \
     -t inputoutput/cardano-rosetta:1.4.0-beta.1-alonzo-purple \
     https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
