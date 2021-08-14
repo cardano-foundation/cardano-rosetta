@@ -31,7 +31,7 @@ use-cases:
   <summary>mainnet</summary>
 
 ```console
-export DOCKER_BUILDKIT=1
+DOCKER_BUILDKIT=1 \ 
 docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --cache-from=inputoutput/cardano-rosetta:master \
@@ -45,7 +45,7 @@ docker build \
   <summary>testnet</summary>
 
 ```console
-export DOCKER_BUILDKIT=1
+DOCKER_BUILDKIT=1 \
 docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --cache-from=inputoutput/cardano-rosetta:master \
@@ -59,7 +59,7 @@ docker build \
   <summary>alonzo-purple</summary>
 
 ```console
-export DOCKER_BUILDKIT=1
+DOCKER_BUILDKIT=1 \ 
 docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --cache-from=inputoutput/cardano-rosetta:master \
