@@ -1,6 +1,13 @@
 /* eslint-disable camelcase */
 /* eslint-disable wrap-regex */
-import CardanoWasm, { BigNum, Ed25519Signature, PublicKey, StakeCredential, Vkey } from 'cardano-serialization-lib';
+import CardanoWasm, {
+  AuxiliaryData,
+  BigNum,
+  Ed25519Signature,
+  PublicKey,
+  StakeCredential,
+  Vkey
+} from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
 import {
@@ -26,6 +33,7 @@ import {
   StakeAddressPrefix,
   OperationType
 } from '../utils/constants';
+import { TransactionExtraData } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter } from '../utils/formatters';
 import { isEd25519KeyHash } from '../utils/validations';
@@ -41,6 +49,7 @@ export interface UnsignedTransaction {
   hash: string;
   bytes: string;
   addresses: string[];
+  metadata?: AuxiliaryData;
 }
 
 export interface TransactionParsed {
@@ -183,7 +192,7 @@ export interface CardanoService {
     logger: Logger,
     networkId: NetworkIdentifier,
     transaction: string,
-    extraData: Components.Schemas.Operation[]
+    extraData: TransactionExtraData
   ): TransactionParsed;
 
   /**
@@ -197,7 +206,7 @@ export interface CardanoService {
     logger: Logger,
     networkId: NetworkIdentifier,
     transaction: string,
-    extraData: Components.Schemas.Operation[]
+    extraData: TransactionExtraData
   ): TransactionParsed;
 
   /**
@@ -294,7 +303,10 @@ const getSignerFromOperation = (
     return getPoolSigners(logger, network, operation);
   }
   if (operation.account?.address) {
-    return [operation.account?.address];
+    return [operation.account.address];
+  }
+  if (operation.type === OperationType.VOTE_REGISTRATION) {
+    return [];
   }
   const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
   return [generateRewardAddress(logger, network, credential)];
@@ -326,7 +338,8 @@ const processOperations = (
     certificates: result.certificates,
     withdrawals: result.withdrawals,
     addresses: getUniqueAddresses(result.addresses),
-    fee
+    fee,
+    voteRegistrationMetadata: result.voteRegistrationMetadata
   };
 };
 
@@ -434,16 +447,19 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       throw ErrorFactory.cantBuildSignedTransaction();
     }
   },
-  createUnsignedTransaction(logger, network, operations, ttl) {
+  createUnsignedTransaction(logger, network, operations, ttl): UnsignedTransaction {
     logger.info(
       `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
     );
-    const { transactionInputs, transactionOutputs, certificates, withdrawals, addresses, fee } = processOperations(
-      logger,
-      network,
-      operations,
-      depositParameters
-    );
+    const {
+      transactionInputs,
+      transactionOutputs,
+      certificates,
+      withdrawals,
+      addresses,
+      fee,
+      voteRegistrationMetadata
+    } = processOperations(logger, network, operations, depositParameters);
 
     logger.info('[createUnsignedTransaction] About to create transaction body');
     const transactionBody = CardanoWasm.TransactionBody.new(
@@ -452,6 +468,11 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       BigNum.from_str(fee.toString()),
       ttl
     );
+    if (voteRegistrationMetadata) {
+      logger.info('[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body');
+      const metadataHash = CardanoWasm.hash_auxiliary_data(voteRegistrationMetadata);
+      transactionBody.set_auxiliary_data_hash(metadataHash);
+    }
 
     if (certificates.len() > 0) transactionBody.set_certs(certificates);
     if (withdrawals.len() > 0) transactionBody.set_withdrawals(withdrawals);
@@ -459,11 +480,14 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
     const transactionBytes = hexFormatter(Buffer.from(transactionBody.to_bytes()));
     logger.info('[createUnsignedTransaction] Hashing transaction body');
     const bodyHash = CardanoWasm.hash_transaction(transactionBody).to_bytes();
-    const toReturn = {
+    const toReturn: UnsignedTransaction = {
       bytes: transactionBytes,
       hash: hexFormatter(Buffer.from(bodyHash)),
       addresses
     };
+    if (voteRegistrationMetadata) {
+      toReturn.metadata = voteRegistrationMetadata;
+    }
     logger.info(
       toReturn,
       '[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash'
@@ -508,7 +532,7 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
       logger.info(operations, '[parseSignedTransaction] Returning operations');
       const accountIdentifierSigners = getUniqueAccountIdentifiers(
-        extraData.reduce(
+        extraData.operations.reduce(
           (accum, data) => accum.concat(getSignerFromOperation(logger, networkId, data)),
           [] as Array<string>
         )
@@ -524,7 +548,7 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       logger.info(transaction, '[parseUnsignedTransaction] About to create unsigned transaction from bytes');
       const transactionBuffer = Buffer.from(transaction, 'hex');
       const parsed = CardanoWasm.TransactionBody.from_bytes(transactionBuffer);
-      logger.info(extraData, '[parseUnsignedTransaction] About to parse operations from transaction body');
+      logger.info({ extraData }, '[parseUnsignedTransaction] About to parse operations from transaction body');
       const operations = TransactionProcessor.convert(logger, parsed, extraData, networkId);
       logger.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
       return { operations, account_identifier_signers: [] };

@@ -1,11 +1,21 @@
-import CardanoWasm, { PoolParams } from 'cardano-serialization-lib';
+import CardanoWasm, { AuxiliaryData, BigNum } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
-import { ADA, ADA_DECIMALS, CurveType, OperationType, RelayType, StakingOperations } from '../constants';
-import { mapAmount } from '../data-mapper';
+import {
+  ADA,
+  ADA_DECIMALS,
+  CatalystDataIndexes,
+  CatalystLabels,
+  CatalystSigIndexes,
+  CurveType,
+  OperationType,
+  RelayType,
+  StakingOperations
+} from '../constants';
+import { mapAmount, TransactionExtraData } from '../data-mapper';
 import { ErrorFactory } from '../errors';
-import { hexFormatter } from '../formatters';
-import { generateRewardAddress, getAddressPrefix, parseAddress } from './addresses';
+import { hexFormatter, remove0xPrefix } from '../formatters';
+import { generateRewardAddress, getAddressFromHexString, getAddressPrefix, parseAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
 const compareStrings = (a: string, b: string): number => {
@@ -384,6 +394,58 @@ const getRelatedOperationsFromInputs = (
   inputs: Components.Schemas.Operation[]
 ): Components.Schemas.OperationIdentifier[] => inputs.map(input => ({ index: input.operation_identifier.index }));
 
+const parseVoteMetadataToOperation = (
+  logger: Logger,
+  index: number,
+  transactionMetadataBytes?: Uint8Array
+): Components.Schemas.Operation => {
+  logger.info('[parseVoteMetadataToOperation] About to parse a vote registration operation');
+  if (!transactionMetadataBytes) {
+    logger.error('[parseVoteMetadataToOperation] Missing vote registration metadata');
+    throw ErrorFactory.missingVoteRegistrationMetadata();
+  }
+  const transactionMetadata = AuxiliaryData.from_bytes(transactionMetadataBytes);
+
+  const generalMetadata = CardanoWasm.GeneralTransactionMetadata.from_bytes(
+    CardanoWasm.MetadataList.from_bytes(transactionMetadata.to_bytes())
+      .get(0)
+      .to_bytes()
+  );
+
+  const data = generalMetadata.get(BigNum.from_str(CatalystLabels.DATA));
+  if (!data) throw ErrorFactory.missingVoteRegistrationMetadata();
+
+  const sig = generalMetadata.get(BigNum.from_str(CatalystLabels.SIG));
+  if (!sig) throw ErrorFactory.invalidVotingSignature();
+
+  const dataJson = CardanoWasm.decode_metadatum_to_json_str(data, CardanoWasm.MetadataJsonSchema.BasicConversions);
+  const sigJson = CardanoWasm.decode_metadatum_to_json_str(sig, CardanoWasm.MetadataJsonSchema.BasicConversions);
+
+  const dataParsed = JSON.parse(dataJson);
+  const sigParsed = JSON.parse(sigJson);
+
+  const parsedMetadata: Components.Schemas.VoteRegistrationMetadata = {
+    votingKey: {
+      hex_bytes: remove0xPrefix(dataParsed[CatalystDataIndexes.VOTING_KEY]),
+      curve_type: CurveType.edwards25519
+    },
+    stakeKey: {
+      hex_bytes: remove0xPrefix(dataParsed[CatalystDataIndexes.STAKE_KEY]),
+      curve_type: CurveType.edwards25519
+    },
+    rewardAddress: getAddressFromHexString(remove0xPrefix(dataParsed[CatalystDataIndexes.REWARD_ADDRESS])).to_bech32(),
+    votingNonce: dataParsed[CatalystDataIndexes.VOTING_NONCE],
+    votingSignature: remove0xPrefix(sigParsed[CatalystSigIndexes.VOTING_SIGNATURE])
+  };
+
+  return {
+    operation_identifier: { index },
+    status: '',
+    type: OperationType.VOTE_REGISTRATION,
+    metadata: { voteRegistrationMetadata: parsedMetadata }
+  };
+};
+
 /**
  * Converts a Cardano Transaction into a Rosetta Operation array.
  *
@@ -395,7 +457,7 @@ const getRelatedOperationsFromInputs = (
 export const convert = (
   logger: Logger,
   transactionBody: CardanoWasm.TransactionBody,
-  extraData: Components.Schemas.Operation[],
+  extraData: TransactionExtraData,
   network: number
 ): Components.Schemas.Operation[] => {
   const operations = [];
@@ -405,7 +467,7 @@ export const convert = (
   for (let i = 0; i < inputsCount; i++) {
     const input = transactionBody.inputs().get(i);
     const inputParsed = parseInputToOperation(input, operations.length);
-    operations.push({ ...inputParsed, ...extraData[i], status: '' });
+    operations.push({ ...inputParsed, ...extraData.operations[i], status: '' });
   }
   // till this line operations only contains inputs
   const relatedOperations = getRelatedOperationsFromInputs(operations);
@@ -417,7 +479,7 @@ export const convert = (
     operations.push(outputParsed);
   }
 
-  const certOps = extraData.filter(({ type }) =>
+  const certOps = extraData.operations.filter(({ type }) =>
     [
       OperationType.STAKE_KEY_REGISTRATION,
       OperationType.STAKE_KEY_DEREGISTRATION,
@@ -429,9 +491,19 @@ export const convert = (
   );
   const parsedCertOperations = parseCertsToOperations(logger, transactionBody, certOps, network);
   operations.push(...parsedCertOperations);
-  const withdrawalOps = extraData.filter(({ type }) => type === OperationType.WITHDRAWAL);
+  const withdrawalOps = extraData.operations.filter(({ type }) => type === OperationType.WITHDRAWAL);
   const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
   parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations, network);
+
+  const voteOp = extraData.operations.find(({ type }) => type === OperationType.VOTE_REGISTRATION);
+  if (voteOp) {
+    const parsedVoteOperations = parseVoteMetadataToOperation(
+      logger,
+      voteOp.operation_identifier.index,
+      extraData.transactionMetadataBytes
+    );
+    operations.push(parsedVoteOperations);
+  }
 
   return operations;
 };

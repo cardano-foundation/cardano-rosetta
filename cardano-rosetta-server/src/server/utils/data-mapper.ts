@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 
+import { AuxiliaryData } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import {
   BalanceAtBlock,
@@ -24,12 +25,18 @@ import {
   PoolOperations,
   SIGNATURE_TYPE,
   StakingOperations,
-  SUCCESS_STATUS
+  SUCCESS_STATUS,
+  VoteOperations
 } from './constants';
 import { hexStringFormatter } from './formatters';
 
 const COIN_SPENT_ACTION = 'coin_spent';
 const COIN_CREATED_ACTION = 'coin_created';
+
+export interface TransactionExtraData {
+  operations: Components.Schemas.Operation[];
+  transactionMetadataBytes?: Uint8Array;
+}
 
 export const mapAmount = (
   value: string,
@@ -483,23 +490,27 @@ export const getNetworkIdentifierByRequestParameters = (
  * @param transaction
  * @param extraData
  */
-export const encodeExtraData = async (
-  transaction: string,
-  operations: Components.Schemas.Operation[]
-): Promise<string> => {
-  const extraData: Components.Schemas.Operation[] = operations
+export const encodeExtraData = async (transaction: string, extraData: TransactionExtraData): Promise<string> => {
+  const { operations, transactionMetadataBytes } = extraData;
+  const extraOperations: Components.Schemas.Operation[] = operations
     // eslint-disable-next-line camelcase
     .filter(
       operation =>
         operation.coin_change?.coin_action === COIN_SPENT_ACTION ||
         StakingOperations.includes(operation.type as OperationType) ||
-        PoolOperations.includes(operation.type as OperationType)
+        PoolOperations.includes(operation.type as OperationType) ||
+        VoteOperations.includes(operation.type as OperationType)
     );
-
-  return (await cbor.encodeAsync([transaction, extraData])).toString('hex');
+  const toEncode: TransactionExtraData = {
+    operations: extraOperations
+  };
+  if (transactionMetadataBytes) {
+    toEncode.transactionMetadataBytes = transactionMetadataBytes;
+  }
+  return (await cbor.encodeAsync([transaction, toEncode])).toString('hex');
 };
 
-export const decodeExtraData = async (encoded: string): Promise<[string, Components.Schemas.Operation[]]> => {
+export const decodeExtraData = async (encoded: string): Promise<[string, TransactionExtraData]> => {
   const [decoded] = await cbor.decodeAll(encoded);
   return decoded;
 };
@@ -509,11 +520,6 @@ export const mapToConstructionHashResponse = (
 ): Components.Schemas.TransactionIdentifierResponse => ({
   transaction_identifier: { hash: transactionHash }
 });
-
-interface TransactionExtraData {
-  account: Components.Schemas.AccountIdentifier | undefined;
-  amount: Components.Schemas.Amount | undefined;
-}
 
 /**
  * It maps the transaction body and the addresses to the Rosetta's SigningPayload

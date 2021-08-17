@@ -43,7 +43,10 @@ import {
   CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA,
   CONSTRUCTION_SIGNED_TX_INPUT_WITH_BYRON_ADDRESS_AND_EXTRA_DATA,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT,
-  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT
+  CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
+  CONSTRUCTION_SIGNED_TX_WITH_VOTE_REGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE
 } from '../fixture-data';
 import { setupOfflineDatabase, setupServer } from '../utils/test-utils';
 
@@ -511,6 +514,42 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
           address: '153806dbcd134ddee69a8c5204e38ac80448f62342f8c23cfe4b7edf'
         }
       ]);
+    });
+  });
+
+  describe('Vote Registration', () => {
+    test('Should correctly parse operations with vote registration data for signed transactions', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PARSE_ENDPOINT,
+        payload: generateParsePayload('cardano', 'mainnet', true, CONSTRUCTION_SIGNED_TX_WITH_VOTE_REGISTRATION)
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json().operations).toEqual(
+        constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION)
+      );
+      expect(response.json().account_identifier_signers).toEqual([
+        {
+          address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+        }
+      ]);
+    });
+    test('Should correctly parse operations with vote registration data for unsigned transactions', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: CONSTRUCTION_PARSE_ENDPOINT,
+        payload: generateParsePayload(
+          'cardano',
+          'mainnet',
+          false,
+          CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE
+        )
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json().operations).toEqual(
+        constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION)
+      );
+      expect(response.json().account_identifier_signers).toEqual([]);
     });
   });
 });

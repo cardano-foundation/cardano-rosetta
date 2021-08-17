@@ -3,21 +3,34 @@ import CardanoWasm, {
   AssetName,
   Assets,
   BigNum,
+  GeneralTransactionMetadata,
+  MetadataJsonSchema,
+  MetadataList,
   MultiAsset,
   PoolRetirement,
+  PublicKey,
   ScriptHash,
   StakeDelegation,
   StakeDeregistration,
   StakeRegistration,
+  AuxiliaryData,
+  TransactionMetadatum,
   Value
 } from 'cardano-serialization-lib';
 import { Logger } from 'fastify';
-import { NetworkIdentifier, OperationType, RelayType } from '../constants';
+import {
+  CatalystDataIndexes,
+  CatalystLabels,
+  CatalystSigIndexes,
+  NetworkIdentifier,
+  OperationType,
+  RelayType
+} from '../constants';
 import { ErrorFactory } from '../errors';
-import { hexStringToBuffer } from '../formatters';
-import { isPolicyIdValid, isTokenNameValid } from '../validations';
+import { add0xPrefix, bytesToHex, hexStringToBuffer } from '../formatters';
+import { isEd25519Signature, isKeyValid, isPolicyIdValid, isTokenNameValid } from '../validations';
 import { generateRewardAddress, generateAddress, parseToRewardAddress } from './addresses';
-import { getStakingCredentialFromHex } from './staking-credentials';
+import { getPublicKey, getStakingCredentialFromHex } from './staking-credentials';
 import { parsePoolOwners, parsePoolRewardAccount } from './transactions-processor';
 
 const isPositiveNumber = (value: string): boolean => /^\+?\d+/.test(value);
@@ -173,6 +186,19 @@ const validateAndParseRewardAddress = (logger: Logger, rwrdAddress: string): Car
   }
   if (!rewardAddress) throw ErrorFactory.invalidAddressError();
   return rewardAddress;
+};
+
+const validateAndParseVotingKey = (logger: Logger, votingKey: Components.Schemas.PublicKey): PublicKey => {
+  if (!votingKey.hex_bytes) {
+    logger.error('[validateAndParsePublicKey] Voting key not provided');
+    throw ErrorFactory.missingVotingKeyError();
+  }
+  if (!isKeyValid(votingKey.hex_bytes, votingKey.curve_type)) {
+    logger.info('[validateAndParsePublicKey] Voting key has an invalid format');
+    throw ErrorFactory.invalidVotingKeyFormat();
+  }
+  const publicKeyBuffer = hexStringToBuffer(votingKey.hex_bytes);
+  return PublicKey.from_bytes(publicKeyBuffer);
 };
 
 const validateAndParsePoolOwners = (logger: Logger, owners: Array<string>): CardanoWasm.Ed25519KeyHashes => {
@@ -381,6 +407,45 @@ const validateAndParsePoolMetadata = (
   return parsedMetadata;
 };
 
+const validateAndParseVoteRegistrationMetadata = (
+  logger: Logger,
+  voteRegistrationMetadata: Components.Schemas.VoteRegistrationMetadata
+) => {
+  const { stakeKey, rewardAddress, votingKey, votingNonce, votingSignature } = voteRegistrationMetadata;
+
+  logger.info('[validateAndParseVoteRegistrationMetadata] About to validate and parse voting key');
+  const parsedVotingKey = validateAndParseVotingKey(logger, votingKey);
+  logger.info('[validateAndParseVoteRegistrationMetadata] About to validate and parse stake key');
+  const parsedStakeKey = getPublicKey(logger, stakeKey);
+  logger.info('[validateAndParseVoteRegistrationMetadata] About to validate and parse reward address');
+  const parsedAddress = validateAndParseRewardAddress(logger, rewardAddress);
+
+  logger.info('[validateAndParseVoteRegistrationMetadata] About to validate voting nonce');
+  if (votingNonce <= 0) {
+    logger.error(`[validateAndParseVoteRegistrationMetadata] Given voting nonce ${votingNonce} is invalid`);
+    throw ErrorFactory.votingNonceNotValid();
+  }
+
+  logger.info('[validateAndParseVoteRegistrationMetadata] About to validate voting signature');
+  if (!isEd25519Signature(votingSignature)) {
+    logger.error('[validateAndParseVoteRegistrationMetadata] Voting signature has an invalid format');
+    throw ErrorFactory.invalidVotingSignature();
+  }
+
+  const votingKeyHex = add0xPrefix(bytesToHex(parsedVotingKey.as_bytes()));
+  const stakeKeyHex = add0xPrefix(bytesToHex(parsedStakeKey.as_bytes()));
+  const rewardAddressHex = add0xPrefix(bytesToHex(parsedAddress.to_address().to_bytes()));
+  const votingSignatureHex = add0xPrefix(votingSignature);
+
+  return {
+    votingKey: votingKeyHex,
+    stakeKey: stakeKeyHex,
+    rewardAddress: rewardAddressHex,
+    votingNonce,
+    votingSignature: votingSignatureHex
+  };
+};
+
 const processPoolRegistration = (
   logger: Logger,
   network: NetworkIdentifier,
@@ -478,6 +543,45 @@ const processWithdrawal = (
   return { reward: CardanoWasm.RewardAddress.new(network, credential), address };
 };
 
+const processVoteRegistration = (logger: Logger, operation: Components.Schemas.Operation): AuxiliaryData => {
+  logger.info('[processVoteRegistration] About to process vote registration');
+  if (!operation?.metadata?.voteRegistrationMetadata) {
+    logger.error('[processVoteRegistration] Vote registration metadata was not provided');
+    throw ErrorFactory.missingVoteRegistrationMetadata();
+  }
+
+  const { votingKey, stakeKey, rewardAddress, votingNonce, votingSignature } = validateAndParseVoteRegistrationMetadata(
+    logger,
+    operation.metadata.voteRegistrationMetadata
+  );
+  const registrationMetadata = CardanoWasm.encode_json_str_to_metadatum(
+    JSON.stringify({
+      [CatalystDataIndexes.VOTING_KEY]: votingKey,
+      [CatalystDataIndexes.STAKE_KEY]: stakeKey,
+      [CatalystDataIndexes.REWARD_ADDRESS]: rewardAddress,
+      [CatalystDataIndexes.VOTING_NONCE]: votingNonce
+    }),
+    MetadataJsonSchema.BasicConversions
+  );
+
+  const signatureMetadata = CardanoWasm.encode_json_str_to_metadatum(
+    JSON.stringify({
+      [CatalystSigIndexes.VOTING_SIGNATURE]: votingSignature
+    }),
+    MetadataJsonSchema.BasicConversions
+  );
+
+  const generalMetadata = GeneralTransactionMetadata.new();
+  generalMetadata.insert(BigNum.from_str(CatalystLabels.DATA), registrationMetadata);
+  generalMetadata.insert(BigNum.from_str(CatalystLabels.SIG), signatureMetadata);
+
+  const metadataList = MetadataList.new();
+  metadataList.add(TransactionMetadatum.from_bytes(generalMetadata.to_bytes()));
+  metadataList.add(TransactionMetadatum.new_list(MetadataList.new()));
+
+  return AuxiliaryData.from_bytes(metadataList.to_bytes());
+};
+
 const operationProcessor: (
   logger: Logger,
   operation: Components.Schemas.Operation,
@@ -545,6 +649,11 @@ const operationProcessor: (
     resultAccumulator.certificates.add(certificate);
     resultAccumulator.addresses.push(poolKeyHash);
     return resultAccumulator;
+  },
+  [OperationType.VOTE_REGISTRATION]: () => {
+    const voteRegistrationMetadata = processVoteRegistration(logger, operation);
+    resultAccumulator.voteRegistrationMetadata = voteRegistrationMetadata;
+    return resultAccumulator;
   }
 });
 
@@ -560,6 +669,7 @@ export interface ProcessOperationsResult {
   stakeKeyRegistrationsCount: number;
   stakeKeyDeRegistrationsCount: number;
   poolRegistrationsCount: number;
+  voteRegistrationMetadata: CardanoWasm.AuxiliaryData | undefined;
 }
 
 /**
@@ -589,7 +699,8 @@ export const convert = (
     withdrawalAmounts: [],
     stakeKeyRegistrationsCount: 0,
     stakeKeyDeRegistrationsCount: 0,
-    poolRegistrationsCount: 0
+    poolRegistrationsCount: 0,
+    voteRegistrationMetadata: undefined
   };
 
   return operations.reduce<ProcessOperationsResult>((previousResult, operation) => {

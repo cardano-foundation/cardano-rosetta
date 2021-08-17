@@ -202,8 +202,12 @@ const configure = (
         );
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         return {
-          // eslint-disable-next-line camelcase
-          unsigned_transaction: await encodeExtraData(unsignedTransaction.bytes, request.body.operations),
+          /* eslint-disable camelcase */
+          unsigned_transaction: await encodeExtraData(unsignedTransaction.bytes, {
+            operations: request.body.operations,
+            transactionMetadataBytes: unsignedTransaction.metadata?.to_bytes()
+          }),
+          /* eslint-disable camelcase */
           payloads
         };
       },

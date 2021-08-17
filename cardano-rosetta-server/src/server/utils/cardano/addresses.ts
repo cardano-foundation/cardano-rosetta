@@ -7,6 +7,7 @@ import {
   StakeAddressPrefix,
   NonStakeAddressPrefix
 } from '../constants';
+import { hexStringToBuffer } from '../formatters';
 
 /**
  * Returns the bech-32 address prefix based on the netowrkId
@@ -118,3 +119,9 @@ export const parseToRewardAddress = (address: string): CardanoWasm.RewardAddress
   const wasmAddress = CardanoWasm.Address.from_bech32(address);
   return CardanoWasm.RewardAddress.from_address(wasmAddress);
 };
+
+/**
+ * Returns Address type from hex string
+ * @param hex address as hex string
+ */
+export const getAddressFromHexString = (hex: string): Address => Address.from_bytes(hexStringToBuffer(hex));

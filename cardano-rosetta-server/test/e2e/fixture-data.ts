@@ -2,8 +2,16 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 /* eslint-disable max-len */
 /* eslint-disable no-magic-numbers */
+import CardanoWasm from 'cardano-serialization-lib';
 import cbor from 'cbor';
-import { OperationType, SIGNATURE_TYPE, StakingOperations, PoolOperations } from '../../src/server/utils/constants';
+import {
+  OperationType,
+  SIGNATURE_TYPE,
+  StakingOperations,
+  PoolOperations,
+  VoteOperations
+} from '../../src/server/utils/constants';
+import { TransactionExtraData } from '../../src/server/utils/data-mapper';
 
 /* eslint-disable camelcase */
 const slotLeader2b1 = 'ByronGenesis-52df0f2c5539b2b1';
@@ -4100,13 +4108,461 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS: Components.Schemas.Construct
   }
 };
 
-const constructionExtraData = (constructionPayloadsRequest: Components.Schemas.ConstructionPayloadsRequest) =>
-  constructionPayloadsRequest.operations.filter(
-    op =>
-      op.coin_change?.coin_action === 'coin_spent' ||
-      StakingOperations.includes(op.type as OperationType) ||
-      PoolOperations.includes(op.type as OperationType)
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION: Components.Schemas.ConstructionPayloadsRequest = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  operations: [
+    {
+      operation_identifier: {
+        index: 0,
+        network_index: 0
+      },
+      type: OperationType.INPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '-90000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      },
+      coin_change: {
+        coin_identifier: {
+          // eslint-disable-next-line sonarjs/no-duplicate-string
+          identifier: '2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1'
+        },
+        coin_action: 'coin_spent'
+      }
+    },
+    {
+      operation_identifier: {
+        index: 1
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: OperationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '10000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 2
+      },
+      related_operations: [
+        {
+          index: 0
+        }
+      ],
+      type: OperationType.OUTPUT,
+      status: 'success',
+      account: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+      },
+      amount: {
+        value: '40000',
+        currency: {
+          symbol: 'ADA',
+          decimals: 6
+        }
+      }
+    },
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: 'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+          stakeKey: {
+            hex_bytes: '86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes: '0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 1234,
+          votingSignature:
+            '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e'
+        }
+      }
+    }
+  ],
+  metadata: {
+    ttl: '1000'
+  }
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_VOTING_KEY: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: 'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+          stakeKey: {
+            hex_bytes: '86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes: '',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 1234,
+          votingSignature:
+            '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e'
+        }
+      }
+    }
+  ]
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_VOTING_KEY: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: 'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+          stakeKey: {
+            hex_bytes: '86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes:
+              '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 1234,
+          votingSignature:
+            '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e'
+        }
+      }
+    }
+  ]
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_REWARD_ADDRESS: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: '',
+          stakeKey: {
+            hex_bytes: '86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes: '0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 1234,
+          votingSignature:
+            '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e'
+        }
+      }
+    }
+  ]
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_REWARD_ADDRESS: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+          stakeKey: {
+            hex_bytes: '86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes: '0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 1234,
+          votingSignature:
+            '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e'
+        }
+      }
+    }
+  ]
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_STAKE_KEY: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: 'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+          stakeKey: {
+            hex_bytes: '',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes: '0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 1234,
+          votingSignature:
+            '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e'
+        }
+      }
+    }
+  ]
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_STAKE_KEY: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: 'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+          stakeKey: {
+            hex_bytes:
+              '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes: '0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 1234,
+          votingSignature:
+            '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e'
+        }
+      }
+    }
+  ]
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_NONCE: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: 'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+          stakeKey: {
+            hex_bytes: '86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes: '0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 0,
+          votingSignature:
+            '6c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e'
+        }
+      }
+    }
+  ]
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_SIGNATURE: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: 'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+          stakeKey: {
+            hex_bytes: '86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes: '0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 1234,
+          votingSignature: ''
+        }
+      }
+    }
+  ]
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_SIGNATURE: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {
+        voteRegistrationMetadata: {
+          rewardAddress: 'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp',
+          stakeKey: {
+            hex_bytes: '86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e',
+            curve_type: 'edwards25519'
+          },
+          votingKey: {
+            hex_bytes: '0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0',
+            curve_type: 'edwards25519'
+          },
+          votingNonce: 1234,
+          votingSignature: '0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0'
+        }
+      }
+    }
+  ]
+};
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_METADATA: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success'
+    }
+  ]
+};
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_EMPTY_METADATA: Components.Schemas.ConstructionPayloadsRequest = {
+  ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+  operations: [
+    ...CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations.slice(0, 3),
+    {
+      operation_identifier: {
+        index: 3
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status: 'success',
+      metadata: {}
+    }
+  ]
+};
+
+const constructVoteRegistrationMetadata = (
+  requestMetadata: Components.Schemas.VoteRegistrationMetadata
+): Uint8Array => {
+  const { rewardAddress, votingSignature, votingNonce, votingKey, stakeKey } = requestMetadata;
+  const wasmAddress = CardanoWasm.RewardAddress.from_address(CardanoWasm.Address.from_bech32(rewardAddress));
+  if (!wasmAddress) throw new Error('Should never happen');
+  const rewardAddressHex = Buffer.from(wasmAddress.to_address().to_bytes()).toString('hex');
+  const generalMetadata = CardanoWasm.GeneralTransactionMetadata.new();
+  generalMetadata.insert(
+    CardanoWasm.BigNum.from_str('61284'),
+    CardanoWasm.encode_json_str_to_metadatum(
+      JSON.stringify({
+        1: `0x${votingKey.hex_bytes}`,
+        2: `0x${stakeKey.hex_bytes}`,
+        3: `0x${rewardAddressHex}`,
+        4: votingNonce
+      }),
+      CardanoWasm.MetadataJsonSchema.BasicConversions
+    )
   );
+  generalMetadata.insert(
+    CardanoWasm.BigNum.from_str('61285'),
+    CardanoWasm.encode_json_str_to_metadatum(
+      JSON.stringify({
+        1: `0x${votingSignature}`
+      }),
+      CardanoWasm.MetadataJsonSchema.BasicConversions
+    )
+  );
+  const metadataList = CardanoWasm.MetadataList.new();
+  metadataList.add(CardanoWasm.TransactionMetadatum.from_bytes(generalMetadata.to_bytes()));
+  metadataList.add(CardanoWasm.TransactionMetadatum.new_list(CardanoWasm.MetadataList.new()));
+  return CardanoWasm.AuxiliaryData.from_bytes(metadataList.to_bytes()).to_bytes();
+};
+
+const constructionExtraData = (
+  constructionPayloadsRequest: Components.Schemas.ConstructionPayloadsRequest,
+  voteRegistrationMetadata?: Components.Schemas.VoteRegistrationMetadata
+): TransactionExtraData => {
+  const extraData: TransactionExtraData = {
+    operations: constructionPayloadsRequest.operations.filter(
+      op =>
+        op.coin_change?.coin_action === 'coin_spent' ||
+        StakingOperations.includes(op.type as OperationType) ||
+        PoolOperations.includes(op.type as OperationType) ||
+        VoteOperations.includes(op.type as OperationType)
+    )
+  };
+  if (voteRegistrationMetadata) {
+    extraData.transactionMetadataBytes = constructVoteRegistrationMetadata(voteRegistrationMetadata);
+  }
+  return extraData;
+};
 
 export const CONSTRUCTION_PAYLOADS_RESPONSE = cbor
   .encode([
@@ -4224,6 +4680,16 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT_RESPONSE = c
   .encode([
     'a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c40021b00000014d69cdbb0031903e804828a03581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b558208dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db01a004c4b401a002dc6c0d81e820101581de1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb81581c7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f008184001820445820f5d9505820f5d9ea167fd2e0b19647f18dd1e0826f706f6f6c4d6574616461746155726c58209ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b83028200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5',
     constructionExtraData(CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT)
+  ])
+  .toString('hex');
+
+export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE = cbor
+  .encode([
+    'a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e807582088ca8654582e83937873230b6646a2210134d3e41e0bc9824ce7be4e0b28a896',
+    constructionExtraData(
+      CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+      CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations[3].metadata?.voteRegistrationMetadata
+    )
   ])
   .toString('hex');
 
@@ -4592,6 +5058,9 @@ export const SIGNED_TX_WITH_POOL_REGISTRATION_WITH_NO_METADATA =
 export const SIGNED_TX_WITH_POOL_REGISTRATION_WITH_CERT =
   '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c40021b00000014d69cdbb0030004828a03581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b558208dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db01a004c4b401a002dc6c0d81e820101581de1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb81581c7a9a4d5a6ac7a9d8702818fa3ea533e56c4f1de16da611a730ee3f008184001820445820f5d9505820f5d9ea167fd2e0b19647f18dd1e0826f706f6f6c4d6574616461746155726c58209ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b83028200581cbb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb581c1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5a100848258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000825820000000000000000000000000000000000000000000000000000000000000000058400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000082582000000000000000000000000000000000000000000000000000000000000000005840000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000008258200000000000000000000000000000000000000000000000000000000000000000584000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000f6';
 
+export const SIGNED_TX_WITH_VOTE_REGISTRATION =
+  '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e807582088ca8654582e83937873230b6646a2210134d3e41e0bc9824ce7be4e0b28a896a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6';
+
 export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_MA = cbor
   .encode([SIGNED_TX_WITH_MA, constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA)])
   .toString('hex');
@@ -4667,6 +5136,16 @@ export const CONSTRUCTION_SIGNED_TX_WITH_REGISTRATION_AND_WITHDRWAWAL_AND_EXTRA_
   .encode([
     SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRWAWAL,
     constructionExtraData(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL)
+  ])
+  .toString('hex');
+
+export const CONSTRUCTION_SIGNED_TX_WITH_VOTE_REGISTRATION = cbor
+  .encode([
+    SIGNED_TX_WITH_VOTE_REGISTRATION,
+    constructionExtraData(
+      CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+      CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations[3].metadata?.voteRegistrationMetadata
+    )
   ])
   .toString('hex');
 

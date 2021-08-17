@@ -1117,6 +1117,37 @@
           },
           "poolRegistrationParams": {
             "$ref": "#/components/schemas/PoolRegistrationParams"
+          },
+          "voteRegistrationMetadata": {
+            "description": "A Catalyst registration transaction is a regular Cardano transaction with a specific transaction metadata associated with it.",
+            "$ref": "#/components/schemas/VoteRegistrationMetadata"
+          }
+        }
+      },
+      "VoteRegistrationMetadata": {
+        "description": "Catalyst registration metadata format",
+        "type": "object",
+        "required": ["stakeKey","votingKey", "rewardAddress", "votingNonce", "votingSignature"],
+        "properties": {
+          "stakeKey": {
+            "description": "The staking key on the Cardano network",
+            "$ref": "#/components/schemas/PublicKey"
+          },
+          "votingKey": {
+            "description": "Catalyst voting key",
+            "$ref": "#/components/schemas/PublicKey"
+          },
+          "rewardAddress": {
+            "description": "Shelley address to receive rewards",
+            "type": "string"
+          },
+          "votingNonce": {
+            "description": "Unsigned integer (of CBOR major type 0). Current slot number",
+            "type" : "number"
+          },
+          "votingSignature": {
+            "description": "ED25119 signature CBOR byte array of blake2b-256 hash of the registration metadata signed using the staking key",
+            "type": "string"
           }
         }
       },
