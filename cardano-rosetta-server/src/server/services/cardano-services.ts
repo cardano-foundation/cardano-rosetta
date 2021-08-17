@@ -303,7 +303,10 @@ const getSignerFromOperation = (
     return getPoolSigners(logger, network, operation);
   }
   if (operation.account?.address) {
-    return [operation.account?.address];
+    return [operation.account.address];
+  }
+  if (operation.type === OperationType.VOTE_REGISTRATION) {
+    return [];
   }
   const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
   return [generateRewardAddress(logger, network, credential)];

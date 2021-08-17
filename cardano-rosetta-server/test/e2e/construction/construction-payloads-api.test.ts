@@ -59,7 +59,18 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH,
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_RESPONSE,
   CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
-  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_VOTING_KEY,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_VOTING_KEY,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_REWARD_ADDRESS,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_REWARD_ADDRESS,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_STAKE_KEY,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_STAKE_KEY,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_NONCE,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_SIGNATURE,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_SIGNATURE,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_METADATA,
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_EMPTY_METADATA
 } from '../fixture-data';
 import {
   SIGNATURE_TYPE,
@@ -1723,7 +1734,7 @@ describe('Pool Registration with certification', () => {
   });
 });
 
-describe.only('Vote Registration', () => {
+describe('Vote Registration', () => {
   let database: Pool;
   let server: FastifyInstance;
 
@@ -1755,7 +1766,148 @@ describe.only('Vote Registration', () => {
         }
       ]
     });
-
-    // TODO: decode extra data and check that the auxiliary data matches the construction metadata
+  });
+  test('Should throw an error when the voting key is empty', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_VOTING_KEY
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 5009,
+      message: 'Voting key is missing',
+      retriable: false
+    });
+  });
+  test('Should throw an error when the voting key is not valid', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_VOTING_KEY
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 5010,
+      message: 'Voting key format is invalid',
+      retriable: false
+    });
+  });
+  test('Should throw an error when the reward address is empty', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_REWARD_ADDRESS
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4015,
+      message: 'Provided address is invalid',
+      retriable: true
+    });
+  });
+  test('Should throw an error when the reward address is not valid', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_REWARD_ADDRESS
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4015,
+      message: 'Provided address is invalid',
+      retriable: true
+    });
+  });
+  test('Should throw an error when the stake key is empty', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_STAKE_KEY
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4018,
+      message: 'Staking key is required for this type of address',
+      retriable: false
+    });
+  });
+  test('Should throw an error when the stake key is not valid', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_STAKE_KEY
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 4017,
+      message: 'Invalid staking key format',
+      retriable: false
+    });
+  });
+  test('Should throw an error when the voting nonce is not greater than zero', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_NONCE
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 5007,
+      message: 'Voting nonce not valid',
+      retriable: false
+    });
+  });
+  test('Should throw an error when the voting signature is empty', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_SIGNATURE
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 5008,
+      message: 'Invalid voting signature',
+      retriable: false
+    });
+  });
+  test('Should throw an error when the voting signature is not valid', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_SIGNATURE
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 5008,
+      message: 'Invalid voting signature',
+      retriable: false
+    });
+  });
+  test('Should throw an error when the transaction has no metadata', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_METADATA
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 5011,
+      message: 'Missing vote registration metadata',
+      retriable: false
+    });
+  });
+  test('Should throw an error when there is no vote registration metadata', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_EMPTY_METADATA
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 5011,
+      message: 'Missing vote registration metadata',
+      retriable: false
+    });
   });
 });

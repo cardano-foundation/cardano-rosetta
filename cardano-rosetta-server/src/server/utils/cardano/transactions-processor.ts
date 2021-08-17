@@ -15,7 +15,7 @@ import {
 import { mapAmount, TransactionExtraData } from '../data-mapper';
 import { ErrorFactory } from '../errors';
 import { hexFormatter, remove0xPrefix } from '../formatters';
-import { generateRewardAddress, getAddressPrefix, parseAddress } from './addresses';
+import { generateRewardAddress, getAddressFromHexString, getAddressPrefix, parseAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
 
 const compareStrings = (a: string, b: string): number => {
@@ -433,7 +433,7 @@ const parseVoteMetadataToOperation = (
       hex_bytes: remove0xPrefix(dataParsed[CatalystDataIndexes.STAKE_KEY]),
       curve_type: CurveType.edwards25519
     },
-    rewardAddress: remove0xPrefix(dataParsed[CatalystDataIndexes.REWARD_ADDRESS]),
+    rewardAddress: getAddressFromHexString(remove0xPrefix(dataParsed[CatalystDataIndexes.REWARD_ADDRESS])).to_bech32(),
     votingNonce: dataParsed[CatalystDataIndexes.VOTING_NONCE],
     votingSignature: remove0xPrefix(sigParsed[CatalystSigIndexes.VOTING_SIGNATURE])
   };
