@@ -1,4 +1,13 @@
-import { PUBLIC_KEY_BYTES_LENGTH, ADA, AddressType, CurveType, ASSET_NAME_LENGTH, POLICY_ID_LENGTH } from './constants';
+import {
+  PUBLIC_KEY_BYTES_LENGTH,
+  ADA,
+  AddressType,
+  CurveType,
+  ASSET_NAME_LENGTH,
+  POLICY_ID_LENGTH,
+  CatalystDataIndexes,
+  CatalystSigIndexes
+} from './constants';
 import { ErrorFactory } from './errors';
 import { hexStringToBuffer, isEmptyHexString } from './formatters';
 import CardanoWasm from 'cardano-serialization-lib';
@@ -35,6 +44,7 @@ export const isEd25519KeyHash = (hash: string): boolean => {
   }
   return !!edd25519Hash;
 };
+
 export const isEd25519Signature = (hash: string): boolean => {
   let ed25519Signature: CardanoWasm.Ed25519Signature;
   try {
@@ -44,3 +54,9 @@ export const isEd25519Signature = (hash: string): boolean => {
   }
   return !!ed25519Signature;
 };
+
+export const isVoteDataValid = (jsonObject: any): boolean =>
+  Object.keys(jsonObject).every(key => key in CatalystDataIndexes);
+
+export const isVoteSignatureValid = (jsonObject: any): boolean =>
+  Object.keys(jsonObject).every(key => key in CatalystSigIndexes);

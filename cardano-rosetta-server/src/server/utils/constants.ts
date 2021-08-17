@@ -119,3 +119,17 @@ export enum CatalystLabels {
   DATA = '61284',
   SIG = '61285'
 }
+
+/* eslint-disable no-magic-numbers */
+// unlike @typescript-eslint/no-magic-numbers, the base rule doesn't have a `ignoreEnums` option
+export enum CatalystDataIndexes {
+  VOTING_KEY = 1,
+  STAKE_KEY = 2,
+  REWARD_ADDRESS = 3,
+  VOTING_NONCE = 4
+}
+
+export enum CatalystSigIndexes {
+  VOTING_SIGNATURE = 1
+}
+/* eslint-disable no-magic-numbers */

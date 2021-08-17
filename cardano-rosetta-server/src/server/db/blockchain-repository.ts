@@ -15,7 +15,7 @@ import {
   MaBalance
 } from '../models';
 import { LinearFeeParameters } from '../services/cardano-services';
-import { hexStringToBuffer, hexFormatter, isEmptyHexString } from '../utils/formatters';
+import { hexStringToBuffer, hexFormatter, isEmptyHexString, remove0xPrefix } from '../utils/formatters';
 import Queries, {
   FindBalance,
   FindTransaction,
@@ -35,6 +35,9 @@ import Queries, {
   FindUtxo,
   FindMaBalance
 } from './queries/blockchain-queries';
+import { CatalystDataIndexes, CatalystSigIndexes } from '../utils/constants';
+import { isVoteDataValid, isVoteSignatureValid } from '../utils/validations';
+import { getAddressFromHexString } from '../utils/cardano/addresses';
 
 export interface BlockchainRepository {
   /**
@@ -333,13 +336,34 @@ const parsePoolRetirementRow = (
  * @param transaction
  * @param vote
  */
-const parseVoteRow = (transaction: PopulatedTransaction, metadata: FindTransactionMetadata): PopulatedTransaction => ({
-  ...transaction,
-  voteRegistrations: transaction.voteRegistrations.concat({
-    data: metadata.data,
-    signature: metadata.signature
-  })
-});
+const parseVoteRow = (transaction: PopulatedTransaction, metadata: FindTransactionMetadata): PopulatedTransaction => {
+  if (metadata.data && metadata.signature) {
+    const voteDataParsed = JSON.parse(metadata.data);
+    const voteSigParsed = JSON.parse(metadata.signature);
+    if (isVoteDataValid(voteDataParsed) && isVoteSignatureValid(voteSigParsed)) {
+      const votingKey = voteDataParsed[CatalystDataIndexes.VOTING_KEY];
+      const stakeKey = voteDataParsed[CatalystDataIndexes.STAKE_KEY];
+      const rewardAddress = getAddressFromHexString(
+        remove0xPrefix(voteDataParsed[CatalystDataIndexes.REWARD_ADDRESS])
+      ).to_bech32();
+      const votingNonce = voteDataParsed[CatalystDataIndexes.VOTING_NONCE];
+      const votingSignature = voteSigParsed[CatalystSigIndexes.VOTING_SIGNATURE];
+      return {
+        ...transaction,
+        voteRegistrations: transaction.voteRegistrations.concat({
+          votingKey,
+          stakeKey,
+          rewardAddress,
+          votingNonce,
+          votingSignature
+        })
+      };
+    }
+  }
+  return {
+    ...transaction
+  };
+};
 
 /**
  * Updates the transaction appending outputs

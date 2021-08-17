@@ -126,8 +126,11 @@ export interface PoolRetirement {
 }
 
 export interface VoteRegistration {
-  signature: string;
-  data: string;
+  votingKey: string;
+  stakeKey: string;
+  rewardAddress: string;
+  votingNonce: number;
+  votingSignature: string;
 }
 
 export interface Delegation {

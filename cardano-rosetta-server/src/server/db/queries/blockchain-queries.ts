@@ -301,8 +301,8 @@ export interface FindPoolRetirements extends FindTransactionFieldResult {
 }
 
 export interface FindTransactionMetadata extends FindTransactionFieldResult {
-  data: string;
-  signature: string;
+  data?: string;
+  signature?: string;
 }
 
 const poolRegistrationQuery = `
@@ -400,9 +400,9 @@ WITH metadata AS (
     WHERE key = ${CatalystLabels.SIG}
   )
   SELECT 
-  data,
-  signature,
-  metadata_data."txHash"
+    data,
+    signature,
+    metadata_data."txHash"
   FROM metadata_data
   FULL OUTER JOIN metadata_sig
     ON metadata_data."txHash" = metadata_sig."txHash"
