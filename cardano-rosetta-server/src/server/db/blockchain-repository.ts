@@ -338,27 +338,23 @@ const parsePoolRetirementRow = (
  * @param vote
  */
 const parseVoteRow = (transaction: PopulatedTransaction, metadata: FindTransactionMetadata): PopulatedTransaction => {
-  if (metadata.data && metadata.signature) {
-    const { data, signature } = metadata;
-    if (isVoteDataValid(metadata.data) && isVoteSignatureValid(metadata.signature)) {
-      const votingKey = data[CatalystDataIndexes.VOTING_KEY];
-      const stakeKey = data[CatalystDataIndexes.STAKE_KEY];
-      const rewardAddress = getAddressFromHexString(
-        remove0xPrefix(data[CatalystDataIndexes.REWARD_ADDRESS])
-      ).to_bech32();
-      const votingNonce = data[CatalystDataIndexes.VOTING_NONCE];
-      const votingSignature = signature[CatalystSigIndexes.VOTING_SIGNATURE];
-      return {
-        ...transaction,
-        voteRegistrations: transaction.voteRegistrations.concat({
-          votingKey,
-          stakeKey,
-          rewardAddress,
-          votingNonce,
-          votingSignature
-        })
-      };
-    }
+  const { data, signature } = metadata;
+  if (isVoteDataValid(metadata.data) && isVoteSignatureValid(metadata.signature)) {
+    const votingKey = data[CatalystDataIndexes.VOTING_KEY];
+    const stakeKey = data[CatalystDataIndexes.STAKE_KEY];
+    const rewardAddress = getAddressFromHexString(remove0xPrefix(data[CatalystDataIndexes.REWARD_ADDRESS])).to_bech32();
+    const votingNonce = data[CatalystDataIndexes.VOTING_NONCE];
+    const votingSignature = signature[CatalystSigIndexes.VOTING_SIGNATURE];
+    return {
+      ...transaction,
+      voteRegistrations: transaction.voteRegistrations.concat({
+        votingKey,
+        stakeKey,
+        rewardAddress,
+        votingNonce,
+        votingSignature
+      })
+    };
   }
   return {
     ...transaction

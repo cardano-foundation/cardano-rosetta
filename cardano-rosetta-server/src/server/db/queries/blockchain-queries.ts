@@ -301,8 +301,8 @@ export interface FindPoolRetirements extends FindTransactionFieldResult {
 }
 
 export interface FindTransactionMetadata extends FindTransactionFieldResult {
-  data?: any;
-  signature?: any;
+  data: any;
+  signature: any;
 }
 
 const poolRegistrationQuery = `
@@ -379,7 +379,8 @@ WITH metadata AS (
   SELECT
     metadata.json,
     metadata.key,
-    tx.hash as "txHash"
+    tx.hash AS "txHash",
+    tx.id AS "txId"
   FROM tx_metadata AS metadata
   JOIN tx
     ON tx.id = metadata.tx_id
@@ -388,14 +389,16 @@ WITH metadata AS (
   metadata_data AS (
     SELECT 
       json AS data,
-      metadata."txHash"
+      metadata."txHash",
+      metadata."txId"
     FROM metadata
     WHERE key = ${CatalystLabels.DATA}
   ),
   metadata_sig AS (
     SELECT 
       json AS signature,
-      metadata."txHash"
+      metadata."txHash",
+      metadata."txId"
     FROM metadata
     WHERE key = ${CatalystLabels.SIG}
   )
@@ -404,8 +407,8 @@ WITH metadata AS (
     signature,
     metadata_data."txHash"
   FROM metadata_data
-  FULL OUTER JOIN metadata_sig
-    ON metadata_data."txHash" = metadata_sig."txHash"
+  INNER JOIN metadata_sig
+    ON metadata_data."txId" = metadata_sig."txId"
 `;
 
 const utxoQuery = `
