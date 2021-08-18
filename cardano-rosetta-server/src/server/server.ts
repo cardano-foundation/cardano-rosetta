@@ -1,5 +1,6 @@
 import fastify from 'fastify';
 import fastifyBlipp from 'fastify-blipp';
+import metricsPlugin from 'fastify-metrics';
 import openapiGlue from 'fastify-openapi-glue';
 import StatusCodes from 'http-status-codes';
 import ApiError from './api-error';
@@ -42,6 +43,7 @@ const buildServer = (
     service: Controllers.configure(services, cardanoCli, cardanoNode, networkId, pageSize),
     noAdditional: true
   });
+  server.register(metricsPlugin, { endpoint: '/metrics' });
 
   // Custom error handling is needed as the specified by Rosetta API doesn't match
   // the fastify default one
