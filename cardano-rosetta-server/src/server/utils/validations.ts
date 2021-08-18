@@ -56,7 +56,7 @@ export const isEd25519Signature = (hash: string): boolean => {
 };
 
 export const isVoteDataValid = (jsonObject: any): boolean =>
-  Object.keys(jsonObject).every(key => key in CatalystDataIndexes);
+  typeof jsonObject === 'object' && Object.keys(CatalystDataIndexes).every(index => index in jsonObject);
 
 export const isVoteSignatureValid = (jsonObject: any): boolean =>
-  Object.keys(jsonObject).every(key => key in CatalystSigIndexes);
+  typeof jsonObject === 'object' && Object.keys(CatalystSigIndexes).every(index => index in jsonObject);

@@ -301,8 +301,8 @@ export interface FindPoolRetirements extends FindTransactionFieldResult {
 }
 
 export interface FindTransactionMetadata extends FindTransactionFieldResult {
-  data?: string;
-  signature?: string;
+  data?: any;
+  signature?: any;
 }
 
 const poolRegistrationQuery = `

@@ -821,6 +821,59 @@ export const transactionWithPoolRegistrationWithMultipleOwners = {
   }
 };
 
+export const transactionWithBadFormedVote = {
+  transaction: {
+    transaction_identifier: { hash: 'cacbc12afa3a1d2ec0186971d5c9035c79bfa1250ca7a6af580d1b8d9e04db8c' },
+    operations: [
+      {
+        operation_identifier: { index: 0 },
+        type: 'input',
+        status: 'success',
+        account: {
+          address:
+            'addr1qyqecnd542f893rc4kmxpz0xfuutrhvvjj5gsrtlsxhlyfnm3vs0d6wervt6tpl4xyjuncvglx0q6cxrp4wuzcl4t5kq35cypt'
+        },
+        amount: { value: '-604000000', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: { identifier: 'f43f025160af4658cb10cfb9977eaf5ba2031b4ad6775556b443147e6e45bff0:0' },
+          coin_action: 'coin_spent'
+        }
+      },
+      {
+        operation_identifier: { index: 1, network_index: 0 },
+        related_operations: [{ index: 0 }],
+        type: 'output',
+        status: 'success',
+        account: {
+          address:
+            'addr1q9l77n7323z6jhl96u6j2kqfu0f8x35dfd8u92vrjft9fzmm3vs0d6wervt6tpl4xyjuncvglx0q6cxrp4wuzcl4t5kqwcvgsr'
+        },
+        amount: { value: '1000000', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: { identifier: 'cacbc12afa3a1d2ec0186971d5c9035c79bfa1250ca7a6af580d1b8d9e04db8c:0' },
+          coin_action: 'coin_created'
+        }
+      },
+      {
+        operation_identifier: { index: 2, network_index: 1 },
+        related_operations: [{ index: 0 }],
+        type: 'output',
+        status: 'success',
+        account: {
+          address:
+            'addr1q9azv5wxc7hl9xsd6wvjkkkjwx6cdpqdqre84588sshk8unm3vs0d6wervt6tpl4xyjuncvglx0q6cxrp4wuzcl4t5kqp9f490'
+        },
+        amount: { value: '602820639', currency: { symbol: 'ADA', decimals: 6 } },
+        coin_change: {
+          coin_identifier: { identifier: 'cacbc12afa3a1d2ec0186971d5c9035c79bfa1250ca7a6af580d1b8d9e04db8c:1' },
+          coin_action: 'coin_created'
+        }
+      }
+    ],
+    metadata: { size: 531, scriptSize: 0 }
+  }
+};
+
 export const transaction5407534WithTokenBundle = {
   operations: [
     {

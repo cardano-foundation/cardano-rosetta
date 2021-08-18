@@ -13,6 +13,7 @@ import {
   transactionBlock4853177WithDeregistration,
   transactionBlock4853177WithPoolRetirement,
   transactionWithPoolRegistrationWithMultipleOwners,
+  transactionWithBadFormedVote,
   invalidAlonzoTransaction
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
@@ -345,5 +346,45 @@ describe('/block/transactions endpoint', () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(invalidAlonzoTransaction);
+  });
+
+  test.skip('should return vote registration operations', async () => {
+    // TODO
+    const txHash = 'cacbc12afa3a1d2ec0186971d5c9035c79bfa1250ca7a6af580d1b8d9e04db8c';
+    const blockNumber = 5406810;
+    const blockHash = '0cea06f7b3003a5c0efc27fff117fa9e2a08603e1b0049c3b5c719abf6a617f1';
+
+    const response = await server.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(blockNumber, blockHash),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: txHash
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+  });
+
+  test('should not return a vote registration operation when it is bad formed', async () => {
+    const txHash = 'cacbc12afa3a1d2ec0186971d5c9035c79bfa1250ca7a6af580d1b8d9e04db8c';
+    const blockNumber = 5406810;
+    const blockHash = '0cea06f7b3003a5c0efc27fff117fa9e2a08603e1b0049c3b5c719abf6a617f1';
+
+    const response = await server.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(blockNumber, blockHash),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: txHash
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(transactionWithBadFormedVote);
   });
 });

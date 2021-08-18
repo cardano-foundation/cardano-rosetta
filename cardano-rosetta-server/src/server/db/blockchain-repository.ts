@@ -155,7 +155,8 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
         deregistrations: [],
         delegations: [],
         poolRegistrations: [],
-        poolRetirements: []
+        poolRetirements: [],
+        voteRegistrations: []
       }
     };
   }, {});
@@ -338,16 +339,15 @@ const parsePoolRetirementRow = (
  */
 const parseVoteRow = (transaction: PopulatedTransaction, metadata: FindTransactionMetadata): PopulatedTransaction => {
   if (metadata.data && metadata.signature) {
-    const voteDataParsed = JSON.parse(metadata.data);
-    const voteSigParsed = JSON.parse(metadata.signature);
-    if (isVoteDataValid(voteDataParsed) && isVoteSignatureValid(voteSigParsed)) {
-      const votingKey = voteDataParsed[CatalystDataIndexes.VOTING_KEY];
-      const stakeKey = voteDataParsed[CatalystDataIndexes.STAKE_KEY];
+    const { data, signature } = metadata;
+    if (isVoteDataValid(metadata.data) && isVoteSignatureValid(metadata.signature)) {
+      const votingKey = data[CatalystDataIndexes.VOTING_KEY];
+      const stakeKey = data[CatalystDataIndexes.STAKE_KEY];
       const rewardAddress = getAddressFromHexString(
-        remove0xPrefix(voteDataParsed[CatalystDataIndexes.REWARD_ADDRESS])
+        remove0xPrefix(data[CatalystDataIndexes.REWARD_ADDRESS])
       ).to_bech32();
-      const votingNonce = voteDataParsed[CatalystDataIndexes.VOTING_NONCE];
-      const votingSignature = voteSigParsed[CatalystSigIndexes.VOTING_SIGNATURE];
+      const votingNonce = data[CatalystDataIndexes.VOTING_NONCE];
+      const votingSignature = signature[CatalystSigIndexes.VOTING_SIGNATURE];
       return {
         ...transaction,
         voteRegistrations: transaction.voteRegistrations.concat({

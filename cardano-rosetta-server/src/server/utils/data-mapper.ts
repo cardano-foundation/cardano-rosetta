@@ -25,7 +25,6 @@ import {
   PoolOperations,
   SIGNATURE_TYPE,
   StakingOperations,
-  SUCCESS_STATUS,
   VoteOperations,
   CurveType
 } from './constants';
