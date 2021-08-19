@@ -3141,13 +3141,13 @@ fastify-blipp@2.3.1:
     chalk "^2.4.2"
     fastify-plugin "^1.6.0"
 
-fastify-metrics@7.2.3:
-  version "7.2.3"
-  resolved "https://registry.yarnpkg.com/fastify-metrics/-/fastify-metrics-7.2.3.tgz#75bb4e0e3712ba7ffa973debd4aebdcb2346f74e"
-  integrity sha512-OqWWtv1/URZqN+1ZeEb96LqAuKxpU5+yJ1faoUuM90KHtBxiYQmlJMx0iurATJlNGtDQtBW1LPXDfLTNFLAPeg==
+fastify-metrics@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/fastify-metrics/-/fastify-metrics-5.0.0.tgz#3b28ef0a2a0a6366d4fcf0904a69dcb06dae088b"
+  integrity sha512-tjUOm84PUUeDLERdE35cvf0phGPbIkQq5x49TM2ZHPZ0hd5n4cQPozF38ZDq0I+4ahpXB0Z8/kY0FpbAR6URKA==
   dependencies:
-    fastify-plugin "^3.0.0"
-    prom-client "^13.1.0"
+    fastify-plugin "^1.6.0"
+    prom-client "^12.0.0"
 
 fastify-openapi-glue@1.6.0:
   version "1.6.0"
@@ -3167,11 +3167,6 @@ fastify-plugin@^1.6.0, fastify-plugin@^1.6.1:
   integrity sha512-APBcb27s+MjaBIerFirYmBLatoPCgmHZM6XP0K+nDL9k0yX8NJPWDY1RAC3bh6z+AB5ULS2j31BUfLMT3uaZ4A==
   dependencies:
     semver "^6.3.0"
-
-fastify-plugin@^3.0.0:
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-3.0.0.tgz#cf1b8c8098e3b5a7c8c30e6aeb06903370c054ca"
-  integrity sha512-ZdCvKEEd92DNLps5n0v231Bha8bkz1DjnPP/aEz37rz/q42Z5JVLmgnqR4DYuNn3NXAO3IDCPyRvgvxtJ4Ym4w==
 
 fastify@2.15.1:
   version "2.15.1"
@@ -6152,10 +6147,10 @@ progress@^2.0.0, progress@^2.0.3:
   resolved "https://registry.yarnpkg.com/progress/-/progress-2.0.3.tgz#7e8cf8d8f5b8f239c1bc68beb4eb78567d572ef8"
   integrity sha512-7PiHtLll5LdnKIMw100I+8xJXR5gW2QwWYkT6iJva0bXitZKa/XMrSbdmg3r2Xnaidz9Qumd0VPaMrZlF9V9sA==
 
-prom-client@^13.1.0:
-  version "13.2.0"
-  resolved "https://registry.yarnpkg.com/prom-client/-/prom-client-13.2.0.tgz#99d13357912dd400f8911b77df19f7b328a93e92"
-  integrity sha512-wGr5mlNNdRNzEhRYXgboUU2LxHWIojxscJKmtG3R8f4/KiWqyYgXTLHs0+Ted7tG3zFT7pgHJbtomzZ1L0ARaQ==
+prom-client@^12.0.0:
+  version "12.0.0"
+  resolved "https://registry.yarnpkg.com/prom-client/-/prom-client-12.0.0.tgz#9689379b19bd3f6ab88a9866124db9da3d76c6ed"
+  integrity sha512-JbzzHnw0VDwCvoqf8y1WDtq4wSBAbthMB1pcVI/0lzdqHGJI3KBJDXle70XK+c7Iv93Gihqo0a5LlOn+g8+DrQ==
   dependencies:
     tdigest "^0.1.1"
 

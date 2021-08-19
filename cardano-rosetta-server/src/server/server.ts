@@ -14,6 +14,7 @@ import { ErrorFactory } from './utils/errors';
 interface ExtraParams {
   networkId: string;
   pageSize: number;
+  mock?: boolean;
 }
 
 const getBodyLimit = (): number | undefined => {
@@ -36,14 +37,14 @@ const buildServer = (
   extraParameters: ExtraParams
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
   const server = fastify({ logger: { level: logLevel }, bodyLimit: getBodyLimit() });
-  const { networkId, pageSize } = extraParameters;
+  const { networkId, pageSize, mock } = extraParameters;
+  if (!mock) server.register(metricsPlugin, { endpoint: '/metrics' });
   server.register(fastifyBlipp);
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,
     service: Controllers.configure(services, cardanoCli, cardanoNode, networkId, pageSize),
     noAdditional: true
   });
-  server.register(metricsPlugin, { endpoint: '/metrics' });
 
   // Custom error handling is needed as the specified by Rosetta API doesn't match
   // the fastify default one
