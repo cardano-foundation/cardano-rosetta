@@ -13,7 +13,9 @@ import {
   transactionBlock4853177WithDeregistration,
   transactionBlock4853177WithPoolRetirement,
   transactionWithPoolRegistrationWithMultipleOwners,
-  invalidAlonzoTransaction
+  transactionWithBadFormedVote,
+  invalidAlonzoTransaction,
+  transactionWithVoteOperation
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
@@ -345,5 +347,45 @@ describe('/block/transactions endpoint', () => {
 
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual(invalidAlonzoTransaction);
+  });
+
+  test('should return vote registration operations', async () => {
+    const txHash = 'adeb7b6845f3f4b0e74275588412cf00912b615e4bbf76d111326ce899260c59';
+    const blockNumber = 5593749;
+    const blockHash = '1c42fd317888b2aafe9f84787fdd3b90b95be06687a217cf4e6ca95130157eb5';
+
+    const response = await server.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(blockNumber, blockHash),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: txHash
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(transactionWithVoteOperation);
+  });
+
+  test('should not return a vote registration operation when it is bad formed', async () => {
+    const txHash = 'cacbc12afa3a1d2ec0186971d5c9035c79bfa1250ca7a6af580d1b8d9e04db8c';
+    const blockNumber = 5406810;
+    const blockHash = '0cea06f7b3003a5c0efc27fff117fa9e2a08603e1b0049c3b5c719abf6a617f1';
+
+    const response = await server.inject({
+      method: 'post',
+      url: BLOCK_TRANSACTION_ENDPOINT,
+      payload: {
+        ...generatePayload(blockNumber, blockHash),
+        // eslint-disable-next-line camelcase
+        transaction_identifier: {
+          hash: txHash
+        }
+      }
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual(transactionWithBadFormedVote);
   });
 });

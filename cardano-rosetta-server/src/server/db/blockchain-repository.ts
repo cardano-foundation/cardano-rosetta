@@ -15,7 +15,7 @@ import {
   MaBalance
 } from '../models';
 import { LinearFeeParameters } from '../services/cardano-services';
-import { hexStringToBuffer, hexFormatter, isEmptyHexString } from '../utils/formatters';
+import { hexStringToBuffer, hexFormatter, isEmptyHexString, remove0xPrefix } from '../utils/formatters';
 import Queries, {
   FindBalance,
   FindTransaction,
@@ -30,10 +30,14 @@ import Queries, {
   FindTransactionPoolRelays,
   FindTransactionPoolOwners,
   FindTransactionWithdrawals,
+  FindTransactionMetadata,
   FindPoolRetirements,
   FindUtxo,
   FindMaBalance
 } from './queries/blockchain-queries';
+import { CatalystDataIndexes, CatalystSigIndexes } from '../utils/constants';
+import { isVoteDataValid, isVoteSignatureValid } from '../utils/validations';
+import { getAddressFromHexString } from '../utils/cardano/addresses';
 
 export interface BlockchainRepository {
   /**
@@ -151,7 +155,8 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
         deregistrations: [],
         delegations: [],
         poolRegistrations: [],
-        poolRetirements: []
+        poolRetirements: [],
+        voteRegistrations: []
       }
     };
   }, {});
@@ -327,6 +332,34 @@ const parsePoolRetirementRow = (
 });
 
 /**
+ * Parses a vote row into a vote object
+ *
+ * @param transaction
+ * @param vote
+ */
+const parseVoteRow = (transaction: PopulatedTransaction, metadata: FindTransactionMetadata): PopulatedTransaction => {
+  const { data, signature } = metadata;
+  if (isVoteDataValid(data) && isVoteSignatureValid(signature)) {
+    const votingKey = remove0xPrefix(data[CatalystDataIndexes.VOTING_KEY]);
+    const stakeKey = remove0xPrefix(data[CatalystDataIndexes.STAKE_KEY]);
+    const rewardAddress = getAddressFromHexString(remove0xPrefix(data[CatalystDataIndexes.REWARD_ADDRESS])).to_bech32();
+    const votingNonce = data[CatalystDataIndexes.VOTING_NONCE];
+    const votingSignature = remove0xPrefix(signature[CatalystSigIndexes.VOTING_SIGNATURE]);
+    return {
+      ...transaction,
+      voteRegistrations: transaction.voteRegistrations.concat({
+        votingKey,
+        stakeKey,
+        rewardAddress,
+        votingNonce,
+        votingSignature
+      })
+    };
+  }
+  return transaction;
+};
+
+/**
  * Updates the transaction appending outputs
  *
  * @param populatedTransaction
@@ -448,7 +481,8 @@ const populateTransactions = async (
     Queries.findTransactionRegistrations,
     Queries.findTransactionDeregistrations,
     Queries.findTransactionDelegations,
-    Queries.FindTransactionPoolRegistrationsData,
+    Queries.findTransactionMetadata,
+    Queries.findTransactionPoolRegistrationsData,
     Queries.findTransactionPoolOwners,
     Queries.findTransactionPoolRelays,
     Queries.findPoolRetirements
@@ -460,6 +494,7 @@ const populateTransactions = async (
     registrations,
     deregistrations,
     delegations,
+    votes,
     poolsData,
     poolsOwners,
     poolsRelays,
@@ -474,6 +509,7 @@ const populateTransactions = async (
   transactionsMap = populateTransactionField(transactionsMap, deregistrations.rows, parseDeregistrationsRow);
   transactionsMap = populateTransactionField(transactionsMap, delegations.rows, parseDelegationsRow);
   transactionsMap = populateTransactionField(transactionsMap, poolRetirements.rows, parsePoolRetirementRow);
+  transactionsMap = populateTransactionField(transactionsMap, votes.rows, parseVoteRow);
 
   const mappedPoolRegistrations = mapToTransactionPoolRegistrations(poolsData.rows, poolsOwners.rows, poolsRelays.rows);
   transactionsMap = populateTransactionField(transactionsMap, mappedPoolRegistrations, parsePoolRegistrationsRows);

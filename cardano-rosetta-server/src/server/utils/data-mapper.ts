@@ -25,8 +25,8 @@ import {
   PoolOperations,
   SIGNATURE_TYPE,
   StakingOperations,
-  SUCCESS_STATUS,
-  VoteOperations
+  VoteOperations,
+  CurveType
 } from './constants';
 import { hexStringFormatter } from './formatters';
 
@@ -258,6 +258,31 @@ export const mapToRosettaTransaction = (
     })
   );
   totalOperations.push(poolRegistrationsAsOperations);
+  const voteRegistrationsAsOperations: Components.Schemas.Operation[] = transaction.voteRegistrations.map(
+    (voteRegistration, index) => ({
+      operation_identifier: {
+        index: getOperationCurrentIndex(totalOperations, index)
+      },
+      type: OperationType.VOTE_REGISTRATION,
+      status,
+      metadata: {
+        voteRegistrationMetadata: {
+          stakeKey: {
+            hex_bytes: voteRegistration.stakeKey,
+            curve_type: CurveType.edwards25519
+          },
+          votingKey: {
+            hex_bytes: voteRegistration.votingKey,
+            curve_type: CurveType.edwards25519
+          },
+          rewardAddress: voteRegistration.rewardAddress,
+          votingNonce: voteRegistration.votingNonce,
+          votingSignature: voteRegistration.votingSignature
+        }
+      }
+    })
+  );
+  totalOperations.push(voteRegistrationsAsOperations);
   // Output related operations are all the inputs.This will iterate over the collection again
   // but it's better for the sake of clarity and tx are bounded by block size (it can be
   // refactored to use a reduce)
