@@ -1,5 +1,6 @@
 import fastify from 'fastify';
 import fastifyBlipp from 'fastify-blipp';
+import metricsPlugin from 'fastify-metrics';
 import openapiGlue from 'fastify-openapi-glue';
 import StatusCodes from 'http-status-codes';
 import ApiError from './api-error';
@@ -13,6 +14,7 @@ import { ErrorFactory } from './utils/errors';
 interface ExtraParams {
   networkId: string;
   pageSize: number;
+  mock?: boolean;
 }
 
 const getBodyLimit = (): number | undefined => {
@@ -35,7 +37,8 @@ const buildServer = (
   extraParameters: ExtraParams
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
   const server = fastify({ logger: { level: logLevel }, bodyLimit: getBodyLimit() });
-  const { networkId, pageSize } = extraParameters;
+  const { networkId, pageSize, mock } = extraParameters;
+  if (!mock) server.register(metricsPlugin, { endpoint: '/metrics' });
   server.register(fastifyBlipp);
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,

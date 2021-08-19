@@ -67,7 +67,8 @@ export const setupServer = (database: Pool): FastifyInstance => {
   );
   return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
     networkId: NETWORK_ID,
-    pageSize: Number(process.env.PAGE_SIZE) || DEFAULT_PAGE_SIZE
+    pageSize: Number(process.env.PAGE_SIZE) || DEFAULT_PAGE_SIZE,
+    mock: true
   });
 };
 
