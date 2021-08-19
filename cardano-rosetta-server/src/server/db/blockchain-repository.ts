@@ -356,9 +356,7 @@ const parseVoteRow = (transaction: PopulatedTransaction, metadata: FindTransacti
       })
     };
   }
-  return {
-    ...transaction
-  };
+  return transaction;
 };
 
 /**
