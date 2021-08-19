@@ -24,7 +24,8 @@ DB='cexplorer'
 # before the one we are interested, so, if you are willing to fetch a block, please state B-2, B-1, B
 # See: cardano-rosetta-server/src/server/db/queries/blockchain-queries.ts#findBlock
 BLOCKS_TO_EXPORT="4490558,4490559,4490560,4490593,4490727,4491210,4597779,4597861,4619221,4645560,4853175,4853176,4853177,5006748,
-                  5406768,5406810,5406842,5406841,5406842,5407493,5407533,5407534,5412108,5412127,5412141,5414087,5416379,5449969,5455974"
+                  5406768,5406810,5406842,5406841,5406842,5407493,5407533,5407534,5412108,5412127,5412141,5414087,5416379,5449969,
+                  5455974,5593749"
 SELECT_BLOCK_ID="SELECT id FROM block WHERE block_no IN ($BLOCKS_TO_EXPORT)"
 SELECT_BLOCK_EPOCH="SELECT epoch_no FROM block WHERE block_no IN ($BLOCKS_TO_EXPORT)"
   
@@ -169,7 +170,7 @@ echo "\." >> $OUT_FILE;
 
 echo "-- Dumping Block transactions stake_registrations stake addresses" >> $OUT_FILE;
 echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.stake_address (id, hash_raw, view, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, registered_tx_id, script_hash) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from stake_address WHERE id IN ($REGISTRATION_ADDRESSES_QUERY) AND id NOT IN ($WITHDRAWAL_ADDRESSES_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -276,3 +277,9 @@ echo 'COPY public.epoch_param (id,epoch_no,min_fee_a,min_fee_b,max_block_size,ma
 treasury_growth_rate,decentralisation,entropy,protocol_major,protocol_minor,min_utxo_value,min_pool_cost,nonce,block_id,cost_models,price_mem,price_step,max_tx_ex_mem,
 max_tx_ex_steps,max_block_ex_mem,max_block_ex_steps,max_val_size,collateral_percent,max_collateral_inputs,coins_per_utxo_word) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from epoch_param WHERE epoch_no IN ($SELECT_BLOCK_EPOCH)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo "\." >> $OUT_FILE;
+
+echo "-- Dumping transactions metadata" >> $OUT_FILE;
+echo "ALTER TABLE public.tx_metadata DISABLE TRIGGER ALL;" >> $OUT_FILE;
+echo 'COPY public.tx_metadata (id, key, json, bytes, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * from tx_metadata WHERE tx_id IN ($SELECT_TX_ID)) to STDOUT WITH CSV" $DB >> $OUT_FILE;

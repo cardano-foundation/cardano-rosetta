@@ -37,11 +37,11 @@ export const block1000WithoutTxs = {
   }
 };
 
-export const latestBlockHash = '16d14ca745d5956021e20656175bd8b548798ea04a27d9bf5e9f2090ea200434';
-export const latestBlockSlot = 24073498;
+export const latestBlockHash = '1c42fd317888b2aafe9f84787fdd3b90b95be06687a217cf4e6ca95130157eb5';
+export const latestBlockSlot = 26912827;
 export const latestBlockIdentifier = {
   hash: latestBlockHash,
-  index: 5455974
+  index: 5593749
 };
 // TODO: delete this
 export const latestBlockIdentifierMAServer = {
@@ -1113,6 +1113,69 @@ export const invalidAlonzoTransaction = {
     transaction_identifier: {
       hash: '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c'
     }
+  }
+};
+
+export const transactionWithVoteOperation = {
+  transaction: {
+    transaction_identifier: { hash: 'adeb7b6845f3f4b0e74275588412cf00912b615e4bbf76d111326ce899260c59' },
+    operations: [
+      {
+        operation_identifier: { index: 0 },
+        type: 'input',
+        status: 'success',
+        account: {
+          address:
+            'addr1q85lqccktlt8j08g58jesjk3gwe9p0eyvxtl77lqaacuf6uvcjwuayent36vkw403c8hat9csyawfgg88qlwweyeshnq4d22p8'
+        },
+        amount: { value: '-1123600000', currency: { decimals: 6, symbol: 'ADA' } },
+        coin_change: {
+          coin_identifier: { identifier: '02a1441419ebbe583139c1662351d4f3724e5d9ea3aef4e12c90edb0d5c5f2f5:23' },
+          coin_action: 'coin_spent'
+        }
+      },
+      {
+        operation_identifier: {
+          index: 1
+        },
+        status: 'success',
+        type: 'voteRegistration',
+        metadata: {
+          voteRegistrationMetadata: {
+            rewardAddress:
+              'addr1q9nr7yuhzsmmdchsjacuqef5cnlajk2s4j2rjre5uzgmtw5vcjwuayent36vkw403c8hat9csyawfgg88qlwweyeshnqsh9r5q',
+            stakeKey: {
+              curve_type: 'edwards25519',
+              hex_bytes: '56f29f391a3bb5ff90637b2d2d0a32590214871284b0577e4671b0c1a83f79ba'
+            },
+            votingKey: {
+              curve_type: 'edwards25519',
+              hex_bytes: '8bcec4282239b2cc1a7d8bb294c154c849fc200c7ebd27ef45e610d849bc302a'
+            },
+            votingNonce: 26912766,
+            votingSignature:
+              'f75f7a54a79352f9d0e2c4de4e8ded8ae9304fa0f3b021754f8d149c90c7b01e1c6bbfdd623c294d82f5e5cbbfc0bd6fd1c674780db4025446e2eafc87f61b0a'
+          }
+        }
+      },
+
+      {
+        operation_identifier: { index: 2, network_index: 0 },
+        related_operations: [{ index: 0 }],
+        type: 'output',
+        status: 'success',
+        account: {
+          address:
+            'addr1q9nr7yuhzsmmdchsjacuqef5cnlajk2s4j2rjre5uzgmtw5vcjwuayent36vkw403c8hat9csyawfgg88qlwweyeshnqsh9r5q'
+        },
+        amount: { value: '1123423763', currency: { decimals: 6, symbol: 'ADA' } },
+        coin_change: {
+          coin_identifier: { identifier: 'adeb7b6845f3f4b0e74275588412cf00912b615e4bbf76d111326ce899260c59:0' },
+          coin_action: 'coin_created'
+        }
+      }
+    ],
+    metadata: { size: 470, scriptSize: 0 }
   }
 };
 
