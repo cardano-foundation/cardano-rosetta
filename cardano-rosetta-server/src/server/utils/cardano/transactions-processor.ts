@@ -464,10 +464,11 @@ export const convert = (
   const inputsCount = transactionBody.inputs().len();
   const outputsCount = transactionBody.outputs().len();
   logger.info(`[parseOperationsFromTransactionBody] About to parse ${inputsCount} inputs`);
+  const inputOperations = extraData.operations.filter(({ type }) => type === OperationType.INPUT);
   for (let i = 0; i < inputsCount; i++) {
     const input = transactionBody.inputs().get(i);
     const inputParsed = parseInputToOperation(input, operations.length);
-    operations.push({ ...inputParsed, ...extraData.operations[i], status: '' });
+    operations.push({ ...inputParsed, ...inputOperations[i], status: '' });
   }
   // till this line operations only contains inputs
   const relatedOperations = getRelatedOperationsFromInputs(operations);
