@@ -178,3 +178,20 @@ In order to execute the example, run:
 ```javascript
 $ yarn pool-retirement-example
 ```
+
+## Sending transactions with Catalyst vote registration
+
+This example uses a predefined `PRIVATE_KEY` to generate a key pair for the address that will send the transaction and where the vote registration takes place.
+In order to send a vote, the following data is required:
+
+1. `REWARD_ADDRESS` Staking address which will receive voting rewards.
+2. `STAKING_PUBLIC_KEY` Public key of the corresponding staking account passed as hex string.
+3. `VOTING_PUBLIC_KEY` Catalyst voting public key.
+4. `VOTING_NONCE` Current slot number.
+5. `VOTING_SIGNATURE` Previously vote data signed with the staking private key passed as hex string
+
+In order to execute the example, run:
+
+```javascript
+$ yarn vote-registration-example
+```
