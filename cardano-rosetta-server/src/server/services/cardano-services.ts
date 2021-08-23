@@ -443,11 +443,6 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
         logger.info('[buildTransaction] Adding transaction metadata');
         auxiliaryData = CardanoWasm.AuxiliaryData.from_bytes(Buffer.from(metadata, 'hex'));
       }
-      /* eslint-disable unicorn/no-console-spaces */
-      /* eslint-disable no-console */
-      console.log('AUXILIARY DATA ', auxiliaryData);
-      console.log('METADATa ', metadata);
-      /* eslint-disable no-console */
       return hexFormatter(
         Buffer.from(CardanoWasm.Transaction.new(transactionBody, witnesses, auxiliaryData).to_bytes())
       );

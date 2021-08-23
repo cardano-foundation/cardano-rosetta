@@ -4626,9 +4626,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_EMPTY_METADATA: C
   ]
 };
 
-const constructVoteRegistrationMetadata = (
-  requestMetadata: Components.Schemas.VoteRegistrationMetadata
-): Uint8Array => {
+const constructVoteRegistrationMetadata = (requestMetadata: Components.Schemas.VoteRegistrationMetadata): string => {
   const { rewardAddress, votingSignature, votingNonce, votingKey, stakeKey } = requestMetadata;
   const wasmAddress = CardanoWasm.RewardAddress.from_address(CardanoWasm.Address.from_bech32(rewardAddress));
   if (!wasmAddress) throw new Error('Should never happen');
@@ -4658,7 +4656,7 @@ const constructVoteRegistrationMetadata = (
   const metadataList = CardanoWasm.MetadataList.new();
   metadataList.add(CardanoWasm.TransactionMetadatum.from_bytes(generalMetadata.to_bytes()));
   metadataList.add(CardanoWasm.TransactionMetadatum.new_list(CardanoWasm.MetadataList.new()));
-  return CardanoWasm.AuxiliaryData.from_bytes(metadataList.to_bytes()).to_bytes();
+  return Buffer.from(CardanoWasm.AuxiliaryData.from_bytes(metadataList.to_bytes()).to_bytes()).toString('hex');
 };
 
 const constructionExtraData = (
@@ -4675,7 +4673,7 @@ const constructionExtraData = (
     )
   };
   if (voteRegistrationMetadata) {
-    extraData.transactionMetadataBytes = constructVoteRegistrationMetadata(voteRegistrationMetadata);
+    extraData.transactionMetadataHex = constructVoteRegistrationMetadata(voteRegistrationMetadata);
   }
   return extraData;
 };
