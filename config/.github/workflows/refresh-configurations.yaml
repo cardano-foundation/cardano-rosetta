@@ -74,3 +74,18 @@ jobs:
         .github/scripts/update-when-new.sh $CARDANO_CONFIG_URL
       env:
         CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}
+        
+    - name: Download from Hydra (alonzo-purple)
+      shell: bash
+      run: |
+        .github/scripts/download-all.sh $CARDANO_CONFIG_URL $CARDANO_NETWORK
+      env:
+        CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}
+        CARDANO_NETWORK: alonzo-purple
+
+    - name: Push new configurations
+      shell: bash
+      run: |
+        .github/scripts/update-when-new.sh $CARDANO_CONFIG_URL
+      env:
+        CARDANO_CONFIG_URL: ${{ steps.latest.outputs.url }}

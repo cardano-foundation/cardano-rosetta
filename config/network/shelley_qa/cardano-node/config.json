@@ -1,6 +1,6 @@
 {
   "AlonzoGenesisFile": "../genesis/alonzo.json",
-  "AlonzoGenesisHash": "06cc024b823b6d20f5dde2faf8de2d895f47983ab584db38ea62111b61038e35",
+  "AlonzoGenesisHash": "fd77bbad445e6c438e2755d5e939a818d5d231316f882c7725988ebfac8442f8",
   "ApplicationName": "cardano-sl",
   "ApplicationVersion": 0,
   "ByronGenesisFile": "../genesis/byron.json",
