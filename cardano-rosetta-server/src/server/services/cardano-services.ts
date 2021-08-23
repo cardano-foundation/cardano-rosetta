@@ -1,13 +1,6 @@
 /* eslint-disable camelcase */
 /* eslint-disable wrap-regex */
-import CardanoWasm, {
-  AuxiliaryData,
-  BigNum,
-  Ed25519Signature,
-  PublicKey,
-  StakeCredential,
-  Vkey
-} from 'cardano-serialization-lib';
+import CardanoWasm, { BigNum, Ed25519Signature, PublicKey, StakeCredential, Vkey } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
 import {
@@ -49,7 +42,7 @@ export interface UnsignedTransaction {
   hash: string;
   bytes: string;
   addresses: string[];
-  metadata?: AuxiliaryData;
+  metadata?: string;
 }
 
 export interface TransactionParsed {
@@ -179,7 +172,12 @@ export interface CardanoService {
    * @param unsignedTransaction
    * @param signatures
    */
-  buildTransaction(logger: Logger, unsignedTransaction: string, signatures: Signatures[]): string;
+  buildTransaction(
+    logger: Logger,
+    unsignedTransaction: string,
+    signatures: Signatures[],
+    transactionMetadata?: string
+  ): string;
 
   /**
    * Parses a signed transaction using COmpontens.Schemas.Operation
@@ -433,15 +431,26 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       throw ErrorFactory.parseSignedTransactionError();
     }
   },
-  buildTransaction(logger, unsignedTransaction, signatures) {
+  buildTransaction(logger, unsignedTransaction, signatures, metadata) {
     logger.info(`[buildTransaction] About to signed a transaction with ${signatures.length} signatures`);
     const witnesses = getWitnessesForTransaction(logger, signatures);
     try {
       logger.info('[buildTransaction] Instantiating transaction body from unsigned transaction bytes');
       const transactionBody = CardanoWasm.TransactionBody.from_bytes(Buffer.from(unsignedTransaction, 'hex'));
-
       logger.info('[buildTransaction] Creating transaction using transaction body and extracted witnesses');
-      return hexFormatter(Buffer.from(CardanoWasm.Transaction.new(transactionBody, witnesses).to_bytes()));
+      let auxiliaryData;
+      if (metadata) {
+        logger.info('[buildTransaction] Adding transaction metadata');
+        auxiliaryData = CardanoWasm.AuxiliaryData.from_bytes(Buffer.from(metadata, 'hex'));
+      }
+      /* eslint-disable unicorn/no-console-spaces */
+      /* eslint-disable no-console */
+      console.log('AUXILIARY DATA ', auxiliaryData);
+      console.log('METADATa ', metadata);
+      /* eslint-disable no-console */
+      return hexFormatter(
+        Buffer.from(CardanoWasm.Transaction.new(transactionBody, witnesses, auxiliaryData).to_bytes())
+      );
     } catch (error) {
       logger.error({ error }, '[buildTransaction] There was an error building signed transaction');
       throw ErrorFactory.cantBuildSignedTransaction();
@@ -486,7 +495,7 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       addresses
     };
     if (voteRegistrationMetadata) {
-      toReturn.metadata = voteRegistrationMetadata;
+      toReturn.metadata = Buffer.from(voteRegistrationMetadata.to_bytes()).toString('hex');
     }
     logger.info(
       toReturn,

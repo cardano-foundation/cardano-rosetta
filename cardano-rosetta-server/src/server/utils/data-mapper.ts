@@ -35,7 +35,7 @@ const COIN_CREATED_ACTION = 'coin_created';
 
 export interface TransactionExtraData {
   operations: Components.Schemas.Operation[];
-  transactionMetadataBytes?: Uint8Array;
+  transactionMetadataHex?: string;
 }
 
 export const mapAmount = (
@@ -516,7 +516,7 @@ export const getNetworkIdentifierByRequestParameters = (
  * @param extraData
  */
 export const encodeExtraData = async (transaction: string, extraData: TransactionExtraData): Promise<string> => {
-  const { operations, transactionMetadataBytes } = extraData;
+  const { operations, transactionMetadataHex } = extraData;
   const extraOperations: Components.Schemas.Operation[] = operations
     // eslint-disable-next-line camelcase
     .filter(
@@ -529,8 +529,8 @@ export const encodeExtraData = async (transaction: string, extraData: Transactio
   const toEncode: TransactionExtraData = {
     operations: extraOperations
   };
-  if (transactionMetadataBytes) {
-    toEncode.transactionMetadataBytes = transactionMetadataBytes;
+  if (transactionMetadataHex) {
+    toEncode.transactionMetadataHex = transactionMetadataHex;
   }
   return (await cbor.encodeAsync([transaction, toEncode])).toString('hex');
 };

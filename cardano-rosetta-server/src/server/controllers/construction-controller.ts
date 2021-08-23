@@ -205,7 +205,7 @@ const configure = (
           /* eslint-disable camelcase */
           unsigned_transaction: await encodeExtraData(unsignedTransaction.bytes, {
             operations: request.body.operations,
-            transactionMetadataBytes: unsignedTransaction.metadata?.to_bytes()
+            transactionMetadataHex: unsignedTransaction.metadata
           }),
           /* eslint-disable camelcase */
           payloads
@@ -222,13 +222,15 @@ const configure = (
         const logger = request.log;
         logger.info('[constructionCombine] Request received to sign a transaction');
         const [transaction, extraData] = await decodeExtraData(request.body.unsigned_transaction);
+        const { transactionMetadataHex } = extraData;
         const signedTransaction = cardanoService.buildTransaction(
           logger,
           transaction,
           request.body.signatures.map(signature => ({
             signature: signature.hex_bytes,
             publicKey: signature.public_key.hex_bytes
-          }))
+          })),
+          transactionMetadataHex
         );
         logger.info({ signedTransaction }, '[constructionCombine] About to return signed transaction');
         // eslint-disable-next-line camelcase
