@@ -1,6 +1,13 @@
 /* eslint-disable camelcase */
 /* eslint-disable wrap-regex */
-import CardanoWasm, { BigNum, Ed25519Signature, PublicKey, StakeCredential, Vkey } from 'cardano-serialization-lib';
+import CardanoWasm, {
+  BigNum,
+  Ed25519Signature,
+  PublicKey,
+  StakeCredential,
+  Vkey,
+  AuxiliaryData
+} from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
 import {
@@ -28,7 +35,7 @@ import {
 } from '../utils/constants';
 import { TransactionExtraData } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
-import { hexFormatter } from '../utils/formatters';
+import { hexFormatter, hexStringToBuffer, bytesToHex } from '../utils/formatters';
 import { isEd25519KeyHash } from '../utils/validations';
 
 export interface Signatures {
@@ -438,14 +445,12 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       logger.info('[buildTransaction] Instantiating transaction body from unsigned transaction bytes');
       const transactionBody = CardanoWasm.TransactionBody.from_bytes(Buffer.from(unsignedTransaction, 'hex'));
       logger.info('[buildTransaction] Creating transaction using transaction body and extracted witnesses');
-      let auxiliaryData;
+      let auxiliaryData: AuxiliaryData | undefined;
       if (metadata) {
         logger.info('[buildTransaction] Adding transaction metadata');
-        auxiliaryData = CardanoWasm.AuxiliaryData.from_bytes(Buffer.from(metadata, 'hex'));
+        auxiliaryData = CardanoWasm.AuxiliaryData.from_bytes(hexStringToBuffer(metadata));
       }
-      return hexFormatter(
-        Buffer.from(CardanoWasm.Transaction.new(transactionBody, witnesses, auxiliaryData).to_bytes())
-      );
+      return bytesToHex(CardanoWasm.Transaction.new(transactionBody, witnesses, auxiliaryData).to_bytes());
     } catch (error) {
       logger.error({ error }, '[buildTransaction] There was an error building signed transaction');
       throw ErrorFactory.cantBuildSignedTransaction();
@@ -500,7 +505,7 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
   },
 
   calculateTxSize(logger, network, operations, ttl) {
-    const { bytes, addresses } = this.createUnsignedTransaction(logger, network, operations, ttl);
+    const { bytes, addresses, metadata } = this.createUnsignedTransaction(logger, network, operations, ttl);
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
       const eraAddressType = this.getEraAddressType(address);
@@ -513,7 +518,7 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       }
       throw ErrorFactory.invalidAddressError(address);
     });
-    const transaction = this.buildTransaction(logger, bytes, signatures);
+    const transaction = this.buildTransaction(logger, bytes, signatures, metadata);
     // eslint-disable-next-line no-magic-numbers
     return transaction.length / 2; // transaction is returned as an hex string and we need size in bytes
   },
