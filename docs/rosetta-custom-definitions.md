@@ -364,6 +364,8 @@ Not only input and output operations are allowed but also special staking operat
 
 It is possible to operate with multi assets tokens too, as explained [here](./multi-assets-support.md).
 
+If it is required to send a Catalyst vote registration, the information needed to do that can be found [here](./catalyst-vote-support.md)
+
 Furthermore, transaction `ttl` needs to be sent as string in the metadata.
 
 ### Request
@@ -398,3 +400,5 @@ The rationale behind that decision can be found [here](https://community.rosetta
 > [..] There is no expectation that the transactions which are constructed in Rosetta can be parsed by network-specific tools or broadcast on a non-Rosetta node. All parsing and broadcast of these transactions will occur exclusively over the Rosetta API.
 
 The same approach has been used to encode the operations that contain a staking key, since they couldn't be decoded otherwise.
+
+Transaction's metadata, needed for example for vote registration operations, is also encoded as extra data. 
