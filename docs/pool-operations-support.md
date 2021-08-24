@@ -166,7 +166,7 @@ As a response, all the operations contained in the transaction block were retrie
     "hash": "dcbff41c50c5b4012d49be5be75b11a0c5289515258ef4cf108eb6ec4ed5f37a"
   },
   "operations": [
-    //{"other operations},
+    // other operations
     {
       "operation_identifier": { "index": 0 },
       "type": "poolRetirement",
@@ -182,7 +182,7 @@ As a response, all the operations contained in the transaction block were retrie
         }
       }
     }
-    // ,{other operations here}
+    // other operations here
   ]
 }
 ```
