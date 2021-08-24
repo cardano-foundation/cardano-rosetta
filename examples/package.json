@@ -11,7 +11,8 @@
     "pool-registration-with-cert-example": "ts-node ./pool-registration-with-cert-example.ts",
     "pool-retirement-example": "ts-node ./pool-retirement-example.ts",
     "send-transaction-with-byron-example": "ts-node ./send-transaction-with-byron-example.ts",
-    "send-transaction-postman-example": "node ./postman/send-transaction-example send_transaction_postman_environment.json"
+    "send-transaction-postman-example": "node ./postman/send-transaction-example send_transaction_postman_environment.json",
+    "vote-registration-example": "ts-node ./vote-registration-example.ts"
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "2.0.0",
