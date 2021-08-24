@@ -929,7 +929,13 @@
           },
           "metadata": {
             "description": "Blockchains that utilize a username model (where the address is not a derivative of a cryptographic public key) should specify the public key(s) owned by the address in metadata.",
-            "type": "object"
+            "type": "object",
+            "properties": {
+              "chain_code": {
+                "description": "Hex string encoded chain code of a Bip32 Key of emurgo serialization lib",
+                "type": "string"
+              }
+            }
           }
         }
       },

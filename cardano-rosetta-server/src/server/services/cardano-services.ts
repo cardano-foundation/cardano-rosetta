@@ -21,7 +21,6 @@ import { getStakingCredentialFromHex } from '../utils/cardano/staking-credential
 import * as TransactionProcessor from '../utils/cardano/transactions-processor';
 import {
   AddressType,
-  ATTRIBUTES_LENGTH,
   CHAIN_CODE_LENGTH,
   CurveType,
   EraAddressType,
@@ -41,8 +40,8 @@ import { isEd25519KeyHash } from '../utils/validations';
 export interface Signatures {
   signature: string;
   publicKey: string;
-  chain_code?: string;
-  attributes?: string;
+  chainCode?: string;
+  address?: string;
 }
 
 export interface UnsignedTransaction {
@@ -81,8 +80,11 @@ const SHELLEY_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
 const BYRON_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
 const BYRON_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
 
+// Cold keys
+const COLD_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
+const COLD_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
+
 const CHAIN_CODE_DUMMY = new Array(CHAIN_CODE_LENGTH + 1).join('0');
-const ATTRIBUTES_DUMMY = new Array(ATTRIBUTES_LENGTH + 1).join('0');
 
 export interface CardanoService {
   /**
@@ -244,21 +246,23 @@ const getUniqueAddresses = (addresses: string[]) => [...new Set(addresses)];
 const getUniqueAccountIdentifiers = (addresses: string[]) =>
   addressesToAccountIdentifiers(getUniqueAddresses(addresses));
 
-const signatureProcessor: { [eraType: string]: Signatures } = {
-  [EraAddressType.Shelley]: {
+const signatureProcessor: { [eraType: string]: (address: string) => Signatures } = {
+  [EraAddressType.Shelley]: (address: string) => ({
     signature: SHELLEY_DUMMY_SIGNATURE,
-    publicKey: SHELLEY_DUMMY_PUBKEY
-  },
-  [EraAddressType.Byron]: {
+    publicKey: SHELLEY_DUMMY_PUBKEY,
+    address
+  }),
+  [EraAddressType.Byron]: (address: string) => ({
     signature: BYRON_DUMMY_SIGNATURE,
     publicKey: BYRON_DUMMY_PUBKEY,
-    chain_code: CHAIN_CODE_DUMMY,
-    attributes: ATTRIBUTES_DUMMY
-  },
-  [AddressType.POOL_KEY_HASH]: {
-    signature: SHELLEY_DUMMY_SIGNATURE,
-    publicKey: SHELLEY_DUMMY_PUBKEY
-  }
+    chainCode: CHAIN_CODE_DUMMY,
+    address
+  }),
+  [AddressType.POOL_KEY_HASH]: (address: string) => ({
+    signature: COLD_DUMMY_SIGNATURE,
+    publicKey: COLD_DUMMY_PUBKEY,
+    address
+  })
 };
 
 const getPoolSigners = (
@@ -357,11 +361,23 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
     signatures.forEach(signature => {
       const vkey: Vkey = Vkey.new(PublicKey.from_bytes(Buffer.from(signature.publicKey, 'hex')));
       const ed25519Signature: Ed25519Signature = Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'));
-      if (signature.chain_code && signature.attributes) {
+      const { address } = signature;
+      if (address && getEraAddressType(address) === EraAddressType.Byron) {
         // byron case
-        const chainCode = Buffer.from(signature.chain_code, 'hex');
-        const attributes = Buffer.from(signature.attributes, 'hex');
-        bootstrapWitnesses.add(CardanoWasm.BootstrapWitness.new(vkey, ed25519Signature, chainCode, attributes));
+        const { chainCode } = signature;
+        if (!chainCode) {
+          logger.error('[getWitnessesForTransaction] Missing chain code for byron account signature');
+          throw ErrorFactory.missingChainCodeError();
+        }
+        const byronAddress = CardanoWasm.ByronAddress.from_base58(address);
+        bootstrapWitnesses.add(
+          CardanoWasm.BootstrapWitness.new(
+            vkey,
+            ed25519Signature,
+            hexStringToBuffer(chainCode),
+            byronAddress.attributes()
+          )
+        );
       } else {
         vkeyWitnesses.add(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature));
       }
@@ -369,6 +385,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
     logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len()} witnesses were extracted to sign transaction`);
     if (vkeyWitnesses.len() > 0) witnesses.set_vkeys(vkeyWitnesses);
     if (bootstrapWitnesses.len() > 0) witnesses.set_bootstraps(bootstrapWitnesses);
+    logger.info('witnesses hex string ', Buffer.from(witnesses.to_bytes()).toString('hex'));
     return witnesses;
   } catch (error) {
     logger.error({ error }, '[getWitnessesForTransaction] There was an error building witnesses set for transaction');
@@ -510,11 +527,11 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
       const eraAddressType = this.getEraAddressType(address);
       if (eraAddressType !== null) {
-        return signatureProcessor[eraAddressType];
+        return signatureProcessor[eraAddressType](address);
       }
       // since pool key hash are passed as address, ed25519 hashes must be included
       if (isEd25519KeyHash(address)) {
-        return signatureProcessor[AddressType.POOL_KEY_HASH];
+        return signatureProcessor[AddressType.POOL_KEY_HASH](address);
       }
       throw ErrorFactory.invalidAddressError(address);
     });

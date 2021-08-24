@@ -107,7 +107,8 @@ export const Errors = {
   INVALID_VOTING_SIGNATURE: { message: 'Invalid voting signature', code: 5008 },
   MISSING_VOTING_KEY: { message: 'Voting key is missing', code: 5009 },
   INVALID_VOTING_KEY_FORMAT: { message: 'Voting key format is invalid', code: 5010 },
-  MISSING_VOTE_REGISTRATION_METADATA: { message: 'Missing vote registration metadata', code: 5011 }
+  MISSING_VOTE_REGISTRATION_METADATA: { message: 'Missing vote registration metadata', code: 5011 },
+  CHAIN_CODE_MISSING: { message: 'Missing chain code', code: 5012 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -127,6 +128,7 @@ const addressGenerationError: CreateErrorFunction = () => buildApiError(Errors.A
 const invalidPublicKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_PUBLIC_KEY_FORMAT, false);
 const invalidStakingKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_STAKING_KEY_FORMAT, false);
 const missingStakingKeyError: CreateErrorFunction = type => buildApiError(Errors.STAKING_KEY_MISSING, false, type);
+const missingChainCodeError: CreateErrorFunction = type => buildApiError(Errors.CHAIN_CODE_MISSING, false, type);
 const missingDnsNameError: CreateErrorFunction = type => buildApiError(Errors.DNS_NAME_MISSING, false, type);
 const missingPoolCertError: CreateErrorFunction = type => buildApiError(Errors.POOL_CERT_MISSING, false, type);
 const missingPoolKeyError: CreateErrorFunction = type => buildApiError(Errors.POOL_KEY_MISSING, false, type);
@@ -202,6 +204,7 @@ export const ErrorFactory = {
   invalidPoolRegistrationCertType,
   invalidPublicKeyFormat,
   invalidStakingKeyFormat,
+  missingChainCodeError,
   missingDnsNameError,
   missingStakingKeyError,
   missingPoolCertError,
