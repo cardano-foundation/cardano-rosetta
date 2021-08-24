@@ -184,6 +184,29 @@ _Important Note: Using this example with Rosetta cli will submit the transaction
 POOL_REGISTRATION_CERT="\"8a03581cedbfa6ee799f2fd314540b592f41cd403e8c42c800e3c3c40a77f7fa582074511e297e8d8670729af5a4eb08ff8b49f0247f1100f28ce5599b44f07b57b41b000000ba22eeea801a1443fd00d81e820101581de030c6748e04a7b6a90ea072ae6e4dc40e29e63136d1e4a9b56471312081581c76a0a426c3d525811b8c484057bd8ad546a49788e6c285d97661c5c3818202782872656c6179732e63617264616e6f2d6c61756e63687061642e636861696e6372756369616c2e696ff6\"" PUBLIC_COLD_KEY="\"c55291e38ce98c5275c75a2ddb4f2ee61cc56894205120aaf4ceb083d6f68d7c\"" PRIVATE_COLD_KEY="\"41f9a26b347bcd683ce647892adab319679b2235a482c66a4f36b132a93c8ec8\"" POOL_KEY_HASH="\"edbfa6ee799f2fd314540b592f41cd403e8c42c800e3c3c40a77f7fa\"" OWNER_PRIVATE_KEY="\"cc31ead80859f931b94781444a9c0e76461300ceb125b9f2ed76b802c8fda89b\"" OWNER_PUBLIC_KEY="\"c0f3fd1cfc648d1d29b9bf7d1f80159a5b67c0dac69531ca5964381c68bad979\"" OWNER_ADDRESS="\"stake_test1upm2pfpxc02jtqgm33yyq4aa3t25dfyh3rnv9pwewesutsceq6xzf\"" STAKE_PRIVATE_KEY="\"def396f2574704fc9870d9ff98b20b20849c8b65ada9785249a4d1aa491d99df\"" STAKE_PUBLIC_KEY="\"2bf1d767bf8783deb6cdc2a3a071102267762c10cfbbbd0fbec2e796b6ee5017\"" RECIPIENT="\"addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3\"" STAKE_ADDRESS="\"stake_test1uqcvvaywqjnmd2gw5pe2umjdcs8zne33xmg7f2d4v3cnzgqaukjjl\"" ./bin/rosetta-cli check:construction --configuration-file ./pool-cert-configuration.json
 ```
 
+### Vote registration
+
+This workflow generates a transaction that:
+
+1. Create payment keys
+2. Generates an address
+3. Waits for funds in the created address
+4. Creates a transaction with the metadata corresponding to a Catalyst vote
+5. Broadcasts the transaction and receives the change in the specified address
+
+_In order to run this test, voting data must be generated outside Rosetta and provided as environment variables. In order to understand where those values come from this [link](https://cips.cardano.org/cips/cip15/)  with the metadata format of a Catalyst vote can be useful_
+
+``` bash
+# REWARD_ADDRESS Staking address which will receive voting rewards.
+# STAKING_PUBLIC_KEY Public key of the corresponding staking account passed as hex string.
+# VOTING_PUBLIC_KEY Catalyst voting public key.
+# VOTING_NONCE current slot number
+# VOTING_SIGNATURE Previously vote data signed with the staking private key passed as hex string
+# RECIPIENT address that will receive the remaining ADA
+
+STAKING_PUBLIC_KEY="\"86870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e\"" REWARD_ADDRESS="\"stake_test1uzhr5zn6akj2affzua8ylcm8t872spuf5cf6tzjrvnmwemcehgcjm\"" VOTING_NONCE="\"2854355\"" VOTING_PUBLIC_KEY="\"0036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a0\"" VOTING_SIGNATURE="\"a4552118506696de13da2db9d58549fa274b4d988967a939dc3fc886fc145bdc310ef10234ef5260de2e967d13c9f244342817472acb4cd4aaba47ad1086d102\"" RECIPIENT="\"addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3\"" ./bin/rosetta-cli check:construction --configuration-file ./vote-registration-configuration.json
+```
+
 See the [QA doc] for implementation detail.
 
 [rosetta-cli]: https://github.com/coinbase/rosetta-cli#install
