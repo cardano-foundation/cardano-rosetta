@@ -4626,9 +4626,7 @@ export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_EMPTY_METADATA: C
   ]
 };
 
-const constructVoteRegistrationMetadata = (
-  requestMetadata: Components.Schemas.VoteRegistrationMetadata
-): Uint8Array => {
+const constructVoteRegistrationMetadata = (requestMetadata: Components.Schemas.VoteRegistrationMetadata): string => {
   const { rewardAddress, votingSignature, votingNonce, votingKey, stakeKey } = requestMetadata;
   const wasmAddress = CardanoWasm.RewardAddress.from_address(CardanoWasm.Address.from_bech32(rewardAddress));
   if (!wasmAddress) throw new Error('Should never happen');
@@ -4658,7 +4656,7 @@ const constructVoteRegistrationMetadata = (
   const metadataList = CardanoWasm.MetadataList.new();
   metadataList.add(CardanoWasm.TransactionMetadatum.from_bytes(generalMetadata.to_bytes()));
   metadataList.add(CardanoWasm.TransactionMetadatum.new_list(CardanoWasm.MetadataList.new()));
-  return CardanoWasm.AuxiliaryData.from_bytes(metadataList.to_bytes()).to_bytes();
+  return Buffer.from(CardanoWasm.AuxiliaryData.from_bytes(metadataList.to_bytes()).to_bytes()).toString('hex');
 };
 
 const constructionExtraData = (
@@ -4675,7 +4673,7 @@ const constructionExtraData = (
     )
   };
   if (voteRegistrationMetadata) {
-    extraData.transactionMetadataBytes = constructVoteRegistrationMetadata(voteRegistrationMetadata);
+    extraData.transactionMetadataHex = constructVoteRegistrationMetadata(voteRegistrationMetadata);
   }
   return extraData;
 };
@@ -5177,6 +5175,9 @@ export const SIGNED_TX_WITH_POOL_REGISTRATION_WITH_CERT =
 export const SIGNED_TX_WITH_VOTE_REGISTRATION =
   '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e807582088ca8654582e83937873230b6646a2210134d3e41e0bc9824ce7be4e0b28a896a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c361041206f6';
 
+export const SIGNED_TX_WITH_METADATA =
+  '83a500818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e807582088ca8654582e83937873230b6646a2210134d3e41e0bc9824ce7be4e0b28a896a100818258201b400d60aaf34eaf6dcbab9bba46001a23497886cf11066f7846933d30e5ad3f58406c92508135cb060187a2706ade8154782867b1526e9615d06742be5c56f037ab85894c098c2ab07971133c0477baee92adf3527ad7cc816f13e1e4c36104120682a219ef64a40158200036ef3e1f0d3f5989e2d155ea54bdb2a72c4c456ccb959af4c94868f473f5a002582086870efc99c453a873a16492ce87738ec79a0ebd064379a62e2c9cf4e119219e03581de10005754ae8f931a571b1737063c4904cb34b6c44dbdc9de671cbb711041904d219ef65a10158406c2312cd49067ecf0920df7e067199c55b3faef4ec0bce1bd2cfb99793972478c45876af2bc271ac759c5ce40ace5a398b9fdb0e359f3c333fe856648804780e80';
+
 export const CONSTRUCTION_SIGNED_TRANSACTION_WITH_MA = cbor
   .encode([SIGNED_TX_WITH_MA, constructionExtraData(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA)])
   .toString('hex');
@@ -5265,6 +5266,16 @@ export const CONSTRUCTION_SIGNED_TX_WITH_VOTE_REGISTRATION = cbor
   ])
   .toString('hex');
 
+export const CONSTRUCTION_SIGNED_TX_WITH_TX_METADATA = cbor
+  .encode([
+    SIGNED_TX_WITH_METADATA,
+    constructionExtraData(
+      CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
+      CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION.operations[3].metadata?.voteRegistrationMetadata
+    )
+  ])
+  .toString('hex');
+
 export const CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA = cbor
   .encode([
     'a400818258202f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f01018282581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb19271082581d61bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb199c4002199c40031903e8',
@@ -5282,6 +5293,30 @@ export const CONSTRUCTION_COMBINE_PAYLOAD = {
     network: 'mainnet'
   },
   unsigned_transaction: CONSTRUCTION_UNSIGNED_TRANSACTION_WITH_EXTRA_DATA,
+  signatures: [
+    {
+      signing_payload: {
+        address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx',
+        hex_bytes: '31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90',
+        signature_type: SIGNATURE_TYPE
+      },
+      public_key: {
+        hex_bytes: '1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F',
+        curve_type: 'edwards25519'
+      },
+      signature_type: SIGNATURE_TYPE,
+      hex_bytes:
+        '6C92508135CB060187A2706ADE8154782867B1526E9615D06742BE5C56F037AB85894C098C2AB07971133C0477BAEE92ADF3527AD7CC816F13E1E4C361041206'
+    }
+  ]
+};
+
+export const CONSTRUCTION_COMBINE_WITH_METADATA_PAYLOAD = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE,
   signatures: [
     {
       signing_payload: {

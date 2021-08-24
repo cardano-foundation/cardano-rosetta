@@ -1,12 +1,12 @@
 /* eslint-disable camelcase */
 /* eslint-disable wrap-regex */
 import CardanoWasm, {
-  AuxiliaryData,
   BigNum,
   Ed25519Signature,
   PublicKey,
   StakeCredential,
-  Vkey
+  Vkey,
+  AuxiliaryData
 } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
@@ -35,7 +35,7 @@ import {
 } from '../utils/constants';
 import { TransactionExtraData } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
-import { hexFormatter } from '../utils/formatters';
+import { hexFormatter, hexStringToBuffer, bytesToHex } from '../utils/formatters';
 import { isEd25519KeyHash } from '../utils/validations';
 
 export interface Signatures {
@@ -49,7 +49,7 @@ export interface UnsignedTransaction {
   hash: string;
   bytes: string;
   addresses: string[];
-  metadata?: AuxiliaryData;
+  metadata?: string;
 }
 
 export interface TransactionParsed {
@@ -179,7 +179,12 @@ export interface CardanoService {
    * @param unsignedTransaction
    * @param signatures
    */
-  buildTransaction(logger: Logger, unsignedTransaction: string, signatures: Signatures[]): string;
+  buildTransaction(
+    logger: Logger,
+    unsignedTransaction: string,
+    signatures: Signatures[],
+    transactionMetadata?: string
+  ): string;
 
   /**
    * Parses a signed transaction using COmpontens.Schemas.Operation
@@ -433,15 +438,19 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       throw ErrorFactory.parseSignedTransactionError();
     }
   },
-  buildTransaction(logger, unsignedTransaction, signatures) {
+  buildTransaction(logger, unsignedTransaction, signatures, metadata) {
     logger.info(`[buildTransaction] About to signed a transaction with ${signatures.length} signatures`);
     const witnesses = getWitnessesForTransaction(logger, signatures);
     try {
       logger.info('[buildTransaction] Instantiating transaction body from unsigned transaction bytes');
       const transactionBody = CardanoWasm.TransactionBody.from_bytes(Buffer.from(unsignedTransaction, 'hex'));
-
       logger.info('[buildTransaction] Creating transaction using transaction body and extracted witnesses');
-      return hexFormatter(Buffer.from(CardanoWasm.Transaction.new(transactionBody, witnesses).to_bytes()));
+      let auxiliaryData: AuxiliaryData | undefined;
+      if (metadata) {
+        logger.info('[buildTransaction] Adding transaction metadata');
+        auxiliaryData = CardanoWasm.AuxiliaryData.from_bytes(hexStringToBuffer(metadata));
+      }
+      return bytesToHex(CardanoWasm.Transaction.new(transactionBody, witnesses, auxiliaryData).to_bytes());
     } catch (error) {
       logger.error({ error }, '[buildTransaction] There was an error building signed transaction');
       throw ErrorFactory.cantBuildSignedTransaction();
@@ -486,7 +495,7 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       addresses
     };
     if (voteRegistrationMetadata) {
-      toReturn.metadata = voteRegistrationMetadata;
+      toReturn.metadata = Buffer.from(voteRegistrationMetadata.to_bytes()).toString('hex');
     }
     logger.info(
       toReturn,
@@ -496,7 +505,7 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
   },
 
   calculateTxSize(logger, network, operations, ttl) {
-    const { bytes, addresses } = this.createUnsignedTransaction(logger, network, operations, ttl);
+    const { bytes, addresses, metadata } = this.createUnsignedTransaction(logger, network, operations, ttl);
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
       const eraAddressType = this.getEraAddressType(address);
@@ -509,7 +518,7 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       }
       throw ErrorFactory.invalidAddressError(address);
     });
-    const transaction = this.buildTransaction(logger, bytes, signatures);
+    const transaction = this.buildTransaction(logger, bytes, signatures, metadata);
     // eslint-disable-next-line no-magic-numbers
     return transaction.length / 2; // transaction is returned as an hex string and we need size in bytes
   },
