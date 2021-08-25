@@ -27,7 +27,8 @@ const keys = {
     "hex"
   ),
 };
-const CHAIN_CODE = "dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f";
+const CHAIN_CODE =
+  "dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f";
 
 const signPayloads = (payloads: any, keyAddressMapper: any) =>
   payloads.map((signing_payload: any) => {
@@ -75,7 +76,6 @@ const doRun = async (): Promise<void> => {
     address,
     SEND_FUNDS_ADDRESS
   );
-  logger.info("[doRun] operations to be sent are ", builtOperations);
   const preprocess = await constructionPreprocess(
     builtOperations.operations,
     100
