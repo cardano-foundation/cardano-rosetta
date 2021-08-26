@@ -78,7 +78,7 @@ const doRun = async (): Promise<void> => {
   );
   const preprocess = await constructionPreprocess(
     builtOperations.operations,
-    100
+    1000
   );
   const metadata = await constructionMetadata(preprocess);
   const payloads = await constructionPayloads({
