@@ -156,10 +156,10 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
       payloads: [
         {
           account_identifier: {
-            address: 'Ae2tdPwUPEZFRbyhz3cpfC2CumGzNkFBN2L42rcUc2yjQpEkxDbkPodpMAi'
+            address: 'Ae2tdPwUPEZC6WJfVQxTNN2tWw4skGrN6zRVukvxJmTFy1nYkVGQBuURU3L'
           },
           signature_type: SIGNATURE_TYPE,
-          hex_bytes: '4691ebf945f37962153f74e198ba2553177e6dc8e464303e37589077f634397c'
+          hex_bytes: '333a6ccaaa639f7b451ce93764f54f654ef499fdb7b8b24374ee9d99eab9d795'
         }
       ]
     });

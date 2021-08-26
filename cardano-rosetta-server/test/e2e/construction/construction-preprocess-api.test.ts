@@ -47,7 +47,7 @@ import {
   SIGNED_TX_WITH_WITHDRAWAL,
   TRANSACTION_SIZE_IN_BYTES,
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT,
-  SIGNED_TX_WITH_BYRON_INPUT,
+  TRANSACTION_WITH_BYRON_INPUT_SIZE,
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
   SIGNED_TX_WITH_POOL_RETIREMENT
 } from '../fixture-data';
@@ -121,7 +121,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
   });
 
-  test('Should return a valid TTL when the operations include an output with a Byron address', async () => {
+  test('Should return a valid TTL when the operations include an input with a Byron address', async () => {
     const { operations } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT;
     const response = await server.inject({
       method: 'post',
@@ -129,10 +129,9 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
       // eslint-disable-next-line no-magic-numbers
       payload: generateProcessPayload({ blockchain: 'cardano', network: 'mainnet', operations, relativeTtl: 100 })
     });
-
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
-      options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_BYRON_INPUT) }
+      options: { relative_ttl: 100, transaction_size: TRANSACTION_WITH_BYRON_INPUT_SIZE }
     });
   });
 

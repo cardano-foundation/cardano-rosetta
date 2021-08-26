@@ -352,6 +352,14 @@ const processOperations = (
   };
 };
 
+const getEraAddressTypeOrNull = (address: string) => {
+  try {
+    return getEraAddressType(address);
+  } catch (error) {
+    return null;
+  }
+};
+
 const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): CardanoWasm.TransactionWitnessSet => {
   try {
     const witnesses = CardanoWasm.TransactionWitnessSet.new();
@@ -362,7 +370,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
       const vkey: Vkey = Vkey.new(PublicKey.from_bytes(Buffer.from(signature.publicKey, 'hex')));
       const ed25519Signature: Ed25519Signature = Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'));
       const { address } = signature;
-      if (address && getEraAddressType(address) === EraAddressType.Byron) {
+      if (address && getEraAddressTypeOrNull(address) === EraAddressType.Byron) {
         // byron case
         const { chainCode } = signature;
         if (!chainCode) {
@@ -370,22 +378,22 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
           throw ErrorFactory.missingChainCodeError();
         }
         const byronAddress = CardanoWasm.ByronAddress.from_base58(address);
-        bootstrapWitnesses.add(
-          CardanoWasm.BootstrapWitness.new(
-            vkey,
-            ed25519Signature,
-            hexStringToBuffer(chainCode),
-            byronAddress.attributes()
-          )
+        const bootstrap = CardanoWasm.BootstrapWitness.new(
+          vkey,
+          ed25519Signature,
+          hexStringToBuffer(chainCode),
+          byronAddress.attributes()
         );
+        bootstrapWitnesses.add(bootstrap);
       } else {
         vkeyWitnesses.add(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature));
       }
     });
     logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len()} witnesses were extracted to sign transaction`);
-    if (vkeyWitnesses.len() > 0) witnesses.set_vkeys(vkeyWitnesses);
+    if (vkeyWitnesses.len() > 0) {
+      witnesses.set_vkeys(vkeyWitnesses);
+    }
     if (bootstrapWitnesses.len() > 0) witnesses.set_bootstraps(bootstrapWitnesses);
-    logger.info('witnesses hex string ', Buffer.from(witnesses.to_bytes()).toString('hex'));
     return witnesses;
   } catch (error) {
     logger.error({ error }, '[getWitnessesForTransaction] There was an error building witnesses set for transaction');
@@ -426,11 +434,7 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
   },
 
   getEraAddressType(address) {
-    try {
-      return getEraAddressType(address);
-    } catch (error) {
-      return null;
-    }
+    return getEraAddressTypeOrNull(address);
   },
   getPrefixFromAddress(address) {
     return address.slice(0, PREFIX_LENGTH);

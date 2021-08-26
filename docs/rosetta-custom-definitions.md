@@ -421,7 +421,7 @@ In order to support Byron addresses an extra field called `chain_code` in the `a
 }
 ```
 
-This value can be obtained by any of the Bip 32 Keys.
+This value can be obtained by any of the Bip 32 Keys. More information can be found (here)[https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#extended-keys].
 The creation of these type of addresses are not supported by Rosetta, to do so this link can be (useful)[https://github.com/Emurgo/cardano-serialization-lib/blob/master/doc/getting-started/generating-keys.md#use-in-addresses].
 
 # Other changes
