@@ -932,7 +932,7 @@
             "type": "object",
             "properties": {
               "chain_code": {
-                "description": "Hex string encoded chain code of a Bip32 Key of emurgo serialization lib",
+                "description": "Hex string encoded extension of bip32 private and public keys with an extra 256 bits of entropy that consists of 32 bytes",
                 "type": "string"
               }
             }
