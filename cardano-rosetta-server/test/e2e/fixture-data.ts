@@ -5370,6 +5370,32 @@ export const CONSTRUCTION_COMBINE_WITH_BYRON_ADDRESS_PAYLOAD = {
   ]
 };
 
+export const CONSTRUCTION_COMBINE_WITH_BYRON_ADDRESS_MISSING_CHAINCODE_PAYLOAD = {
+  network_identifier: {
+    blockchain: 'cardano',
+    network: 'mainnet'
+  },
+  unsigned_transaction: CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT_RESPONSE,
+  signatures: [
+    {
+      signing_payload: {
+        account_identifier: {
+          address: 'Ae2tdPwUPEZC6WJfVQxTNN2tWw4skGrN6zRVukvxJmTFy1nYkVGQBuURU3L'
+        },
+        hex_bytes: '4691ebf945f37962153f74e198ba2553177e6dc8e464303e37589077f634397c',
+        signature_type: SIGNATURE_TYPE
+      },
+      public_key: {
+        hex_bytes: '73fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d',
+        curve_type: 'edwards25519'
+      },
+      signature_type: SIGNATURE_TYPE,
+      hex_bytes:
+        'dc2a1948bfa9411b37e8d280b04c48a85af5588bcf509c0fca798f7b462ebca92d6733dacc1f1c6c1463623c085401be07ea422ad4f1c543375e7d3d2393aa0b'
+    }
+  ]
+};
+
 export const address1vpfAccountBalances = [
   {
     value: '639308468',

@@ -374,7 +374,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
         // byron case
         const { chainCode } = signature;
         if (!chainCode) {
-          logger.error('[getWitnessesForTransaction] Missing chain code for byron account signature');
+          logger.error('[getWitnessesForTransaction] Missing chain code for byron address signature');
           throw ErrorFactory.missingChainCodeError();
         }
         const byronAddress = CardanoWasm.ByronAddress.from_base58(address);
@@ -390,9 +390,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
       }
     });
     logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len()} witnesses were extracted to sign transaction`);
-    if (vkeyWitnesses.len() > 0) {
-      witnesses.set_vkeys(vkeyWitnesses);
-    }
+    if (vkeyWitnesses.len() > 0) witnesses.set_vkeys(vkeyWitnesses);
     if (bootstrapWitnesses.len() > 0) witnesses.set_bootstraps(bootstrapWitnesses);
     return witnesses;
   } catch (error) {
