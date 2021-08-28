@@ -1,9 +1,10 @@
 # `rosetta-cli` checks
 
-Requires [rosetta-cli] `v0.6.6` or later
+Requires [rosetta-cli] `v0.6.6` or later and a testnet instance with the server exposed at
+`http://localhost:8081`
+
 
 ## `data`
-Run a mainnet instance with the server exposed at `http://localhost:8080`
 ``` console
 ./bin/rosetta-cli check:data --configuration-file ./configuration/data/byron_sample.json
 ./bin/rosetta-cli check:data --configuration-file ./configuration/data/shelley_sample.json
@@ -11,8 +12,6 @@ Run a mainnet instance with the server exposed at `http://localhost:8080`
 ```
 
 ## `construction`
-
-Run a testnet instance with the server exposed at `http://localhost:8081`
 
 ### Transfer workflow
 

@@ -1,14 +1,14 @@
 {
-  "online_url": "http://localhost:8080",
+  "online_url": "http://localhost:8081",
   "data": {
-    "start_index":  4490000,
+    "start_index":  1595133,
     "end_conditions": {
-      "index":  4495000
+      "index": 1599133
     }
   },
   "network": {
     "blockchain": "cardano",
-    "network": "mainnet"
+    "network": "testnet"
   },
   "http_timeout": 100000,
   "tip_delay": 10000,
