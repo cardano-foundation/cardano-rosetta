@@ -1,5 +1,5 @@
 # Cardano Rosetta
-[![CI][img_src_CI]][workflow_CI] [![Nightly][img_src_Nightly]][workflow_Nightly] [![Postman Send Transaction Example](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml/badge.svg)](https://github.com/input-output-hk/cardano-rosetta/actions/workflows/postman_send_transaction_example.yml)
+[![CI][img_src_CI]][workflow_CI] [![Nightly][img_src_Nightly]][workflow_Nightly]
 
 An implementation of [Rosetta] for [Cardano], targeting the version defined in the [OpenApi 
 schema]. Skip to [run](#run) if wishing to use a pre-built image from the [Docker Hub repository]. 
