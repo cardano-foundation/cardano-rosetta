@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.4.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0-beta.1...1.4.0) (2021-08-28)
+
+
+### Features
+
+* add query to retrieve tx metadata ([cdfebd7](https://github.com/input-output-hk/cardano-rosetta/commit/cdfebd780a2f11acf1d3829972702df9d2d24cb6))
+* add vote operations to block endpoint ([a15bae5](https://github.com/input-output-hk/cardano-rosetta/commit/a15bae58d8b73b03bc493b9cfd47636f8702ac5f))
+* add vote registration operation ([#398](https://github.com/input-output-hk/cardano-rosetta/issues/398)) ([48d9e1b](https://github.com/input-output-hk/cardano-rosetta/commit/48d9e1b157e9486e83906733a0190876dc25f696))
+
+
+### Bug Fixes
+
+* add auxiliary data when building tx ([4b94679](https://github.com/input-output-hk/cardano-rosetta/commit/4b94679650d2c38aac508ada17372e7656886d1a))
+* construction parse inputs ([e86ccbf](https://github.com/input-output-hk/cardano-rosetta/commit/e86ccbfe96dd7e8ab042dade07685e41a699d03e))
+* include tx metadata when calculating tx size ([bf09eb5](https://github.com/input-output-hk/cardano-rosetta/commit/bf09eb55b767a5743fb34eaf6be672fd37513d08))
+
+
 ## [1.4.0-beta.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0-beta.0...1.4.0-beta.1) (2021-08-15)
 
 ### Chores

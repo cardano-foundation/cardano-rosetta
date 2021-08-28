@@ -18,8 +18,8 @@ DOCKER_BUILDKIT=1 \
 docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --cache-from=inputoutput/cardano-rosetta:master \
-    -t inputoutput/cardano-rosetta:1.4.0-beta.1 \
-    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
+    -t inputoutput/cardano-rosetta:1.4.0 \
+    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0
 ```
 
 </details>
@@ -33,8 +33,8 @@ docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --build-arg NETWORK=testnet \
     --cache-from=inputoutput/cardano-rosetta:master \
-    -t inputoutput/cardano-rosetta:1.4.0-beta.1-testnet \
-    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
+    -t inputoutput/cardano-rosetta:1.4.0-testnet \
+    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0
 ```
 
 </details>
@@ -48,8 +48,8 @@ docker build \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --build-arg NETWORK=alonzo-purple \
     --cache-from=inputoutput/cardano-rosetta:master \
-    -t inputoutput/cardano-rosetta:1.4.0-beta.1-alonzo-purple \
-    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0-beta.1
+    -t inputoutput/cardano-rosetta:1.4.0-alonzo-purple \
+    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0
 ```
 
 </details>
@@ -68,7 +68,7 @@ docker run \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:1.4.0-beta.1
+  inputoutput/cardano-rosetta:1.4.0
 ```
 
 </details>
@@ -82,7 +82,7 @@ docker run \
   -p 8081:8080 \
   -v cardano-rosetta-testnet:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:1.4.0-beta.1-testnet
+  inputoutput/cardano-rosetta:master-testnet
 ```
 
 </details>
@@ -96,7 +96,7 @@ docker run \
   -p 8082:8080 \
   -v cardano-rosetta-alonzo-purple:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:1.4.0-beta.1-alonzo-purple
+  inputoutput/cardano-rosetta:1.4.0-alonzo-purple
 ```
 
 </details>
