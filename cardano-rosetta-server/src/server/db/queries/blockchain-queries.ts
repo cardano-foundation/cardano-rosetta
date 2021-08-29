@@ -366,14 +366,6 @@ ${poolRegistrationQuery}
     ON prelay.update_id = pr."updateId"
 `;
 
-const validTxQuery = `
-  WITH valid_tx AS (
-    SELECT *
-    FROM tx
-    WHERE valid_contract = TRUE
-  )
-`;
-
 const findTransactionMetadata = `
 WITH metadata AS (
   SELECT
@@ -412,8 +404,7 @@ WITH metadata AS (
 `;
 
 const utxoQuery = `
-  ${validTxQuery},
-  utxo AS (
+WITH utxo AS (
 	SELECT
 	  tx_out.value as value,
 	  tx_out_tx.hash as "txHash",
@@ -423,17 +414,18 @@ const utxoQuery = `
 	LEFT JOIN tx_in ON 
 	  tx_out.tx_id = tx_in.tx_out_id AND 
 	  tx_out.index::smallint = tx_in.tx_out_index::smallint 
-    LEFT JOIN valid_tx AS tx_in_tx ON 
+	LEFT JOIN tx as tx_in_tx ON 
 	  tx_in_tx.id = tx_in.tx_in_id AND
-	  tx_in_tx.block_id <= (select id from block where hash = $2)
-    JOIN valid_tx AS tx_out_tx ON
+	  tx_in_tx.block_id <= (select id from block where hash = $2) AND
+    tx_in_tx.valid_contract = TRUE
+	JOIN tx AS tx_out_tx ON
 	  tx_out_tx.id = tx_out.tx_id AND
-	  tx_out_tx.block_id <= (select id from block where hash = $2)
+	  tx_out_tx.block_id <= (select id from block where hash = $2) AND
+    tx_out_tx.valid_contract = TRUE
 	WHERE 
 	  tx_out.address = $1 AND
 	  tx_in_tx.id IS NULL
-  )
-`;
+)`;
 
 const findPoolRetirements = `
 SELECT 
@@ -480,22 +472,21 @@ const findMaBalanceByAddressAndBlock = `
 `;
 
 const findBalanceByAddressAndBlock = `
-  ${validTxQuery}
-  SELECT (
-    SELECT COALESCE(SUM(r.amount),0) 
+  SELECT (SELECT COALESCE(SUM(r.amount),0) 
       FROM reward r
     JOIN stake_address ON 
-      stake_address.id = r.addr_id
+        stake_address.id = r.addr_id
     WHERE stake_address.view = $1
     AND r.spendable_epoch <= (SELECT epoch_no FROM block WHERE hash = $2)
   ) - (
     SELECT COALESCE(SUM(w.amount),0) 
     FROM withdrawal w
-    JOIN valid_tx AS tx ON tx.id = w.tx_id AND
+    JOIN tx ON tx.id = w.tx_id AND 
+      tx.valid_contract = TRUE AND
       tx.block_id <= (SELECT id FROM block WHERE hash = $2)
     JOIN stake_address ON stake_address.id = w.addr_id
-    WHERE stake_address.view = $1
-  ) AS balance
+    WHERE stake_address.view = $1) 
+    AS balance
 `;
 
 const findLatestMinFeeAAndMinFeeB = `
