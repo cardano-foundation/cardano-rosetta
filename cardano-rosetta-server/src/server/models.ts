@@ -23,6 +23,20 @@ export interface BlockIdentifier {
   hash: string;
 }
 
+export interface FindTransaction {
+  hash: Buffer;
+  blockHash: Buffer;
+  blockNo: number;
+  fee: string;
+  size: number;
+  scriptSize: number;
+  validContract: boolean;
+}
+
+export interface TotalCount {
+  totalCount: number;
+}
+
 export interface FindTransactionWithToken extends FindTransactionInOutResult {
   policy: Buffer;
   name: Buffer;
@@ -141,10 +155,16 @@ export interface Delegation {
 export interface Transaction {
   hash: string;
   blockHash: string;
+  blockNo: number;
   fee: string;
   size: number;
   validContract: boolean;
   scriptSize: number;
+}
+
+export interface TransactionCount {
+  totalCount: number;
+  transactions: Transaction[];
 }
 
 export interface PopulatedTransaction extends Transaction {

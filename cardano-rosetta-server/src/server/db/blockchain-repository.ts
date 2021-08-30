@@ -3,22 +3,24 @@ import moment from 'moment';
 import { Pool, QueryResult } from 'pg';
 import {
   Block,
+  FindTransaction,
   FindTransactionWithToken,
   GenesisBlock,
   PolicyId,
   PopulatedTransaction,
   Token,
   Transaction,
+  TransactionCount,
   TransactionInOut,
   TransactionPoolRegistrations,
   Utxo,
-  MaBalance
+  MaBalance,
+  TotalCount
 } from '../models';
 import { LinearFeeParameters } from '../services/cardano-services';
 import { hexStringToBuffer, hexFormatter, isEmptyHexString, remove0xPrefix } from '../utils/formatters';
 import Queries, {
   FindBalance,
-  FindTransaction,
   FindTransactionDelegations,
   FindTransactionDeregistrations,
   FindTransactionFieldResult,
@@ -35,7 +37,8 @@ import Queries, {
   FindUtxo,
   FindMaBalance
 } from './queries/blockchain-queries';
-import { CatalystDataIndexes, CatalystSigIndexes } from '../utils/constants';
+import SearchQueries from './queries/search-transactions-queries';
+import { CatalystDataIndexes, CatalystSigIndexes, OperationType } from '../utils/constants';
 import { isVoteDataValid, isVoteSignatureValid } from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
 
@@ -116,6 +119,14 @@ export interface BlockchainRepository {
    * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
    */
   findBalanceByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<string>;
+  /**
+   * Returns if any, the transactions matches the requested conditions
+   * @param conditions conditions to filter transactions by
+   */
+  findTransactionsByConditions(
+    logger: Logger,
+    parameters: Components.Schemas.SearchTransactionsRequest
+  ): Promise<TransactionCount>;
 }
 
 /**
@@ -125,11 +136,17 @@ const parseTransactionRows = (result: QueryResult<FindTransaction>): Transaction
   result.rows.map(row => ({
     hash: hexFormatter(row.hash),
     blockHash: row.blockHash && hexFormatter(row.blockHash),
+    blockNo: row.blockNo,
     fee: row.fee,
     size: row.size,
     scriptSize: row.scriptSize,
     validContract: row.validContract
   }));
+
+/**
+ * Maps from a total count query result to a number
+ */
+const parseTotalCount = (result: QueryResult<TotalCount>): number => result.rows[0].totalCount;
 
 /**
  * Creates a map of transactions where they key is the transaction hash
@@ -688,5 +705,40 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger.debug(`[findBalanceByAddressAndBlock] Found a balance of ${result.rows[0].balance}`);
 
     return result.rows[0].balance;
+  },
+  async findTransactionsByConditions(
+    logger: Logger,
+    conditions: Components.Schemas.SearchTransactionsRequest
+  ): Promise<TransactionCount> {
+    // TODO: for now, only type conditions are being handled. handle rest of conditions
+    logger.debug('[findTransactionsByConditions] Conditions received to run the query ', {
+      conditions
+    });
+    if (conditions.type) {
+      const { type } = conditions;
+      const query = SearchQueries.getQueryByType(type);
+      logger.debug('[findTransactionsByBlock] About to search transactions');
+      const result: QueryResult<FindTransaction> = await databaseInstance.query(query);
+      logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
+      const totalCountQuery = SearchQueries.getQueryByType(type, true);
+      logger.debug('[findTransactionsByBlock] About to get total count');
+      const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery);
+      const totalCount = parseTotalCount(totalCountResult);
+      logger.debug('[findTransactionsByBlock] Total count obtained ', totalCount);
+      if (result.rows.length > 0) {
+        return {
+          transactions: parseTransactionRows(result),
+          totalCount
+        };
+      }
+      return {
+        transactions: [],
+        totalCount: 0
+      };
+    }
+    return {
+      transactions: [],
+      totalCount: 0
+    };
   }
 });

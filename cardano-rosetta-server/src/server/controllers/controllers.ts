@@ -3,10 +3,16 @@ import blockController, { BlockController } from './block-controller';
 import accountController, { AccountController } from './account-controller';
 import networkController, { NetworkController } from './network-controller';
 import constructionController, { ConstructionController } from './construction-controller';
+import searchController, { SearchController } from './search-controller';
 import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
 import { CardanoNode } from '../utils/cardano/cli/cardano-node';
 
-export interface Controllers extends BlockController, AccountController, NetworkController, ConstructionController {}
+export interface Controllers
+  extends BlockController,
+    AccountController,
+    NetworkController,
+    SearchController,
+    ConstructionController {}
 
 /**
  * Configures all the controllers required by the app
@@ -23,6 +29,7 @@ export const configure = (
   ...blockController(services.blockService, services.cardanoService, pageSize, services.networkService),
   ...accountController(services.blockService, services.cardanoService, services.networkService),
   ...networkController(services.networkService, cardanoNode),
+  ...searchController(services.blockService, services.cardanoService, pageSize, services.networkService),
   ...constructionController(
     services.constructionService,
     services.cardanoService,
