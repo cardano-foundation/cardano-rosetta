@@ -32,15 +32,6 @@ WHERE
 LIMIT 1
 `;
 
-export interface FindTransaction {
-  hash: Buffer;
-  blockHash: Buffer;
-  fee: string;
-  size: number;
-  scriptSize: number;
-  validContract: boolean;
-}
-
 export interface CurrencyId {
   symbol: string;
   policy: string;

@@ -1,11 +1,52 @@
 import { OperationType, CatalystLabels } from '../../utils/constants';
 
-const coinsQuery = '';
-const currenciesQuery = '';
+const transactionQuery = `
+SELECT 
+    tx.hash,
+    tx.fee,
+    tx.size,
+    tx.valid_contract AS "validContract",
+    tx.script_size AS "scriptSize",
+    block.hash AS "blockHash",
+    block.block_no as "blockNo"
+`;
 
-const findTransactionsWithInputs = `
-    SELECT 
-        tx.hash
+const totalCountQuery = 'SELECT COUNT(1)';
+
+const getQuery = (isTotalCount: boolean): string => (isTotalCount ? totalCountQuery : transactionQuery);
+
+const coinsQuery = `
+    WITH coin AS (
+      SELECT
+        tx_out.value as value,
+        tx_out_tx.hash as "txHash",
+        tx_out.index as index,
+        tx_out.id as tx_out_id
+      FROM tx_out
+      LEFT JOIN tx_in ON 
+        tx_out.tx_id = tx_in.tx_out_id AND 
+        tx_out.index::smallint = tx_in.tx_out_index::smallint 
+      LEFT JOIN tx as tx_in_tx ON 
+        tx_in_tx.id = tx_in.tx_in_id AND
+        tx_in_tx.block_id <= (select id from block where hash = $2)
+      JOIN tx AS tx_out_tx ON
+        tx_out_tx.id = tx_out.tx_id AND
+        tx_out_tx.block_id <= (select id from block where hash = $2)
+      WHERE 
+        tx_out_tx.hash $1 AND
+        tx_out.index = $2 AND
+        tx_in_tx.id IS NULL
+    )
+`;
+
+const currencyQuery = `SELECT tx_out_id 
+   FROM ma_tx_out 
+   WHERE 
+     name = DECODE($1, 'hex') AND policy = DECODE($2, 'hex'
+     )`;
+
+const findTransactionsWithInputs = (isTotalCount: boolean) => `
+    ${getQuery(isTotalCount)}
     FROM tx
     JOIN tx_in
         ON tx_in.tx_in_id = tx.id
@@ -14,39 +55,41 @@ const findTransactionsWithInputs = `
         AND tx_in.tx_out_index = source_tx_out.index
     JOIN tx as source_tx
         ON source_tx_out.tx_id = source_tx.id
+    JOIN block
+        ON block.id = tx.block_id
 `;
 
-const findTransactionsWithOutputs = `
-    SELECT
-        tx.hash
+const findTransactionsWithOutputs = (isTotalCount: boolean) => `
+    ${getQuery(isTotalCount)}
     FROM tx
     JOIN tx_out
         ON tx.id = tx_out.tx_id
 `;
 
-const findTransactionsWithPoolRegistrations = `
-    SELECT
-        tx.hash,
+const findTransactionsWithPoolRegistrations = (isTotalCount: boolean) => `
+    ${getQuery(isTotalCount)}
     FROM pool_update pu
     JOIN tx 
         ON pu.registered_tx_id = tx.id
     JOIN pool_hash ph
         ON ph.id = pu.hash_id
+    JOIN block
+        ON block.id = tx.block_id
 `;
 
-const findTransactionsWithPoolRetirements = `
-    SELECT 
-        tx.hash
+const findTransactionsWithPoolRetirements = (isTotalCount: boolean) => `
+    ${getQuery(isTotalCount)}
     FROM pool_retire pr 
     JOIN pool_hash ph 
         ON pr.hash_id = ph.id
     JOIN tx
         ON tx.id = pr.announced_tx_id
+    JOIN block
+        ON block.id = tx.block_id
 `;
 
-const findTransactionsWithDelegations = `
-    SELECT 
-        tx.hash
+const findTransactionsWithDelegations = (isTotalCount: boolean) => `
+    ${getQuery(isTotalCount)}
     FROM delegation d
     JOIN stake_address sa
         ON d.addr_id = sa.id
@@ -54,84 +97,72 @@ const findTransactionsWithDelegations = `
         ON d.pool_hash_id = ph.id
     JOIN tx
         ON d.tx_id = tx.id
+    JOIN block
+        ON block.id = tx.block_id
 `;
 
-const findTransactionsWithKeyDeregistrations = `
-    SELECT 
-        tx.hash
+const findTransactionsWithKeyDeregistrations = (isTotalCount: boolean) => `
+    ${getQuery(isTotalCount)}
     FROM stake_deregistration sd
     JOIN stake_address sa
         ON sd.addr_id = sa.id
     JOIN tx
         ON tx.id = sd.tx_id
+    JOIN block
+        ON block.id = tx.block_id
 `;
 
-const findTransactionsWithKeyRegistrations = `
-    SELECT 
-        tx.hash
+const findTransactionsWithKeyRegistrations = (isTotalCount: boolean) => `
+    ${getQuery(isTotalCount)}
     FROM stake_registration sr
     JOIN tx on tx.id = sr.tx_id
     JOIN stake_address sa on sr.addr_id = sa.id
+    JOIN block
+        ON block.id = tx.block_id
 `;
 
-const findTransactionsWithVoteRegistrations = `
-WITH metadata AS (
-    SELECT
-      metadata.json,
-      metadata.key,
-      tx.hash AS tx_hash,
-      tx.id AS tx_id
-    FROM tx_metadata AS metadata
+const findTransactionsWithVoteRegistrations = (isTotalCount: boolean) => `
+    WITH metadata_data_tx AS (
+        SELECT
+            tx_metadata.tx_id
+        FROM tx_metadata
+        WHERE key = ${CatalystLabels.DATA}
+    ),
+    ${getQuery(isTotalCount)}
+    FROM metadata_data_tx
+    JOIN tx_metadata
+        ON tx_metadata.tx_id = metadata_data_tx.tx_id
     JOIN tx
-      ON tx.id = metadata.tx_id
-    WHERE tx.hash = ANY($1)
-    ),
-    metadata_data AS (
-      SELECT 
-        json AS data,
-        metadata.tx_hash,
-        metadata.tx_id
-      FROM metadata
-      WHERE key = ${CatalystLabels.DATA}
-    ),
-    metadata_sig AS (
-      SELECT 
-        json AS signature,
-        metadata.tx_hash,
-        metadata.tx_id
-      FROM metadata
-      WHERE key = ${CatalystLabels.SIG}
-    )
-    SELECT 
-      metadata_data.tx_hash AS hash
-    FROM metadata_data
-    INNER JOIN metadata_sig
-      ON metadata_data.tx_id = metadata_sig.tx_id
+        ON tx.id = metadata_data_tx.tx_id
+    JOIN block
+        ON block.id = tx.block_id
+    WHERE tx_metadata.key = ${CatalystLabels.SIG}
 `;
 
-const findTransactionsWithWithdrawals = `
-    SELECT 
-        tx.hash
+const findTransactionsWithWithdrawals = (isTotalCount: boolean) => `
+    ${getQuery(isTotalCount)}
     FROM withdrawal w
     JOIN tx on w.tx_id = tx.id
     JOIN stake_address sa on w.addr_id = sa.id
+    JOIN block
+        ON block.id = tx.block_id
 `;
 
-const queryTypeMapping: { [type: string]: string } = {
-  [OperationType.INPUT]: findTransactionsWithInputs,
-  [OperationType.OUTPUT]: findTransactionsWithOutputs,
-  [OperationType.POOL_REGISTRATION]: findTransactionsWithPoolRegistrations,
-  [OperationType.POOL_REGISTRATION_WITH_CERT]: findTransactionsWithPoolRegistrations,
-  [OperationType.POOL_RETIREMENT]: findTransactionsWithPoolRetirements,
-  [OperationType.STAKE_DELEGATION]: findTransactionsWithDelegations,
-  [OperationType.STAKE_KEY_DEREGISTRATION]: findTransactionsWithKeyDeregistrations,
-  [OperationType.STAKE_KEY_REGISTRATION]: findTransactionsWithKeyRegistrations,
-  [OperationType.VOTE_REGISTRATION]: findTransactionsWithVoteRegistrations,
-  [OperationType.WITHDRAWAL]: findTransactionsWithWithdrawals
+const queryTypeMapping: { [type: string]: (isTotalCount: boolean) => string } = {
+  [OperationType.INPUT]: isTotalCount => findTransactionsWithInputs(isTotalCount),
+  [OperationType.OUTPUT]: isTotalCount => findTransactionsWithOutputs(isTotalCount),
+  [OperationType.POOL_REGISTRATION]: isTotalCount => findTransactionsWithPoolRegistrations(isTotalCount),
+  [OperationType.POOL_REGISTRATION_WITH_CERT]: isTotalCount => findTransactionsWithPoolRegistrations(isTotalCount),
+  [OperationType.POOL_RETIREMENT]: isTotalCount => findTransactionsWithPoolRetirements(isTotalCount),
+  [OperationType.STAKE_DELEGATION]: isTotalCount => findTransactionsWithDelegations(isTotalCount),
+  [OperationType.STAKE_KEY_DEREGISTRATION]: isTotalCount => findTransactionsWithKeyDeregistrations(isTotalCount),
+  [OperationType.STAKE_KEY_REGISTRATION]: isTotalCount => findTransactionsWithKeyRegistrations(isTotalCount),
+  [OperationType.VOTE_REGISTRATION]: isTotalCount => findTransactionsWithVoteRegistrations(isTotalCount),
+  [OperationType.WITHDRAWAL]: isTotalCount => findTransactionsWithWithdrawals(isTotalCount)
 };
 
 const SearchQueries = {
-  getQueryByType: (type: string) => queryTypeMapping[type]
+  getQueryByType: (type: string, isTotalCount = false) => queryTypeMapping[type](isTotalCount)
 };
 
 export default SearchQueries;
