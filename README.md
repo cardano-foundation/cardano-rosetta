@@ -82,7 +82,7 @@ docker run \
   -p 8081:8080 \
   -v cardano-rosetta-testnet:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:master-testnet
+  inputoutput/cardano-rosetta:1.4.0-testnet
 ```
 
 </details>
