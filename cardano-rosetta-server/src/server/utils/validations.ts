@@ -6,7 +6,11 @@ import {
   ASSET_NAME_LENGTH,
   POLICY_ID_LENGTH,
   CatalystDataIndexes,
-  CatalystSigIndexes
+  CatalystSigIndexes,
+  SUCCESS_OPERATION_STATE,
+  INVALID_OPERATION_STATE,
+  OperationTypeStatus,
+  OPERATIONS_STATUSES
 } from './constants';
 import { ErrorFactory } from './errors';
 import { hexStringToBuffer, isEmptyHexString } from './formatters';
@@ -65,4 +69,37 @@ export const isVoteSignatureValid = (jsonObject: any): boolean => {
   const isObject = typeof jsonObject === 'object';
   const dataIndexes = Object.keys(CatalystSigIndexes).filter(key => parseInt(key) > 0);
   return isObject && dataIndexes.every(index => index in jsonObject);
+};
+
+const validateStatus = (status: string): void => {
+  const isValid = OPERATIONS_STATUSES.some(opStatus => opStatus === status);
+  if (!isValid) {
+    throw ErrorFactory.invalidOperationStatus(status);
+  }
+};
+
+const getOperationState = (status: string) => {
+  if (status === SUCCESS_OPERATION_STATE.status) return SUCCESS_OPERATION_STATE;
+  return INVALID_OPERATION_STATE;
+};
+
+const validateAndGetOperationState = (status: string, success?: boolean): Components.Schemas.OperationStatus => {
+  const operationState = getOperationState(status);
+  if (success === undefined) return operationState;
+  if (success !== operationState.successful) throw ErrorFactory.statusAndSuccessMatchError();
+  return operationState;
+};
+
+export const validateAndGetStatus = (status?: string, success?: boolean): boolean | null => {
+  const isStatusUndefined = status === undefined;
+  const isSuccessUndefined = success === undefined;
+
+  if (isStatusUndefined && isSuccessUndefined) return null;
+  if (isStatusUndefined && success !== undefined) return success;
+  if (status !== undefined) {
+    validateStatus(status);
+    const operationState = validateAndGetOperationState(status, success);
+    return operationState.successful;
+  }
+  return null;
 };
