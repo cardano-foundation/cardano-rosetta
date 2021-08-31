@@ -97,6 +97,8 @@ export const INVALID_OPERATION_STATE = {
   successful: false
 };
 
+export const OPERATIONS_STATUSES = Object.values(OperationTypeStatus);
+
 export enum AddressType {
   ENTERPRISE = 'Enterprise',
   BASE = 'Base',

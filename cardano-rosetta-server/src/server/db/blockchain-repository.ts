@@ -15,7 +15,8 @@ import {
   TransactionPoolRegistrations,
   Utxo,
   MaBalance,
-  TotalCount
+  TotalCount,
+  SearchFilters
 } from '../models';
 import { LinearFeeParameters } from '../services/cardano-services';
 import { hexStringToBuffer, hexFormatter, isEmptyHexString, remove0xPrefix } from '../utils/formatters';
@@ -38,8 +39,8 @@ import Queries, {
   FindMaBalance
 } from './queries/blockchain-queries';
 import SearchQueries from './queries/search-transactions-queries';
-import { CatalystDataIndexes, CatalystSigIndexes, OperationType } from '../utils/constants';
-import { isVoteDataValid, isVoteSignatureValid } from '../utils/validations';
+import { CatalystDataIndexes, CatalystSigIndexes } from '../utils/constants';
+import { isVoteDataValid, isVoteSignatureValid, validateAndGetStatus } from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
 
 export interface BlockchainRepository {
@@ -710,18 +711,22 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger: Logger,
     conditions: Components.Schemas.SearchTransactionsRequest
   ): Promise<TransactionCount> {
-    // TODO: for now, only type conditions are being handled. handle rest of conditions
+    // TODO:  only type conditions are being handled. handle rest of conditions needs to be done
     logger.debug('[findTransactionsByConditions] Conditions received to run the query ', {
       conditions
     });
     if (conditions.type) {
-      const { type } = conditions;
-      const query = SearchQueries.getQueryByType(type);
+      const { type, limit, offset, max_block, status, success, operator } = conditions;
+      const conditionsToQueryBy: SearchFilters = {
+        maxBlock: max_block,
+        operator
+      };
+      const statusToQueryBy = validateAndGetStatus(status, success);
+      if (statusToQueryBy !== null) conditionsToQueryBy.status = statusToQueryBy;
+      const { data: query, count: totalCountQuery } = SearchQueries.getQueriesByType(type, conditionsToQueryBy);
       logger.debug('[findTransactionsByBlock] About to search transactions');
-      const result: QueryResult<FindTransaction> = await databaseInstance.query(query);
+      const result: QueryResult<FindTransaction> = await databaseInstance.query(query, [limit, offset]);
       logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
-      const totalCountQuery = SearchQueries.getQueryByType(type, true);
-      logger.debug('[findTransactionsByBlock] About to get total count');
       const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery);
       const totalCount = parseTotalCount(totalCountResult);
       logger.debug('[findTransactionsByBlock] Total count obtained ', totalCount);

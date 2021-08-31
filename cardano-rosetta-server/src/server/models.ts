@@ -33,6 +33,12 @@ export interface FindTransaction {
   validContract: boolean;
 }
 
+export interface SearchFilters {
+  maxBlock?: number;
+  operator?: Components.Schemas.Operator;
+  status?: boolean;
+}
+
 export interface TotalCount {
   totalCount: number;
 }

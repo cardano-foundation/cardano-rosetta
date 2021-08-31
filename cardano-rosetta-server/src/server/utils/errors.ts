@@ -108,7 +108,9 @@ export const Errors = {
   MISSING_VOTING_KEY: { message: 'Voting key is missing', code: 5009 },
   INVALID_VOTING_KEY_FORMAT: { message: 'Voting key format is invalid', code: 5010 },
   MISSING_VOTE_REGISTRATION_METADATA: { message: 'Missing vote registration metadata', code: 5011 },
-  CHAIN_CODE_MISSING: { message: 'Missing chain code', code: 5012 }
+  CHAIN_CODE_MISSING: { message: 'Missing chain code', code: 5012 },
+  INVALID_OPERATION_STATUS: { message: 'Invalid operation status', code: 5013 },
+  STATUS_SUCCESS_MATCH_ERROR: { message: 'Given operation status and success state does not match', code: 5014 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -189,6 +191,9 @@ const missingVotingKeyError: CreateErrorFunction = () => buildApiError(Errors.MI
 const invalidVotingKeyFormat: CreateErrorFunction = () => buildApiError(Errors.INVALID_VOTING_KEY_FORMAT, false);
 const missingVoteRegistrationMetadata: CreateErrorFunction = () =>
   buildApiError(Errors.MISSING_VOTE_REGISTRATION_METADATA, false);
+const invalidOperationStatus: CreateErrorFunction = (details?: string) =>
+  buildApiError(Errors.INVALID_OPERATION_STATUS, false, details);
+const statusAndSuccessMatchError: CreateErrorFunction = () => buildApiError(Errors.STATUS_SUCCESS_MATCH_ERROR, false);
 
 export const ErrorFactory = {
   blockNotFoundError,
@@ -240,7 +245,9 @@ export const ErrorFactory = {
   invalidVotingSignature,
   missingVotingKeyError,
   invalidVotingKeyFormat,
-  missingVoteRegistrationMetadata
+  missingVoteRegistrationMetadata,
+  invalidOperationStatus,
+  statusAndSuccessMatchError
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>

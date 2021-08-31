@@ -1,4 +1,28 @@
 import { OperationType, CatalystLabels } from '../../utils/constants';
+import { SearchFilters } from '../../models';
+
+const withLimitAndOffset = (query: string) => `
+    ${query} 
+    ORDER BY block.id DESC 
+    LIMIT $1 
+    OFFSET $2
+`;
+
+const withFilters = (query: string, filters: SearchFilters): string => {
+  const { maxBlock, operator, status } = filters;
+  let whereClause = '';
+  const conditions = [];
+  if (maxBlock) {
+    conditions.push(`block.block_no <= ${maxBlock}`);
+  }
+  if (status !== undefined || status !== null) {
+    conditions.push(`tx.valid_contract = ${status}`);
+  }
+  if (conditions.length > 0) {
+    whereClause = `WHERE ${conditions.join(` ${operator} `)}`;
+  }
+  return query.concat(whereClause);
+};
 
 const transactionQuery = `
 SELECT 
@@ -42,8 +66,7 @@ const coinsQuery = `
 const currencyQuery = `SELECT tx_out_id 
    FROM ma_tx_out 
    WHERE 
-     name = DECODE($1, 'hex') AND policy = DECODE($2, 'hex'
-     )`;
+     name = DECODE($1, 'hex') AND policy = DECODE($2, 'hex')`;
 
 const findTransactionsWithInputs = (isTotalCount: boolean) => `
     ${getQuery(isTotalCount)}
@@ -162,7 +185,10 @@ const queryTypeMapping: { [type: string]: (isTotalCount: boolean) => string } = 
 };
 
 const SearchQueries = {
-  getQueryByType: (type: string, isTotalCount = false) => queryTypeMapping[type](isTotalCount)
+  getQueriesByType: (type: string, conditions: SearchFilters): { data: string; count: string } => ({
+    data: withLimitAndOffset(withFilters(queryTypeMapping[type](false), conditions)),
+    count: queryTypeMapping[type](true)
+  })
 };
 
 export default SearchQueries;

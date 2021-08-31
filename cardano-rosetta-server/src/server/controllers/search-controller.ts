@@ -27,6 +27,7 @@ const configure = (
         logger.debug({ searchTransactionsRequest }, '[searchTransactions] Request received');
         let limit = searchTransactionsRequest.limit;
         if (limit === undefined || limit > PAGE_SIZE) {
+          logger.info('[searchTransactions] Setting limit value ', PAGE_SIZE);
           limit = PAGE_SIZE;
         }
         const offset = searchTransactionsRequest.offset || 0;
