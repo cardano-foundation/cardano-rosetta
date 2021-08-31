@@ -78,7 +78,9 @@ const allow = {
     { code: 5008, message: 'Invalid voting signature', retriable: false },
     { code: 5009, message: 'Voting key is missing', retriable: false },
     { code: 5010, message: 'Voting key format is invalid', retriable: false },
-    { code: 5011, message: 'Missing vote registration metadata', retriable: false }
+    { code: 5011, message: 'Missing vote registration metadata', retriable: false },
+    { code: 5012, message: 'Invalid operation status', retriable: false },
+    { code: 5013, message: 'Given operation status and success state does not match', retriable: false }
   ],
   historical_balance_lookup: true,
   call_methods: [],
