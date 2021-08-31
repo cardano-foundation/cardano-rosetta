@@ -723,9 +723,9 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       };
       const statusToQueryBy = validateAndGetStatus(status, success);
       if (statusToQueryBy !== null) conditionsToQueryBy.status = statusToQueryBy;
-      const { data: query, count: totalCountQuery } = SearchQueries.getQueriesByType(type, conditionsToQueryBy);
+      const { data: dataQuery, count: totalCountQuery } = SearchQueries.getQueriesByType(type, conditionsToQueryBy);
       logger.debug('[findTransactionsByBlock] About to search transactions');
-      const result: QueryResult<FindTransaction> = await databaseInstance.query(query, [limit, offset]);
+      const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, [limit, offset]);
       logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
       const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery);
       const totalCount = parseTotalCount(totalCountResult);

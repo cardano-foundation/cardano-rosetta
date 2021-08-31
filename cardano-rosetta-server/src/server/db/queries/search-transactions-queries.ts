@@ -3,7 +3,6 @@ import { SearchFilters } from '../../models';
 
 const withLimitAndOffset = (query: string) => `
     ${query} 
-    ORDER BY block.id DESC 
     LIMIT $1 
     OFFSET $2
 `;
@@ -35,7 +34,7 @@ SELECT
     block.block_no as "blockNo"
 `;
 
-const totalCountQuery = 'SELECT COUNT(1)';
+const totalCountQuery = 'SELECT COUNT(1) AS "totalCount"';
 
 const getQuery = (isTotalCount: boolean): string => (isTotalCount ? totalCountQuery : transactionQuery);
 
@@ -57,7 +56,7 @@ const coinsQuery = `
         tx_out_tx.id = tx_out.tx_id AND
         tx_out_tx.block_id <= (select id from block where hash = $2)
       WHERE 
-        tx_out_tx.hash $1 AND
+        tx_out_tx.hash = $1 AND
         tx_out.index = $2 AND
         tx_in_tx.id IS NULL
     )
@@ -80,6 +79,7 @@ const findTransactionsWithInputs = (isTotalCount: boolean) => `
         ON source_tx_out.tx_id = source_tx.id
     JOIN block
         ON block.id = tx.block_id
+    ORDER BY block.id DESC 
 `;
 
 const findTransactionsWithOutputs = (isTotalCount: boolean) => `
@@ -98,6 +98,7 @@ const findTransactionsWithPoolRegistrations = (isTotalCount: boolean) => `
         ON ph.id = pu.hash_id
     JOIN block
         ON block.id = tx.block_id
+    ORDER BY block.id DESC 
 `;
 
 const findTransactionsWithPoolRetirements = (isTotalCount: boolean) => `
@@ -109,6 +110,7 @@ const findTransactionsWithPoolRetirements = (isTotalCount: boolean) => `
         ON tx.id = pr.announced_tx_id
     JOIN block
         ON block.id = tx.block_id
+    ORDER BY block.id DESC 
 `;
 
 const findTransactionsWithDelegations = (isTotalCount: boolean) => `
@@ -122,6 +124,7 @@ const findTransactionsWithDelegations = (isTotalCount: boolean) => `
         ON d.tx_id = tx.id
     JOIN block
         ON block.id = tx.block_id
+    ORDER BY block.id DESC 
 `;
 
 const findTransactionsWithKeyDeregistrations = (isTotalCount: boolean) => `
@@ -133,6 +136,7 @@ const findTransactionsWithKeyDeregistrations = (isTotalCount: boolean) => `
         ON tx.id = sd.tx_id
     JOIN block
         ON block.id = tx.block_id
+    ORDER BY block.id DESC 
 `;
 
 const findTransactionsWithKeyRegistrations = (isTotalCount: boolean) => `
@@ -142,6 +146,7 @@ const findTransactionsWithKeyRegistrations = (isTotalCount: boolean) => `
     JOIN stake_address sa on sr.addr_id = sa.id
     JOIN block
         ON block.id = tx.block_id
+    ORDER BY block.id DESC 
 `;
 
 const findTransactionsWithVoteRegistrations = (isTotalCount: boolean) => `
@@ -150,7 +155,7 @@ const findTransactionsWithVoteRegistrations = (isTotalCount: boolean) => `
             tx_metadata.tx_id
         FROM tx_metadata
         WHERE key = ${CatalystLabels.DATA}
-    ),
+    )
     ${getQuery(isTotalCount)}
     FROM metadata_data_tx
     JOIN tx_metadata
@@ -160,6 +165,7 @@ const findTransactionsWithVoteRegistrations = (isTotalCount: boolean) => `
     JOIN block
         ON block.id = tx.block_id
     WHERE tx_metadata.key = ${CatalystLabels.SIG}
+    ORDER BY block.id DESC 
 `;
 
 const findTransactionsWithWithdrawals = (isTotalCount: boolean) => `
@@ -169,6 +175,7 @@ const findTransactionsWithWithdrawals = (isTotalCount: boolean) => `
     JOIN stake_address sa on w.addr_id = sa.id
     JOIN block
         ON block.id = tx.block_id
+    ORDER BY block.id DESC 
 `;
 
 const queryTypeMapping: { [type: string]: (isTotalCount: boolean) => string } = {
