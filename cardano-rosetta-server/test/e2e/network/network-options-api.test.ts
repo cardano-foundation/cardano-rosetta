@@ -83,7 +83,9 @@ const allow = {
       code: 5012,
       message: 'Missing chain code',
       retriable: false
-    }
+    },
+    { code: 5013, message: 'Invalid operation status', retriable: false },
+    { code: 5014, message: 'Given operation status and success state does not match', retriable: false }
   ],
   historical_balance_lookup: true,
   call_methods: [],
