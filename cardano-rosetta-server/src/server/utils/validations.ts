@@ -90,16 +90,17 @@ const validateAndGetOperationState = (status: string, success?: boolean): Compon
   return operationState;
 };
 
-export const validateAndGetStatus = (status?: string, success?: boolean): boolean | null => {
+export const validateAndGetStatus = (status?: string, success?: boolean): boolean | undefined => {
   const isStatusUndefined = status === undefined;
   const isSuccessUndefined = success === undefined;
 
-  if (isStatusUndefined && isSuccessUndefined) return null;
+  if (isStatusUndefined && isSuccessUndefined) return;
+  // eslint-disable-next-line consistent-return
   if (isStatusUndefined && success !== undefined) return success;
   if (status !== undefined) {
     validateStatus(status);
     const operationState = validateAndGetOperationState(status, success);
+    // eslint-disable-next-line consistent-return
     return operationState.successful;
   }
-  return null;
 };

@@ -1,3 +1,5 @@
+import { CoinIdentifier } from '../models';
+
 const EMPTY_HEX = '\\x';
 /**
  * This function is used to represent hex string that might be undefined or ''. In the later case, "\x"
@@ -22,3 +24,10 @@ export const bytesToHex = (bytes: Uint8Array): string => hexFormatter(Buffer.fro
 export const add0xPrefix = (hex: string): string => (hex.startsWith('0x') ? hex : `0x${hex}`);
 
 export const remove0xPrefix = (hex: string): string => (hex.startsWith('0x') ? hex.slice('0x'.length) : hex);
+
+export const coinIdentifierFormatter = (coinIdentifier?: string): CoinIdentifier | undefined => {
+  if (!coinIdentifier) return;
+  const [hash, index] = coinIdentifier.split(':');
+  // eslint-disable-next-line consistent-return
+  return { hash, index };
+};

@@ -19,7 +19,13 @@ import {
   SearchFilters
 } from '../models';
 import { LinearFeeParameters } from '../services/cardano-services';
-import { hexStringToBuffer, hexFormatter, isEmptyHexString, remove0xPrefix } from '../utils/formatters';
+import {
+  hexStringToBuffer,
+  hexFormatter,
+  isEmptyHexString,
+  remove0xPrefix,
+  coinIdentifierFormatter
+} from '../utils/formatters';
 import Queries, {
   FindBalance,
   FindTransactionDelegations,
@@ -711,34 +717,34 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger: Logger,
     conditions: Components.Schemas.SearchTransactionsRequest
   ): Promise<TransactionCount> {
-    // TODO:  only type conditions are being handled. handle rest of conditions needs to be done
     logger.debug('[findTransactionsByConditions] Conditions received to run the query ', {
       conditions
     });
-    if (conditions.type) {
-      const { type, limit, offset, max_block, status, success, operator } = conditions;
-      const conditionsToQueryBy: SearchFilters = {
-        maxBlock: max_block,
-        operator
-      };
-      const statusToQueryBy = validateAndGetStatus(status, success);
-      if (statusToQueryBy !== null) conditionsToQueryBy.status = statusToQueryBy;
-      const { data: dataQuery, count: totalCountQuery } = SearchQueries.getQueriesByType(type, conditionsToQueryBy);
-      logger.debug('[findTransactionsByBlock] About to search transactions');
-      const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, [limit, offset]);
-      logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
-      const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery);
-      const totalCount = parseTotalCount(totalCountResult);
-      logger.debug('[findTransactionsByBlock] Total count obtained ', totalCount);
-      if (result.rows.length > 0) {
-        return {
-          transactions: parseTransactionRows(result),
-          totalCount
-        };
-      }
+    // handle different logic when operator is 'and'
+    const { type, coin_identifier, limit, offset, max_block, status, success, operator } = conditions;
+    const conditionsToQueryBy: SearchFilters = {
+      maxBlock: max_block,
+      operator,
+      type,
+      coinIdentifier: coinIdentifierFormatter(coin_identifier?.identifier),
+      status: validateAndGetStatus(status, success)
+    };
+    if (operator === 'or') {
+      // TODO: queries with different filters should be done one by one
+      // const totalCountQueries = SearchQueries.getTotalCount(conditionsToQueryBy);
+      // const query = SearchQueries.generateComposedQuery(conditionsToQueryBy);
+    }
+    const { data: dataQuery, count: totalCountQuery } = SearchQueries.generateComposedQuery(conditionsToQueryBy);
+    logger.debug('[findTransactionsByBlock] About to search transactions');
+    const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, [limit, offset]);
+    logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
+    const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery);
+    const totalCount = parseTotalCount(totalCountResult);
+    logger.debug('[findTransactionsByBlock] Total count obtained ', totalCount);
+    if (result.rows.length > 0) {
       return {
-        transactions: [],
-        totalCount: 0
+        transactions: parseTransactionRows(result),
+        totalCount
       };
     }
     return {

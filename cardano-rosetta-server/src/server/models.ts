@@ -33,10 +33,16 @@ export interface FindTransaction {
   validContract: boolean;
 }
 
+export interface CoinIdentifier {
+  hash: string;
+  index: string;
+}
 export interface SearchFilters {
   maxBlock?: number;
   operator?: Components.Schemas.Operator;
   status?: boolean;
+  type?: string;
+  coinIdentifier?: CoinIdentifier;
 }
 
 export interface TotalCount {
