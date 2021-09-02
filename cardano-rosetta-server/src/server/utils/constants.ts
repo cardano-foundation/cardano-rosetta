@@ -135,3 +135,8 @@ export enum CatalystSigIndexes {
   VOTING_SIGNATURE = 1
 }
 /* eslint-disable no-magic-numbers */
+
+export enum OperatorType {
+  AND = 'and',
+  OR = 'or'
+}

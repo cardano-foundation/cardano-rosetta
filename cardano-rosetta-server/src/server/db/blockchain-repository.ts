@@ -45,7 +45,7 @@ import Queries, {
   FindMaBalance
 } from './queries/blockchain-queries';
 import SearchQueries from './queries/search-transactions-queries';
-import { CatalystDataIndexes, CatalystSigIndexes } from '../utils/constants';
+import { CatalystDataIndexes, CatalystSigIndexes, OperatorType } from '../utils/constants';
 import { isVoteDataValid, isVoteSignatureValid, validateAndGetStatus } from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
 
@@ -729,7 +729,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       coinIdentifier: coinIdentifierFormatter(coin_identifier?.identifier),
       status: validateAndGetStatus(status, success)
     };
-    if (operator === 'or') {
+    if (operator === OperatorType.OR) {
       // TODO: queries with different filters should be done one by one
       // const totalCountQueries = SearchQueries.getTotalCount(conditionsToQueryBy);
       // const query = SearchQueries.generateComposedQuery(conditionsToQueryBy);

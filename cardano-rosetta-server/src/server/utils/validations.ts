@@ -9,7 +9,6 @@ import {
   CatalystSigIndexes,
   SUCCESS_OPERATION_STATE,
   INVALID_OPERATION_STATE,
-  OperationTypeStatus,
   OPERATIONS_STATUSES
 } from './constants';
 import { ErrorFactory } from './errors';

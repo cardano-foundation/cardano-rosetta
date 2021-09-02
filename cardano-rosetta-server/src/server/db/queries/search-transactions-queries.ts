@@ -1,5 +1,5 @@
-import { OperationType, CatalystLabels } from '../../utils/constants';
-import { SearchFilters, TotalCount } from '../../models';
+import { OperationType, CatalystLabels, OperatorType } from '../../utils/constants';
+import { SearchFilters } from '../../models';
 
 const withLimitAndOffset = (query: string) => `
     ${query} 
@@ -235,7 +235,7 @@ const createComposedQuery = (conditions: SearchFilters) => {
     selects.push({ query: coinQuery, name: 'coin' });
   }
   if (selects.length > 0) {
-    const joinOperator = operator === 'and' ? 'INTERSECT' : 'UNION';
+    const joinOperator = operator === OperatorType.AND ? 'INTERSECT' : 'UNION';
     const subQueries = `WITH ${selects.map(select => `${select.name} AS (${select.query})`).join(', ')}`;
     const query = `${subQueries} ${selects
       .map(select => `${transactionQuery} FROM ${select.name}`)
