@@ -14,7 +14,8 @@ import {
   generateBaseAddress,
   generateEnterpriseAddress,
   generateRewardAddress,
-  getEraAddressType
+  getEraAddressType,
+  isStakeAddress
 } from '../utils/cardano/addresses';
 import * as OperationsProcessor from '../utils/cardano/operations-processor';
 import { getStakingCredentialFromHex } from '../utils/cardano/staking-credentials';
@@ -26,11 +27,9 @@ import {
   CurveType,
   EraAddressType,
   NetworkIdentifier,
-  PREFIX_LENGTH,
   PoolOperations,
   PUBLIC_KEY_BYTES_LENGTH,
   SIGNATURE_LENGTH,
-  StakeAddressPrefix,
   OperationType
 } from '../utils/constants';
 import { TransactionExtraData } from '../utils/data-mapper';
@@ -114,13 +113,6 @@ export interface CardanoService {
    * @param signedTransaction
    */
   getHashOfSignedTransaction(logger: Logger, signedTransaction: string): string;
-
-  /**
-   * This function returns a the address prefix based on a string encoded one
-   *
-   * @param address to be parsed
-   */
-  getPrefixFromAddress(address: string): string;
 
   /**
    * Returns true if the address's prefix belongs to stake address
@@ -415,14 +407,8 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       return null;
     }
   },
-  getPrefixFromAddress(address) {
-    return address.slice(0, PREFIX_LENGTH);
-  },
   isStakeAddress(address) {
-    const addressPrefix = this.getPrefixFromAddress(address);
-    return [StakeAddressPrefix.MAIN as string, StakeAddressPrefix.TEST as string].some(type =>
-      addressPrefix.includes(type)
-    );
+    return isStakeAddress(address);
   },
   getHashOfSignedTransaction(logger, signedTransaction) {
     try {

@@ -5,7 +5,8 @@ import {
   EraAddressType,
   AddressPrefix,
   StakeAddressPrefix,
-  NonStakeAddressPrefix
+  NonStakeAddressPrefix,
+  PREFIX_LENGTH
 } from '../constants';
 import { hexStringToBuffer } from '../formatters';
 
@@ -125,3 +126,14 @@ export const parseToRewardAddress = (address: string): CardanoWasm.RewardAddress
  * @param hex address as hex string
  */
 export const getAddressFromHexString = (hex: string): Address => Address.from_bytes(hexStringToBuffer(hex));
+
+/**
+ * Returns true if the address's prefix belongs to stake address
+ * @param address bench 32 address
+ */
+export const isStakeAddress = (address: string): boolean => {
+  const addressPrefix = address.slice(0, PREFIX_LENGTH);
+  return [StakeAddressPrefix.MAIN as string, StakeAddressPrefix.TEST as string].some(type =>
+    addressPrefix.includes(type)
+  );
+};

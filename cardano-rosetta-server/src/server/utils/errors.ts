@@ -109,7 +109,9 @@ export const Errors = {
   INVALID_VOTING_KEY_FORMAT: { message: 'Voting key format is invalid', code: 5010 },
   MISSING_VOTE_REGISTRATION_METADATA: { message: 'Missing vote registration metadata', code: 5011 },
   INVALID_OPERATION_STATUS: { message: 'Invalid operation status', code: 5012 },
-  STATUS_SUCCESS_MATCH_ERROR: { message: 'Given operation status and success state does not match', code: 5013 }
+  STATUS_SUCCESS_MATCH_ERROR: { message: 'Given operation status and success state does not match', code: 5013 },
+  TX_HASH_COIN_NOT_MATCH: { message: 'Transaction hash does not match to given coin identifier', code: 5014 },
+  ADDRESS_AND_ACCOUNT_ID_NOT_MATCH: { message: 'Address and account identifier does not match', code: 5015 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -182,7 +184,7 @@ const tokenBundleAssetsMissingError: CreateErrorFunction = type =>
 const tokenAssetValueMissingError: CreateErrorFunction = type =>
   buildApiError(Errors.TOKEN_ASSET_VALUE_MISSING, false, type);
 const sendOutsideValidityIntervalUtxoError: CreateErrorFunction = (details?: string) =>
-  buildApiError(Errors.OUTSIDE_VALIDITY_INTERVAL_UTXO, false);
+  buildApiError(Errors.OUTSIDE_VALIDITY_INTERVAL_UTXO, false, details);
 const votingNonceNotValid: CreateErrorFunction = () => buildApiError(Errors.VOTING_NONCE_NOT_VALID, false);
 const invalidVotingSignature: CreateErrorFunction = () => buildApiError(Errors.INVALID_VOTING_SIGNATURE, false);
 const missingVotingKeyError: CreateErrorFunction = () => buildApiError(Errors.MISSING_VOTING_KEY, false);
@@ -192,7 +194,9 @@ const missingVoteRegistrationMetadata: CreateErrorFunction = () =>
 const invalidOperationStatus: CreateErrorFunction = (details?: string) =>
   buildApiError(Errors.INVALID_OPERATION_STATUS, false, details);
 const statusAndSuccessMatchError: CreateErrorFunction = () => buildApiError(Errors.STATUS_SUCCESS_MATCH_ERROR, false);
-
+const txHashAndCoinNotMatchError: CreateErrorFunction = () => buildApiError(Errors.TX_HASH_COIN_NOT_MATCH, false);
+const addressAndAccountIdNotMatchError: CreateErrorFunction = (details?: string) =>
+  buildApiError(Errors.ADDRESS_AND_ACCOUNT_ID_NOT_MATCH, false, details);
 export const ErrorFactory = {
   blockNotFoundError,
   networkNotFoundError,
@@ -244,7 +248,9 @@ export const ErrorFactory = {
   invalidVotingKeyFormat,
   missingVoteRegistrationMetadata,
   invalidOperationStatus,
-  statusAndSuccessMatchError
+  statusAndSuccessMatchError,
+  txHashAndCoinNotMatchError,
+  addressAndAccountIdNotMatchError
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>

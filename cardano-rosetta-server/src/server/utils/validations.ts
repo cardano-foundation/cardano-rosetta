@@ -14,6 +14,7 @@ import {
 import { ErrorFactory } from './errors';
 import { hexStringToBuffer, isEmptyHexString } from './formatters';
 import CardanoWasm from 'cardano-serialization-lib';
+import { CoinIdentifier } from '../models';
 
 const tokenNameValidation = new RegExp(`^[0-9a-fA-F]{0,${ASSET_NAME_LENGTH}}$`);
 
@@ -101,5 +102,22 @@ export const validateAndGetStatus = (status?: string, success?: boolean): boolea
     const operationState = validateAndGetOperationState(status, success);
     // eslint-disable-next-line consistent-return
     return operationState.successful;
+  }
+};
+
+export const validateTransactionCoinMatch = (transactionHash?: string, coinIdentifier?: CoinIdentifier): void => {
+  if (transactionHash && coinIdentifier && transactionHash !== coinIdentifier.hash) {
+    throw ErrorFactory.txHashAndCoinNotMatchError();
+  }
+};
+
+export const validateAccountIdAddressMatch = (
+  address?: string,
+  accountIdentifier?: Components.Schemas.AccountIdentifier
+): void => {
+  if (address && accountIdentifier && address !== accountIdentifier.address) {
+    throw ErrorFactory.addressAndAccountIdNotMatchError(
+      `Address ${address} does not match account identifier's address ${accountIdentifier.address}`
+    );
   }
 };

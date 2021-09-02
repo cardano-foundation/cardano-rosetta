@@ -46,7 +46,13 @@ import Queries, {
 } from './queries/blockchain-queries';
 import SearchQueries from './queries/search-transactions-queries';
 import { CatalystDataIndexes, CatalystSigIndexes, OperatorType } from '../utils/constants';
-import { isVoteDataValid, isVoteSignatureValid, validateAndGetStatus } from '../utils/validations';
+import {
+  isVoteDataValid,
+  isVoteSignatureValid,
+  validateAndGetStatus,
+  validateTransactionCoinMatch,
+  validateAccountIdAddressMatch
+} from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
 
 export interface BlockchainRepository {
@@ -720,19 +726,25 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger.debug('[findTransactionsByConditions] Conditions received to run the query ', {
       conditions
     });
-    const { type, coin_identifier, limit, offset, max_block, status, success, operator } = conditions;
+    const { type, limit, offset, status, success, operator } = conditions;
+    const coinIdentifier = coinIdentifierFormatter(conditions?.coin_identifier?.identifier);
+    const transactionHash = conditions?.transaction_identifier?.hash;
     const conditionsToQueryBy: SearchFilters = {
-      maxBlock: max_block,
+      maxBlock: conditions?.max_block,
       operator: operator ? operator : OperatorType.AND,
       type,
-      coinIdentifier: coinIdentifierFormatter(coin_identifier?.identifier),
-      status: validateAndGetStatus(status, success)
+      coinIdentifier,
+      status: validateAndGetStatus(status, success),
+      transactionHash,
+      address: conditions.address || conditions.account_identifier?.address
     };
     if (operator === OperatorType.OR) {
       // TODO: queries with different filters should be done one by one
       // const totalCountQueries = SearchQueries.getTotalCount(conditionsToQueryBy);
       // const query = SearchQueries.generateComposedQuery(conditionsToQueryBy);
     }
+    validateTransactionCoinMatch(transactionHash, coinIdentifier);
+    validateAccountIdAddressMatch(conditions.address, conditions.account_identifier);
     const { data: dataQuery, count: totalCountQuery } = SearchQueries.generateComposedQuery(conditionsToQueryBy);
     logger.debug('[findTransactionsByBlock] About to search transactions');
     const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, [limit, offset]);

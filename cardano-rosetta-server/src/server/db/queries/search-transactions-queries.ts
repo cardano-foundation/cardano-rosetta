@@ -1,5 +1,6 @@
 import { OperationType, CatalystLabels, OperatorType } from '../../utils/constants';
 import { CoinIdentifier, SearchFilters, CurrencyId } from '../../models';
+import { isStakeAddress } from '../../utils/cardano/addresses';
 
 const withLimitAndOffset = (query: string) => `
     ${query} 
@@ -7,8 +8,11 @@ const withLimitAndOffset = (query: string) => `
     OFFSET $2
 `;
 
+/* eslint-disable complexity */
+/* eslint-disable max-statements*/
+/* eslint-disable-next-line sonarjs/cognitive-complexity */
 const withConditions = (query: string, filters: SearchFilters): string => {
-  const { maxBlock, operator, status, coinIdentifier, currencyIdentifier } = filters;
+  const { maxBlock, transactionHash, status, coinIdentifier, currencyIdentifier, address } = filters;
   const whereConditions = [];
   let whereSentence = '';
   let joinSentence = '';
@@ -22,10 +26,14 @@ const withConditions = (query: string, filters: SearchFilters): string => {
   if (coinIdentifier) {
     const { hash, index } = coinIdentifier;
     if (!currencyIdentifier) {
+      // eslint-disable-next-line sonarjs/no-duplicate-string
       joinTables.push('tx_out ON tx.id = tx_out.tx_id');
     }
     whereConditions.push(`tx.hash = ${hash}`);
     whereConditions.push(`tx_out.index = ${index}`);
+  }
+  if (transactionHash && !coinIdentifier) {
+    whereConditions.push(`tx.hash = ${transactionHash}`);
   }
   if (currencyIdentifier) {
     const { policy, symbol } = currencyIdentifier;
@@ -34,11 +42,17 @@ const withConditions = (query: string, filters: SearchFilters): string => {
                       AND ma_tx_out.name = DECODE('${symbol}', 'hex')
                       AND ma_tx_out.policy = DECODE('${policy}', 'hex')`);
   }
+  if (address) {
+    const isStake = isStakeAddress(address);
+    !currencyIdentifier && !coinIdentifier && joinTables.push('tx_out ON tx.id = tx_out.tx_id');
+    isStake && joinTables.push('stake_address ON tx_out.stake_address_id = stake_address.id');
+    whereConditions.push(`${isStake ? `stake_address.view = ${address}` : `tx_out.address = ${address}`}`);
+  }
   if (whereConditions.length > 0) {
-    whereSentence = whereConditions.join(` ${OperatorType.AND}`);
+    whereSentence = `WHERE ${whereConditions.join(` ${OperatorType.AND}`)}`;
   }
   if (joinTables.length > 0) {
-    joinSentence = joinTables.join(' JOIN ');
+    joinSentence = `JOIN ${joinTables.join(' JOIN ')}`;
   }
   return `${query} ${joinSentence} ${whereSentence}`;
 };
@@ -65,12 +79,16 @@ const DEFAULT_TRANSACTION_QUERY = `
 
 const getQuery = (isTotalCount: boolean): string => (isTotalCount ? totalCountQuery : transactionQuery);
 
-const createCoinQuery = (filters: SearchFilters, coinIdentifier: CoinIdentifier) => {
-  const { maxBlock, operator, status } = filters;
+const createCoinQuery = (coinIdentifier: CoinIdentifier, filters: SearchFilters) => {
+  const { maxBlock, operator, status, address } = filters;
   let txOutTxClause = '';
   let txInTxClause = '';
+  let joinClause = '';
+  let whereClause = '';
   const txInTxConditions = [];
   const txOutTxConditions = [];
+  const joinTables = [];
+  const conditions = [];
   if (maxBlock) {
     txInTxConditions.push(`tx_in_tx.block_id <= (select id from block where block_no = ${maxBlock})`);
     txOutTxConditions.push(`tx_out_tx.block_id <= (select id from block where block_no = ${maxBlock})`);
@@ -79,10 +97,22 @@ const createCoinQuery = (filters: SearchFilters, coinIdentifier: CoinIdentifier)
     txInTxConditions.push(`tx_in_tx.valid_contract = ${status})`);
     txOutTxConditions.push(`tx_out_tx.valid_contract  = ${status})`);
   }
+  if (address) {
+    const isStake = isStakeAddress(address);
+    isStake && joinTables.push('stake_address ON stake_address.id = tx_out.stake_address_id');
+    conditions.push(`${isStake ? `stake_address.view = ${address}` : `tx_out.address = ${address}`}`);
+  }
   if (txInTxConditions.length > 0 && txOutTxConditions.length > 0) {
     txOutTxClause = `AND (${txOutTxConditions.join(` ${operator} `)})`;
     txInTxClause = `AND (${txInTxConditions.join(` ${operator} `)})`;
   }
+  if (conditions.length > 0) {
+    whereClause = `AND ${conditions.join(' AND')}`;
+  }
+  if (joinTables.length > 0) {
+    joinClause = `JOIN ${joinTables.join(' JOIN')}`;
+  }
+
   return `
       SELECT
         tx_out_tx.id
@@ -96,22 +126,40 @@ const createCoinQuery = (filters: SearchFilters, coinIdentifier: CoinIdentifier)
       JOIN tx AS tx_out_tx ON
         tx_out_tx.id = tx_out.tx_id
         ${txOutTxClause}
+      ${joinClause}
       WHERE 
         tx_out_tx.hash = ${coinIdentifier.hash} AND
         tx_out.index = ${coinIdentifier.index} AND
         tx_in_tx.id IS NULL
+        ${whereClause}
 `;
 };
 
 const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters) => {
   const { policy, symbol } = currencyId;
-  const { coinIdentifier } = filters;
+  const { coinIdentifier, transactionHash, address, maxBlock, status } = filters;
   const conditions = [];
   let whereClause = '';
+  let joinClause = '';
+  const joinTables = [];
+  if (maxBlock) {
+    conditions.push(`block.block_no <= ${maxBlock}`);
+  }
+  if (status) {
+    conditions.push(`tx.valid_contract <= ${status}`);
+  }
   if (coinIdentifier) {
     const { hash, index } = coinIdentifier;
     conditions.push(`tx.hash = ${hash}`);
     conditions.push(`tx_out.index = ${index}`);
+  }
+  if (!coinIdentifier && transactionHash) {
+    conditions.push(`tx.hash = ${transactionHash}`);
+  }
+  if (address) {
+    const isStake = isStakeAddress(address);
+    isStake && joinTables.push('stake_address ON tx_out.stake_address_id = stake_address.id');
+    conditions.push(`${isStake ? `stake_address.view = ${address}` : `tx_out.address = ${address}`}`);
   }
   const query = `
   ${transactionQuery}
@@ -126,7 +174,10 @@ const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters) => 
   if (conditions.length > 0) {
     whereClause = `WHERE ${conditions.join(' AND')}`;
   }
-  return query.concat(` ${whereClause}`);
+  if (joinTables.length > 0) {
+    joinClause = `JOIN ${joinTables.join(' JOIN')}`;
+  }
+  return query.concat(` ${joinClause}`).concat(` ${whereClause}`);
 };
 
 const findTransactionsWithInputs = (isTotalCount: boolean, conditions?: SearchFilters) => {
@@ -311,22 +362,22 @@ const queryTypeMapping: { [type: string]: (isTotalCount: boolean, conditions?: S
   [OperationType.WITHDRAWAL]: (isTotalCount, conditions) => findTransactionsWithWithdrawals(isTotalCount, conditions)
 };
 
-const getQueryWithAndOperator = (conditions: SearchFilters) => {
+const getQueryWithAndOperator = (filters: SearchFilters) => {
   let query = DEFAULT_TRANSACTION_QUERY;
-  const { coinIdentifier, currencyIdentifier, type } = conditions;
+  const { coinIdentifier, currencyIdentifier, type, transactionHash, address, maxBlock, status } = filters;
   if (type) {
-    query = queryTypeMapping[type](false, conditions);
+    query = queryTypeMapping[type](false, filters);
     return query;
   }
   if (currencyIdentifier) {
-    query = createCurrencyQuery(currencyIdentifier, conditions);
+    query = createCurrencyQuery(currencyIdentifier, filters);
     return query;
   }
   if (coinIdentifier) {
-    query = createCoinQuery(conditions, coinIdentifier);
+    query = createCoinQuery(coinIdentifier, filters);
     return query;
   }
-  return query;
+  return withConditions(query, filters);
 };
 
 const createComposedQuery = (conditions: SearchFilters) => {

@@ -50,6 +50,8 @@ export interface SearchFilters {
   type?: string;
   coinIdentifier?: CoinIdentifier;
   currencyIdentifier?: CurrencyId;
+  transactionHash?: string;
+  address?: string;
 }
 
 export interface TotalCount {
