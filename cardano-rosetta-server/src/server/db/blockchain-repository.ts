@@ -720,11 +720,10 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger.debug('[findTransactionsByConditions] Conditions received to run the query ', {
       conditions
     });
-    // handle different logic when operator is 'and'
     const { type, coin_identifier, limit, offset, max_block, status, success, operator } = conditions;
     const conditionsToQueryBy: SearchFilters = {
       maxBlock: max_block,
-      operator,
+      operator: operator ? operator : OperatorType.AND,
       type,
       coinIdentifier: coinIdentifierFormatter(coin_identifier?.identifier),
       status: validateAndGetStatus(status, success)

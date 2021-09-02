@@ -1,4 +1,5 @@
 import { CatalystLabels } from '../../utils/constants';
+import { CurrencyId } from '../../models';
 
 const findBlock = (blockNumber?: number, blockHash?: string): string => `
 SELECT 
@@ -31,11 +32,6 @@ WHERE
   ${blockHash ? 'b.hash = $2' : '$2 = $2'}
 LIMIT 1
 `;
-
-export interface CurrencyId {
-  symbol: string;
-  policy: string;
-}
 
 const currenciesQuery = (currencies: CurrencyId[]): string =>
   `SELECT tx_out_id 

@@ -1,5 +1,5 @@
 import { OperationType, CatalystLabels, OperatorType } from '../../utils/constants';
-import { CoinIdentifier, SearchFilters } from '../../models';
+import { CoinIdentifier, SearchFilters, CurrencyId } from '../../models';
 
 const withLimitAndOffset = (query: string) => `
     ${query} 
@@ -23,6 +23,37 @@ const withFilters = (query: string, filters: SearchFilters): string => {
   return query.concat(` ${whereClause}`);
 };
 
+const withConditions = (query: string, filters: SearchFilters): string => {
+  const { maxBlock, operator, status, coinIdentifier, currencyIdentifier } = filters;
+  const whereConditions = [];
+  let whereSentence = '';
+  let joinSentence = '';
+  const joinTables = [];
+  if (maxBlock) {
+    whereConditions.push(`block.block_no <= ${maxBlock}`);
+  }
+  if (status !== undefined || status !== null) {
+    whereConditions.push(`tx.valid_contract = ${status}`);
+  }
+  if (coinIdentifier) {
+    whereConditions.push(`tx.hash = ${coinIdentifier.hash}`);
+  }
+  if (currencyIdentifier) {
+    const { policy, symbol } = currencyIdentifier;
+    joinTables.push('tx_out ON tx.id = tx_out.tx_id');
+    joinTables.push(`ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id 
+                      AND ma_tx_out.name = DECODE('${symbol}', 'hex')
+                      AND ma_tx_out.policy = DECODE('${policy}', 'hex')`);
+  }
+  if (whereConditions.length > 0) {
+    whereSentence = whereConditions.join(` ${OperatorType.AND}`);
+  }
+  if (joinTables.length > 0) {
+    joinSentence = joinTables.join(' JOIN ');
+  }
+  return `${query} ${joinSentence} ${whereSentence}`;
+};
+
 const transactionQuery = `
 SELECT 
     tx.hash,
@@ -35,6 +66,13 @@ SELECT
 `;
 
 const totalCountQuery = 'SELECT COUNT(1) AS "totalCount"';
+
+const DEFAULT_TRANSACTION_QUERY = `
+  ${transactionQuery} 
+  FROM tx
+  JOIN block
+    ON block.id = tx.block_id
+`;
 
 const getQuery = (isTotalCount: boolean): string => (isTotalCount ? totalCountQuery : transactionQuery);
 
@@ -76,15 +114,33 @@ const createCoinQuery = (filters: SearchFilters, coinIdentifier: CoinIdentifier)
 `;
 };
 
-const currencyQuery = `SELECT tx_out_id 
-   FROM ma_tx_out 
-   WHERE 
-     name = DECODE($1, 'hex') AND policy = DECODE($2, 'hex')`;
+const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters) => {
+  const { policy, symbol } = currencyId;
+  const { coinIdentifier } = filters;
+  const conditions = [];
+  let whereClause = '';
+  if (coinIdentifier) {
+    const { hash, index } = coinIdentifier;
+    conditions.push(`tx.hash = ${hash}`);
+    conditions.push(`tx_out.index = ${index}`);
+  }
+  const query = `
+  ${transactionQuery}
+  FROM tx
+  JOIN tx_out
+    ON tx_out.tx_id = tx.id
+  JOIN ma_tx_out
+    ON ma_tx_out.tx_out_id = tx_out.id
+      AND ma_tx_out.name = DECODE('${symbol}', 'hex')
+      AND ma_tx_out.policy = DECODE('${policy}', 'hex')
+    `;
+  if (conditions.length > 0) {
+    whereClause = `WHERE ${conditions.join(' AND')}`;
+  }
+  return query.concat(` ${whereClause}`);
+};
 
 const findTransactionsWithInputs = (isTotalCount: boolean, conditions?: SearchFilters) => {
-  const whereConditions = [];
-  let whereSentence = '';
-  const orderBySentence = 'ORDER BY block.id DESC';
   const query = `
     ${getQuery(isTotalCount)}
     FROM tx
@@ -93,113 +149,158 @@ const findTransactionsWithInputs = (isTotalCount: boolean, conditions?: SearchFi
     JOIN block
         ON block.id = tx.block_id ${conditions?.maxBlock ? `AND block_no <= ${conditions.maxBlock}` : ''}
 `;
+
   if (!isTotalCount && conditions) {
-    const { coinIdentifier } = conditions;
-    if (coinIdentifier) {
-      whereConditions.push(`tx.hash = ${coinIdentifier}`);
-    }
+    const queryWithConditions = withConditions(query, conditions);
+    return `${queryWithConditions} ORDER BY block.id DESC`;
   }
-  if (whereConditions.length > 0) {
-    whereSentence = whereConditions.join(` ${conditions?.operator ? conditions?.operator : 'AND'}`);
-  }
-  return `${query} ${whereSentence} ${orderBySentence}`;
+  return query;
 };
 
-const findTransactionsWithOutputs = (isTotalCount: boolean, conditions?: SearchFilters) => `
-    ${getQuery(isTotalCount)}
-    FROM tx
-    JOIN tx_out
-        ON tx.id = tx_out.tx_id
+const findTransactionsWithOutputs = (isTotalCount: boolean, conditions?: SearchFilters) => {
+  const query = `
+  ${getQuery(isTotalCount)}
+  FROM tx
+  JOIN tx_out
+      ON tx.id = tx_out.tx_id
 `;
+  if (!isTotalCount && conditions) {
+    const queryWithConditions = withConditions(query, conditions);
+    return `${queryWithConditions} ORDER BY block.id DESC`;
+  }
+  return query;
+};
 
-const findTransactionsWithPoolRegistrations = (isTotalCount: boolean, conditions?: SearchFilters) => `
-    ${getQuery(isTotalCount)}
-    FROM pool_update pu
-    JOIN tx 
-        ON pu.registered_tx_id = tx.id
-    JOIN pool_hash ph
-        ON ph.id = pu.hash_id
-    JOIN block
-        ON block.id = tx.block_id
-    ORDER BY block.id DESC 
-`;
+const findTransactionsWithPoolRegistrations = (isTotalCount: boolean, conditions?: SearchFilters) => {
+  const query = `
+  ${getQuery(isTotalCount)}
+  FROM pool_update pu
+  JOIN tx 
+      ON pu.registered_tx_id = tx.id
+  JOIN pool_hash ph
+      ON ph.id = pu.hash_id
+  JOIN block
+      ON block.id = tx.block_id
+  `;
+  if (!isTotalCount && conditions) {
+    const queryWithConditions = withConditions(query, conditions);
+    return `${queryWithConditions} ORDER BY block.id DESC`;
+  }
+  return query;
+};
 
-const findTransactionsWithPoolRetirements = (isTotalCount: boolean, conditions?: SearchFilters) => `
-    ${getQuery(isTotalCount)}
-    FROM pool_retire pr 
-    JOIN pool_hash ph 
-        ON pr.hash_id = ph.id
-    JOIN tx
-        ON tx.id = pr.announced_tx_id
-    JOIN block
-        ON block.id = tx.block_id
-    ORDER BY block.id DESC 
-`;
+const findTransactionsWithPoolRetirements = (isTotalCount: boolean, conditions?: SearchFilters) => {
+  const query = `
+  ${getQuery(isTotalCount)}
+  FROM pool_retire pr 
+  JOIN pool_hash ph 
+      ON pr.hash_id = ph.id
+  JOIN tx
+      ON tx.id = pr.announced_tx_id
+  JOIN block
+      ON block.id = tx.block_id
+  `;
+  if (!isTotalCount && conditions) {
+    const queryWithConditions = withConditions(query, conditions);
+    return `${queryWithConditions} ORDER BY block.id DESC`;
+  }
+  return query;
+};
 
-const findTransactionsWithDelegations = (isTotalCount: boolean, conditions?: SearchFilters) => `
-    ${getQuery(isTotalCount)}
-    FROM delegation d
-    JOIN stake_address sa
-        ON d.addr_id = sa.id
-    JOIN pool_hash ph
-        ON d.pool_hash_id = ph.id
-    JOIN tx
-        ON d.tx_id = tx.id
-    JOIN block
-        ON block.id = tx.block_id
-    ORDER BY block.id DESC 
-`;
+const findTransactionsWithDelegations = (isTotalCount: boolean, conditions?: SearchFilters) => {
+  const query = `
+  ${getQuery(isTotalCount)}
+  FROM delegation d
+  JOIN stake_address sa
+      ON d.addr_id = sa.id
+  JOIN pool_hash ph
+      ON d.pool_hash_id = ph.id
+  JOIN tx
+      ON d.tx_id = tx.id
+  JOIN block
+      ON block.id = tx.block_id
+  `;
+  if (!isTotalCount && conditions) {
+    const queryWithConditions = withConditions(query, conditions);
+    return `${queryWithConditions} ORDER BY block.id DESC`;
+  }
+  return query;
+};
 
-const findTransactionsWithKeyDeregistrations = (isTotalCount: boolean, conditions?: SearchFilters) => `
-    ${getQuery(isTotalCount)}
-    FROM stake_deregistration sd
-    JOIN stake_address sa
-        ON sd.addr_id = sa.id
-    JOIN tx
-        ON tx.id = sd.tx_id
-    JOIN block
-        ON block.id = tx.block_id
-    ORDER BY block.id DESC 
-`;
+const findTransactionsWithKeyDeregistrations = (isTotalCount: boolean, conditions?: SearchFilters) => {
+  const query = `
+  ${getQuery(isTotalCount)}
+  FROM stake_deregistration sd
+  JOIN stake_address sa
+      ON sd.addr_id = sa.id
+  JOIN tx
+      ON tx.id = sd.tx_id
+  JOIN block
+      ON block.id = tx.block_id
+  `;
+  if (!isTotalCount && conditions) {
+    const queryWithConditions = withConditions(query, conditions);
+    return `${queryWithConditions} ORDER BY block.id DESC`;
+  }
+  return query;
+};
 
-const findTransactionsWithKeyRegistrations = (isTotalCount: boolean, conditions?: SearchFilters) => `
-    ${getQuery(isTotalCount)}
-    FROM stake_registration sr
-    JOIN tx on tx.id = sr.tx_id
-    JOIN stake_address sa on sr.addr_id = sa.id
-    JOIN block
-        ON block.id = tx.block_id
-    ORDER BY block.id DESC 
-`;
+const findTransactionsWithKeyRegistrations = (isTotalCount: boolean, conditions?: SearchFilters) => {
+  const query = `
+  ${getQuery(isTotalCount)}
+  FROM stake_registration sr
+  JOIN tx on tx.id = sr.tx_id
+  JOIN stake_address sa on sr.addr_id = sa.id
+  JOIN block
+      ON block.id = tx.block_id
+  `;
+  if (!isTotalCount && conditions) {
+    const queryWithConditions = withConditions(query, conditions);
+    return `${queryWithConditions} ORDER BY block.id DESC`;
+  }
+  return query;
+};
 
-const findTransactionsWithVoteRegistrations = (isTotalCount: boolean, conditions?: SearchFilters) => `
-    WITH metadata_data_tx AS (
-        SELECT
-            tx_metadata.tx_id
-        FROM tx_metadata
-        WHERE key = ${CatalystLabels.DATA}
-    )
-    ${getQuery(isTotalCount)}
-    FROM metadata_data_tx
-    JOIN tx_metadata
-        ON tx_metadata.tx_id = metadata_data_tx.tx_id
-    JOIN tx
-        ON tx.id = metadata_data_tx.tx_id
-    JOIN block
-        ON block.id = tx.block_id
-    WHERE tx_metadata.key = ${CatalystLabels.SIG}
-    ORDER BY block.id DESC 
-`;
+const findTransactionsWithVoteRegistrations = (isTotalCount: boolean, conditions?: SearchFilters) => {
+  const query = `
+  WITH metadata_data_tx AS (
+      SELECT
+          tx_metadata.tx_id
+      FROM tx_metadata
+      WHERE key = ${CatalystLabels.DATA}
+  )
+  ${getQuery(isTotalCount)}
+  FROM metadata_data_tx
+  JOIN tx_metadata
+      ON tx_metadata.tx_id = metadata_data_tx.tx_id
+  JOIN tx
+      ON tx.id = metadata_data_tx.tx_id
+  JOIN block
+      ON block.id = tx.block_id
+  WHERE tx_metadata.key = ${CatalystLabels.SIG}
+  `;
+  if (!isTotalCount && conditions) {
+    const queryWithConditions = withConditions(query, conditions);
+    return `${queryWithConditions} ORDER BY block.id DESC`;
+  }
+  return query;
+};
 
-const findTransactionsWithWithdrawals = (isTotalCount: boolean, conditions?: SearchFilters) => `
-    ${getQuery(isTotalCount)}
-    FROM withdrawal w
-    JOIN tx on w.tx_id = tx.id
-    JOIN stake_address sa on w.addr_id = sa.id
-    JOIN block
-        ON block.id = tx.block_id
-    ORDER BY block.id DESC 
-`;
+const findTransactionsWithWithdrawals = (isTotalCount: boolean, conditions?: SearchFilters) => {
+  const query = `
+  ${getQuery(isTotalCount)}
+  FROM withdrawal w
+  JOIN tx on w.tx_id = tx.id
+  JOIN stake_address sa on w.addr_id = sa.id
+  JOIN block
+      ON block.id = tx.block_id
+  `;
+  if (!isTotalCount && conditions) {
+    const queryWithConditions = withConditions(query, conditions);
+    return `${queryWithConditions} ORDER BY block.id DESC`;
+  }
+  return query;
+};
 
 const queryTypeMapping: { [type: string]: (isTotalCount: boolean, conditions?: SearchFilters) => string } = {
   [OperationType.INPUT]: (isTotalCount, conditions) => findTransactionsWithInputs(isTotalCount, conditions),
@@ -221,33 +322,27 @@ const queryTypeMapping: { [type: string]: (isTotalCount: boolean, conditions?: S
   [OperationType.WITHDRAWAL]: (isTotalCount, conditions) => findTransactionsWithWithdrawals(isTotalCount, conditions)
 };
 
-const createComposedQuery = (conditions: SearchFilters) => {
-  const { type, coinIdentifier, operator } = conditions;
-  let typeQuery;
-  let coinQuery;
-  const selects = [];
+const getQueryWithAndOperator = (conditions: SearchFilters) => {
+  let query = DEFAULT_TRANSACTION_QUERY;
+  const { coinIdentifier, currencyIdentifier, type } = conditions;
   if (type) {
-    typeQuery = queryTypeMapping[type](false, conditions);
-    selects.push({ query: typeQuery, name: 'type' });
+    query = queryTypeMapping[type](false, conditions);
+    return query;
+  }
+  if (currencyIdentifier) {
+    query = createCurrencyQuery(currencyIdentifier, conditions);
+    return query;
   }
   if (coinIdentifier) {
-    coinQuery = createCoinQuery(conditions, coinIdentifier);
-    selects.push({ query: coinQuery, name: 'coin' });
+    query = createCoinQuery(conditions, coinIdentifier);
+    return query;
   }
-  if (selects.length > 0) {
-    const joinOperator = operator === OperatorType.AND ? 'INTERSECT' : 'UNION';
-    const subQueries = `WITH ${selects.map(select => `${select.name} AS (${select.query})`).join(', ')}`;
-    const query = `${subQueries} ${selects
-      .map(select => `${transactionQuery} FROM ${select.name}`)
-      .join(` ${joinOperator}`)}`;
-    return { data: withLimitAndOffset(query), count: `${totalCountQuery} FROM (${query})` };
-  }
-  const text = ` 
-  FROM tx
-  JOIN block
-    ON block.id = tx.block_id
-  `;
-  return { data: withLimitAndOffset(transactionQuery.concat(` ${text}`)), count: totalCountQuery.concat(` ${text}`) };
+  return query;
+};
+
+const createComposedQuery = (conditions: SearchFilters) => {
+  const query = getQueryWithAndOperator(conditions);
+  return { data: withLimitAndOffset(transactionQuery.concat(` ${query}`)), count: totalCountQuery.concat(` ${query}`) };
 };
 
 const SearchQueries = {

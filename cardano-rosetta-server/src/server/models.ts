@@ -37,12 +37,19 @@ export interface CoinIdentifier {
   hash: string;
   index: string;
 }
+
+export interface CurrencyId {
+  symbol: string;
+  policy: string;
+}
+
 export interface SearchFilters {
   maxBlock?: number;
-  operator?: Components.Schemas.Operator;
+  operator: Components.Schemas.Operator;
   status?: boolean;
   type?: string;
   coinIdentifier?: CoinIdentifier;
+  currencyIdentifier?: CurrencyId;
 }
 
 export interface TotalCount {
