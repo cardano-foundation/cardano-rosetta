@@ -1,5 +1,5 @@
 import { OperationType, CatalystLabels, OperatorType } from '../../utils/constants';
-import { SearchFilters } from '../../models';
+import { CoinIdentifier, SearchFilters } from '../../models';
 
 const withLimitAndOffset = (query: string) => `
     ${query} 
@@ -38,7 +38,7 @@ const totalCountQuery = 'SELECT COUNT(1) AS "totalCount"';
 
 const getQuery = (isTotalCount: boolean): string => (isTotalCount ? totalCountQuery : transactionQuery);
 
-const createCoinQuery = (filters: SearchFilters) => {
+const createCoinQuery = (filters: SearchFilters, coinIdentifier: CoinIdentifier) => {
   const { maxBlock, operator, status } = filters;
   let txOutTxClause = '';
   let txInTxClause = '';
@@ -70,8 +70,8 @@ const createCoinQuery = (filters: SearchFilters) => {
         tx_out_tx.id = tx_out.tx_id
         ${txOutTxClause}
       WHERE 
-        tx_out_tx.hash = $1 AND
-        tx_out.index = $2 AND
+        tx_out_tx.hash = ${coinIdentifier.hash} AND
+        tx_out.index = ${coinIdentifier.index} AND
         tx_in_tx.id IS NULL
 `;
 };
@@ -231,7 +231,7 @@ const createComposedQuery = (conditions: SearchFilters) => {
     selects.push({ query: typeQuery, name: 'type' });
   }
   if (coinIdentifier) {
-    coinQuery = createCoinQuery(conditions);
+    coinQuery = createCoinQuery(conditions, coinIdentifier);
     selects.push({ query: coinQuery, name: 'coin' });
   }
   if (selects.length > 0) {
@@ -239,7 +239,7 @@ const createComposedQuery = (conditions: SearchFilters) => {
     const subQueries = `WITH ${selects.map(select => `${select.name} AS (${select.query})`).join(', ')}`;
     const query = `${subQueries} ${selects
       .map(select => `${transactionQuery} FROM ${select.name}`)
-      .join(`${joinOperator}`)}`;
+      .join(` ${joinOperator}`)}`;
     return { data: withLimitAndOffset(query), count: `${totalCountQuery} FROM (${query})` };
   }
   const text = ` 
