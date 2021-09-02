@@ -7,22 +7,6 @@ const withLimitAndOffset = (query: string) => `
     OFFSET $2
 `;
 
-const withFilters = (query: string, filters: SearchFilters): string => {
-  const { maxBlock, operator, status } = filters;
-  let whereClause = '';
-  const conditions = [];
-  if (maxBlock) {
-    conditions.push(`block.block_no <= ${maxBlock}`);
-  }
-  if (status !== undefined || status !== null) {
-    conditions.push(`tx.valid_contract = ${status}`);
-  }
-  if (conditions.length > 0) {
-    whereClause = `WHERE ${conditions.join(` ${operator} `)}`;
-  }
-  return query.concat(` ${whereClause}`);
-};
-
 const withConditions = (query: string, filters: SearchFilters): string => {
   const { maxBlock, operator, status, coinIdentifier, currencyIdentifier } = filters;
   const whereConditions = [];
@@ -36,7 +20,12 @@ const withConditions = (query: string, filters: SearchFilters): string => {
     whereConditions.push(`tx.valid_contract = ${status}`);
   }
   if (coinIdentifier) {
-    whereConditions.push(`tx.hash = ${coinIdentifier.hash}`);
+    const { hash, index } = coinIdentifier;
+    if (!currencyIdentifier) {
+      joinTables.push('tx_out ON tx.id = tx_out.tx_id');
+    }
+    whereConditions.push(`tx.hash = ${hash}`);
+    whereConditions.push(`tx_out.index = ${index}`);
   }
   if (currencyIdentifier) {
     const { policy, symbol } = currencyIdentifier;
