@@ -54,6 +54,7 @@ import {
   validateAccountIdAddressMatch
 } from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
+import { BigNum } from 'cardano-serialization-lib';
 
 export interface BlockchainRepository {
   /**
@@ -157,7 +158,7 @@ const parseTransactionRows = (result: QueryResult<FindTransaction>): Transaction
   }));
 
 /**
- * Maps from a total count query result to a number
+ * Maps from a total count query result to a string
  */
 const parseTotalCount = (result: QueryResult<TotalCount>): number => result.rows[0].totalCount;
 
@@ -738,20 +739,15 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       transactionHash,
       address: conditions.address || conditions.account_identifier?.address
     };
-    if (operator === OperatorType.OR) {
-      // TODO: queries with different filters should be done one by one
-      // const totalCountQueries = SearchQueries.getTotalCount(conditionsToQueryBy);
-      // const query = SearchQueries.generateComposedQuery(conditionsToQueryBy);
-    }
     validateTransactionCoinMatch(transactionHash, coinIdentifier);
     validateAccountIdAddressMatch(conditions.address, conditions.account_identifier);
     const { data: dataQuery, count: totalCountQuery } = SearchQueries.generateComposedQuery(conditionsToQueryBy);
-    logger.debug('[findTransactionsByBlock] About to search transactions');
+    logger.debug('[findTransactionsByConditions] About to search transactions');
     const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, [limit, offset]);
-    logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
+    logger.debug(`[findTransactionsByConditions] Found ${result.rowCount} transactions`);
     const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery);
     const totalCount = parseTotalCount(totalCountResult);
-    logger.debug('[findTransactionsByBlock] Total count obtained ', totalCount);
+    logger.debug('[findTransactionsByConditions] Total count obtained ', totalCount);
     if (result.rows.length > 0) {
       return {
         transactions: parseTransactionRows(result),
