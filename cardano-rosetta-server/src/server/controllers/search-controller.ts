@@ -30,9 +30,12 @@ const configure = (
           logger.info('[searchTransactions] Setting limit value ', PAGE_SIZE);
           limit = PAGE_SIZE;
         }
-        const offset = searchTransactionsRequest.offset || 0;
-        const conditions = { ...searchTransactionsRequest, limit, offset };
-        const transactionsFound = await blockService.findTransactionsByConditions(logger, conditions);
+        let offset = searchTransactionsRequest.offset;
+        if (offset === undefined || offset === null) {
+          offset = 0;
+        }
+        const filters = { ...searchTransactionsRequest, limit, offset };
+        const transactionsFound = await blockService.findTransactionsByFilters(logger, filters);
         logger.info('[searchTransactions] Looking for transactions full data');
         const transactions = await blockService.fillTransactions(logger, transactionsFound.transactions);
         const { poolDeposit } = await cardanoService.getDepositParameters(logger);

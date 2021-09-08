@@ -108,9 +108,9 @@ export interface BlockService {
    * Returns the transactions that matches the given filters
    *
    * @param logger
-   * @param conditions
+   * @param filters
    */
-  findTransactionsByConditions(
+  findTransactionsByFilters(
     logger: Logger,
     conditions: Components.Schemas.SearchTransactionsRequest
   ): Promise<TransactionCount>;
@@ -233,9 +233,9 @@ const configure = (repository: BlockchainRepository, cardanoService: CardanoServ
   findTransaction(logger, transactionHash, blockNumber, blockHash) {
     return repository.findTransactionByHashAndBlock(logger, transactionHash, blockNumber, blockHash);
   },
-  async findTransactionsByConditions(logger, conditions) {
-    logger.debug(conditions, '[findTransactionsByParameters] Looking for transactions with conditions');
-    const foundTransactions = await repository.findTransactionsByConditions(logger, conditions);
+  async findTransactionsByFilters(logger, filters) {
+    logger.debug(filters, '[findTransactionsByParameters] Looking for transactions with filters');
+    const foundTransactions = await repository.findTransactionsByFilters(logger, filters);
     logger.info(`[findTransactionsByParameters] ${foundTransactions} transactions were found`);
     return foundTransactions;
   }

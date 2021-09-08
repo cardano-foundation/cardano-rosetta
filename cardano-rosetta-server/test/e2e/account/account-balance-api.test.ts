@@ -4,12 +4,7 @@ import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { CARDANO } from '../../../src/server/utils/constants';
-import {
-  latestBlockIdentifier,
-  address1vpfAccountBalances,
-  balancesAtBlock213891,
-  balancesAtBlock213892
-} from '../fixture-data';
+import { latestBlockIdentifier } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';
 
 const generatePayload = (

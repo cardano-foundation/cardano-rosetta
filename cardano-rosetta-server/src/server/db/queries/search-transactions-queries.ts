@@ -20,13 +20,14 @@ SELECT
   tx.fee,
   tx.hash,
   tx.valid_contract,
-  tx.block_id
+  tx.block_id,
+  tx.script_size
 `;
 
-const defaultTransactionQuery = `
+const defaultTransactionQuery = (maxBlock?: number) => `
   FROM tx
   JOIN block
-    ON block.id = tx.block_id
+    ON block.id = tx.block_id ${maxBlock ? `AND block_no <= ${maxBlock}` : ''}
 `;
 
 const findTransactionsWithInputs = (conditions: SearchFilters) => {
@@ -203,7 +204,7 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
   let joinSentence = '';
   const joinTables = [];
 
-  if (status !== undefined || status !== null) {
+  if (status !== undefined && status !== null) {
     whereConditions.push(`tx.valid_contract = ${status}`);
   }
   if (coinIdentifier) {
@@ -237,14 +238,14 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
   }
   const text = `${query} ${joinSentence} ${whereSentence}`;
   return isTotalCount
-    ? `SELECT COUNT(DISTINCT tx.id) ${text}`
+    ? `SELECT COUNT(DISTINCT tx.id) AS "totalCount" ${text}`
     : `
     WITH tx_query AS 
       (
         ${transactionQuery}
         ${text}
-        GROUP BY tx_out_tx.id
-        ORDER BT tx_out_tx.id
+        GROUP BY tx.id
+        ORDER BY tx.id DESC
         LIMIT $1
         OFFSET $2
       )
@@ -269,7 +270,7 @@ const createCoinQuery = (coinIdentifier: CoinIdentifier, filters: SearchFilters,
     txInTxConditions.push(`tx_in_tx.block_id <= (select id from block where block_no = ${maxBlock})`);
     txOutTxConditions.push(`tx_out_tx.block_id <= (select id from block where block_no = ${maxBlock})`);
   }
-  if (status !== undefined || status !== null) {
+  if (status !== undefined && status !== null) {
     txInTxConditions.push(`tx_in_tx.valid_contract = ${status})`);
     txOutTxConditions.push(`tx_out_tx.valid_contract  = ${status})`);
   }
@@ -390,7 +391,7 @@ const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters, isT
 };
 
 const getQueryWithAndOperator = (filters: SearchFilters, isTotalCount = false) => {
-  let query = defaultTransactionQuery;
+  let query = defaultTransactionQuery(filters?.maxBlock);
   const { coinIdentifier, currencyIdentifier, type } = filters;
   if (type) {
     query = queryAndTypeMapping[type](filters);
@@ -511,17 +512,18 @@ const createComposedCountQuery = (filters: SearchFilters) => {
   const { type, operator, currencyIdentifier, coinIdentifier, maxBlock, status, address } = filters;
   const mustFilters = { operator, maxBlock, status };
   const countQueries = [];
+  const defaultTxQuery = defaultTransactionQuery(maxBlock);
   if (type) {
     countQueries.push(withFilters(queryAndTypeMapping[type](filters), { ...mustFilters, type }, true));
   }
   if (currencyIdentifier) {
-    countQueries.push(withFilters(defaultTransactionQuery, { ...mustFilters, currencyIdentifier }, true));
+    countQueries.push(withFilters(defaultTxQuery, { ...mustFilters, currencyIdentifier }, true));
   }
   if (coinIdentifier) {
-    countQueries.push(withFilters(defaultTransactionQuery, { ...mustFilters, coinIdentifier }, true));
+    countQueries.push(withFilters(defaultTxQuery, { ...mustFilters, coinIdentifier }, true));
   }
   if (address) {
-    countQueries.push(withFilters(defaultTransactionQuery, { ...mustFilters, address }, true));
+    countQueries.push(withFilters(defaultTxQuery, { ...mustFilters, address }, true));
   }
   return `SELECT SUM(count) AS "totalCount" FROM (${countQueries.join(' UNION ')}) filters_count`;
 };
