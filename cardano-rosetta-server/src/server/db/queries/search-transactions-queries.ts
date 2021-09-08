@@ -23,19 +23,24 @@ SELECT
   tx.block_id
 `;
 
-const defaultTransactionQuery = () => `
+const defaultTransactionQuery = `
   FROM tx
   JOIN block
     ON block.id = tx.block_id
 `;
 
 const findTransactionsWithInputs = (conditions: SearchFilters) => {
-  const { maxBlock } = conditions;
+  const { maxBlock, status } = conditions;
   return `FROM tx
   JOIN tx_in
       ON tx_in.tx_in_id = tx.id
   JOIN block
-      ON block.id = tx.block_id ${maxBlock ? `AND block_no <= ${maxBlock}` : ''}`;
+      ON block.id = tx.block_id ${
+        maxBlock
+          ? `AND block_no <= ${maxBlock}
+  ${status !== null || status !== undefined ? `WHERE tx.valid_contract = ${status}` : ''}`
+          : ''
+      }`;
 };
 
 const findTransactionsWithOutputs = (conditions: SearchFilters) => {
@@ -187,10 +192,11 @@ const queryOrTypeMapping: {
   })
 };
 
+// Methods for requests with AND operator
 /* eslint-disable complexity */
 /* eslint-disable max-statements*/
 /* eslint-disable-next-line sonarjs/cognitive-complexity */
-const withConditions = (query: string, filters: SearchFilters, isTotalCount: boolean): string => {
+const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolean): string => {
   const { transactionHash, status, coinIdentifier, currencyIdentifier, address } = filters;
   const whereConditions = [];
   let whereSentence = '';
@@ -231,7 +237,7 @@ const withConditions = (query: string, filters: SearchFilters, isTotalCount: boo
   }
   const text = `${query} ${joinSentence} ${whereSentence}`;
   return isTotalCount
-    ? `SELECT COUNT(tx.id) ${text}`
+    ? `SELECT COUNT(DISTINCT tx.id) ${text}`
     : `
     WITH tx_query AS 
       (
@@ -325,7 +331,7 @@ const createCoinQuery = (coinIdentifier: CoinIdentifier, filters: SearchFilters,
 
 const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters, isTotalCount: boolean) => {
   const { policy, symbol } = currencyId;
-  const { coinIdentifier, transactionHash, address, maxBlock, status, operator } = filters;
+  const { coinIdentifier, transactionHash, address, maxBlock, status } = filters;
   const conditions = [];
   let whereClause = '';
   let joinClause = '';
@@ -383,6 +389,24 @@ const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters, isT
   return query.concat(` ${joinClause}`).concat(` ${whereClause}`);
 };
 
+const getQueryWithAndOperator = (filters: SearchFilters, isTotalCount = false) => {
+  let query = defaultTransactionQuery;
+  const { coinIdentifier, currencyIdentifier, type } = filters;
+  if (type) {
+    query = queryAndTypeMapping[type](filters);
+  }
+  if (currencyIdentifier) {
+    query = createCurrencyQuery(currencyIdentifier, filters, isTotalCount);
+    return query;
+  }
+  if (coinIdentifier) {
+    query = createCoinQuery(coinIdentifier, filters, isTotalCount);
+    return query;
+  }
+  return withFilters(query, filters, isTotalCount);
+};
+
+// Methods for requests with OR operator
 const generateCoinSelect = (
   coinIdentifier?: CoinIdentifier,
   maxBlock?: number,
@@ -399,7 +423,7 @@ const generateCoinSelect = (
       : ''
   }
   LEFT JOIN tx_in as utxo_tx_in
-    ON utxo_tx_in.tx_out_id = tx_out.id 
+    ON utxo_tx_in.tx_out_id = tx_out.tx_id 
       AND utxo_tx_in.tx_out_index::smallint = tx_out."index"::smallint
   LEFT JOIN tx as utxo_tx_in_tx
     ON utxo_tx_in_tx.id = utxo_tx_in.tx_in_id 
@@ -424,7 +448,7 @@ const generateCoinWhere = (coinIdentifier: CoinIdentifier) => `
   and tx.hash = ${coinIdentifier.hash}))`;
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
-const getQueryWithOrOperator = (filters: SearchFilters, isTotalCount = false) => {
+const getQueryWithOrOperator = (filters: SearchFilters) => {
   const { maxBlock, coinIdentifier, currencyIdentifier, status, transactionHash, address, type } = filters;
   const txOutAlreadyJoined = !!type && type === OperationType.OUTPUT;
   const whereConditions = [];
@@ -461,9 +485,7 @@ const getQueryWithOrOperator = (filters: SearchFilters, isTotalCount = false) =>
   (${whereClause})
   )`;
 
-  return isTotalCount
-    ? `SELECT COUNT(tx.id) ${text}`
-    : `
+  return `
   WITH tx_query AS (
     SELECT 
 		tx.id,
@@ -485,21 +507,23 @@ const getQueryWithOrOperator = (filters: SearchFilters, isTotalCount = false) =>
   `;
 };
 
-const getQueryWithAndOperator = (filters: SearchFilters, isTotalCount = false) => {
-  let query = defaultTransactionQuery();
-  const { coinIdentifier, currencyIdentifier, type } = filters;
+const createComposedCountQuery = (filters: SearchFilters) => {
+  const { type, operator, currencyIdentifier, coinIdentifier, maxBlock, status, address } = filters;
+  const mustFilters = { operator, maxBlock, status };
+  const countQueries = [];
   if (type) {
-    query = queryAndTypeMapping[type](filters);
+    countQueries.push(withFilters(queryAndTypeMapping[type](filters), { ...mustFilters, type }, true));
   }
   if (currencyIdentifier) {
-    query = createCurrencyQuery(currencyIdentifier, filters, isTotalCount);
-    return query;
+    countQueries.push(withFilters(defaultTransactionQuery, { ...mustFilters, currencyIdentifier }, true));
   }
   if (coinIdentifier) {
-    query = createCoinQuery(coinIdentifier, filters, isTotalCount);
-    return query;
+    countQueries.push(withFilters(defaultTransactionQuery, { ...mustFilters, coinIdentifier }, true));
   }
-  return withConditions(query, filters, isTotalCount);
+  if (address) {
+    countQueries.push(withFilters(defaultTransactionQuery, { ...mustFilters, address }, true));
+  }
+  return `SELECT SUM(count) AS "totalCount" FROM (${countQueries.join(' UNION ')}) filters_count`;
 };
 
 const createQueryWithAndOperator = (filters: SearchFilters) => ({
@@ -509,7 +533,7 @@ const createQueryWithAndOperator = (filters: SearchFilters) => ({
 
 const createQueryWithOrOperator = (filters: SearchFilters) => ({
   data: getQueryWithOrOperator(filters),
-  count: getQueryWithOrOperator(filters, true)
+  count: createComposedCountQuery(filters)
 });
 
 const SearchQueries = {
