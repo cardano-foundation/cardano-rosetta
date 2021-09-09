@@ -51,10 +51,10 @@ import {
   isVoteSignatureValid,
   validateAndGetStatus,
   validateTransactionCoinMatch,
-  validateAccountIdAddressMatch
+  validateAccountIdAddressMatch,
+  validateCurrencies
 } from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
-import { BigNum } from 'cardano-serialization-lib';
 
 export interface BlockchainRepository {
   /**
@@ -139,7 +139,9 @@ export interface BlockchainRepository {
    */
   findTransactionsByFilters(
     logger: Logger,
-    parameters: Components.Schemas.SearchTransactionsRequest
+    parameters: Components.Schemas.SearchTransactionsRequest,
+    limit: number,
+    offset: number
   ): Promise<TransactionCount>;
 }
 
@@ -723,12 +725,14 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
   },
   async findTransactionsByFilters(
     logger: Logger,
-    conditions: Components.Schemas.SearchTransactionsRequest
+    conditions: Components.Schemas.SearchTransactionsRequest,
+    limit: number,
+    offset: number
   ): Promise<TransactionCount> {
     logger.debug('[findTransactionsByConditions] Conditions received to run the query ', {
       conditions
     });
-    const { type, limit, offset, status, success, operator, currency } = conditions;
+    const { type, status, success, operator, currency } = conditions;
     const coinIdentifier = coinIdentifierFormatter(conditions?.coin_identifier?.identifier);
     const transactionHash = conditions?.transaction_identifier?.hash;
     const conditionsToQueryBy: SearchFilters = {
@@ -738,22 +742,28 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       coinIdentifier,
       status: validateAndGetStatus(status, success),
       transactionHash,
+      limit,
+      offset,
       address: conditions.address || conditions.account_identifier?.address
     };
     validateTransactionCoinMatch(transactionHash, coinIdentifier);
     validateAccountIdAddressMatch(conditions.address, conditions.account_identifier);
     if (currency && currency.symbol !== ADA) {
+      validateCurrencies([currency]);
       const currencyId = {
-        symbol: currency.symbol,
-        policy: currency.metadata?.policy
+        symbol: isEmptyHexString(currency.symbol) ? '' : currency.symbol,
+        policy: currency.metadata?.policyId
       };
       conditionsToQueryBy.currencyIdentifier = currencyId;
     }
     const { data: dataQuery, count: totalCountQuery } = SearchQueries.generateComposedQuery(conditionsToQueryBy);
     logger.debug('[findTransactionsByConditions] About to search transactions');
-    const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, [limit, offset]);
+    const parameters = [];
+    if (transactionHash || coinIdentifier)
+      parameters.push(transactionHash ? hexStringToBuffer(transactionHash) : hexStringToBuffer(coinIdentifier!.hash));
+    const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, parameters);
     logger.debug(`[findTransactionsByConditions] Found ${result.rowCount} transactions`);
-    const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery);
+    const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery, parameters);
     const totalCount = parseTotalCount(totalCountResult);
     logger.debug('[findTransactionsByConditions] Total count obtained ', totalCount);
     if (result.rows.length > 0) {
@@ -764,7 +774,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     }
     return {
       transactions: [],
-      totalCount: 0
+      totalCount
     };
   }
 });

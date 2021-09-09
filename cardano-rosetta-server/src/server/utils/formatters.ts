@@ -1,4 +1,5 @@
 import { CoinIdentifier } from '../models';
+import { ErrorFactory } from './errors';
 
 const EMPTY_HEX = '\\x';
 /**
@@ -27,7 +28,15 @@ export const remove0xPrefix = (hex: string): string => (hex.startsWith('0x') ? h
 
 export const coinIdentifierFormatter = (coinIdentifier?: string): CoinIdentifier | undefined => {
   if (!coinIdentifier) return;
-  const [hash, index] = coinIdentifier.split(':');
-  // eslint-disable-next-line consistent-return
-  return { hash, index };
+  const coin = coinIdentifier.split(':');
+  // eslint-disable-next-line no-magic-numbers
+  if (coin.length === 2) {
+    const [hash, index] = coin;
+    if (Number.isNaN(parseInt(index)))
+      // eslint-disable-next-line consistent-return
+      throw ErrorFactory.badFormedCoinError(`Given coin identifier is ${coinIdentifier}`);
+    // eslint-disable-next-line consistent-return
+    return { hash, index };
+  }
+  throw ErrorFactory.badFormedCoinError(`Given coin identifier is ${coinIdentifier}`);
 };

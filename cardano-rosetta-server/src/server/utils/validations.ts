@@ -74,7 +74,7 @@ export const isVoteSignatureValid = (jsonObject: any): boolean => {
 const validateStatus = (status: string): void => {
   const isValid = OPERATIONS_STATUSES.some(opStatus => opStatus === status);
   if (!isValid) {
-    throw ErrorFactory.invalidOperationStatus(status);
+    throw ErrorFactory.invalidOperationStatus(`Given status is ${status}`);
   }
 };
 

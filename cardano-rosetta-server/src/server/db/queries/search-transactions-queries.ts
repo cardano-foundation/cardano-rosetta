@@ -2,6 +2,8 @@ import { OperationType, CatalystLabels, OperatorType } from '../../utils/constan
 import { CoinIdentifier, SearchFilters, CurrencyId } from '../../models';
 import { isStakeAddress } from '../../utils/cardano/addresses';
 
+const isNullOrUndefined = (object: any) => object === null || object === undefined;
+
 const transactionBlockQuery = `
 SELECT 
     tx.hash,
@@ -198,7 +200,7 @@ const queryOrTypeMapping: {
 /* eslint-disable max-statements*/
 /* eslint-disable-next-line sonarjs/cognitive-complexity */
 const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolean): string => {
-  const { transactionHash, status, coinIdentifier, currencyIdentifier, address } = filters;
+  const { transactionHash, status, coinIdentifier, limit, offset, currencyIdentifier, address } = filters;
   const whereConditions = [];
   let whereSentence = '';
   let joinSentence = '';
@@ -208,14 +210,15 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
     whereConditions.push(`tx.valid_contract = ${status}`);
   }
   if (coinIdentifier) {
-    const { hash, index } = coinIdentifier;
+    const { index } = coinIdentifier;
     // eslint-disable-next-line sonarjs/no-duplicate-string
     joinTables.push('tx_out ON tx.id = tx_out.tx_id');
-    whereConditions.push(`tx.hash = ${hash}`);
+    // eslint-disable-next-line sonarjs/no-duplicate-string
+    whereConditions.push('tx.hash = $1');
     whereConditions.push(`tx_out.index = ${index}`);
   }
   if (transactionHash && !coinIdentifier) {
-    whereConditions.push(`tx.hash = ${transactionHash}`);
+    whereConditions.push('tx.hash = $1');
   }
   if (currencyIdentifier) {
     const { policy, symbol } = currencyIdentifier;
@@ -246,8 +249,8 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
         ${text}
         GROUP BY tx.id
         ORDER BY tx.id DESC
-        LIMIT $1
-        OFFSET $2
+        LIMIT ${limit}
+        OFFSET ${offset}
       )
     ${transactionBlockQuery}
     FROM tx_query AS tx
@@ -257,7 +260,7 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
 };
 
 const createCoinQuery = (coinIdentifier: CoinIdentifier, filters: SearchFilters, isTotalCount: boolean) => {
-  const { maxBlock, operator, status, address } = filters;
+  const { maxBlock, operator, limit, offset, status, address } = filters;
   let txOutTxClause = '';
   let txInTxClause = '';
   let joinClause = '';
@@ -270,17 +273,18 @@ const createCoinQuery = (coinIdentifier: CoinIdentifier, filters: SearchFilters,
     txInTxConditions.push(`tx_in_tx.block_id <= (select id from block where block_no = ${maxBlock})`);
     txOutTxConditions.push(`tx_out_tx.block_id <= (select id from block where block_no = ${maxBlock})`);
   }
-  if (status !== undefined && status !== null) {
-    txInTxConditions.push(`tx_in_tx.valid_contract = ${status})`);
-    txOutTxConditions.push(`tx_out_tx.valid_contract  = ${status})`);
+  if (!isNullOrUndefined(status)) {
+    txOutTxConditions.push(`tx_out_tx.valid_contract  = ${status}`);
   }
   if (address) {
     const isStake = isStakeAddress(address);
     isStake && joinTables.push('stake_address ON stake_address.id = tx_out.stake_address_id');
     conditions.push(`${isStake ? `stake_address.view = ${address}` : `tx_out.address = ${address}`}`);
   }
-  if (txInTxConditions.length > 0 && txOutTxConditions.length > 0) {
+  if (txOutTxConditions.length > 0) {
     txOutTxClause = ` AND (${txOutTxConditions.join(` ${operator} `)})`;
+  }
+  if (txInTxConditions.length > 0) {
     txInTxClause = ` AND (${txInTxConditions.join(` ${operator} `)})`;
   }
   if (conditions.length > 0) {
@@ -302,13 +306,13 @@ const createCoinQuery = (coinIdentifier: CoinIdentifier, filters: SearchFilters,
     ${txOutTxClause}
   ${joinClause}
   WHERE 
-    tx_out_tx.hash = ${coinIdentifier.hash} AND
+    tx_out_tx.hash = $1 AND
     tx_out.index = ${coinIdentifier.index} AND
     tx_in_tx.id IS NULL
     ${whereClause}`;
 
   return isTotalCount
-    ? `SELECT COUNT(tx_out_tx.id) ${text}`
+    ? `SELECT COUNT(tx_out_tx.id) AS "totalCount" ${text}`
     : `
       WITH tx_query AS
         (SELECT
@@ -317,36 +321,37 @@ const createCoinQuery = (coinIdentifier: CoinIdentifier, filters: SearchFilters,
           tx_out_tx.fee,
           tx_out_tx.hash,
           tx_out_tx.valid_contract,
+          tx_out_tx.script_size,
           tx_out_tx.block_id
         ${text}
         GROUP BY tx_out_tx.id
         ORDER BY tx_out_tx.id DESC
-        LIMIT $1
-        OFFSET $2)
+        LIMIT ${limit}
+        OFFSET ${offset})
       ${transactionBlockQuery}
       FROM tx_query AS tx
       JOIN block
-          ON block.id = tx_block.id
+          ON block.id = tx.block_id
 `;
 };
 
 const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters, isTotalCount: boolean) => {
   const { policy, symbol } = currencyId;
-  const { coinIdentifier, transactionHash, address, maxBlock, status } = filters;
+  const { coinIdentifier, transactionHash, address, maxBlock, status, limit, offset } = filters;
   const conditions = [];
   let whereClause = '';
   let joinClause = '';
   const joinTables = [];
-  if (status) {
+  if (!isNullOrUndefined(status)) {
     conditions.push(`tx.valid_contract <= ${status}`);
   }
   if (coinIdentifier) {
-    const { hash, index } = coinIdentifier;
-    conditions.push(`tx.hash = ${hash}`);
+    const { index } = coinIdentifier;
+    conditions.push('tx.hash = $1');
     conditions.push(`tx_out.index = ${index}`);
   }
   if (!coinIdentifier && transactionHash) {
-    conditions.push(`tx.hash = ${transactionHash}`);
+    conditions.push('tx.hash = $1');
   }
   if (address) {
     const isStake = isStakeAddress(address);
@@ -365,16 +370,15 @@ const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters, isT
       AND ma_tx_out.policy = DECODE('${policy}', 'hex')`;
 
   const query = isTotalCount
-    ? `SELECT COUNT(tx.id) ${text}`
+    ? `SELECT COUNT(tx.id) AS "totalCount" ${text}`
     : `
     WITH tx_query AS(
-      SELECT
         ${transactionQuery}
         ${text}
       GROUP BY tx.id
       ORDER BY tx.id DESC
-      LIMIT $1
-      OFFSET $2
+      LIMIT ${limit}
+      OFFSET ${offset}
     )
     ${transactionBlockQuery}
       FROM tx_query AS tx
@@ -446,16 +450,27 @@ const generateAddressSelect = (address?: string, txOutAlreadyJoined = false) =>
 
 const generateCoinWhere = (coinIdentifier: CoinIdentifier) => `
   (utxo_tx_in_tx.id is null and (tx_out."index" = ${coinIdentifier.index}
-  and tx.hash = ${coinIdentifier.hash}))`;
+  and tx.hash = $1))`;
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 const getQueryWithOrOperator = (filters: SearchFilters) => {
-  const { maxBlock, coinIdentifier, currencyIdentifier, status, transactionHash, address, type } = filters;
+  const {
+    maxBlock,
+    coinIdentifier,
+    currencyIdentifier,
+    status,
+    transactionHash,
+    address,
+    type,
+    offset,
+    limit
+  } = filters;
   const txOutAlreadyJoined = !!type && type === OperationType.OUTPUT;
+  const statusExists = !isNullOrUndefined(status);
   const whereConditions = [];
   let whereClause = '';
   if (coinIdentifier || transactionHash) {
-    whereConditions.push(`${coinIdentifier ? generateCoinWhere(coinIdentifier) : `tx.hash = ${transactionHash}`}`);
+    whereConditions.push(`${coinIdentifier ? generateCoinWhere(coinIdentifier) : 'tx.hash =  $1'}`);
   }
   if (currencyIdentifier) {
     whereConditions.push(`(ma_tx_out.name = DECODE('${currencyIdentifier.symbol}', 'hex') 
@@ -469,8 +484,14 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
   if (type) {
     whereConditions.push(queryOrTypeMapping[type]().where);
   }
-  if (whereConditions.length > 0) {
-    whereClause = whereConditions.join(` ${OperatorType.OR} `);
+  if (whereConditions.length > 0 || statusExists) {
+    let statusCondition = '';
+    if (!isNullOrUndefined(status))
+      statusCondition =
+        whereConditions.length > 0 ? `AND tx.valid_contract = ${status}` : `tx.valid_contract = ${status}`;
+    whereClause = `WHERE ${
+      whereConditions.length > 0 ? `(${whereConditions.join(` ${OperatorType.OR}`)})` : ''
+    } ${statusCondition}`;
   }
   const text = `
   FROM tx
@@ -480,28 +501,20 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
   ${generateCoinSelect(coinIdentifier, maxBlock, txOutAlreadyJoined)}
   ${generateAddressSelect(address, txOutAlreadyJoined)}
   ${currencyIdentifier && !txOutAlreadyJoined ? 'LEFT JOIN tx_out ON tx_out.tx_id = tx.id' : ''}
-  ${currencyIdentifier ? 'ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id )' : ''} 
-  WHERE (
-  ${status !== undefined || status !== null ? `tx.valid_contract = ${status} AND ` : ''}
-  (${whereClause})
-  )`;
+  ${currencyIdentifier ? 'ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id )' : ''}
+  ${whereClause}
+  `;
 
   return `
   WITH tx_query AS (
-    SELECT 
-		tx.id,
-		tx."size",
-		tx.fee,
-		tx.hash,
-		tx.valid_contract,
-		tx.block_id
+		${transactionQuery}
 	${text}
   GROUP BY tx.id
   ORDER BY tx.id DESC
-  LIMIT $1
-  OFFSET $2
+  LIMIT ${limit}
+  OFFSET ${offset}
   )
-  ${transactionQuery}
+  ${transactionBlockQuery}
   FROM tx_query AS tx
   JOIN block 
     ON block.id = tx.block_id
@@ -509,8 +522,8 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
 };
 
 const createComposedCountQuery = (filters: SearchFilters) => {
-  const { type, operator, currencyIdentifier, coinIdentifier, maxBlock, status, address } = filters;
-  const mustFilters = { operator, maxBlock, status };
+  const { type, operator, currencyIdentifier, coinIdentifier, maxBlock, offset, limit, status, address } = filters;
+  const mustFilters = { operator, maxBlock, status, offset, limit };
   const countQueries = [];
   const defaultTxQuery = defaultTransactionQuery(maxBlock);
   if (type) {
@@ -525,7 +538,8 @@ const createComposedCountQuery = (filters: SearchFilters) => {
   if (address) {
     countQueries.push(withFilters(defaultTxQuery, { ...mustFilters, address }, true));
   }
-  return `SELECT SUM(count) AS "totalCount" FROM (${countQueries.join(' UNION ')}) filters_count`;
+  if (countQueries.length === 0) countQueries.push(withFilters(defaultTxQuery, filters, true));
+  return `SELECT SUM("totalCount") AS "totalCount" FROM (${countQueries.join(' UNION ')}) filters_count`;
 };
 
 const createQueryWithAndOperator = (filters: SearchFilters) => ({

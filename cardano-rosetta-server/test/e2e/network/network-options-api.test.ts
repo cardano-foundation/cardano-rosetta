@@ -90,6 +90,11 @@ const allow = {
       code: 5015,
       message: 'Address and account identifier does not match',
       retriable: false
+    },
+    {
+      code: 5016,
+      message: 'Coin identifier has an invalid format',
+      retriable: false
     }
   ],
   historical_balance_lookup: true,

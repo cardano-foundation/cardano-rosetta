@@ -111,7 +111,8 @@ export const Errors = {
   INVALID_OPERATION_STATUS: { message: 'Invalid operation status', code: 5012 },
   STATUS_SUCCESS_MATCH_ERROR: { message: 'Given operation status and success state does not match', code: 5013 },
   TX_HASH_COIN_NOT_MATCH: { message: 'Transaction hash does not match to given coin identifier', code: 5014 },
-  ADDRESS_AND_ACCOUNT_ID_NOT_MATCH: { message: 'Address and account identifier does not match', code: 5015 }
+  ADDRESS_AND_ACCOUNT_ID_NOT_MATCH: { message: 'Address and account identifier does not match', code: 5015 },
+  BAD_FORMED_COIN_ERROR: { message: 'Coin identifier has an invalid format', code: 5016 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -197,6 +198,8 @@ const statusAndSuccessMatchError: CreateErrorFunction = () => buildApiError(Erro
 const txHashAndCoinNotMatchError: CreateErrorFunction = () => buildApiError(Errors.TX_HASH_COIN_NOT_MATCH, false);
 const addressAndAccountIdNotMatchError: CreateErrorFunction = (details?: string) =>
   buildApiError(Errors.ADDRESS_AND_ACCOUNT_ID_NOT_MATCH, false, details);
+const badFormedCoinError: CreateErrorFunction = (details?: string) =>
+  buildApiError(Errors.BAD_FORMED_COIN_ERROR, false, details);
 export const ErrorFactory = {
   blockNotFoundError,
   networkNotFoundError,
@@ -250,7 +253,8 @@ export const ErrorFactory = {
   invalidOperationStatus,
   statusAndSuccessMatchError,
   txHashAndCoinNotMatchError,
-  addressAndAccountIdNotMatchError
+  addressAndAccountIdNotMatchError,
+  badFormedCoinError
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>

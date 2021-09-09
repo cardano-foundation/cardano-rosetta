@@ -52,6 +52,8 @@ export interface SearchFilters {
   currencyIdentifier?: CurrencyId;
   transactionHash?: string;
   address?: string;
+  limit: number;
+  offset: number;
 }
 
 export interface TotalCount {
