@@ -3,7 +3,7 @@ import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import StatusCodes from 'http-status-codes';
 import { setupDatabase, setupServer } from '../utils/test-utils';
-import { CARDANO, INVALID_OPERATION_STATE, MAINNET } from '../../../src/server/utils/constants';
+import { CARDANO, MAINNET } from '../../../src/server/utils/constants';
 import {
   searchTransactionsWithNoFilter,
   searchTxsWithNoFiltersMaxBlock,
@@ -12,7 +12,9 @@ import {
   searchNotSucceededTx,
   searchFilteredByTxHash,
   searchTxsWithCoinAndInvalidFilters,
-  searchWithCurrencyFilter
+  searchWithCurrencyFilter,
+  searchTxWithAddressFilter,
+  searchTxWithStakeAddressFilter
 } from '../fixture-data';
 
 const SEARCH_TRANSACTIONS_ENDPOINT = '/search/transactions';
@@ -270,6 +272,22 @@ describe('/search/transactions endpoint', () => {
         total_count: 1
       });
     });
+    test('Should bring transactions that matches the transaction hash filter with OR Operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          transactionHash,
+          limit: 2,
+          operator: OR_OPERATOR
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchFilteredByTxHash,
+        total_count: 1
+      });
+    });
     test('Should not return transaction that does not pass the max block filter', async () => {
       const response = await server.inject({
         method: 'post',
@@ -329,6 +347,22 @@ describe('/search/transactions endpoint', () => {
         payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
           coinIdentifier,
           limit: 2
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithCoinFilter,
+        total_count: 1
+      });
+    });
+    test('Should return the transaction that matches with given coin identifier with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          coinIdentifier,
+          limit: 2,
+          operator: OR_OPERATOR
         })
       });
       expect(response.statusCode).toEqual(StatusCodes.OK);
@@ -443,6 +477,22 @@ describe('/search/transactions endpoint', () => {
         total_count: 1
       });
     });
+    test('Should return the transaction that matches with given currency identifier with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          currency,
+          limit: 2,
+          operator: OR_OPERATOR
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchWithCurrencyFilter,
+        total_count: 1
+      });
+    });
     test('Should not return the transaction that matches with given currency identifier when it is in an above block', async () => {
       const response = await server.inject({
         method: 'post',
@@ -496,7 +546,7 @@ describe('/search/transactions endpoint', () => {
         next_offset: 2
       });
     });
-    test('Should throw an error when given given currency has invalid name', async () => {
+    test('Should throw an error when given currency has invalid name', async () => {
       const invalidCurrency = {
         ...currency,
         symbol: 'thisIsAnInvalidSymbol'
@@ -517,7 +567,7 @@ describe('/search/transactions endpoint', () => {
         details: { message: 'Given name is thisIsAnInvalidSymbol' }
       });
     });
-    test('Should throw an error when given given currency has invalid policy', async () => {
+    test('Should throw an error when given currency has invalid policy', async () => {
       const invalidCurrency = {
         ...currency,
         policy: 'thisIsANonHexString'
@@ -536,6 +586,138 @@ describe('/search/transactions endpoint', () => {
         message: 'Invalid policy id',
         retriable: false,
         details: { message: 'Given policy id is thisIsANonHexString' }
+      });
+    });
+  });
+  describe('Address and Account Identifier filters', () => {
+    test('Should return transactions that matches with an address filter', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          address: 'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAddressFilter,
+        total_count: 2
+      });
+    });
+    test('Should return transactions that matches with an address filter with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          address: 'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw',
+          operator: OR_OPERATOR
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAddressFilter,
+        total_count: 2
+      });
+    });
+    test('Should return same transactions searching by account identifier or address', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          accountIdentifier: 'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAddressFilter,
+        total_count: 2
+      });
+    });
+    test('Should return same transactions searching by account identifier and address', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          accountIdentifier: 'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw',
+          address: 'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAddressFilter,
+        total_count: 2
+      });
+    });
+    test('Should return same transactions searching by stake address', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          address: 'stake1u8xg6zywhuny4evs55kr9uan8kptuq7ajf9k44z9k7aua9qevs5p3'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithStakeAddressFilter,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with address and success filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          address: 'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw',
+          success: false
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: [],
+        total_count: 0
+      });
+    });
+    test('Should return transactions with address and max block filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          address: 'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw',
+          maxBlock: 5406810
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: [searchTxWithAddressFilter[1]],
+        total_count: 1
+      });
+    });
+    test('Should throw an error when address and account identifier does not match', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          accountIdentifier: 'addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw',
+          address: 'stake1u8xg6zywhuny4evs55kr9uan8kptuq7ajf9k44z9k7aua9qevs5p3'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        code: 5015,
+        message: 'Address and account identifier does not match',
+        retriable: false,
+        details: {
+          // eslint-disable-next-line quotes
+          message: `Address stake1u8xg6zywhuny4evs55kr9uan8kptuq7ajf9k44z9k7aua9qevs5p3 does not match account identifier's address addr1vy5l62qysq3j6u4jsw0u73e8teus5x36ghd04lv0vsvqvys770xjw`
+        }
       });
     });
   });

@@ -206,7 +206,7 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
   let joinSentence = '';
   const joinTables = [];
 
-  if (status !== undefined && status !== null) {
+  if (!isNullOrUndefined(status)) {
     whereConditions.push(`tx.valid_contract = ${status}`);
   }
   if (coinIdentifier) {
@@ -231,10 +231,10 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
     const isStake = isStakeAddress(address);
     !currencyIdentifier && !coinIdentifier && joinTables.push('tx_out ON tx.id = tx_out.tx_id');
     isStake && joinTables.push('stake_address ON tx_out.stake_address_id = stake_address.id');
-    whereConditions.push(`${isStake ? `stake_address.view = ${address}` : `tx_out.address = ${address}`}`);
+    whereConditions.push(`${isStake ? `stake_address.view = '${address}'` : `tx_out.address = '${address}'`}`);
   }
   if (whereConditions.length > 0) {
-    whereSentence = `WHERE ${whereConditions.join(` ${OperatorType.AND}`)}`;
+    whereSentence = `WHERE ${whereConditions.join(` ${OperatorType.AND} `)}`;
   }
   if (joinTables.length > 0) {
     joinSentence = `JOIN ${joinTables.join(' JOIN ')}`;
@@ -279,7 +279,7 @@ const createCoinQuery = (coinIdentifier: CoinIdentifier, filters: SearchFilters,
   if (address) {
     const isStake = isStakeAddress(address);
     isStake && joinTables.push('stake_address ON stake_address.id = tx_out.stake_address_id');
-    conditions.push(`${isStake ? `stake_address.view = ${address}` : `tx_out.address = ${address}`}`);
+    conditions.push(`${isStake ? `stake_address.view = '${address}'` : `tx_out.address = '${address}'`}`);
   }
   if (txOutTxConditions.length > 0) {
     txOutTxClause = ` AND (${txOutTxConditions.join(` ${operator} `)})`;
@@ -356,7 +356,7 @@ const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters, isT
   if (address) {
     const isStake = isStakeAddress(address);
     isStake && joinTables.push('stake_address ON tx_out.stake_address_id = stake_address.id');
-    conditions.push(`${isStake ? `stake_address.view = ${address}` : `tx_out.address = ${address}`}`);
+    conditions.push(`${isStake ? `stake_address.view = '${address}'` : `tx_out.address = '${address}'`}`);
   }
   const text = `
   FROM tx
@@ -433,7 +433,7 @@ const generateCoinSelect = (
   LEFT JOIN tx as utxo_tx_in_tx
     ON utxo_tx_in_tx.id = utxo_tx_in.tx_in_id 
   ${maxBlock ? `AND utxo_tx_in_tx.block_id <= (select id from block where block_no = ${maxBlock})` : ''}
-  ${status !== undefined || status !== null ? `AND utxo_tx_in_tx.valid_contract = ${status})` : ''}`
+  ${!isNullOrUndefined(status) ? `AND utxo_tx_in_tx.valid_contract = ${status}` : ''}`
     : '';
 
 const generateAddressSelect = (address?: string, txOutAlreadyJoined = false) =>
@@ -478,7 +478,7 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
   }
   if (address) {
     whereConditions.push(
-      `${isStakeAddress(address) ? `stake_address.view = ${address}` : `tx_out.address = ${address}`}`
+      `${isStakeAddress(address) ? `stake_address.view = '${address}'` : `tx_out.address = '${address}'`}`
     );
   }
   if (type) {
@@ -490,7 +490,7 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
       statusCondition =
         whereConditions.length > 0 ? `AND tx.valid_contract = ${status}` : `tx.valid_contract = ${status}`;
     whereClause = `WHERE ${
-      whereConditions.length > 0 ? `(${whereConditions.join(` ${OperatorType.OR}`)})` : ''
+      whereConditions.length > 0 ? `(${whereConditions.join(` ${OperatorType.OR} `)})` : ''
     } ${statusCondition}`;
   }
   const text = `
@@ -501,7 +501,7 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
   ${generateCoinSelect(coinIdentifier, maxBlock, txOutAlreadyJoined)}
   ${generateAddressSelect(address, txOutAlreadyJoined)}
   ${currencyIdentifier && !txOutAlreadyJoined ? 'LEFT JOIN tx_out ON tx_out.tx_id = tx.id' : ''}
-  ${currencyIdentifier ? 'ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id )' : ''}
+  ${currencyIdentifier ? 'LEFT JOIN ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id' : ''}
   ${whereClause}
   `;
 
