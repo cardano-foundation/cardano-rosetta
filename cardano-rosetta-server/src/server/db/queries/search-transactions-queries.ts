@@ -38,12 +38,7 @@ const findTransactionsWithInputs = (conditions: SearchFilters) => {
   JOIN tx_in
       ON tx_in.tx_in_id = tx.id
   JOIN block
-      ON block.id = tx.block_id ${
-        maxBlock
-          ? `AND block_no <= ${maxBlock}
-  ${status !== null || status !== undefined ? `WHERE tx.valid_contract = ${status}` : ''}`
-          : ''
-      }`;
+      ON block.id = tx.block_id ${maxBlock ? `AND block_no <= ${maxBlock}` : ''}`;
 };
 
 const findTransactionsWithOutputs = (conditions: SearchFilters) => {
@@ -112,10 +107,10 @@ const findTransactionsWithVoteRegistrations = (conditions: SearchFilters) => {
       FROM tx
       JOIN tx_metadata AS metadata_sig
         ON metadata_sig.tx_id = tx.id 
-          AND key = ${CatalystLabels.SIG}
+          AND metadata_sig.key = ${CatalystLabels.SIG}
       JOIN tx_metadata AS metadata_data
         ON metadata_data.tx_id = tx.id
-          AND key = ${CatalystLabels.DATA}
+          AND metadata_data.key = ${CatalystLabels.DATA}
       JOIN block
           ON block.id = tx.block_id ${maxBlock ? `AND block_no <= ${maxBlock}` : ''}
       `;
@@ -183,10 +178,10 @@ const queryOrTypeMapping: {
     select: `
     LEFT JOIN tx_metadata AS metadata_sig
       ON metadata_sig.tx_id = tx.id 
-      AND key = ${CatalystLabels.SIG}
+      AND metadata_sig.key = ${CatalystLabels.SIG}
     LEFT JOIN tx_metadata AS metadata_data
       ON metadata_data.tx_id = tx.id
-      AND key = ${CatalystLabels.DATA}`,
+      AND metadata_data.key = ${CatalystLabels.DATA}`,
     where: '(metadata_sig.id IS NOT NULL AND metadata_data.id IS NOT NULL)'
   }),
   [OperationType.WITHDRAWAL]: () => ({
