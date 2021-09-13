@@ -52,6 +52,7 @@ import {
   validateAndGetStatus,
   validateTransactionCoinMatch,
   validateAccountIdAddressMatch,
+  validateOperationType,
   validateCurrencies
 } from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
@@ -748,6 +749,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     };
     validateTransactionCoinMatch(transactionHash, coinIdentifier);
     validateAccountIdAddressMatch(conditions.address, conditions.account_identifier);
+    type && validateOperationType(type);
     if (currency && currency.symbol !== ADA) {
       validateCurrencies([currency]);
       const currencyId = {

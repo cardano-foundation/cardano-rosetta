@@ -1,4 +1,4 @@
-import envalid, { host, makeValidator, num, str } from 'envalid';
+import envalid, { host, makeValidator, num, str, bool } from 'envalid';
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
@@ -16,6 +16,7 @@ export interface Environment {
   CARDANO_CLI_PATH: string;
   PAGE_SIZE: number;
   CARDANO_NODE_PATH: string;
+  DISABLE_SEARCH_API: boolean;
 }
 
 const existingFileValidator = makeValidator((filePath: string) => {
@@ -37,7 +38,8 @@ export const parseEnvironment = (): Environment => {
     PAGE_SIZE: num(),
     CARDANO_NODE_PATH: existingFileValidator(),
     GENESIS_SHELLEY_PATH: existingFileValidator(),
-    CARDANO_NODE_SOCKET_PATH: str()
+    CARDANO_NODE_SOCKET_PATH: str(),
+    DISABLE_SEARCH_API: bool()
   });
   let topologyFile: TopologyConfig;
   try {

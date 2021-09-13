@@ -31,7 +31,25 @@ import {
   searchTxWithDeregistrationBlock,
   searchTxWithKeyRegistrationBlockFilters,
   searchTxsWithVoteRegistrationBlockFilters,
-  searchTxsWithWithdrawalBlockFilters
+  searchTxsWithWithdrawalBlockFilters,
+  searchTxsWithComposedFilters,
+  searchTxsWithOrComposedFilters,
+  searchTxsAllFiltersWithInput,
+  searchTxsWithAllFiltersAndInputsOrOperator,
+  searchTxsAllFiltersWithOutput,
+  searchTxsWithAllFiltersPoolRegistrationOrOperator,
+  searchTxWithAllFiltersPoolRetirementOrOperator,
+  searchTxWithAllFiltersDelegationsOrOperator,
+  searchTxWithAllFiltersDeregistrationsOrOperator,
+  searchTxWithAllFiltersStakeRegistrationOrOperator,
+  searchTxWithAllFiltersVoteRegistrationOrOperator,
+  searchTxWithAllFiltersWithdrawalOrOperator,
+  searchTxsWithPoolRegistrationCoinFilters,
+  searchTxWithCoinPoolRetirementFilters,
+  searchTxWithCoinDelegationFilters,
+  searchTxWithCoinDeregistrationFilters,
+  searchTxsWithCoinStakeRegistrationFilters,
+  searchTxComposedWithdrawal
 } from '../fixture-data';
 
 const SEARCH_TRANSACTIONS_ENDPOINT = '/search/transactions';
@@ -127,11 +145,13 @@ export const generateSearchTransactionsPayload = (
 describe('/search/transactions endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
+  let serverWithoutSearchApi: FastifyInstance;
   let alonzoDatabase: Pool;
   let serverWithAlonzoSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
+    serverWithoutSearchApi = setupServer(database, true);
     alonzoDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'purple');
     serverWithAlonzoSupport = setupServer(alonzoDatabase);
   });
@@ -268,7 +288,21 @@ describe('/search/transactions endpoint', () => {
       retriable: false
     });
   });
-
+  test('Should throw an error an error when Search API is disabled ', async () => {
+    const response = await serverWithoutSearchApi.inject({
+      method: 'post',
+      url: SEARCH_TRANSACTIONS_ENDPOINT,
+      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+        limit: 2
+      })
+    });
+    expect(response.json()).toEqual({
+      code: 5000,
+      details: { message: 'An error occurred for request 1: Operation searchTransactions not implemented' },
+      message: 'An error occurred',
+      retriable: true
+    });
+  });
   // TX HASH FILTER
   describe('Transaction hash filter', () => {
     const transactionHash = '51d67e194d749df2abf4e2e11cea63ca6e1c630042a366f555939e795a6ddecf';
@@ -334,8 +368,7 @@ describe('/search/transactions endpoint', () => {
         total_count: 0
       });
     });
-    // FIXME
-    test('Should throw an error when the passed hash is invalid', async () => {
+    test('Should return zero transactions when the passed hash is invalid', async () => {
       const response = await server.inject({
         method: 'post',
         url: SEARCH_TRANSACTIONS_ENDPOINT,
@@ -354,6 +387,7 @@ describe('/search/transactions endpoint', () => {
 
   // COIN IDENTIFIER FILTER
   describe('Coin identifier filter', () => {
+    // eslint-disable-next-line sonarjs/no-duplicate-string
     const coinIdentifier = '4bcf79c0c2967986749fd0ae03f5b54a712d51b35672a3d974707c060c4d8dac:1';
     test('Should return the transaction that matches with given coin identifier', async () => {
       const response = await server.inject({
@@ -471,7 +505,7 @@ describe('/search/transactions endpoint', () => {
       });
     });
   });
-  describe('Currency filters', async () => {
+  describe('Currency filters', () => {
     const currency = {
       symbol: '\\x',
       policy: '9b9ddbada8dc9cd08509ed660d5b3a65da8f36178def7ced99fa0333',
@@ -1363,7 +1397,6 @@ describe('/search/transactions endpoint', () => {
         next_offset: 2
       });
     });
-    // FIXME
     test('Should throw an error when invalid type filter is received', async () => {
       const response = await server.inject({
         method: 'post',
@@ -1374,6 +1407,659 @@ describe('/search/transactions endpoint', () => {
         })
       });
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+      expect(response.json()).toEqual({
+        message: 'Provided operation type is invalid',
+        code: 4019,
+        retriable: true
+      });
+    });
+  });
+  // eslint-disable-next-line max-statements
+  describe('Composed filters', () => {
+    const currency = {
+      symbol: '46555a5a',
+      policy: 'cebbcd14c5b11ca83d7ef93b02acfc0bcb372066bdee259f6cd9ae6c',
+      decimals: 0
+    };
+    const coinIdentifier = '038e318f0deef63f44be78a8224c06d3faae683f48eb0215a448ab13fd1eb540:0';
+    test('Should return transactions with input type, max block, coin and success filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.INPUT,
+          maxBlock: 56740,
+          coinIdentifier: '4bcf79c0c2967986749fd0ae03f5b54a712d51b35672a3d974707c060c4d8dac:1',
+          success: true
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithComposedFilters,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with input type, max block, coin, success and address filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.INPUT,
+          maxBlock: 56740,
+          coinIdentifier: '4bcf79c0c2967986749fd0ae03f5b54a712d51b35672a3d974707c060c4d8dac:1',
+          success: true,
+          address:
+            'DdzFFzCqrhsdufpFxByLTQmktKJnTrudktaHq1nK2MAEDLXjz5kbRcr5prHi9gHb6m8pTvhgK6JbFDZA1LTiTcP6g8KuPSF1TfKP8ewp'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithComposedFilters,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with input type, max block, coin, success, address and currency filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.INPUT,
+          maxBlock: 5412127,
+          coinIdentifier,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsAllFiltersWithInput,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with output type, max block, coin, success, address and currency filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.OUTPUT,
+          maxBlock: 5412127,
+          coinIdentifier,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsAllFiltersWithOutput,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with pool registration type, max block, coin, success and address filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.POOL_REGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier: '29a76dd58c6309cd9cde855c0c50d81d63f921959359b1e544401ac1dbc9b472:0',
+          success: true,
+          address:
+            'addr1q9wm6dpp9zgund873xluc5wzz3z8dqf04uxvnnafa9tc834sp4f25adz7r8sgwkq3g473htcsramrcwh25twnew0hf2sfma70k'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithPoolRegistrationCoinFilters,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with pool registration type, max block, transaction hash, success and address filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.POOL_REGISTRATION,
+          maxBlock: 5412127,
+          transactionHash: '29a76dd58c6309cd9cde855c0c50d81d63f921959359b1e544401ac1dbc9b472',
+          success: true,
+          address:
+            'addr1q9wm6dpp9zgund873xluc5wzz3z8dqf04uxvnnafa9tc834sp4f25adz7r8sgwkq3g473htcsramrcwh25twnew0hf2sfma70k'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithPoolRegistrationCoinFilters,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with pool registration type, max block, coin, success, address and currency filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.POOL_REGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier: '29a76dd58c6309cd9cde855c0c50d81d63f921959359b1e544401ac1dbc9b472:0',
+          success: true,
+          currency,
+          address:
+            'addr1q9wm6dpp9zgund873xluc5wzz3z8dqf04uxvnnafa9tc834sp4f25adz7r8sgwkq3g473htcsramrcwh25twnew0hf2sfma70k'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: [],
+        total_count: 0
+      });
+    });
+    test('Should return transactions with pool retirement type, max block, coin, success, and address filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.POOL_RETIREMENT,
+          maxBlock: 5412127,
+          coinIdentifier: '896cf8fefad1eaf0fa056ba3adf28bfb26b06d1beed64cf790deb595dcb2687a:0',
+          success: true,
+          address:
+            'addr1q94g4wsgtm6hsxlcafvvt6fyprqtlwnme372sndfphlulyxn8j47n0r6werzg0qr7p3gs8gxw39n65uc8q330ztnhxcq9x6600'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithCoinPoolRetirementFilters,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with pool retirement type, max block, coin, success, address and currency filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.POOL_RETIREMENT,
+          maxBlock: 5412127,
+          coinIdentifier,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: [],
+        total_count: 0
+      });
+    });
+    test('Should return transactions with delegation type, max block, coin, success, address and currency filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.STAKE_DELEGATION,
+          maxBlock: 5412127,
+          coinIdentifier,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: [],
+        total_count: 0
+      });
+    });
+    test('Should return transactions with delegation type, max block, coin, success and address filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.STAKE_DELEGATION,
+          maxBlock: 5412127,
+          coinIdentifier: 'a24795549658d1b7d37a9bb3d4bbff4f29b8a107d7926f9c0be3d47e1cef13eb:0',
+          success: true,
+          address:
+            'addr1qxw6e3qvjnh7zpxd0xrcxpq7n5zl0kemkp5l4z0euedfwdrdy6wmax33kvvhuvh9pq67a5rvp8zdsetzptdv989slfvq7k3uas'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithCoinDelegationFilters,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with deregistration type, max block, coin, success, address and currency filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.STAKE_KEY_DEREGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: [],
+        total_count: 0
+      });
+    });
+    test('Should return transactions with deregistration type, max block, coin, success and address filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.STAKE_KEY_DEREGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier: '71667f9e0350a1fd9e5420043a41048f2895f2fd1bceeb2ffc3fa14382db50cd:0',
+          success: true,
+          address:
+            'addr1q87mz3a88qf920qc7cjw0ctstfrrsalswuqcms3h3rvqrs8j9td2t4sk87hkmvgzeccfagup4k449665add5afsp3kxsj80ej8'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithCoinDeregistrationFilters,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with stake registration type, max block, coin, success, address and currency filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.STAKE_KEY_REGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: [],
+        total_count: 0
+      });
+    });
+    test('Should return transactions with stake registration type, max block, coin, success and address filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.STAKE_KEY_REGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier: 'a24795549658d1b7d37a9bb3d4bbff4f29b8a107d7926f9c0be3d47e1cef13eb:0',
+          success: true,
+          address:
+            'addr1qxw6e3qvjnh7zpxd0xrcxpq7n5zl0kemkp5l4z0euedfwdrdy6wmax33kvvhuvh9pq67a5rvp8zdsetzptdv989slfvq7k3uas'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithCoinStakeRegistrationFilters,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with vote registration type, max block, coin, success, address and currency filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.VOTE_REGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: [],
+        total_count: 0
+      });
+    });
+    test('Should return transactions with withdrawal type, max block, coin, success, address and currency filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.WITHDRAWAL,
+          maxBlock: 5412127,
+          coinIdentifier,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: [],
+        total_count: 0
+      });
+    });
+    test('Should return transactions with withdrawal type, max block, coin, success and address filters', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.WITHDRAWAL,
+          maxBlock: 5412127,
+          coinIdentifier: '89cc7f4e39708e93c4087c5ab556420c0e78c3f97cb941d3a75d5f5bdb7554d2:0',
+          success: true,
+          address:
+            'addr1q9smf87z0akymg929wf5fz33vcsuf8m0uj4cdt0y3rnrs8czghmnrkk5qtuaah9mfpkrt3jfa4qf86tc7hj9fmxve0lqezsgut'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxComposedWithdrawal,
+        total_count: 1
+      });
+    });
+    test('Should return transactions with input type, max block, coin and success filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.INPUT,
+          maxBlock: 56740,
+          coinIdentifier: '4bcf79c0c2967986749fd0ae03f5b54a712d51b35672a3d974707c060c4d8dac:1',
+          success: true,
+          operator: OR_OPERATOR
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithOrComposedFilters,
+        total_count: 15886,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with input type, max block, coin, success and address filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.INPUT,
+          maxBlock: 56740,
+          coinIdentifier: '4bcf79c0c2967986749fd0ae03f5b54a712d51b35672a3d974707c060c4d8dac:1',
+          success: true,
+          address:
+            'DdzFFzCqrhsdufpFxByLTQmktKJnTrudktaHq1nK2MAEDLXjz5kbRcr5prHi9gHb6m8pTvhgK6JbFDZA1LTiTcP6g8KuPSF1TfKP8ewp',
+          operator: OR_OPERATOR
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithOrComposedFilters,
+        total_count: 15888,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with input type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.INPUT,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithAllFiltersAndInputsOrOperator,
+        total_count: 18901,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with output type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.OUTPUT,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithAllFiltersAndInputsOrOperator,
+        total_count: 18901,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with pool registration type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.POOL_REGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithAllFiltersPoolRegistrationOrOperator,
+        total_count: 4,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with pool registration with cert type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.POOL_REGISTRATION_WITH_CERT,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxsWithAllFiltersPoolRegistrationOrOperator,
+        total_count: 4,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with pool retirement type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.POOL_RETIREMENT,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAllFiltersPoolRetirementOrOperator,
+        total_count: 4,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with delegation type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.STAKE_DELEGATION,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAllFiltersDelegationsOrOperator,
+        total_count: 54,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with deregistration type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.STAKE_KEY_DEREGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAllFiltersDeregistrationsOrOperator,
+        total_count: 6,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with stake registration type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.STAKE_KEY_REGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAllFiltersStakeRegistrationOrOperator,
+        total_count: 25,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with vote registration type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.VOTE_REGISTRATION,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAllFiltersVoteRegistrationOrOperator,
+        total_count: 13,
+        next_offset: 2
+      });
+    });
+    test('Should return transactions with withdrawal type, max block, coin, success, address and currency filters with OR operator', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          limit: 2,
+          type: OperationType.WITHDRAWAL,
+          maxBlock: 5412127,
+          coinIdentifier,
+          operator: OR_OPERATOR,
+          success: true,
+          currency,
+          address:
+            'addr1q8a3rmnxnp986vy3tzz3vd3mdk9lmjnnw6w68uaaa8g4t4u5lddnau28pea3mdy84uls504lsc7uk9zyzmqtcxyy7jyqqjm7sg'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithAllFiltersWithdrawalOrOperator,
+        total_count: 38,
+        next_offset: 2
+      });
     });
   });
 });

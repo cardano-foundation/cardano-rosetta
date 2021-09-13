@@ -118,7 +118,7 @@ LEFT JOIN ma_tx_out as source_ma_tx_out
   ON source_ma_tx_out.tx_out_id = source_tx_out.id
 WHERE
   tx.hash = ANY ($1)
-ORDER BY policy, name`;
+ORDER BY policy, name, id`;
 
 const findGenesisBlock = `
 SELECT

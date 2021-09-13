@@ -9,7 +9,8 @@ import {
   CatalystSigIndexes,
   SUCCESS_OPERATION_STATE,
   INVALID_OPERATION_STATE,
-  OPERATIONS_STATUSES
+  OPERATIONS_STATUSES,
+  OPERATION_TYPES
 } from './constants';
 import { ErrorFactory } from './errors';
 import { hexStringToBuffer, isEmptyHexString } from './formatters';
@@ -119,5 +120,12 @@ export const validateAccountIdAddressMatch = (
     throw ErrorFactory.addressAndAccountIdNotMatchError(
       `Address ${address} does not match account identifier's address ${accountIdentifier.address}`
     );
+  }
+};
+
+export const validateOperationType = (type: string): void => {
+  const isValid = OPERATION_TYPES.some(opType => opType === type);
+  if (!isValid) {
+    throw ErrorFactory.invalidOperationTypeError();
   }
 };

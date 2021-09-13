@@ -15,6 +15,7 @@ interface ExtraParams {
   networkId: string;
   pageSize: number;
   mock?: boolean;
+  disableSearchApi?: boolean;
 }
 
 const getBodyLimit = (): number | undefined => {
@@ -37,12 +38,12 @@ const buildServer = (
   extraParameters: ExtraParams
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
   const server = fastify({ logger: { level: logLevel }, bodyLimit: getBodyLimit() });
-  const { networkId, pageSize, mock } = extraParameters;
+  const { networkId, pageSize, mock, disableSearchApi } = extraParameters;
   if (!mock) server.register(metricsPlugin, { endpoint: '/metrics' });
   server.register(fastifyBlipp);
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,
-    service: Controllers.configure(services, cardanoCli, cardanoNode, networkId, pageSize),
+    service: Controllers.configure(services, cardanoCli, cardanoNode, pageSize, disableSearchApi),
     noAdditional: true
   });
 

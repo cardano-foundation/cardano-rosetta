@@ -195,7 +195,8 @@ const queryOrTypeMapping: {
 /* eslint-disable max-statements*/
 /* eslint-disable-next-line sonarjs/cognitive-complexity */
 const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolean): string => {
-  const { transactionHash, status, coinIdentifier, limit, offset, currencyIdentifier, address } = filters;
+  const { transactionHash, status, coinIdentifier, limit, offset, currencyIdentifier, address, type } = filters;
+  const txOutAlreadyJoined = !!type && type === OperationType.OUTPUT;
   const whereConditions = [];
   let whereSentence = '';
   let joinSentence = '';
@@ -207,7 +208,7 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
   if (coinIdentifier) {
     const { index } = coinIdentifier;
     // eslint-disable-next-line sonarjs/no-duplicate-string
-    joinTables.push('tx_out ON tx.id = tx_out.tx_id');
+    !txOutAlreadyJoined && joinTables.push('tx_out ON tx.id = tx_out.tx_id');
     // eslint-disable-next-line sonarjs/no-duplicate-string
     whereConditions.push('tx.hash = $1');
     whereConditions.push(`tx_out.index = ${index}`);
@@ -338,7 +339,7 @@ const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters, isT
   let joinClause = '';
   const joinTables = [];
   if (!isNullOrUndefined(status)) {
-    conditions.push(`tx.valid_contract <= ${status}`);
+    conditions.push(`tx.valid_contract = ${status}`);
   }
   if (coinIdentifier) {
     const { index } = coinIdentifier;
@@ -393,7 +394,7 @@ const getQueryWithAndOperator = (filters: SearchFilters, isTotalCount = false) =
   let query = defaultTransactionQuery(filters?.maxBlock);
   const { coinIdentifier, currencyIdentifier, type } = filters;
   if (type) {
-    query = queryAndTypeMapping[type](filters);
+    return withFilters(queryAndTypeMapping[type](filters), filters, isTotalCount);
   }
   if (currencyIdentifier) {
     query = createCurrencyQuery(currencyIdentifier, filters, isTotalCount);
@@ -415,27 +416,27 @@ const generateCoinSelect = (
 ) =>
   coinIdentifier
     ? `
-  ${
-    !txOutAlreadyJoined
-      ? `
-  LEFT JOIN tx_out 
-    ON tx_out.tx_id = tx.id`
-      : ''
-  }
-  LEFT JOIN tx_in as utxo_tx_in
-    ON utxo_tx_in.tx_out_id = tx_out.tx_id 
-      AND utxo_tx_in.tx_out_index::smallint = tx_out."index"::smallint
-  LEFT JOIN tx as utxo_tx_in_tx
-    ON utxo_tx_in_tx.id = utxo_tx_in.tx_in_id 
-  ${maxBlock ? `AND utxo_tx_in_tx.block_id <= (select id from block where block_no = ${maxBlock})` : ''}
-  ${!isNullOrUndefined(status) ? `AND utxo_tx_in_tx.valid_contract = ${status}` : ''}`
+${
+  !txOutAlreadyJoined
+    ? `
+LEFT JOIN tx_out 
+ON tx_out.tx_id = tx.id`
+    : ''
+}
+LEFT JOIN tx_in as utxo_tx_in
+ON utxo_tx_in.tx_out_id = tx_out.tx_id 
+  AND utxo_tx_in.tx_out_index::smallint = tx_out."index"::smallint
+LEFT JOIN tx as utxo_tx_in_tx
+ON utxo_tx_in_tx.id = utxo_tx_in.tx_in_id 
+${maxBlock ? `AND utxo_tx_in_tx.block_id <= (select id from block where block_no = ${maxBlock})` : ''}
+${!isNullOrUndefined(status) ? `AND utxo_tx_in_tx.valid_contract = ${status}` : ''}`
     : '';
 
-const generateAddressSelect = (address?: string, txOutAlreadyJoined = false) =>
+const generateAddressSelect = (address?: string, coinIdentifier?: CoinIdentifier, txOutAlreadyJoined = false) =>
   address
     ? `
   ${
-    !txOutAlreadyJoined
+    !txOutAlreadyJoined && !coinIdentifier
       ? `LEFT JOIN tx_out 
   ON tx_out.tx_id = tx.id`
       : ''
@@ -493,9 +494,9 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
   JOIN block
     ON block.id = tx.block_id ${maxBlock ? ` AND block_no <= ${maxBlock}` : ''}
   ${type ? queryOrTypeMapping[type]().select : ''}
-  ${generateCoinSelect(coinIdentifier, maxBlock, txOutAlreadyJoined)}
-  ${generateAddressSelect(address, txOutAlreadyJoined)}
-  ${currencyIdentifier && !txOutAlreadyJoined ? 'LEFT JOIN tx_out ON tx_out.tx_id = tx.id' : ''}
+  ${generateCoinSelect(coinIdentifier, maxBlock, status, txOutAlreadyJoined)}
+  ${generateAddressSelect(address, coinIdentifier, txOutAlreadyJoined)}
+  ${currencyIdentifier && !txOutAlreadyJoined && !address ? 'LEFT JOIN tx_out ON tx_out.tx_id = tx.id' : ''}
   ${currencyIdentifier ? 'LEFT JOIN ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id' : ''}
   ${whereClause}
   `;
