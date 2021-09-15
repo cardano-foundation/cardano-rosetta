@@ -161,7 +161,7 @@ const parseTransactionRows = (result: QueryResult<FindTransaction>): Transaction
   }));
 
 /**
- * Maps from a total count query result to a string
+ * Maps from a total count query result to a number
  */
 const parseTotalCount = (result: QueryResult<TotalCount>): number => result.rows[0].totalCount;
 

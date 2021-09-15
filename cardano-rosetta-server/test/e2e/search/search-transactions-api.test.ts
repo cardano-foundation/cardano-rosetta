@@ -1311,24 +1311,6 @@ describe('/search/transactions endpoint', () => {
         total_count: 0
       });
     });
-    // eslint-disable-next-line sonarjs/no-identical-functions
-    test('Should return transactions with vote registration type, max block and success filters', async () => {
-      const response = await server.inject({
-        method: 'post',
-        url: SEARCH_TRANSACTIONS_ENDPOINT,
-        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
-          limit: 2,
-          type: OperationType.VOTE_REGISTRATION,
-          maxBlock: 5593740,
-          success: false
-        })
-      });
-      expect(response.statusCode).toEqual(StatusCodes.OK);
-      expect(response.json()).toEqual({
-        transactions: [],
-        total_count: 0
-      });
-    });
     test('Should return transactions with withdrawal type filter', async () => {
       const response = await server.inject({
         method: 'post',
