@@ -61,12 +61,13 @@ In order to execute the example, run:
 $ yarn send-transaction-using-cardano-address-example
 ```
 
-## Sending transactions with Byron input
+## Sending transactions from Byron address
 
-Uses a predefined Byron address to send ADA to `SEND_FUNDS_ADDRESS` address.
+Uses a predefined Byron address to send ADA to `SEND_FUNDS_ADDRESS` address. Because of that the serialization lib is used to sign the transaction.
 
 Important notes:
-  - Byron address is generated outside Rosetta.
+  - Byron address and the corresponding keys are generated outside Rosetta.
+  - A predefined `CHAIN_CODE` passed as hex string is used to sign the payloads.. 
 
 In order to execute the example, run:
 

@@ -8,7 +8,10 @@ import {
   CONSTRUCTION_COMBINE_WITH_METADATA_PAYLOAD,
   CONSTRUCTION_INVALID_TRANSACTION,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
-  CONSTRUCTION_SIGNED_TX_WITH_TX_METADATA
+  CONSTRUCTION_SIGNED_TX_WITH_TX_METADATA,
+  CONSTRUCTION_COMBINE_WITH_BYRON_ADDRESS_PAYLOAD,
+  CONSTRUCTION_SIGNED_TX_WITH_BYRON_ADDESS,
+  CONSTRUCTION_COMBINE_WITH_BYRON_ADDRESS_MISSING_CHAINCODE_PAYLOAD
 } from '../fixture-data';
 import { SIGNATURE_TYPE } from '../../../src/server/utils/constants';
 
@@ -45,6 +48,16 @@ describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().signed_transaction).toEqual(CONSTRUCTION_SIGNED_TX_WITH_TX_METADATA);
+  });
+
+  test('Should return signed transaction with byron address', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_COMBINE_ENDPOINT,
+      payload: CONSTRUCTION_COMBINE_WITH_BYRON_ADDRESS_PAYLOAD
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().signed_transaction).toEqual(CONSTRUCTION_SIGNED_TX_WITH_BYRON_ADDESS);
   });
 
   test('Should return error when providing valid unsigned transaction but invalid signatures', async () => {
@@ -95,6 +108,20 @@ describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
     expect(response.json()).toEqual({
       code: 5004,
       message: 'Cant create signed transaction probably because of unsigned transaction bytes',
+      retriable: false
+    });
+  });
+
+  test('Should throw an error when trying to sign a tx with missing chaincode for byron address', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_COMBINE_ENDPOINT,
+      payload: CONSTRUCTION_COMBINE_WITH_BYRON_ADDRESS_MISSING_CHAINCODE_PAYLOAD
+    });
+    expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
+    expect(response.json()).toEqual({
+      code: 5005,
+      message: 'Cant build witnesses set for transaction probably because of provided signatures',
       retriable: false
     });
   });

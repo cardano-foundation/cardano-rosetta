@@ -126,13 +126,13 @@ Also, `coins` will be returned with the token bundle list corresponding to each 
       "metadata": {
         "02562c123f6d560e1250f5a46f7e95911b21fd8a9fa70157335c3a3d1d16bdda:0": [       // coin identifier
           {
-            "policyId": "181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e",   
+            "policyId": "181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e",
             "tokens": [
               {
                 "value": "20",
                 "currency": {
                   "decimals": 0,
-                  "symbol": "",                                                       
+                  "symbol": "",
                   "metadata": {
                     "policyId": "181aace621eea2b6cb367adb5000d516fa785087bad20308c072517e"
                   }
@@ -213,7 +213,7 @@ The following metadata is also returned when querying for block information:
 
 ## `/block/transactions`
 
-When the block requested contains transactions with multi assets operations the token bundles associated to each operation will be returned as metadata as follows: 
+When the block requested contains transactions with multi assets operations the token bundles associated to each operation will be returned as metadata as follows:
 
 _Also, assets will be returned sorted by name._
 
@@ -387,6 +387,43 @@ Furthermore, transaction `ttl` needs to be sent as string in the metadata.
 
 The request of this endpoint has no specific change but the response will have the operations parsed in the same way as the ones that are used to send as payload in the `/construction/payloads` and `/construction/preprocess` endpoints. This means that if the order used in those two endpoints needs to be exactly the one specified [here](./staking-support.md). Otherwise the parse endpoint will not be able to reproduce the operations in the same order and the workflow will fail.
 
+## `/construction/combine`
+
+In order to support Byron addresses an extra field called `chain_code` in the `account_identifier`'s `metadata` of the corresponding `signing_payload` must be added when requesting to sign payloads. So, the payload would look something like this:
+
+```json
+{
+  "network_identifier": {
+    "blockchain": "cardano",
+    "network": "mainnet"
+  },
+  "unsigned_transaction": "00000000000000000000000000",
+  "signatures": [
+    {
+      "signing_payload": {
+        "account_identifier": {
+          "address": "addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx",
+          "metadata": {
+            "chain_code": "dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f"
+          }
+        },
+        "hex_bytes": "31fc9813a71d8db12a4f2e3382ab0671005665b70d0cd1a9fb6c4a4e9ceabc90",
+        "signature_type": "ed25519"
+      },
+      "public_key": {
+        "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
+        "curve_type": "edwards25519"
+      },
+      "signature_type": "ed25519",
+      "hex_bytes": "00000000000000000000000000"
+    }
+  ]
+}
+```
+
+This value can be obtained by any of the Bip 32 Keys. More information can be found (here)[https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#extended-keys].
+The creation of these type of addresses are not supported by Rosetta, to do so this link can be (useful)[https://github.com/Emurgo/cardano-serialization-lib/blob/master/doc/getting-started/generating-keys.md#use-in-addresses].
+
 # Other changes
 
 ## Encoded transactions
@@ -401,4 +438,4 @@ The rationale behind that decision can be found [here](https://community.rosetta
 
 The same approach has been used to encode the operations that contain a staking key, since they couldn't be decoded otherwise.
 
-Transaction's metadata, needed for example for vote registration operations, is also encoded as extra data. 
+Transaction's metadata, needed for example for vote registration operations, is also encoded as extra data.

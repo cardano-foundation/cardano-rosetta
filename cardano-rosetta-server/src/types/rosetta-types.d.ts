@@ -77,7 +77,12 @@ declare namespace Components {
       /**
        * Blockchains that utilize a username model (where the address is not a derivative of a cryptographic public key) should specify the public key(s) owned by the address in metadata.
        */
-      metadata?: {};
+      metadata?: {
+        /**
+         * Hex string encoded extension of bip32 private and public keys with an extra 256 bits of entropy that consists of 32 bytes
+         */
+        chain_code?: string;
+      };
     }
     /**
      * * Base address - associated to a payment and a staking credential, * Reward address - associated to a staking credential * Enterprise address - holds no delegation rights and will be created when no stake key is sent to the API

@@ -3,33 +3,65 @@
 /* eslint-disable new-cap */
 /* eslint-disable no-console */
 import {
-  constructionDerive,
   constructionPreprocess,
   constructionMetadata,
   constructionPayloads,
   constructionCombine,
   constructionSubmit,
-  signPayloads,
   waitForBalanceToBe,
   buildOperation,
-  generateKeys,
 } from "./commons";
+
+import { PrivateKey } from "@emurgo/cardano-serialization-lib-nodejs";
 const logger = console;
 
 const SEND_FUNDS_ADDRESS =
   "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
 const keys = {
   publicKey: Buffer.from(
-    "dacc560aed9739c1dda740409b2afaefbbbaf570c740b7ba7aee4dfcd456bf78",
+    "73fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d",
     "hex"
   ),
   secretKey: Buffer.from(
-    "e8bc43076146116a9ea3432c99ad504a28eb1412d3a4f900609fcebd60e1a45ecfafbb93a73dbae1c4c66241b45526201932a380ca059dbb70096433a132b4a4",
+    "b813a62becba674d8e29ce907ee3533f622d41e155768d58793cbad373e1a45e47f9d20ab7f78b023a2cf363c2217400a8c658dfd1c8057c4f62b6f6746d1c41",
     "hex"
   ),
 };
+const CHAIN_CODE =
+  "dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f";
+
+const signPayloads = (payloads: any, keyAddressMapper: any) =>
+  payloads.map((signing_payload: any) => {
+    const {
+      account_identifier: { address },
+    } = signing_payload;
+    const { publicKey, secretKey } = keyAddressMapper[address];
+    return {
+      signing_payload: {
+        ...signing_payload,
+        account_identifier: {
+          ...signing_payload.account_identifier,
+          metadata: {
+            chain_code: CHAIN_CODE,
+          },
+        },
+      },
+      public_key: {
+        hex_bytes: Buffer.from(publicKey).toString("hex"),
+        curve_type: "edwards25519",
+      },
+      signature_type: "ed25519",
+      hex_bytes: Buffer.from(
+        PrivateKey.from_extended_bytes(secretKey)
+          .sign(Buffer.from(signing_payload.hex_bytes, "hex"))
+          .to_bytes()
+      ).toString("hex"),
+    };
+  });
+
 // Byron address corresponding to previous keys
-const address = '2cWKMJemoBaixGk8fx6VPVidMFjx2jg7Kn6AX1BFtqr7oXaSPdgdY7UvFiFvNgq9tJmki';
+const address =
+  "FHnt4NL7yPYGFit5s7BgG13FwEgSeofJgntqYsmzRVRzBoJYUgMSKM5VmiWCHpk";
 
 const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};

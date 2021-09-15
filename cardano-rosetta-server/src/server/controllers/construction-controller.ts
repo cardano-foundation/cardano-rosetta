@@ -228,7 +228,9 @@ const configure = (
           transaction,
           request.body.signatures.map(signature => ({
             signature: signature.hex_bytes,
-            publicKey: signature.public_key.hex_bytes
+            publicKey: signature.public_key.hex_bytes,
+            address: signature.signing_payload.account_identifier?.address,
+            chainCode: signature.signing_payload.account_identifier?.metadata?.chain_code
           })),
           transactionMetadataHex
         );
