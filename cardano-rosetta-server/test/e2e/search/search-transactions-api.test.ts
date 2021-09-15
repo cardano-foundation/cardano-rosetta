@@ -266,7 +266,7 @@ describe('/search/transactions endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
       message: 'Given operation status and success state does not match',
-      code: 5013,
+      code: 5014,
       retriable: false
     });
   });
@@ -283,7 +283,7 @@ describe('/search/transactions endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({
       message: 'Invalid operation status',
-      code: 5012,
+      code: 5013,
       details: { message: 'Given status is invalidStatus' },
       retriable: false
     });
@@ -435,7 +435,7 @@ describe('/search/transactions endpoint', () => {
         details: {
           message: 'Given coin identifier is hash:hash'
         },
-        code: 5016,
+        code: 5017,
         retriable: false
       });
     });
@@ -500,7 +500,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({
         message: 'Transaction hash does not match to given coin identifier',
-        code: 5014,
+        code: 5015,
         retriable: false
       });
     });
@@ -760,7 +760,7 @@ describe('/search/transactions endpoint', () => {
       });
       expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
       expect(response.json()).toEqual({
-        code: 5015,
+        code: 5016,
         message: 'Address and account identifier does not match',
         retriable: false,
         details: {
