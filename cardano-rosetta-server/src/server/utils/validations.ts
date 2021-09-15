@@ -9,12 +9,13 @@ import {
   CatalystSigIndexes,
   SUCCESS_OPERATION_STATE,
   INVALID_OPERATION_STATE,
-  OperationTypeStatus,
-  OPERATIONS_STATUSES
+  OPERATIONS_STATUSES,
+  OPERATION_TYPES
 } from './constants';
 import { ErrorFactory } from './errors';
 import { hexStringToBuffer, isEmptyHexString } from './formatters';
 import CardanoWasm from 'cardano-serialization-lib';
+import { CoinIdentifier } from '../models';
 
 const tokenNameValidation = new RegExp(`^[0-9a-fA-F]{0,${ASSET_NAME_LENGTH}}$`);
 
@@ -74,7 +75,7 @@ export const isVoteSignatureValid = (jsonObject: any): boolean => {
 const validateStatus = (status: string): void => {
   const isValid = OPERATIONS_STATUSES.some(opStatus => opStatus === status);
   if (!isValid) {
-    throw ErrorFactory.invalidOperationStatus(status);
+    throw ErrorFactory.invalidOperationStatus(`Given status is ${status}`);
   }
 };
 
@@ -90,16 +91,41 @@ const validateAndGetOperationState = (status: string, success?: boolean): Compon
   return operationState;
 };
 
-export const validateAndGetStatus = (status?: string, success?: boolean): boolean | null => {
+export const validateAndGetStatus = (status?: string, success?: boolean): boolean | undefined => {
   const isStatusUndefined = status === undefined;
   const isSuccessUndefined = success === undefined;
 
-  if (isStatusUndefined && isSuccessUndefined) return null;
+  if (isStatusUndefined && isSuccessUndefined) return;
+  // eslint-disable-next-line consistent-return
   if (isStatusUndefined && success !== undefined) return success;
   if (status !== undefined) {
     validateStatus(status);
     const operationState = validateAndGetOperationState(status, success);
+    // eslint-disable-next-line consistent-return
     return operationState.successful;
   }
-  return null;
+};
+
+export const validateTransactionCoinMatch = (transactionHash?: string, coinIdentifier?: CoinIdentifier): void => {
+  if (transactionHash && coinIdentifier && transactionHash !== coinIdentifier.hash) {
+    throw ErrorFactory.txHashAndCoinNotMatchError();
+  }
+};
+
+export const validateAccountIdAddressMatch = (
+  address?: string,
+  accountIdentifier?: Components.Schemas.AccountIdentifier
+): void => {
+  if (address && accountIdentifier && address !== accountIdentifier.address) {
+    throw ErrorFactory.addressAndAccountIdNotMatchError(
+      `Address ${address} does not match account identifier's address ${accountIdentifier.address}`
+    );
+  }
+};
+
+export const validateOperationType = (type: string): void => {
+  const isValid = OPERATION_TYPES.some(opType => opType === type);
+  if (!isValid) {
+    throw ErrorFactory.invalidOperationTypeError();
+  }
 };

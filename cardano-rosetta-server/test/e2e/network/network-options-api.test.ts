@@ -85,7 +85,22 @@ const allow = {
       retriable: false
     },
     { code: 5013, message: 'Invalid operation status', retriable: false },
-    { code: 5014, message: 'Given operation status and success state does not match', retriable: false }
+    { code: 5014, message: 'Given operation status and success state does not match', retriable: false },
+    {
+      code: 5015,
+      message: 'Transaction hash does not match to given coin identifier',
+      retriable: false
+    },
+    {
+      code: 5016,
+      message: 'Address and account identifier does not match',
+      retriable: false
+    },
+    {
+      code: 5017,
+      message: 'Coin identifier has an invalid format',
+      retriable: false
+    }
   ],
   historical_balance_lookup: true,
   call_methods: [],

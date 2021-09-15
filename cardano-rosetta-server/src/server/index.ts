@@ -41,7 +41,8 @@ const start = async (databaseInstance: Pool) => {
     );
     server = buildServer(services, cardanoCli, cardanoNode, environment.LOGGER_LEVEL, {
       networkId,
-      pageSize: environment.PAGE_SIZE
+      pageSize: environment.PAGE_SIZE,
+      disableSearchApi: environment.DISABLE_SEARCH_API
     });
 
     server.addHook('onClose', (_, done) => databaseInstance.end(done));

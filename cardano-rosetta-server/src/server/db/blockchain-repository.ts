@@ -19,7 +19,13 @@ import {
   SearchFilters
 } from '../models';
 import { LinearFeeParameters } from '../services/cardano-services';
-import { hexStringToBuffer, hexFormatter, isEmptyHexString, remove0xPrefix } from '../utils/formatters';
+import {
+  hexStringToBuffer,
+  hexFormatter,
+  isEmptyHexString,
+  remove0xPrefix,
+  coinIdentifierFormatter
+} from '../utils/formatters';
 import Queries, {
   FindBalance,
   FindTransactionDelegations,
@@ -39,8 +45,16 @@ import Queries, {
   FindMaBalance
 } from './queries/blockchain-queries';
 import SearchQueries from './queries/search-transactions-queries';
-import { CatalystDataIndexes, CatalystSigIndexes } from '../utils/constants';
-import { isVoteDataValid, isVoteSignatureValid, validateAndGetStatus } from '../utils/validations';
+import { ADA, CatalystDataIndexes, CatalystSigIndexes, OperatorType } from '../utils/constants';
+import {
+  isVoteDataValid,
+  isVoteSignatureValid,
+  validateAndGetStatus,
+  validateTransactionCoinMatch,
+  validateAccountIdAddressMatch,
+  validateOperationType,
+  validateCurrencies
+} from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
 
 export interface BlockchainRepository {
@@ -121,12 +135,14 @@ export interface BlockchainRepository {
    */
   findBalanceByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<string>;
   /**
-   * Returns if any, the transactions matches the requested conditions
-   * @param conditions conditions to filter transactions by
+   * Returns if any, the transactions matches the requested filters
+   * @param filters conditions to filter transactions by
    */
-  findTransactionsByConditions(
+  findTransactionsByFilters(
     logger: Logger,
-    parameters: Components.Schemas.SearchTransactionsRequest
+    parameters: Components.Schemas.SearchTransactionsRequest,
+    limit: number,
+    offset: number
   ): Promise<TransactionCount>;
 }
 
@@ -136,7 +152,7 @@ export interface BlockchainRepository {
 const parseTransactionRows = (result: QueryResult<FindTransaction>): Transaction[] =>
   result.rows.map(row => ({
     hash: hexFormatter(row.hash),
-    blockHash: row.blockHash && hexFormatter(row.blockHash),
+    blockHash: hexFormatter(row.blockHash),
     blockNo: row.blockNo,
     fee: row.fee,
     size: row.size,
@@ -162,6 +178,7 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
       [hash]: {
         hash,
         blockHash: transaction.blockHash,
+        blockNo: transaction.blockNo,
         fee: transaction.fee,
         size: transaction.size,
         scriptSize: transaction.scriptSize,
@@ -707,43 +724,59 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
 
     return result.rows[0].balance;
   },
-  async findTransactionsByConditions(
+  async findTransactionsByFilters(
     logger: Logger,
-    conditions: Components.Schemas.SearchTransactionsRequest
+    conditions: Components.Schemas.SearchTransactionsRequest,
+    limit: number,
+    offset: number
   ): Promise<TransactionCount> {
-    // TODO:  only type conditions are being handled. handle rest of conditions needs to be done
     logger.debug('[findTransactionsByConditions] Conditions received to run the query ', {
       conditions
     });
-    if (conditions.type) {
-      const { type, limit, offset, max_block, status, success, operator } = conditions;
-      const conditionsToQueryBy: SearchFilters = {
-        maxBlock: max_block,
-        operator
+    const { type, status, success, operator, currency } = conditions;
+    const coinIdentifier = coinIdentifierFormatter(conditions?.coin_identifier?.identifier);
+    const transactionHash = conditions?.transaction_identifier?.hash;
+    const conditionsToQueryBy: SearchFilters = {
+      maxBlock: conditions?.max_block,
+      operator: operator ? operator : OperatorType.AND,
+      type,
+      coinIdentifier,
+      status: validateAndGetStatus(status, success),
+      transactionHash,
+      limit,
+      offset,
+      address: conditions.address || conditions.account_identifier?.address
+    };
+    validateTransactionCoinMatch(transactionHash, coinIdentifier);
+    validateAccountIdAddressMatch(conditions.address, conditions.account_identifier);
+    type && validateOperationType(type);
+    if (currency && currency.symbol !== ADA) {
+      validateCurrencies([currency]);
+      const currencyId = {
+        symbol: isEmptyHexString(currency.symbol) ? '' : currency.symbol,
+        policy: currency.metadata?.policyId
       };
-      const statusToQueryBy = validateAndGetStatus(status, success);
-      if (statusToQueryBy !== null) conditionsToQueryBy.status = statusToQueryBy;
-      const { data: dataQuery, count: totalCountQuery } = SearchQueries.getQueriesByType(type, conditionsToQueryBy);
-      logger.debug('[findTransactionsByBlock] About to search transactions');
-      const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, [limit, offset]);
-      logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
-      const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery);
-      const totalCount = parseTotalCount(totalCountResult);
-      logger.debug('[findTransactionsByBlock] Total count obtained ', totalCount);
-      if (result.rows.length > 0) {
-        return {
-          transactions: parseTransactionRows(result),
-          totalCount
-        };
-      }
+      conditionsToQueryBy.currencyIdentifier = currencyId;
+    }
+    const { data: dataQuery, count: totalCountQuery } = SearchQueries.generateComposedQuery(conditionsToQueryBy);
+    logger.debug('[findTransactionsByConditions] About to search transactions');
+    const parameters = [];
+    if (transactionHash || coinIdentifier)
+      parameters.push(transactionHash ? hexStringToBuffer(transactionHash) : hexStringToBuffer(coinIdentifier!.hash));
+    const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, parameters);
+    logger.debug(`[findTransactionsByConditions] Found ${result.rowCount} transactions`);
+    const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery, parameters);
+    const totalCount = parseTotalCount(totalCountResult);
+    logger.debug('[findTransactionsByConditions] Total count obtained ', totalCount);
+    if (result.rows.length > 0) {
       return {
-        transactions: [],
-        totalCount: 0
+        transactions: parseTransactionRows(result),
+        totalCount
       };
     }
     return {
       transactions: [],
-      totalCount: 0
+      totalCount
     };
   }
 });

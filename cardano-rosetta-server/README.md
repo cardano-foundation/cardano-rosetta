@@ -41,6 +41,8 @@ DEFAULT_RELATIVE_TTL=1000
 EXEMPTION_TYPES_PATH="/etc/node/exemptions.json"
 # request payload limit
 BODY_LIMIT=1048576
+# disables Search Api if its true
+DISABLE_SEARCH_API=false
 ```
 
 ### Install packages from offline cache
