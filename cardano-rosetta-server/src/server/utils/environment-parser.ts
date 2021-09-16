@@ -39,7 +39,7 @@ export const parseEnvironment = (): Environment => {
     CARDANO_NODE_PATH: existingFileValidator(),
     GENESIS_SHELLEY_PATH: existingFileValidator(),
     CARDANO_NODE_SOCKET_PATH: str(),
-    DISABLE_SEARCH_API: bool()
+    DISABLE_SEARCH_API: bool({ default: false })
   });
   let topologyFile: TopologyConfig;
   try {

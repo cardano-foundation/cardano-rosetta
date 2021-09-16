@@ -49,7 +49,8 @@ describe('Environment parser test', () => {
     process.env.BIND_ADDRESS = previousAddress;
   });
   test('Should throw an error if a field is expected to be a valid boolean but its not', () => {
-    const previousDisableSeachApi = process.env.DISABLE_SEARCH_API;
+    const previousDisableSeachApi =
+      process.env.DISABLE_SEARCH_API === undefined ? 'false' : process.env.DISABLE_SEARCH_API;
     process.env.DISABLE_SEARCH_API = 'invalidBoolean';
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
       throw new Error(code?.toString());
