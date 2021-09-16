@@ -48,6 +48,17 @@ describe('Environment parser test', () => {
     expect(mockExit).toHaveBeenCalledWith(1);
     process.env.BIND_ADDRESS = previousAddress;
   });
+  test('Should throw an error if a field is expected to be a valid boolean but its not', () => {
+    const previousDisableSeachApi =
+      process.env.DISABLE_SEARCH_API === undefined ? 'false' : process.env.DISABLE_SEARCH_API;
+    process.env.DISABLE_SEARCH_API = 'invalidBoolean';
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((code?: number | undefined): never => {
+      throw new Error(code?.toString());
+    });
+    expect(environmentParser).toThrowError();
+    expect(mockExit).toHaveBeenCalledWith(1);
+    process.env.DISABLE_SEARCH_API = previousDisableSeachApi;
+  });
   test('Should return all environment variables and topology file parsed', () => {
     const environment = environmentParser();
     expect(environment).not.toBeUndefined();

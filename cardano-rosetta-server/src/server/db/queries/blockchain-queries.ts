@@ -1,4 +1,5 @@
 import { CatalystLabels } from '../../utils/constants';
+import { CurrencyId } from '../../models';
 
 const findBlock = (blockNumber?: number, blockHash?: string): string => `
 SELECT 
@@ -31,20 +32,6 @@ WHERE
   ${blockHash ? 'b.hash = $2' : '$2 = $2'}
 LIMIT 1
 `;
-
-export interface FindTransaction {
-  hash: Buffer;
-  blockHash: Buffer;
-  fee: string;
-  size: number;
-  scriptSize: number;
-  validContract: boolean;
-}
-
-export interface CurrencyId {
-  symbol: string;
-  policy: string;
-}
 
 const currenciesQuery = (currencies: CurrencyId[]): string =>
   `SELECT tx_out_id 
@@ -131,7 +118,7 @@ LEFT JOIN ma_tx_out as source_ma_tx_out
   ON source_ma_tx_out.tx_out_id = source_tx_out.id
 WHERE
   tx.hash = ANY ($1)
-ORDER BY policy, name`;
+ORDER BY policy, name, id`;
 
 const findGenesisBlock = `
 SELECT

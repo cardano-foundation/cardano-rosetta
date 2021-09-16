@@ -438,4 +438,14 @@ The rationale behind that decision can be found [here](https://community.rosetta
 
 The same approach has been used to encode the operations that contain a staking key, since they couldn't be decoded otherwise.
 
-Transaction's metadata, needed for example for vote registration operations, is also encoded as extra data.
+Transaction's metadata, needed for example for vote registration operations, is also encoded as extra data. 
+
+## `/search/transactions`
+
+This API can be disabled by setting `DISABLE_SEARCH_API` env variable to `t`, `true` or 1
+
+Max amount of transactions allowed to be requested is defined by `PAGE_SIZE` env variable, which is the same used at `/block/transaction` endpoint. Also, this value will be used if no limit parameter is received.
+
+How it works:
+`status` and `success` filters are equivalent. If they are both setted and they don't match an error will be thrown. In the same way works `address` and `account_identifier.address`.
+`status` and `maxBlock`filters work as excluding filters, if they are setted, besides operator value.

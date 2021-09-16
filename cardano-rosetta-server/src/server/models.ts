@@ -23,6 +23,43 @@ export interface BlockIdentifier {
   hash: string;
 }
 
+export interface FindTransaction {
+  hash: Buffer;
+  blockHash: Buffer;
+  blockNo: number;
+  fee: string;
+  size: number;
+  scriptSize: number;
+  validContract: boolean;
+}
+
+export interface CoinIdentifier {
+  hash: string;
+  index: string;
+}
+
+export interface CurrencyId {
+  symbol: string;
+  policy: string;
+}
+
+export interface SearchFilters {
+  maxBlock?: number;
+  operator: Components.Schemas.Operator;
+  status?: boolean;
+  type?: string;
+  coinIdentifier?: CoinIdentifier;
+  currencyIdentifier?: CurrencyId;
+  transactionHash?: string;
+  address?: string;
+  limit: number;
+  offset: number;
+}
+
+export interface TotalCount {
+  totalCount: number;
+}
+
 export interface FindTransactionWithToken extends FindTransactionInOutResult {
   policy: Buffer;
   name: Buffer;
@@ -141,10 +178,16 @@ export interface Delegation {
 export interface Transaction {
   hash: string;
   blockHash: string;
+  blockNo: number;
   fee: string;
   size: number;
   validContract: boolean;
   scriptSize: number;
+}
+
+export interface TransactionCount {
+  totalCount: number;
+  transactions: Transaction[];
 }
 
 export interface PopulatedTransaction extends Transaction {

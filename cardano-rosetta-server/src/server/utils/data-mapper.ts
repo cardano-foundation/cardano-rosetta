@@ -1,6 +1,5 @@
 /* eslint-disable camelcase */
 
-import { AuxiliaryData } from 'cardano-serialization-lib';
 import cbor from 'cbor';
 import {
   BalanceAtBlock,

@@ -6,11 +6,16 @@ import {
   ASSET_NAME_LENGTH,
   POLICY_ID_LENGTH,
   CatalystDataIndexes,
-  CatalystSigIndexes
+  CatalystSigIndexes,
+  SUCCESS_OPERATION_STATE,
+  INVALID_OPERATION_STATE,
+  OPERATIONS_STATUSES,
+  OPERATION_TYPES
 } from './constants';
 import { ErrorFactory } from './errors';
 import { hexStringToBuffer, isEmptyHexString } from './formatters';
 import CardanoWasm from 'cardano-serialization-lib';
+import { CoinIdentifier } from '../models';
 
 const tokenNameValidation = new RegExp(`^[0-9a-fA-F]{0,${ASSET_NAME_LENGTH}}$`);
 
@@ -65,4 +70,62 @@ export const isVoteSignatureValid = (jsonObject: any): boolean => {
   const isObject = typeof jsonObject === 'object';
   const dataIndexes = Object.keys(CatalystSigIndexes).filter(key => parseInt(key) > 0);
   return isObject && dataIndexes.every(index => index in jsonObject);
+};
+
+const validateStatus = (status: string): void => {
+  const isValid = OPERATIONS_STATUSES.some(opStatus => opStatus === status);
+  if (!isValid) {
+    throw ErrorFactory.invalidOperationStatus(`Given status is ${status}`);
+  }
+};
+
+const getOperationState = (status: string) => {
+  if (status === SUCCESS_OPERATION_STATE.status) return SUCCESS_OPERATION_STATE;
+  return INVALID_OPERATION_STATE;
+};
+
+const validateAndGetOperationState = (status: string, success?: boolean): Components.Schemas.OperationStatus => {
+  const operationState = getOperationState(status);
+  if (success === undefined) return operationState;
+  if (success !== operationState.successful) throw ErrorFactory.statusAndSuccessMatchError();
+  return operationState;
+};
+
+export const validateAndGetStatus = (status?: string, success?: boolean): boolean | undefined => {
+  const isStatusUndefined = status === undefined;
+  const isSuccessUndefined = success === undefined;
+
+  if (isStatusUndefined && isSuccessUndefined) return;
+  // eslint-disable-next-line consistent-return
+  if (isStatusUndefined && success !== undefined) return success;
+  if (status !== undefined) {
+    validateStatus(status);
+    const operationState = validateAndGetOperationState(status, success);
+    // eslint-disable-next-line consistent-return
+    return operationState.successful;
+  }
+};
+
+export const validateTransactionCoinMatch = (transactionHash?: string, coinIdentifier?: CoinIdentifier): void => {
+  if (transactionHash && coinIdentifier && transactionHash !== coinIdentifier.hash) {
+    throw ErrorFactory.txHashAndCoinNotMatchError();
+  }
+};
+
+export const validateAccountIdAddressMatch = (
+  address?: string,
+  accountIdentifier?: Components.Schemas.AccountIdentifier
+): void => {
+  if (address && accountIdentifier && address !== accountIdentifier.address) {
+    throw ErrorFactory.addressAndAccountIdNotMatchError(
+      `Address ${address} does not match account identifier's address ${accountIdentifier.address}`
+    );
+  }
+};
+
+export const validateOperationType = (type: string): void => {
+  const isValid = OPERATION_TYPES.some(opType => opType === type);
+  if (!isValid) {
+    throw ErrorFactory.invalidOperationTypeError();
+  }
 };

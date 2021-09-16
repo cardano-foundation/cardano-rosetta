@@ -3,22 +3,31 @@ import moment from 'moment';
 import { Pool, QueryResult } from 'pg';
 import {
   Block,
+  FindTransaction,
   FindTransactionWithToken,
   GenesisBlock,
   PolicyId,
   PopulatedTransaction,
   Token,
   Transaction,
+  TransactionCount,
   TransactionInOut,
   TransactionPoolRegistrations,
   Utxo,
-  MaBalance
+  MaBalance,
+  TotalCount,
+  SearchFilters
 } from '../models';
 import { LinearFeeParameters } from '../services/cardano-services';
-import { hexStringToBuffer, hexFormatter, isEmptyHexString, remove0xPrefix } from '../utils/formatters';
+import {
+  hexStringToBuffer,
+  hexFormatter,
+  isEmptyHexString,
+  remove0xPrefix,
+  coinIdentifierFormatter
+} from '../utils/formatters';
 import Queries, {
   FindBalance,
-  FindTransaction,
   FindTransactionDelegations,
   FindTransactionDeregistrations,
   FindTransactionFieldResult,
@@ -35,8 +44,17 @@ import Queries, {
   FindUtxo,
   FindMaBalance
 } from './queries/blockchain-queries';
-import { CatalystDataIndexes, CatalystSigIndexes } from '../utils/constants';
-import { isVoteDataValid, isVoteSignatureValid } from '../utils/validations';
+import SearchQueries from './queries/search-transactions-queries';
+import { ADA, CatalystDataIndexes, CatalystSigIndexes, OperatorType } from '../utils/constants';
+import {
+  isVoteDataValid,
+  isVoteSignatureValid,
+  validateAndGetStatus,
+  validateTransactionCoinMatch,
+  validateAccountIdAddressMatch,
+  validateOperationType,
+  validateCurrencies
+} from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
 
 export interface BlockchainRepository {
@@ -116,6 +134,16 @@ export interface BlockchainRepository {
    * @param blockIdentifier block information, when value is not undefined balance should be count till requested block
    */
   findBalanceByAddressAndBlock(logger: Logger, address: string, blockHash: string): Promise<string>;
+  /**
+   * Returns if any, the transactions matches the requested filters
+   * @param filters conditions to filter transactions by
+   */
+  findTransactionsByFilters(
+    logger: Logger,
+    parameters: Components.Schemas.SearchTransactionsRequest,
+    limit: number,
+    offset: number
+  ): Promise<TransactionCount>;
 }
 
 /**
@@ -124,12 +152,18 @@ export interface BlockchainRepository {
 const parseTransactionRows = (result: QueryResult<FindTransaction>): Transaction[] =>
   result.rows.map(row => ({
     hash: hexFormatter(row.hash),
-    blockHash: row.blockHash && hexFormatter(row.blockHash),
+    blockHash: hexFormatter(row.blockHash),
+    blockNo: row.blockNo,
     fee: row.fee,
     size: row.size,
     scriptSize: row.scriptSize,
     validContract: row.validContract
   }));
+
+/**
+ * Maps from a total count query result to a number
+ */
+const parseTotalCount = (result: QueryResult<TotalCount>): number => result.rows[0].totalCount;
 
 /**
  * Creates a map of transactions where they key is the transaction hash
@@ -144,6 +178,7 @@ const mapTransactionsToDict = (transactions: Transaction[]): TransactionsMap =>
       [hash]: {
         hash,
         blockHash: transaction.blockHash,
+        blockNo: transaction.blockNo,
         fee: transaction.fee,
         size: transaction.size,
         scriptSize: transaction.scriptSize,
@@ -688,5 +723,60 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger.debug(`[findBalanceByAddressAndBlock] Found a balance of ${result.rows[0].balance}`);
 
     return result.rows[0].balance;
+  },
+  async findTransactionsByFilters(
+    logger: Logger,
+    conditions: Components.Schemas.SearchTransactionsRequest,
+    limit: number,
+    offset: number
+  ): Promise<TransactionCount> {
+    logger.debug('[findTransactionsByConditions] Conditions received to run the query ', {
+      conditions
+    });
+    const { type, status, success, operator, currency } = conditions;
+    const coinIdentifier = coinIdentifierFormatter(conditions?.coin_identifier?.identifier);
+    const transactionHash = conditions?.transaction_identifier?.hash;
+    const conditionsToQueryBy: SearchFilters = {
+      maxBlock: conditions?.max_block,
+      operator: operator ? operator : OperatorType.AND,
+      type,
+      coinIdentifier,
+      status: validateAndGetStatus(status, success),
+      transactionHash,
+      limit,
+      offset,
+      address: conditions.address || conditions.account_identifier?.address
+    };
+    validateTransactionCoinMatch(transactionHash, coinIdentifier);
+    validateAccountIdAddressMatch(conditions.address, conditions.account_identifier);
+    type && validateOperationType(type);
+    if (currency && currency.symbol !== ADA) {
+      validateCurrencies([currency]);
+      const currencyId = {
+        symbol: isEmptyHexString(currency.symbol) ? '' : currency.symbol,
+        policy: currency.metadata?.policyId
+      };
+      conditionsToQueryBy.currencyIdentifier = currencyId;
+    }
+    const { data: dataQuery, count: totalCountQuery } = SearchQueries.generateComposedQuery(conditionsToQueryBy);
+    logger.debug('[findTransactionsByConditions] About to search transactions');
+    const parameters = [];
+    if (transactionHash || coinIdentifier)
+      parameters.push(transactionHash ? hexStringToBuffer(transactionHash) : hexStringToBuffer(coinIdentifier!.hash));
+    const result: QueryResult<FindTransaction> = await databaseInstance.query(dataQuery, parameters);
+    logger.debug(`[findTransactionsByConditions] Found ${result.rowCount} transactions`);
+    const totalCountResult: QueryResult<TotalCount> = await databaseInstance.query(totalCountQuery, parameters);
+    const totalCount = parseTotalCount(totalCountResult);
+    logger.debug('[findTransactionsByConditions] Total count obtained ', totalCount);
+    if (result.rows.length > 0) {
+      return {
+        transactions: parseTransactionRows(result),
+        totalCount
+      };
+    }
+    return {
+      transactions: [],
+      totalCount
+    };
   }
 });

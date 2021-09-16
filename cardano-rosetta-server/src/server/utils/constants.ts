@@ -97,6 +97,8 @@ export const INVALID_OPERATION_STATE = {
   successful: false
 };
 
+export const OPERATIONS_STATUSES = Object.values(OperationTypeStatus);
+
 export enum AddressType {
   ENTERPRISE = 'Enterprise',
   BASE = 'Base',
@@ -132,3 +134,8 @@ export enum CatalystSigIndexes {
   VOTING_SIGNATURE = 1
 }
 /* eslint-disable no-magic-numbers */
+
+export enum OperatorType {
+  AND = 'and',
+  OR = 'or'
+}
