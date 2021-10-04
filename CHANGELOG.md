@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.5.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0...1.5.0) (2021-10-04)
+
+
+### Features
+
+* search transactions ([faf3652](https://github.com/input-output-hk/cardano-rosetta/commit/faf36526fcd0630f2c20e27f71f750356dbf6807))
+
+### Bug Fixes
+
+* byron address support ([f9e4fd4](https://github.com/input-output-hk/cardano-rosetta/commit/f9e4fd482dd92739f444cb8c8b162bde0c2d3af4))
+
 ## [1.4.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0-beta.1...1.4.0) (2021-08-28)
 
 
