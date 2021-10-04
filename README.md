@@ -39,21 +39,6 @@ docker build \
 
 </details>
 
-<details>
-  <summary>alonzo-purple</summary>
-
-```console
-DOCKER_BUILDKIT=1 \
-docker build \
-    --build-arg BUILDKIT_INLINE_CACHE=1 \
-    --build-arg NETWORK=alonzo-purple \
-    --cache-from=inputoutput/cardano-rosetta:master \
-    -t inputoutput/cardano-rosetta:1.4.0-alonzo-purple \
-    https://github.com/input-output-hk/cardano-rosetta.git#1.4.0
-```
-
-</details>
-
 ## Run
 Run the locally or pre-built images and mount a single volume into the [standard storage 
 location], map the server port to the host, and allocate a suitably-sized `/dev/shm`. See the 
@@ -83,20 +68,6 @@ docker run \
   -v cardano-rosetta-testnet:/data \
   --shm-size=2g \
   inputoutput/cardano-rosetta:1.4.0-testnet
-```
-
-</details>
-
-<details>
-  <summary>alonzo-purple</summary>
-
-```console
-docker run \
-  --name cardano-rosetta-alonzo-purple \
-  -p 8082:8080 \
-  -v cardano-rosetta-alonzo-purple:/data \
-  --shm-size=2g \
-  inputoutput/cardano-rosetta:1.4.0-alonzo-purple
 ```
 
 </details>

@@ -25,14 +25,6 @@ jobs:
           network-identifier: testnet
           tag: ${{ github.event.release.tag_name }}-testnet
           
-      - name: Build Cardano Rosetta - alonzo-purple
-        uses: ./.github/actions/build_cardano_rosetta
-        with:
-          build-cache-image: cardano-rosetta:${{ github.event.release.tag_name }}
-          build-context: ${{ github.workspace }}
-          network-identifier: alonzo-purple
-          tag: ${{ github.event.release.tag_name }}-alonzo-purple
-          
       - name: Smoke test Cardano Rosetta image
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
@@ -44,8 +36,7 @@ jobs:
           docker tag cardano-rosetta:${{ github.event.release.tag_name }} inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}
           docker tag cardano-rosetta:${{ github.event.release.tag_name }} inputoutput/cardano-rosetta:latest
           docker tag cardano-rosetta:${{ github.event.release.tag_name }}-testnet inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-testnet
-          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-alonzo-purple inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-alonzo-purple
-      
+
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -57,4 +48,3 @@ jobs:
           docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}
           docker push inputoutput/cardano-rosetta:latest
           docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-testnet
-          docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-alonzo-purple
