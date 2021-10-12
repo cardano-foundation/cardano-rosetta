@@ -16,7 +16,9 @@ Pool registration operations need, in addition, and **poolRegistrationParams** w
 
 The pool registration deposit amount is taken from protocol.
 
-The `rewardAddress` param represents the creator's reward address passed as a hex string. Also, the `poolOwners` params are the reward addresses as hex strings of each pool owner.
+The `rewardAddress` param represents the creator's reward address. Also, the `poolOwners` params are the reward addresses of each pool owner.
+
+The signature of `rewardAddress` and each pool owner signature given at `poolOwners` plus the signature done with cold keys will be required at `/construction/combine` endpoint in order to sign the transaction. Also, these signatures will be specifically requested at `/construction/payloads` response.
 
 ```json
 {
@@ -38,11 +40,11 @@ The `rewardAddress` param represents the creator's reward address passed as a he
       "metadata": {
         "poolRegistrationParams": {
           "vrfKeyHash": "8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0",
-          "rewardAddress": "e1bb40f1a647bc88c1bd6b738db8eb66357d926474ea5ffd6baa76c9fb",
+          "rewardAddress": "stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5",
           "pledge": "5000000",
           "cost": "3000000",
           "poolOwners": [
-            "e1be478158984c390c1b2b033195aeb0df22d688e7ef74422d3463fafa"
+            "stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er"
           ],
           "relays": [
             {
