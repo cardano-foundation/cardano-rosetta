@@ -3,6 +3,7 @@
   "EnableLogging": true,
   "NetworkName": "mainnet",
   "NodeConfigFile": "../cardano-node/config.json",
+  "PrometheusPort": 8080,
   "RequiresNetworkMagic": "RequiresNoMagic",
   "defaultBackends": [
     "KatipBK"
@@ -12,10 +13,6 @@
       "StdoutSK",
       "stdout"
     ]
-  ],
-  "hasPrometheus": [
-    "127.0.0.1",
-    12698
   ],
   "minSeverity": "Info",
   "options": {

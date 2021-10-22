@@ -20,6 +20,7 @@
   "TestEnableDevelopmentNetworkProtocols": false,
   "TestMaryHardForkAtEpoch": 3,
   "TestShelleyHardForkAtEpoch": 1,
+  "TraceAcceptPolicy": true,
   "TraceBlockFetchClient": false,
   "TraceBlockFetchDecisions": false,
   "TraceBlockFetchProtocol": false,
