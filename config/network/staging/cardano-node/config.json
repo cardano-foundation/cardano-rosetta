@@ -13,6 +13,7 @@
   "RequiresNetworkMagic": "RequiresNoMagic",
   "ShelleyGenesisFile": "../genesis/shelley.json",
   "ShelleyGenesisHash": "cbb0f57a001120ef11d97b943ce6953b75d26adc11dc68451e9dec7989a62c85",
+  "TraceAcceptPolicy": true,
   "TraceBlockFetchClient": false,
   "TraceBlockFetchDecisions": false,
   "TraceBlockFetchProtocol": false,

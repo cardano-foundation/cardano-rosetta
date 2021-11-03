@@ -15,6 +15,7 @@
   "ShelleyGenesisFile": "../genesis/shelley.json",
   "ShelleyGenesisHash": "85d1783750753deaa6560158eb85fcb30078ea32a36e12dd8af39168bc053d09",
   "TestShelleyHardForkAtEpoch": 2,
+  "TraceAcceptPolicy": true,
   "TraceBlockFetchClient": false,
   "TraceBlockFetchDecisions": false,
   "TraceBlockFetchProtocol": false,
