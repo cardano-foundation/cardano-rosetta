@@ -87,7 +87,7 @@
     "fastify-metrics": "5.0.0",
     "fastify-openapi-glue": "1.6.0",
     "http-status-codes": "1.4.0",
-    "moment": "2.27.0",
+    "moment": "2.29.2",
     "pg": "8.3.0",
     "temp-write": "4.0.0"
   },
