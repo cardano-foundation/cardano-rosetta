@@ -100,15 +100,34 @@ Default: `25`
 
 ### Upgrading
 As per the release notes, you **_may_** be required to refresh the state managed by 
-`cardano-db-sync`. This can be achieved without requiring a network re-sync using the following 
-command:
+`cardano-db-sync`. This can be achieved without requiring a network re-sync using one of the two 
+following approached:
 
+#### 1. Apply a Trusted `cardano-db-sync` Snapshot
+Run the build command with the addition of an argument providing a version and network-specific 
+link, sourced from the 
+`cardano-db-sync` [release 
+notes](https://github.com/input-output-hk/cardano-db-sync/releases). For example version 11 on 
+_testnet_, captured at block `3022711`:
+```
+--build-arg SNAPSHOT_URL=https://updates-cardano-testnet.s3.amazonaws.com/cardano-db-sync/11/db-sync-snapshot-schema-11-block-3022711-x86_64.tgz
+```
+... then start a container as per usual.
+
+:information_source: _The snapshot will not be applied if there is no prior `cardano-node` state,
+since the benefit of using the snapshot would be eliminated given `cardano-db-sync` would be
+rolling back to genesis. For best results, ensure the node is close to the network tip prior to
+upgrading._ 
+
+#### 2. Re-sync From Genesis
+A _trustless_ approach to rebuild the DB, by syncing from genesis at the cost of an extended sync 
+duration:
 ```console
 docker stop cardano-rosetta && \
 docker rm cardano-rosetta && \
 docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql /data/db-sync
 ```
-Now create a new container using the run instructions above. Sync progress will be logged by the new container. 
+... then start a container as per usual. Sync progress will be logged by the new container. 
 
 ## Documentation
 
