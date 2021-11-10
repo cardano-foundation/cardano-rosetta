@@ -65,7 +65,9 @@ elif [ "$MODE" == "online" ]; then
     else
       echo 'Skipping snapshot restoration as cardano-node will be syncing from genesis';
     fi
-  elif [ ! "$( gosu postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" )" = '1' ]; then
+  fi
+
+  if [ ! "$( gosu postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" )" = '1' ]; then
     echo 'Initializing DB';
     createDb
   fi
