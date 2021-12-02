@@ -1,10 +1,5 @@
 ARG UBUNTU_VERSION=20.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
-ARG CABAL_VERSION=3.2.0.0
-ARG CARDANO_NODE_VERSION=1.30.1
-ARG CARDANO_DB_SYNC_VERSION=11.0.4
-ARG GHC_VERSION=8.10.2
-ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
 ENV DEBIAN_FRONTEND=nonintercative
 RUN mkdir -p /app/src
 WORKDIR /app
@@ -27,7 +22,8 @@ RUN apt-get update -y && apt-get install -y \
   pkg-config=0.29.* \
   tmux=3.* \
   wget=1.20.* \
-  zlib1g-dev=1:1.2.*
+  zlib1g-dev=1:1.2.* \
+ARG CABAL_VERSION=3.2.0.0
 RUN wget --secure-protocol=TLSv1_2 \
   https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
   tar -xf cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
@@ -35,6 +31,7 @@ RUN wget --secure-protocol=TLSv1_2 \
   mv cabal /usr/local/bin/
 RUN cabal update
 WORKDIR /app/ghc
+ARG GHC_VERSION=8.10.2
 RUN wget --secure-protocol=TLSv1_2 \
   https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz &&\
   tar -xf ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz &&\
@@ -42,6 +39,7 @@ RUN wget --secure-protocol=TLSv1_2 \
 WORKDIR /app/ghc/ghc-${GHC_VERSION}
 RUN ./configure && make install
 WORKDIR /app/src
+ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
 RUN git clone https://github.com/input-output-hk/libsodium.git &&\
   cd libsodium &&\
   git fetch --all --tags &&\
@@ -51,6 +49,7 @@ RUN ./autogen.sh && ./configure && make && make install
 ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 ENV PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
 WORKDIR /app/src
+ARG CARDANO_NODE_VERSION=1.30.1
 RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
@@ -65,6 +64,7 @@ RUN cabal install cardano-cli \
   --installdir=/usr/local/bin \
   -f -systemd
 WORKDIR /app/src
+ARG CARDANO_DB_SYNC_VERSION=11.0.4
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
