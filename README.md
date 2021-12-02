@@ -72,6 +72,11 @@ docker run \
 
 </details>
 
+:information_source: _A trusted DB snapshot can be used to speed up the initial sync, however
+the internal instance of `cardano-node` must be synced past the snapshot point for it to be
+applied. This can be achieved by observing logs emitted from `cardano-node` indicating it's 
+close to the network tip, before then following the instructions in the [Upgrading section](#upgrading)._
+
 ### Configuration
 
 Set ENVs for optional runtime configuration
