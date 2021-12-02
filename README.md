@@ -72,6 +72,11 @@ docker run \
 
 </details>
 
+:information_source: _A trusted DB snapshot can be used to speed up the initial sync, however
+the internal instance of `cardano-node` must be synced past the snapshot point for it to be
+applied. This can be achieved by observing logs emitted from `cardano-node` indicating it's 
+close to the network tip, before then following the instructions in the [Upgrading section](#upgrading)._
+
 ### Configuration
 
 Set ENVs for optional runtime configuration
@@ -173,10 +178,10 @@ docker run \
 :information_source: _Build a new image as per the [standard build instructions] if you need to 
 recreate the container, otherwise the data will be dropped and restored again._
 
-:information_source: _The snapshot will not be applied if there is no prior `cardano-node` state,
-since the benefit of using it would be eliminated given `cardano-db-sync` rolls back to genesis 
-under these conditions. For best results, ensure the node is close to the network tip prior to
-upgrading._ 
+:information_source: _The snapshot will only be applied if `cardano-node` is synced past the 
+snapshot point, since the benefit of using it would be eliminated given `cardano-db-sync` rolls back
+to genesis under these conditions. For best results, ensure the node is close to the network tip
+prior to upgrading._ 
 
 #### 2. Re-sync From Genesis
 A _trustless_ approach to rebuild the DB, by syncing from genesis at the cost of an extended sync 
