@@ -49,7 +49,7 @@ RUN ./autogen.sh && ./configure && make && make install
 ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 ENV PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
 WORKDIR /app/src
-ARG CARDANO_NODE_VERSION=1.30.1
+ARG CARDANO_NODE_VERSION=1.31.0
 RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
@@ -64,7 +64,7 @@ RUN cabal install cardano-cli \
   --installdir=/usr/local/bin \
   -f -systemd
 WORKDIR /app/src
-ARG CARDANO_DB_SYNC_VERSION=11.0.4
+ARG CARDANO_DB_SYNC_VERSION=12.0.0
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
