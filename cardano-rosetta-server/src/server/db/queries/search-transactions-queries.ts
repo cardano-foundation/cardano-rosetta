@@ -220,8 +220,9 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
     const { policy, symbol } = currencyIdentifier;
     !coinIdentifier && joinTables.push('tx_out ON tx.id = tx_out.tx_id');
     joinTables.push(`ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id 
-                      AND ma_tx_out.name = DECODE('${symbol}', 'hex')
-                      AND ma_tx_out.policy = DECODE('${policy}', 'hex')`);
+                    JOIN multi_asset AS asset ON asset.id = ma_tx_out.ident
+                      AND asset.name = DECODE('${symbol}', 'hex')
+                      AND asset.policy = DECODE('${policy}', 'hex')`);
   }
   if (address) {
     const isStake = isStakeAddress(address);
@@ -362,8 +363,10 @@ const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters, isT
     ON tx_out.tx_id = tx.id
   JOIN ma_tx_out
     ON ma_tx_out.tx_out_id = tx_out.id
-      AND ma_tx_out.name = DECODE('${symbol}', 'hex')
-      AND ma_tx_out.policy = DECODE('${policy}', 'hex')`;
+  JOIN multi_asset asset
+    ON asset.id = ma_tx_out.ident
+      AND asset.name = DECODE('${symbol}', 'hex')
+      AND asset.policy = DECODE('${policy}', 'hex')`;
 
   const query = isTotalCount
     ? `SELECT COUNT(tx.id) AS "totalCount" ${text}`
@@ -469,8 +472,8 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
     whereConditions.push(`${coinIdentifier ? generateCoinWhere(coinIdentifier) : 'tx.hash =  $1'}`);
   }
   if (currencyIdentifier) {
-    whereConditions.push(`(ma_tx_out.name = DECODE('${currencyIdentifier.symbol}', 'hex') 
-    AND ma_tx_out.policy = DECODE('${currencyIdentifier.policy}', 'hex'))`);
+    whereConditions.push(`(asset.name = DECODE('${currencyIdentifier.symbol}', 'hex') 
+    AND asset.policy = DECODE('${currencyIdentifier.policy}', 'hex'))`);
   }
   if (address) {
     whereConditions.push(
@@ -497,7 +500,11 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
   ${generateCoinSelect(coinIdentifier, maxBlock, status, txOutAlreadyJoined)}
   ${generateAddressSelect(address, coinIdentifier, txOutAlreadyJoined)}
   ${currencyIdentifier && !txOutAlreadyJoined && !address ? 'LEFT JOIN tx_out ON tx_out.tx_id = tx.id' : ''}
-  ${currencyIdentifier ? 'LEFT JOIN ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id' : ''}
+  ${
+    currencyIdentifier
+      ? 'LEFT JOIN ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id LEFT JOIN multi_asset asset ON asset.id = ma_tx_out.ident'
+      : ''
+  }
   ${whereClause}
   `;
 

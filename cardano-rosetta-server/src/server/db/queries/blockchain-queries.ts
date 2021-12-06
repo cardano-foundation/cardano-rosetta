@@ -1,5 +1,5 @@
-import {CatalystLabels} from '../../utils/constants';
-import {CurrencyId} from '../../models';
+import { CatalystLabels } from '../../utils/constants';
+import { CurrencyId } from '../../models';
 
 const findBlock = (blockNumber?: number, blockHash?: string): string => `
 SELECT 
@@ -34,10 +34,11 @@ LIMIT 1
 `;
 
 const currenciesQuery = (currencies: CurrencyId[]): string =>
-  `SELECT tx_out_id
+  `SELECT 
+    tx_out_id
    FROM ma_tx_out
    JOIN multi_asset as asset
-   ON asset.id = ma_tx_out.ident
+    ON asset.id = ma_tx_out.ident
    WHERE (${currencies
      .map(
        ({ symbol, policy }) => `asset.name = DECODE('${symbol}', 'hex') AND asset.policy = DECODE('${policy}', 'hex')`
@@ -120,7 +121,7 @@ JOIN tx as source_tx
   ON source_tx_out.tx_id = source_tx.id
 LEFT JOIN ma_tx_out as source_ma_tx_out
   ON source_ma_tx_out.tx_out_id = source_tx_out.id
-JOIN multi_asset as asset
+LEFT JOIN multi_asset as asset
   ON asset.id = source_ma_tx_out.ident
 WHERE
   tx.hash = ANY ($1)
@@ -155,7 +156,7 @@ JOIN tx_out
   ON tx.id = tx_out.tx_id
 LEFT JOIN ma_tx_out
   ON ma_tx_out.tx_out_id = tx_out.id
-JOIN multi_asset as asset
+LEFT JOIN multi_asset as asset
   ON asset.id = ma_tx_out.ident
 WHERE
   tx.hash = ANY ($1)
@@ -446,10 +447,10 @@ const findUtxoByAddressAndBlock = (currencies?: CurrencyId[]): string => `
     ma_tx_out.quantity
   FROM utxo
   LEFT JOIN ma_tx_out
-  ON ma_tx_out.tx_out_id = utxo.tx_out_id 
+    ON ma_tx_out.tx_out_id = utxo.tx_out_id 
+  LEFT JOIN multi_asset as asset
+    ON asset.id = ma_tx_out.ident
     ${currencies && currencies.length > 0 ? `WHERE utxo.tx_out_id IN (${currenciesQuery(currencies)})` : ''}
-  JOIN multi_asset as asset
-  ON asset.id = ma_tx_out.ident
   ORDER BY
     utxo."txHash", utxo.index, asset.policy, asset.name
 `;
