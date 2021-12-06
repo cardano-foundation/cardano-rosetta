@@ -168,7 +168,7 @@ describe('/search/transactions endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: searchTransactionsWithNoFilter,
-      total_count: 33458,
+      total_count: 33774,
       next_offset: 2
     });
   });
@@ -181,7 +181,7 @@ describe('/search/transactions endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: searchTransactionsWithNoFilter,
-      total_count: 33458,
+      total_count: 33774,
       next_offset: 2
     });
   });
@@ -189,12 +189,12 @@ describe('/search/transactions endpoint', () => {
     const response = await server.inject({
       method: 'post',
       url: SEARCH_TRANSACTIONS_ENDPOINT,
-      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33457, limit: 2 })
+      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33773, limit: 2 })
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: searchLastTxWithNoFilters,
-      total_count: 33458
+      total_count: 33774
     });
   });
   test('Should correctly apply max block filter', async () => {
@@ -237,24 +237,24 @@ describe('/search/transactions endpoint', () => {
     const response = await server.inject({
       method: 'post',
       url: SEARCH_TRANSACTIONS_ENDPOINT,
-      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33458, limit: 2 })
+      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33774, limit: 2 })
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: [],
-      total_count: 33458
+      total_count: 33774
     });
   });
   test('Should not bring transactions when the offset is bigger than the total_count', async () => {
     const response = await server.inject({
       method: 'post',
       url: SEARCH_TRANSACTIONS_ENDPOINT,
-      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33460, limit: 2 })
+      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33776, limit: 2 })
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: [],
-      total_count: 33458
+      total_count: 33774
     });
   });
   test('Should throw an error when status and success fields does not match', async () => {
@@ -591,7 +591,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTransactionsWithNoFilter,
-        total_count: 33458,
+        total_count: 33774,
         next_offset: 2
       });
     });
@@ -785,7 +785,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithInputFilter,
-        total_count: 18953,
+        total_count: 19269,
         next_offset: 2
       });
     });
@@ -802,7 +802,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithInputBlockFilter,
-        total_count: 18935,
+        total_count: 19251,
         next_offset: 2
       });
     });
@@ -820,7 +820,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithInputBlockFilter,
-        total_count: 18935,
+        total_count: 19251,
         next_offset: 2
       });
     });
@@ -870,7 +870,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithOutputFilter,
-        total_count: 33458,
+        total_count: 33774,
         next_offset: 2
       });
     });
@@ -887,7 +887,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithOutputBlockFilter,
-        total_count: 18935,
+        total_count: 19251,
         next_offset: 2
       });
     });
@@ -906,7 +906,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithOutputBlockFilter,
-        total_count: 18935,
+        total_count: 19251,
         next_offset: 2
       });
     });
@@ -1832,7 +1832,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxsWithAllFiltersAndInputsOrOperator,
-        total_count: 18901,
+        total_count: 19217,
         next_offset: 2
       });
     });
@@ -1855,7 +1855,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxsWithAllFiltersAndInputsOrOperator,
-        total_count: 18901,
+        total_count: 19217,
         next_offset: 2
       });
     });

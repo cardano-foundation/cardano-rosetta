@@ -764,14 +764,14 @@ export const transactionWithPoolRegistrationWithMultipleOwners = {
         operation_identifier: { index: 1 },
         type: 'stakeDelegation',
         status: 'success',
-        account: { address: 'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray' },
+        account: { address: 'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu' },
         metadata: { pool_key_hash: '8a1ab06f3a8c823b7111955c287efbe3c96ad9a68aa2359832e0bc30' }
       },
       {
         operation_identifier: { index: 2 },
         type: 'stakeDelegation',
         status: 'success',
-        account: { address: 'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu' },
+        account: { address: 'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray' },
         metadata: { pool_key_hash: '8a1ab06f3a8c823b7111955c287efbe3c96ad9a68aa2359832e0bc30' }
       },
       {
@@ -787,8 +787,8 @@ export const transactionWithPoolRegistrationWithMultipleOwners = {
             pledge: '500000000',
             cost: '340000000',
             poolOwners: [
-              'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu',
-              'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray'
+              'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray',
+              'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu'
             ],
             relays: [],
             margin_percentage: '0.042'
@@ -7170,7 +7170,7 @@ export const searchFilteredByTxHash = [
         },
         {
           account: {
-            address: 'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray'
+            address: 'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu'
           },
           metadata: {
             pool_key_hash: '8a1ab06f3a8c823b7111955c287efbe3c96ad9a68aa2359832e0bc30'
@@ -7183,7 +7183,7 @@ export const searchFilteredByTxHash = [
         },
         {
           account: {
-            address: 'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu'
+            address: 'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray'
           },
           metadata: {
             pool_key_hash: '8a1ab06f3a8c823b7111955c287efbe3c96ad9a68aa2359832e0bc30'
@@ -7211,8 +7211,8 @@ export const searchFilteredByTxHash = [
               margin_percentage: '0.042',
               pledge: '500000000',
               poolOwners: [
-                'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu',
-                'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray'
+                'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray',
+                'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu'
               ],
               relays: [],
               rewardAddress: 'e1d1c53050b2a78d5e01bf1b7fc43aef37e9b685ec812414417bf8c360',
@@ -11650,7 +11650,7 @@ export const searchTxWithPoolRegistrationBlockFilters = [
         },
         {
           account: {
-            address: 'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray'
+            address: 'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu'
           },
           metadata: {
             pool_key_hash: '8a1ab06f3a8c823b7111955c287efbe3c96ad9a68aa2359832e0bc30'
@@ -11663,7 +11663,7 @@ export const searchTxWithPoolRegistrationBlockFilters = [
         },
         {
           account: {
-            address: 'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu'
+            address: 'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray'
           },
           metadata: {
             pool_key_hash: '8a1ab06f3a8c823b7111955c287efbe3c96ad9a68aa2359832e0bc30'
@@ -11674,6 +11674,7 @@ export const searchTxWithPoolRegistrationBlockFilters = [
           status: 'success',
           type: 'stakeDelegation'
         },
+
         {
           account: {
             address: '8a1ab06f3a8c823b7111955c287efbe3c96ad9a68aa2359832e0bc30'
@@ -11691,8 +11692,8 @@ export const searchTxWithPoolRegistrationBlockFilters = [
               margin_percentage: '0.042',
               pledge: '500000000',
               poolOwners: [
-                'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu',
-                'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray'
+                'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray',
+                'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu'
               ],
               relays: [],
               rewardAddress: 'e1d1c53050b2a78d5e01bf1b7fc43aef37e9b685ec812414417bf8c360',
