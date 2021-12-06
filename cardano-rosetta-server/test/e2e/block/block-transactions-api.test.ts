@@ -37,13 +37,9 @@ const generatePayload = (index?: number, hash?: string, blockchain?: string, net
 describe('/block/transactions endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
-  let alonzoDatabase: Pool;
-  let serverWithAlonzoSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
-    alonzoDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'purple');
-    serverWithAlonzoSupport = setupServer(alonzoDatabase);
   });
 
   afterAll(async () => {
@@ -328,26 +324,27 @@ describe('/block/transactions endpoint', () => {
     expect(response.json()).toEqual(transactionWithPoolRegistrationWithMultipleOwners);
   });
 
-  test('should return operation status as invalid when there is an invalid transaction', async () => {
-    const invalidTxHash = '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c';
-    const blockNumber = 25050;
-    const blockHash = '1f58250b82bc7c7c408028ba01173bdfa37fc82dde34060c5b49a3ea644d9439';
+  // TODO: deprecated. pending to be implemented
+  // test('should return operation status as invalid when there is an invalid transaction', async () => {
+  //   const invalidTxHash = '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c';
+  //   const blockNumber = 25050;
+  //   const blockHash = '1f58250b82bc7c7c408028ba01173bdfa37fc82dde34060c5b49a3ea644d9439';
 
-    const response = await serverWithAlonzoSupport.inject({
-      method: 'post',
-      url: BLOCK_TRANSACTION_ENDPOINT,
-      payload: {
-        ...generatePayload(blockNumber, blockHash),
-        // eslint-disable-next-line camelcase
-        transaction_identifier: {
-          hash: invalidTxHash
-        }
-      }
-    });
+  //   const response = await serverWithAlonzoSupport.inject({
+  //     method: 'post',
+  //     url: BLOCK_TRANSACTION_ENDPOINT,
+  //     payload: {
+  //       ...generatePayload(blockNumber, blockHash),
+  //       // eslint-disable-next-line camelcase
+  //       transaction_identifier: {
+  //         hash: invalidTxHash
+  //       }
+  //     }
+  //   });
 
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual(invalidAlonzoTransaction);
-  });
+  //   expect(response.statusCode).toEqual(StatusCodes.OK);
+  //   expect(response.json()).toEqual(invalidAlonzoTransaction);
+  // });
 
   test('should return vote registration operations', async () => {
     const txHash = 'adeb7b6845f3f4b0e74275588412cf00912b615e4bbf76d111326ce899260c59';
