@@ -16,10 +16,10 @@ build with local source by replacing the GitHub link with `.`
 ```console
 DOCKER_BUILDKIT=1 \
 docker build \
-    --build-arg BUILDKIT_INLINE_CACHE=1 \
-    --cache-from=inputoutput/cardano-rosetta:master \
-    -t inputoutput/cardano-rosetta:1.5.0 \
-    https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --cache-from=inputoutput/cardano-rosetta:master \
+  -t inputoutput/cardano-rosetta:1.5.0 \
+  https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
 ```
 
 </details>
@@ -30,11 +30,11 @@ docker build \
 ```console
 DOCKER_BUILDKIT=1 \
 docker build \
-    --build-arg BUILDKIT_INLINE_CACHE=1 \
-    --build-arg NETWORK=testnet \
-    --cache-from=inputoutput/cardano-rosetta:master \
-    -t inputoutput/cardano-rosetta:1.5.0-testnet \
-    https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg NETWORK=testnet \
+  --cache-from=inputoutput/cardano-rosetta:master \
+  -t inputoutput/cardano-rosetta:1.5.0-testnet \
+  https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
 ```
 
 </details>
@@ -72,6 +72,11 @@ docker run \
 
 </details>
 
+:information_source: _A trusted DB snapshot can be used to speed up the initial sync, however
+the internal instance of `cardano-node` must be synced past the snapshot point for it to be
+applied. This can be achieved by observing logs emitted from `cardano-node` indicating it's 
+close to the network tip, before then following the instructions in the [Upgrading section](#upgrading)._
+
 ### Configuration
 
 Set ENVs for optional runtime configuration
@@ -100,15 +105,93 @@ Default: `25`
 
 ### Upgrading
 As per the release notes, you **_may_** be required to refresh the state managed by 
-`cardano-db-sync`. This can be achieved without requiring a network re-sync using the following 
-command:
+`cardano-db-sync`. This can be achieved without requiring a network re-sync using one of the two 
+following approached:
 
+#### 1. Apply a Trusted `cardano-db-sync` Snapshot
+Run the build command with the addition of an argument providing a version and network-specific 
+link, sourced from the `cardano-db-sync` [release notes](https://github.com/input-output-hk/cardano-db-sync/releases).
+For example:
+
+##### Build
+<details open>
+  <summary>mainnet</summary>
+
+```console
+DOCKER_BUILDKIT=1 \
+docker build \
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/11/db-sync-snapshot-schema-11-block-6426045-x86_64.tgz \
+  --cache-from=inputoutput/cardano-rosetta:master \
+  -t inputoutput/cardano-rosetta:1.5.0-apply-snapshot \
+  https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
+```
+
+</details>
+
+<details>
+  <summary>testnet</summary>
+
+```console
+DOCKER_BUILDKIT=1 \
+docker build \
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg NETWORK=testnet \
+  --build-arg SNAPSHOT_URL=https://updates-cardano-testnet.s3.amazonaws.com/cardano-db-sync/11/db-sync-snapshot-schema-11-block-3022711-x86_64.tgz \
+  --cache-from=inputoutput/cardano-rosetta:master \
+  -t inputoutput/cardano-rosetta:1.5.0-testnet-apply-snapshot \
+  https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
+```
+
+</details>
+
+##### Run
+
+<details open>
+  <summary>mainnet</summary>
+
+```console
+docker run \
+  --name cardano-rosetta \
+  -p 8080:8080 \
+  -v cardano-rosetta:/data \
+  --shm-size=2g \
+  inputoutput/cardano-rosetta:1.5.0-apply-snapshot
+```
+
+</details>
+
+<details>
+  <summary>testnet</summary>
+
+```console
+docker run \
+  --name cardano-rosetta-testnet \
+  -p 8081:8080 \
+  -v cardano-rosetta-testnet:/data \
+  --shm-size=2g \
+  inputoutput/cardano-rosetta:1.5.0-testnet-apply-snapshot
+```
+
+</details>
+
+:information_source: _Build a new image as per the [standard build instructions] if you need to 
+recreate the container, otherwise the data will be dropped and restored again._
+
+:information_source: _The snapshot will only be applied if `cardano-node` is synced past the 
+snapshot point, since the benefit of using it would be eliminated given `cardano-db-sync` rolls back
+to genesis under these conditions. For best results, ensure the node is close to the network tip
+prior to upgrading._ 
+
+#### 2. Re-sync From Genesis
+A _trustless_ approach to rebuild the DB, by syncing from genesis at the cost of an extended sync 
+duration:
 ```console
 docker stop cardano-rosetta && \
 docker rm cardano-rosetta && \
 docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql /data/db-sync
 ```
-Now create a new container using the run instructions above. Sync progress will be logged by the new container. 
+... then start a container as per usual. Sync progress will be logged by the new container. 
 
 ## Documentation
 
@@ -141,6 +224,7 @@ Now create a new container using the run instructions above. Sync progress will 
 [Docker run reference]: https://docs.docker.com/engine/reference/run/
 [modes]: https://www.rosetta-api.org/docs/node_deployment.html#multiple-modes
 [docs]: cardano-rosetta-server/README.md
+[standard build instructions]: #build
 [Construction API Documentation]: https://www.rosetta-api.org/docs/construction_api_introduction.html
 [Data API Documentation]: https://www.rosetta-api.org/docs/data_api_introduction.html
 [Cardano Rosetta Docs]: ./docs
