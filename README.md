@@ -18,8 +18,8 @@ DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:1.5.0 \
-  https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
+  -t inputoutput/cardano-rosetta:1.6.0 \
+  https://github.com/input-output-hk/cardano-rosetta.git#1.6.0
 ```
 
 </details>
@@ -33,8 +33,8 @@ docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=testnet \
   --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:1.5.0-testnet \
-  https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
+  -t inputoutput/cardano-rosetta:1.6.0-testnet \
+  https://github.com/input-output-hk/cardano-rosetta.git#1.6.0
 ```
 
 </details>
@@ -53,7 +53,7 @@ docker run \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:1.5.0
+  inputoutput/cardano-rosetta:1.6.0
 ```
 
 </details>
@@ -67,7 +67,7 @@ docker run \
   -p 8081:8080 \
   -v cardano-rosetta-testnet:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:1.5.0-testnet
+  inputoutput/cardano-rosetta:1.6.0-testnet
 ```
 
 </details>
@@ -123,8 +123,8 @@ docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/11/db-sync-snapshot-schema-11-block-6426045-x86_64.tgz \
   --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:1.5.0-apply-snapshot \
-  https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
+  -t inputoutput/cardano-rosetta:1.6.0-apply-snapshot \
+  https://github.com/input-output-hk/cardano-rosetta.git#1.6.0
 ```
 
 </details>
@@ -139,8 +139,8 @@ docker build \
   --build-arg NETWORK=testnet \
   --build-arg SNAPSHOT_URL=https://updates-cardano-testnet.s3.amazonaws.com/cardano-db-sync/11/db-sync-snapshot-schema-11-block-3022711-x86_64.tgz \
   --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:1.5.0-testnet-apply-snapshot \
-  https://github.com/input-output-hk/cardano-rosetta.git#1.5.0
+  -t inputoutput/cardano-rosetta:1.6.0-testnet-apply-snapshot \
+  https://github.com/input-output-hk/cardano-rosetta.git#1.6.0
 ```
 
 </details>
@@ -156,7 +156,7 @@ docker run \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:1.5.0-apply-snapshot
+  inputoutput/cardano-rosetta:1.6.0-apply-snapshot
 ```
 
 </details>
@@ -170,7 +170,7 @@ docker run \
   -p 8081:8080 \
   -v cardano-rosetta-testnet:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:1.5.0-testnet-apply-snapshot
+  inputoutput/cardano-rosetta:1.6.0-testnet-apply-snapshot
 ```
 
 </details>

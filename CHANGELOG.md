@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.6.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0...1.6.0) (2021-12-08)
+
+
+### Features
+
+* cardano-db-sync snapshot restoration ([55aa8ec](https://github.com/input-output-hk/cardano-rosetta/commit/55aa8ece86daf63e6c29160f7305d2d3539bac20))
+
+
+### Bug Fixes
+
+* changed Dockerfile gosu gpg keyserver as it was randomly failing ([8c29315](https://github.com/input-output-hk/cardano-rosetta/commit/8c29315e28e7ab2608bea75b017c3f0127532c0f))
+* ensure DB is always created, enhance docs ([1529731](https://github.com/input-output-hk/cardano-rosetta/commit/1529731f131bd222f72c98d5e92e2653f6a2c715))
+
 ## [1.5.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0...1.5.0) (2021-10-04)
 
 
