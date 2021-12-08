@@ -34,10 +34,15 @@ LIMIT 1
 `;
 
 const currenciesQuery = (currencies: CurrencyId[]): string =>
-  `SELECT tx_out_id 
-   FROM ma_tx_out 
+  `SELECT 
+    tx_out_id
+   FROM ma_tx_out
+   JOIN multi_asset as asset
+    ON asset.id = ma_tx_out.ident
    WHERE (${currencies
-     .map(({ symbol, policy }) => `name = DECODE('${symbol}', 'hex') AND policy = DECODE('${policy}', 'hex')`)
+     .map(
+       ({ symbol, policy }) => `asset.name = DECODE('${symbol}', 'hex') AND asset.policy = DECODE('${policy}', 'hex')`
+     )
      .join('OR ')})`;
 
 // AND (block.block_no = $2 OR (block.block_no is null AND $2 = 0))
@@ -102,8 +107,8 @@ const findTransactionsInputs = `SELECT
   tx.hash as "txHash",
   source_tx.hash as "sourceTxHash",
   tx_in.tx_out_index as "sourceTxIndex",
-  source_ma_tx_out.policy as policy,
-  source_ma_tx_out.name as name,
+  asset.policy as policy,
+  asset.name as name,
   source_ma_tx_out.quantity as quantity
 FROM
   tx
@@ -116,6 +121,8 @@ JOIN tx as source_tx
   ON source_tx_out.tx_id = source_tx.id
 LEFT JOIN ma_tx_out as source_ma_tx_out
   ON source_ma_tx_out.tx_out_id = source_tx_out.id
+LEFT JOIN multi_asset as asset
+  ON asset.id = source_ma_tx_out.ident
 WHERE
   tx.hash = ANY ($1)
 ORDER BY policy, name, id`;
@@ -141,14 +148,16 @@ SELECT
   value,
   tx.hash as "txHash",
   index,
-  ma_tx_out.policy as policy,
-  ma_tx_out.name as name,
+  asset.policy as policy,
+  asset.name as name,
   ma_tx_out.quantity as quantity
 FROM tx
 JOIN tx_out
   ON tx.id = tx_out.tx_id
 LEFT JOIN ma_tx_out
   ON ma_tx_out.tx_out_id = tx_out.id
+LEFT JOIN multi_asset as asset
+  ON asset.id = ma_tx_out.ident
 WHERE
   tx.hash = ANY ($1)
 ORDER BY 
@@ -433,29 +442,33 @@ const findUtxoByAddressAndBlock = (currencies?: CurrencyId[]): string => `
     utxo.value,
     utxo."txHash",
     utxo.index,
-    ma_tx_out.name as "name",
-    ma_tx_out.policy as "policy",
+    asset.name as "name",
+    asset.policy as "policy",
     ma_tx_out.quantity
   FROM utxo
-  LEFT JOIN ma_tx_out 
-  ON ma_tx_out.tx_out_id = utxo.tx_out_id 
+  LEFT JOIN ma_tx_out
+    ON ma_tx_out.tx_out_id = utxo.tx_out_id 
+  LEFT JOIN multi_asset as asset
+    ON asset.id = ma_tx_out.ident
     ${currencies && currencies.length > 0 ? `WHERE utxo.tx_out_id IN (${currenciesQuery(currencies)})` : ''}
   ORDER BY
-    utxo."txHash", utxo.index, ma_tx_out.policy, ma_tx_out.name
+    utxo."txHash", utxo.index, asset.policy, asset.name
 `;
 
 const findMaBalanceByAddressAndBlock = `
   ${utxoQuery}
   SELECT
-      ma_tx_out.name as "name",
-      ma_tx_out.policy as "policy",
+      asset.name as "name",
+      asset.policy as "policy",
       SUM(ma_tx_out.quantity) as value
   FROM utxo
       LEFT JOIN ma_tx_out 
-      ON ma_tx_out.tx_out_id = utxo.tx_out_id 
-  WHERE ma_tx_out.policy IS NOT NULL
-  GROUP  BY ma_tx_out.name, ma_tx_out.policy
-  ORDER BY ma_tx_out.policy, ma_tx_out.name
+      ON ma_tx_out.tx_out_id = utxo.tx_out_id
+  JOIN multi_asset as asset
+  ON asset.id = ma_tx_out.ident
+  WHERE asset.policy IS NOT NULL
+  GROUP  BY asset.name, asset.policy
+  ORDER BY asset.policy, asset.name
 `;
 
 const findBalanceByAddressAndBlock = `

@@ -168,7 +168,7 @@ describe('/search/transactions endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: searchTransactionsWithNoFilter,
-      total_count: 33458,
+      total_count: 33774,
       next_offset: 2
     });
   });
@@ -181,7 +181,7 @@ describe('/search/transactions endpoint', () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: searchTransactionsWithNoFilter,
-      total_count: 33458,
+      total_count: 33774,
       next_offset: 2
     });
   });
@@ -189,12 +189,12 @@ describe('/search/transactions endpoint', () => {
     const response = await server.inject({
       method: 'post',
       url: SEARCH_TRANSACTIONS_ENDPOINT,
-      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33457, limit: 2 })
+      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33773, limit: 2 })
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: searchLastTxWithNoFilters,
-      total_count: 33458
+      total_count: 33774
     });
   });
   test('Should correctly apply max block filter', async () => {
@@ -209,52 +209,54 @@ describe('/search/transactions endpoint', () => {
       total_count: 2
     });
   });
-  test('Should bring transactions that did not succeeded', async () => {
-    const response = await serverWithAlonzoSupport.inject({
-      method: 'post',
-      url: SEARCH_TRANSACTIONS_ENDPOINT,
-      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { success: false, limit: 2 })
-    });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual({
-      transactions: searchNotSucceededTx,
-      total_count: 1
-    });
-  });
-  test('Should bring transactions with invalid status', async () => {
-    const response = await serverWithAlonzoSupport.inject({
-      method: 'post',
-      url: SEARCH_TRANSACTIONS_ENDPOINT,
-      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { status: INVALID_STATUS, limit: 2 })
-    });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json()).toEqual({
-      transactions: searchNotSucceededTx,
-      total_count: 1
-    });
-  });
+  // TODO: deprecated. to be implemented
+  // test('Should bring transactions that did not succeeded', async () => {
+  //   const response = await serverWithAlonzoSupport.inject({
+  //     method: 'post',
+  //     url: SEARCH_TRANSACTIONS_ENDPOINT,
+  //     payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { success: false, limit: 2 })
+  //   });
+  //   expect(response.statusCode).toEqual(StatusCodes.OK);
+  //   expect(response.json()).toEqual({
+  //     transactions: searchNotSucceededTx,
+  //     total_count: 1
+  //   });
+  // });
+
+  // test('Should bring transactions with invalid status', async () => {
+  //   const response = await serverWithAlonzoSupport.inject({
+  //     method: 'post',
+  //     url: SEARCH_TRANSACTIONS_ENDPOINT,
+  //     payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { status: INVALID_STATUS, limit: 2 })
+  //   });
+  //   expect(response.statusCode).toEqual(StatusCodes.OK);
+  //   expect(response.json()).toEqual({
+  //     transactions: searchNotSucceededTx,
+  //     total_count: 1
+  //   });
+  // });
   test('Should not bring transactions when the offset is equal than the total_count', async () => {
     const response = await server.inject({
       method: 'post',
       url: SEARCH_TRANSACTIONS_ENDPOINT,
-      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33458, limit: 2 })
+      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33774, limit: 2 })
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: [],
-      total_count: 33458
+      total_count: 33774
     });
   });
   test('Should not bring transactions when the offset is bigger than the total_count', async () => {
     const response = await server.inject({
       method: 'post',
       url: SEARCH_TRANSACTIONS_ENDPOINT,
-      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33460, limit: 2 })
+      payload: generateSearchTransactionsPayload(CARDANO, MAINNET, { offset: 33776, limit: 2 })
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       transactions: [],
-      total_count: 33458
+      total_count: 33774
     });
   });
   test('Should throw an error when status and success fields does not match', async () => {
@@ -471,22 +473,23 @@ describe('/search/transactions endpoint', () => {
         total_count: 0
       });
     });
-    test('Should return tx that matches specified coin and is invalid', async () => {
-      const response = await serverWithAlonzoSupport.inject({
-        method: 'post',
-        url: SEARCH_TRANSACTIONS_ENDPOINT,
-        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
-          coinIdentifier: '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c:0',
-          success: false,
-          limit: 2
-        })
-      });
-      expect(response.statusCode).toEqual(StatusCodes.OK);
-      expect(response.json()).toEqual({
-        transactions: searchTxsWithCoinAndInvalidFilters,
-        total_count: 1
-      });
-    });
+    // TODO: deprecated. to be implemented
+    // test('Should return tx that matches specified coin and is invalid', async () => {
+    //   const response = await serverWithAlonzoSupport.inject({
+    //     method: 'post',
+    //     url: SEARCH_TRANSACTIONS_ENDPOINT,
+    //     payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+    //       coinIdentifier: '0c2d516c9eaf0d9f641506f1f64be3f660a49e622f4651ed1b19d6edeaefaf4c:0',
+    //       success: false,
+    //       limit: 2
+    //     })
+    //   });
+    //   expect(response.statusCode).toEqual(StatusCodes.OK);
+    //   expect(response.json()).toEqual({
+    //     transactions: searchTxsWithCoinAndInvalidFilters,
+    //     total_count: 1
+    //   });
+    // });
     test('Should throw an error when coin identifier does not match transaction hash filter', async () => {
       const response = await server.inject({
         method: 'post',
@@ -591,7 +594,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTransactionsWithNoFilter,
-        total_count: 33458,
+        total_count: 33774,
         next_offset: 2
       });
     });
@@ -785,7 +788,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithInputFilter,
-        total_count: 18953,
+        total_count: 19269,
         next_offset: 2
       });
     });
@@ -802,7 +805,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithInputBlockFilter,
-        total_count: 18935,
+        total_count: 19251,
         next_offset: 2
       });
     });
@@ -820,7 +823,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithInputBlockFilter,
-        total_count: 18935,
+        total_count: 19251,
         next_offset: 2
       });
     });
@@ -870,7 +873,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithOutputFilter,
-        total_count: 33458,
+        total_count: 33774,
         next_offset: 2
       });
     });
@@ -887,7 +890,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithOutputBlockFilter,
-        total_count: 18935,
+        total_count: 19251,
         next_offset: 2
       });
     });
@@ -906,7 +909,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithOutputBlockFilter,
-        total_count: 18935,
+        total_count: 19251,
         next_offset: 2
       });
     });
@@ -1832,7 +1835,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxsWithAllFiltersAndInputsOrOperator,
-        total_count: 18901,
+        total_count: 19217,
         next_offset: 2
       });
     });
@@ -1855,7 +1858,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxsWithAllFiltersAndInputsOrOperator,
-        total_count: 18901,
+        total_count: 19217,
         next_offset: 2
       });
     });

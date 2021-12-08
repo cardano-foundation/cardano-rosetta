@@ -85,11 +85,6 @@ export const setupPostgresContainer = async (user: string, password: string, por
       snapshot: true,
       fixture: true,
       database: 'mainnet'
-    },
-    {
-      snapshot: true,
-      fixture: false,
-      database: 'purple'
     }
   ];
 
