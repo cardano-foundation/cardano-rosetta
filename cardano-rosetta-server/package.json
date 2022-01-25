@@ -1,6 +1,6 @@
 {
   "name": "cardano-rosetta-server",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "Rosetta API server specification implementation",
   "main": "index.js",
   "scripts": {

@@ -31,7 +31,7 @@ RUN wget --secure-protocol=TLSv1_2 \
   mv cabal /usr/local/bin/
 RUN cabal update
 WORKDIR /app/ghc
-ARG GHC_VERSION=8.10.2
+ARG GHC_VERSION=8.10.7
 RUN wget --secure-protocol=TLSv1_2 \
   https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz &&\
   tar -xf ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz &&\
@@ -49,7 +49,7 @@ RUN ./autogen.sh && ./configure && make && make install
 ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 ENV PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
 WORKDIR /app/src
-ARG CARDANO_NODE_VERSION=1.31.0
+ARG CARDANO_NODE_VERSION=1.33.0
 RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
