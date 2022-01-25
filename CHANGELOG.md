@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.7.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0...1.8.0) (2022-01-25)
+
+
+### Features
+* bump cardano-node + GHC version ([23db4c3](https://github.com/input-output-hk/cardano-rosetta/commit/23db4c38ed22e1cd7dbeee01420bb5ff84f0c9f3))
+
 ## [1.6.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.5.0...1.6.1) (2021-12-17)
 
 
