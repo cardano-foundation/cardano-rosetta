@@ -121,7 +121,7 @@ For example:
 DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/12/db-sync-snapshot-schema-12-block-6590499-x86_64.tgz \
+  --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/12/db-sync-snapshot-schema-12-block-6764999-x86_64.tgz \
   --cache-from=inputoutput/cardano-rosetta:master \
   -t inputoutput/cardano-rosetta:1.7.0-apply-snapshot \
   https://github.com/input-output-hk/cardano-rosetta.git#1.7.0
@@ -137,7 +137,7 @@ DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=testnet \
-  --build-arg SNAPSHOT_URL=https://updates-cardano-testnet.s3.amazonaws.com/cardano-db-sync/12/db-sync-snapshot-schema-12-block-3147999-x86_64.tgz \
+  --build-arg SNAPSHOT_URL=https://updates-cardano-testnet.s3.amazonaws.com/cardano-db-sync/12/db-sync-snapshot-schema-12-block-3185999-x86_64.tgz \
   --cache-from=inputoutput/cardano-rosetta:master \
   -t inputoutput/cardano-rosetta:1.7.0-testnet-apply-snapshot \
   https://github.com/input-output-hk/cardano-rosetta.git#1.7.0
