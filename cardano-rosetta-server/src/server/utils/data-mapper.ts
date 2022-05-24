@@ -136,7 +136,7 @@ const isBlockUtxos = (block: BlockUtxos | BalanceAtBlock): block is BlockUtxos =
  */
 export const mapToRosettaTransaction = (
   transaction: PopulatedTransaction,
-  poolDeposit: number
+  poolDeposit: string
 ): Components.Schemas.Transaction => {
   const status = transaction.validContract ? OperationTypeStatus.SUCCESS : OperationTypeStatus.INVALID;
   const inputsAsOperations = transaction.inputs.map((input, index) =>
@@ -243,7 +243,7 @@ export const mapToRosettaTransaction = (
       },
       metadata: {
         // if this protocol value changes this amount may not be accurate
-        depositAmount: mapAmount(poolDeposit.toString()),
+        depositAmount: mapAmount(poolDeposit),
         poolRegistrationParams: {
           pledge: poolRegistration.pledge,
           rewardAddress: poolRegistration.address,
@@ -327,7 +327,7 @@ export const mapToRosettaTransaction = (
 export const mapToRosettaBlock = (
   block: Block,
   transactions: PopulatedTransaction[],
-  poolDeposit: number
+  poolDeposit: string
 ): Components.Schemas.Block => ({
   block_identifier: {
     hash: block.hash,

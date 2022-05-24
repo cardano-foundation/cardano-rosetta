@@ -38,13 +38,9 @@ const ACCOUNT_BALANCE_ENDPOINT = '/account/balance';
 describe('/account/balance endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
-  let alonzoDatabase: Pool;
-  let serverWithAlonzoSupport: FastifyInstance;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
-    alonzoDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'purple');
-    serverWithAlonzoSupport = setupServer(alonzoDatabase);
   });
 
   afterAll(async () => {

@@ -50,7 +50,6 @@ export const minKeyDeposit = 2000000;
 export const poolDeposit = 500000000;
 
 export const linearFeeParameters = { minFeeA: 44, minFeeB: 155381 };
-export const depositParameters = { keyDeposit: minKeyDeposit, poolDeposit };
 const NETWORK_ID = 'mainnet';
 
 export const setupServer = (database: Pool, disableSearchApi = false): FastifyInstance => {
@@ -62,8 +61,7 @@ export const setupServer = (database: Pool, disableSearchApi = false): FastifyIn
     // eslint-disable-next-line no-magic-numbers
     1097911063,
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
-    Number(process.env.DEFAULT_RELATIVE_TTL),
-    depositParameters
+    Number(process.env.DEFAULT_RELATIVE_TTL)
   );
   return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
     networkId: NETWORK_ID,

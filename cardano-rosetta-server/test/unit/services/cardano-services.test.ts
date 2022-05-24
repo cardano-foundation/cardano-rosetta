@@ -1,13 +1,24 @@
+import { Pool } from 'pg';
+import * as BlockchainRepository from '../../../src/server/db/blockchain-repository';
 import configure, { CardanoService } from '../../../src/server/services/cardano-services';
 import { EraAddressType } from '../../../src/server/utils/constants';
+import { setupDatabase } from '../../e2e/utils/test-utils';
 const minKeyDeposit = 2000000;
 const poolDeposit = 500000000;
 
 describe('Cardano Service', () => {
+  let database: Pool;
+  let blockchainRepository: BlockchainRepository.BlockchainRepository;
   let cardanoService: CardanoService;
 
   beforeAll(() => {
-    cardanoService = configure({ keyDeposit: minKeyDeposit, poolDeposit });
+    database = setupDatabase();
+    blockchainRepository = BlockchainRepository.configure(database);
+    cardanoService = configure(blockchainRepository);
+  });
+
+  afterAll(async () => {
+    await database.end();
   });
 
   describe('Address type detection', () => {

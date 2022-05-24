@@ -51,12 +51,7 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
   SIGNED_TX_WITH_POOL_RETIREMENT
 } from '../fixture-data';
-import {
-  modifyMAOperation,
-  setupOfflineDatabase,
-  setupServer,
-  testInvalidNetworkParameters
-} from '../utils/test-utils';
+import { modifyMAOperation, setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 
 const CONSTRUCTION_PREPROCESS_ENDPOINT = '/construction/preprocess';
 
@@ -92,7 +87,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupOfflineDatabase();
+    database = setupDatabase();
     server = setupServer(database);
   });
 

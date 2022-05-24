@@ -8,6 +8,7 @@ import CardanoWasm, {
   Vkey,
   AuxiliaryData
 } from 'cardano-serialization-lib';
+import { BlockchainRepository } from '../db/blockchain-repository';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
 import {
@@ -61,8 +62,8 @@ export interface LinearFeeParameters {
 }
 
 export interface DepositParameters {
-  keyDeposit: number;
-  poolDeposit: number;
+  keyDeposit: string;
+  poolDeposit: string;
 }
 
 export interface DepositsSum {
@@ -134,7 +135,14 @@ export interface CardanoService {
     networkId: NetworkIdentifier,
     operations: Components.Schemas.Operation[],
     ttl: number
-  ): UnsignedTransaction;
+  ): Promise<UnsignedTransaction>;
+
+  /**
+   * Returns deposit parameters
+   *
+   * @param logger
+   */
+  getDepositParameters(logger: Logger): Promise<DepositParameters>;
 
   /**
    * Calculates the transaction size in bytes for the given operations
@@ -148,7 +156,7 @@ export interface CardanoService {
     networkId: NetworkIdentifier,
     operations: Components.Schemas.Operation[],
     ttl: number
-  ): number;
+  ): Promise<number>;
 
   /**
    * Updates calculated tx size if ttl was replaced with a different value
@@ -207,13 +215,6 @@ export interface CardanoService {
     transaction: string,
     extraData: TransactionExtraData
   ): TransactionParsed;
-
-  /**
-   * Returns deposit parameters
-   *
-   * @param logger
-   */
-  getDepositParameters(logger: Logger): DepositParameters;
 }
 
 const calculateFee = (
@@ -322,14 +323,14 @@ const processOperations = (
   logger.info('[processOperations] About to calculate fee');
   const { keyDeposit: minKeyDeposit, poolDeposit } = depositParameters;
   const result = OperationsProcessor.convert(logger, network, operations);
-  const refundsSum = result.stakeKeyDeRegistrationsCount * minKeyDeposit;
-  const keyDepositsSum = result.stakeKeyRegistrationsCount * minKeyDeposit;
-  const poolDepositsSum = result.poolRegistrationsCount * poolDeposit;
+  const refundsSum = BigInt(result.stakeKeyDeRegistrationsCount) * BigInt(minKeyDeposit);
+  const keyDepositsSum = BigInt(result.stakeKeyRegistrationsCount) * BigInt(minKeyDeposit);
+  const poolDepositsSum = BigInt(result.poolRegistrationsCount) * BigInt(poolDeposit);
 
   const depositsSum = {
-    keyRefundsSum: BigInt(refundsSum),
-    keyDepositsSum: BigInt(keyDepositsSum),
-    poolDepositsSum: BigInt(poolDepositsSum)
+    keyRefundsSum: refundsSum,
+    keyDepositsSum,
+    poolDepositsSum
   };
   const fee = calculateFee(result.inputAmounts, result.outputAmounts, result.withdrawalAmounts, depositsSum);
   logger.info(`[processOperations] Calculated fee: ${fee}`);
@@ -391,7 +392,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
-const configure = (depositParameters: DepositParameters): CardanoService => ({
+const configure = (repository: BlockchainRepository): CardanoService => ({
   generateAddress(logger, network, publicKeyString, stakingCredentialString, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${JSON.stringify(
@@ -461,10 +462,11 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
       throw ErrorFactory.cantBuildSignedTransaction();
     }
   },
-  createUnsignedTransaction(logger, network, operations, ttl): UnsignedTransaction {
+  async createUnsignedTransaction(logger, network, operations, ttl): Promise<UnsignedTransaction> {
     logger.info(
       `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
     );
+    const depositParameters = await repository.getDepositParameters(logger);
     const {
       transactionInputs,
       transactionOutputs,
@@ -509,8 +511,8 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
     return toReturn;
   },
 
-  calculateTxSize(logger, network, operations, ttl) {
-    const { bytes, addresses, metadata } = this.createUnsignedTransaction(logger, network, operations, ttl);
+  async calculateTxSize(logger, network, operations, ttl) {
+    const { bytes, addresses, metadata } = await this.createUnsignedTransaction(logger, network, operations, ttl);
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
       const eraAddressType = this.getEraAddressType(address);
@@ -575,8 +577,8 @@ const configure = (depositParameters: DepositParameters): CardanoService => ({
     }
   },
   getDepositParameters(logger) {
-    logger.info(depositParameters, '[getDepositParameters] About to return deposit parameters');
-    return depositParameters;
+    logger.info('[getDepositParameters] About to return deposit parameters');
+    return repository.getDepositParameters(logger);
   }
 });
 
