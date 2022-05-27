@@ -5,8 +5,8 @@ import accountController, { AccountController } from './account-controller';
 import networkController, { NetworkController } from './network-controller';
 import constructionController, { ConstructionController } from './construction-controller';
 import searchController, { SearchController } from './search-controller';
-import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
-import { CardanoNode } from '../utils/cardano/cli/cardano-node';
+import { CardanoNode } from '../utils/cardano/node/cardano-node';
+import { OgmiosClient } from '../utils/cardano/node/ogmios-client';
 
 export interface Controllers extends BlockController, AccountController, NetworkController, ConstructionController {
   searchTransactions?(
@@ -21,7 +21,7 @@ export interface Controllers extends BlockController, AccountController, Network
  */
 export const configure = (
   services: Services,
-  cardanoCli: CardanoCli,
+  ogmiosClient: OgmiosClient,
   cardanoNode: CardanoNode,
   pageSize: number,
   disableSearchApi = false
@@ -33,7 +33,7 @@ export const configure = (
     ...constructionController(
       services.constructionService,
       services.cardanoService,
-      cardanoCli,
+      ogmiosClient,
       services.networkService,
       services.blockService
     )

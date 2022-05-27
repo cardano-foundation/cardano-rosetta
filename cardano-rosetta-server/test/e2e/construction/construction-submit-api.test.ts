@@ -1,15 +1,17 @@
 /* eslint-disable no-magic-numbers */
 /* eslint-disable camelcase */
+/* eslint-disable no-throw-literal */
 import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
-import { cardanoCliMock, setupOfflineDatabase, setupServer } from '../utils/test-utils';
+import { ogmiosClientMock, setupOfflineDatabase, setupServer } from '../utils/test-utils';
 import { Errors } from '../../../src/server/utils/errors';
 import {
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA_INVALID_TTL,
   INVALID_CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA
 } from '../fixture-data';
+import { UnknownResultError } from '@cardano-ogmios/client';
 
 const CONSTRUCTION_SUBMIT_ENDPOINT = '/construction/submit';
 
@@ -18,8 +20,7 @@ const generatePayloadWithSignedTransaction = (blockchain: string, network: strin
   signed_transaction: signedTransaction
 });
 
-const ERROR_WHEN_CALLING_CARDANO_CLI = 'Error when calling cardano-cli';
-const ERROR_OUTSIDE_VALIDITY_INTERVAL_UTXO = 'Error when sending the transaction - OutsideValidityIntervalUTxO';
+const SENDING_TX_ERROR = 'Error when sending the transaction';
 
 describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
   let database: Pool;
@@ -65,7 +66,7 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
   });
 
   it('Should return the transaction identifier is request is valid', async () => {
-    const mock = cardanoCliMock.submitTransaction as jest.Mock;
+    const mock = ogmiosClientMock.submitTransaction as jest.Mock;
     mock.mockClear();
     const response = await server.inject({
       method: 'post',
@@ -84,10 +85,11 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
   });
 
   it('Should return an error if there is a problem when sending the transaction', async () => {
-    const mock = cardanoCliMock.submitTransaction as jest.Mock;
+    const UNKNOWN_ERROR = 'An unknown error happened';
+    const mock = ogmiosClientMock.submitTransaction as jest.Mock;
     mock.mockClear();
     mock.mockImplementation(() => {
-      throw new Error(ERROR_WHEN_CALLING_CARDANO_CLI);
+      throw new Error(UNKNOWN_ERROR);
     });
     const response = await server.inject({
       method: 'post',
@@ -99,22 +101,22 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect((cardanoCliMock.submitTransaction as jest.Mock).mock.calls.length).toBe(1);
+    expect((ogmiosClientMock.submitTransaction as jest.Mock).mock.calls.length).toBe(1);
     expect(response.json()).toEqual({
       code: 5006,
       details: {
-        message: ERROR_WHEN_CALLING_CARDANO_CLI
+        message: UNKNOWN_ERROR
       },
-      message: 'Error when sending the transaction',
+      message: SENDING_TX_ERROR,
       retriable: true
     });
   });
 
-  it('Should return an non retriable error if there is OutsideValidityIntervalUTxO error from the node', async () => {
-    const mock = cardanoCliMock.submitTransaction as jest.Mock;
+  it('Should return an error with reasons if there is UnknownResultError error from the node', async () => {
+    const mock = ogmiosClientMock.submitTransaction as jest.Mock;
     mock.mockClear();
     mock.mockImplementation(() => {
-      throw new Error(ERROR_OUTSIDE_VALIDITY_INTERVAL_UTXO);
+      throw [UnknownResultError];
     });
     const response = await server.inject({
       method: 'post',
@@ -126,16 +128,22 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect((cardanoCliMock.submitTransaction as jest.Mock).mock.calls.length).toBe(1);
+    expect((ogmiosClientMock.submitTransaction as jest.Mock).mock.calls.length).toBe(1);
     expect(response.json()).toEqual({
-      code: 4037,
-      message: ERROR_OUTSIDE_VALIDITY_INTERVAL_UTXO,
-      retriable: false
+      code: 5006,
+      message: SENDING_TX_ERROR,
+      retriable: false,
+      reasons: [
+        {
+          name: 'UnknownResultError',
+          details: {}
+        }
+      ]
     });
   });
 
   it('Should return an error and not submit the transaction when there is an error getting transaction hash', async () => {
-    const mock = cardanoCliMock.submitTransaction as jest.Mock;
+    const mock = ogmiosClientMock.submitTransaction as jest.Mock;
     mock.mockClear();
     const response = await server.inject({
       method: 'post',
@@ -147,7 +155,7 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
       )
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
-    expect((cardanoCliMock.submitTransaction as jest.Mock).mock.calls.length).toBe(0);
+    expect((ogmiosClientMock.submitTransaction as jest.Mock).mock.calls.length).toBe(0);
     expect(response.json()).toEqual({ ...Errors.PARSE_SIGNED_TRANSACTION_ERROR, retriable: false });
   });
 });

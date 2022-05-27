@@ -66,10 +66,6 @@ RUN cabal install cardano-node \
   --install-method=copy \
   --installdir=/usr/local/bin \
   -f -systemd
-RUN cabal install cardano-cli \
-  --install-method=copy \
-  --installdir=/usr/local/bin \
-  -f -systemd
 WORKDIR /app/src
 ARG CARDANO_DB_SYNC_VERSION=13.0.2
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
@@ -78,6 +74,16 @@ RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   git checkout ${CARDANO_DB_SYNC_VERSION}
 WORKDIR /app/src/cardano-db-sync
 RUN cabal install cardano-db-sync \
+  --install-method=copy \
+  --installdir=/usr/local/bin
+WORKDIR /app/src
+ARG OGMIOS_VERSION=v5.5.3
+RUN git clone https://github.com/CardanoSolutions/ogmios.git &&\
+  cd ogmios &&\
+  git fetch --all --tags &&\
+  git checkout ${OGMIOS_VERSION}
+WORKDIR /app/src/ogmios/server
+RUN cabal install exe:ogmios \
   --install-method=copy \
   --installdir=/usr/local/bin
 # Cleanup for runtiume-base copy of /usr/local/lib
@@ -106,9 +112,9 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/key
   npm install pm2 -g
 COPY --from=haskell-builder /usr/local/lib /usr/local/lib
 COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
-COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-db-sync /usr/local/bin/
 COPY --from=haskell-builder /app/src/cardano-db-sync/schema /cardano-db-sync/schema
+COPY --from=haskell-builder /usr/local/bin/ogmios /usr/local/bin/
 # easy step-down from root
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VERSION 1.12
@@ -156,8 +162,7 @@ RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
 ARG NETWORK=mainnet
-COPY --from=haskell-builder /usr/local/bin/cardano-cli \
-  /usr/local/bin/cardano-node \
+COPY --from=haskell-builder /usr/local/bin/cardano-node \
   /usr/local/bin/
 COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules

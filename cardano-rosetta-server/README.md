@@ -43,6 +43,10 @@ EXEMPTION_TYPES_PATH="/etc/node/exemptions.json"
 BODY_LIMIT=1048576
 # disables Search Api if its true
 DISABLE_SEARCH_API=false
+# Ogmios url
+OGMIOS_HOST=localhost
+# Ogmios port
+OGMIOS_PORT=1337
 ```
 
 ### Install packages from offline cache
