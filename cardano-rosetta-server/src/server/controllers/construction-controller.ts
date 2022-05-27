@@ -277,11 +277,10 @@ const configure = (
         try {
           const logger = request.log;
           const [signedTransaction] = await decodeExtraData(request.body.signed_transaction);
-          logger.info('[constructionHash] About to get hash of signed transaction');
-          const hash = cardanoService.getHashOfSignedTransaction(logger, signedTransaction);
           logger.info(`[constructionSubmit] About to submit ${signedTransaction}`);
           await ogmiosClient.submitTransaction(signedTransaction);
           logger.info('[constructionHash] About to get hash of signed transaction');
+          const hash = cardanoService.getHashOfSignedTransaction(logger, signedTransaction);
           return { transaction_identifier: { hash } };
         } catch (error) {
           request.log.error(error);
