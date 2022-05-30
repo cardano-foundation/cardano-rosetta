@@ -49,7 +49,14 @@ RUN ./autogen.sh && ./configure && make && make install
 ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 ENV PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
 WORKDIR /app/src
-ARG CARDANO_NODE_VERSION=1.33.0
+RUN git clone https://github.com/bitcoin-core/secp256k1 &&\
+  cd secp256k1 &&\
+  git checkout ac83be33
+WORKDIR /app/src/secp256k1
+RUN ./autogen.sh && ./configure --enable-module-schnorrsig --enable-experimental &&\
+    make && make install
+WORKDIR /app/src
+ARG CARDANO_NODE_VERSION=vasil-testnet-v1
 RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
@@ -64,7 +71,7 @@ RUN cabal install cardano-cli \
   --installdir=/usr/local/bin \
   -f -systemd
 WORKDIR /app/src
-ARG CARDANO_DB_SYNC_VERSION=12.0.0
+ARG CARDANO_DB_SYNC_VERSION=13.0.0-rc1 
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\

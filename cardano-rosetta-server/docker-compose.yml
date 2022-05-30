@@ -22,7 +22,7 @@ services:
         max-size: "200k"
         max-file: "10"
   cardano-node:
-    image: inputoutput/cardano-node:${CARDANO_NODE_VERSION:-1.33.0}
+    image: inputoutput/cardano-node:${CARDANO_NODE_VERSION:-vasil-testnet-v1}
     environment:
       - NETWORK=${NETWORK:-mainnet}
     volumes:
@@ -34,7 +34,7 @@ services:
         max-size: "400k"
         max-file: "20"
   cardano-db-sync:
-    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-12.0.0}
+    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-13.0.0-rc1}
     command: [
       "--config", "/config/cardano-db-sync/config.json",
       "--socket-path", "/node-ipc/node.socket"
