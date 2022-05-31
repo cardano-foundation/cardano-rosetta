@@ -5,7 +5,7 @@ import StatusCodes from 'http-status-codes';
 import { Pool } from 'pg';
 import { FastifyInstance } from 'fastify';
 import {
-  setupOfflineDatabase,
+  setupDatabase,
   setupServer,
   testInvalidNetworkParameters,
   modifyAccount,
@@ -103,7 +103,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupOfflineDatabase();
+    database = setupDatabase();
     server = setupServer(database);
   });
 
@@ -763,7 +763,7 @@ describe('Invalid request with MultiAssets', () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupOfflineDatabase();
+    database = setupDatabase();
     server = setupServer(database);
   });
 
@@ -897,7 +897,7 @@ describe('Pool Registration', () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupOfflineDatabase();
+    database = setupDatabase();
     server = setupServer(database);
   });
 
@@ -1654,7 +1654,7 @@ describe('Pool Registration with certification', () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupOfflineDatabase();
+    database = setupDatabase();
     server = setupServer(database);
   });
 
@@ -1739,7 +1739,7 @@ describe('Vote Registration', () => {
   let server: FastifyInstance;
 
   beforeAll(async () => {
-    database = setupOfflineDatabase();
+    database = setupDatabase();
     server = setupServer(database);
   });
 

@@ -144,8 +144,8 @@ const configure = (
       async () => {
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         // eslint-disable-next-line camelcase
-        const relativeTtl = constructionService.calculateRelativeTtl(request.body.metadata?.relative_ttl);
-        const transactionSize = cardanoService.calculateTxSize(
+        const relativeTtl = await constructionService.calculateRelativeTtl(request.body.metadata?.relative_ttl);
+        const transactionSize = await cardanoService.calculateTxSize(
           request.log,
           networkIdentifier,
           request.body.operations,
@@ -194,7 +194,7 @@ const configure = (
         const operations = request.body.operations;
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         logger.info(operations, '[constuctionPayloads] Operations about to be processed');
-        const unsignedTransaction = cardanoService.createUnsignedTransaction(
+        const unsignedTransaction = await cardanoService.createUnsignedTransaction(
           logger,
           networkIdentifier,
           operations,

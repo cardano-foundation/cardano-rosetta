@@ -18,7 +18,7 @@ import {
   TotalCount,
   SearchFilters
 } from '../models';
-import { LinearFeeParameters } from '../services/cardano-services';
+import { DepositParameters, LinearFeeParameters } from '../services/cardano-services';
 import {
   hexStringToBuffer,
   hexFormatter,
@@ -108,6 +108,11 @@ export interface BlockchainRepository {
    * Get the lastest minFeeA and minFeeB
    */
   getLinearFeeParameters(logger: Logger): Promise<LinearFeeParameters>;
+
+  /**
+   * Get the lastest deposit parameters
+   */
+  getDepositParameters(logger: Logger): Promise<DepositParameters>;
 
   /**
    * Returns an array containing all utxo for address till block identified by blockIdentifier if present, else the last
@@ -661,6 +666,12 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger.debug('[getLinearFeeParameters] About to run getLinearFeeParameters query');
     const result = await databaseInstance.query(Queries.findLatestMinFeeAAndMinFeeB);
     return { minFeeA: result.rows[0].min_fee_a, minFeeB: result.rows[0].min_fee_b };
+  },
+
+  async getDepositParameters(logger: Logger): Promise<DepositParameters> {
+    logger.debug('[getLinearFeeParameters] About to run findLatestDepositParameters query');
+    const result = await databaseInstance.query(Queries.findLatestDepositParameters);
+    return { keyDeposit: result.rows[0].key_deposit, poolDeposit: result.rows[0].pool_deposit };
   },
 
   async findGenesisBlock(logger: Logger): Promise<GenesisBlock | null> {

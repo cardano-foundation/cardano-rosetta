@@ -3,7 +3,7 @@ import { mapToRosettaTransaction } from './data-mapper';
 
 export interface SearchTransactionsMapperParameters {
   transactions: PopulatedTransaction[];
-  poolDeposit: number;
+  poolDeposit: string;
   offset: number;
   limit: number;
   totalCount: number;

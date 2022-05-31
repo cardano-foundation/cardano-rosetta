@@ -498,6 +498,13 @@ ORDER BY id
 DESC LIMIT 1
 `;
 
+const findLatestDepositParameters = `
+  SELECT 
+    key_deposit, pool_deposit FROM epoch_param  
+  ORDER BY id 
+  DESC LIMIT 1
+`;
+
 const Queries = {
   findBalanceByAddressAndBlock,
   findBlock,
@@ -518,7 +525,8 @@ const Queries = {
   findPoolRetirements,
   findTransactionsOutputs,
   findUtxoByAddressAndBlock,
-  findLatestMinFeeAAndMinFeeB
+  findLatestMinFeeAAndMinFeeB,
+  findLatestDepositParameters
 };
 
 export default Queries;
