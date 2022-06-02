@@ -197,7 +197,6 @@ WHERE
 `;
 
 export interface FindTransactionPoolRegistrationsData extends FindTransactionFieldResult {
-  poolId: number;
   updateId: number;
   vrfKeyHash: Buffer;
   pledge: string;
@@ -210,7 +209,7 @@ export interface FindTransactionPoolRegistrationsData extends FindTransactionFie
 }
 
 export interface FindTransactionPoolOwners extends FindTransactionFieldResult {
-  poolId: number;
+  updateId: number;
   owner: Buffer;
 }
 export interface FindTransactionPoolRelays extends FindTransactionFieldResult {
@@ -307,12 +306,11 @@ const poolRegistrationQuery = `
     tx.hash as "txHash",
     tx.id as "txId",
     pu.id as "updateId",
-    ph.id as "poolId",
     pu.vrf_key_hash as "vrfKeyHash",
     pu.pledge as pledge,
     pu.margin as margin,
     pu.fixed_cost as cost,
-    pu.reward_addr as address,
+    sa."view" AS address,
     ph.hash_raw as "poolHash",
     pm.url as "metadataUrl",
     pm.hash as "metadataHash"
@@ -321,6 +319,8 @@ const poolRegistrationQuery = `
     ON pu.registered_tx_id = tx.id
   JOIN pool_hash ph
     ON ph.id = pu.hash_id
+  JOIN stake_address sa 
+    ON sa.id = pu.reward_addr_id
   LEFT JOIN pool_metadata_ref pm
     ON pu.meta_id = pm.id
   WHERE
@@ -337,13 +337,12 @@ const findTransactionPoolRegistrationsData = `
 const findTransactionPoolOwners = `
 ${poolRegistrationQuery}
     SELECT 
-      po.pool_hash_id AS "poolId",
+      po.pool_update_id AS "updateId",
       sa."view" AS "owner",
       pr."txHash"
     FROM pool_registration pr
     JOIN pool_owner po
-      ON  (po.pool_hash_id = pr."poolId" 
-      AND po.registered_tx_id = pr."txId")
+      ON  po.pool_update_id = pr."updateId"
     JOIN stake_address sa
       ON po.addr_id = sa.id
 `;
