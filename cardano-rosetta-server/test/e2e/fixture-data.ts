@@ -708,7 +708,7 @@ export const transactionWithPoolRegistration = {
           depositAmount: { value: '500000000', currency: { symbol: 'ADA', decimals: 6 } },
           poolRegistrationParams: {
             vrfKeyHash: '38ee540c8ed10762b6a43ed4a3c3094c1ac76b3ad838c341e3cb92174db4b4d6',
-            rewardAddress: 'e1b00d52aa75a2f0cf043ac08a2be8dd7880fbb1e1d75516e9e5cfba55',
+            rewardAddress: 'stake1uxcq6542wk30pncy8tqg52lgm4ugp7a3u8t429hfuh8m54gs72zj8',
             pledge: '50000000',
             cost: '340000000',
             poolOwners: ['stake1uxcq6542wk30pncy8tqg52lgm4ugp7a3u8t429hfuh8m54gs72zj8'],
@@ -783,7 +783,7 @@ export const transactionWithPoolRegistrationWithMultipleOwners = {
           depositAmount: { value: '500000000', currency: { decimals: 6, symbol: 'ADA' } },
           poolRegistrationParams: {
             vrfKeyHash: 'd9f5cf491f19ca61c13f5706ef82c6537d73d372481077c5aa7276b0889bbcb3',
-            rewardAddress: 'e1d1c53050b2a78d5e01bf1b7fc43aef37e9b685ec812414417bf8c360',
+            rewardAddress: 'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray',
             pledge: '500000000',
             cost: '340000000',
             poolOwners: [
@@ -7215,7 +7215,7 @@ export const searchFilteredByTxHash = [
                 'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu'
               ],
               relays: [],
-              rewardAddress: 'e1d1c53050b2a78d5e01bf1b7fc43aef37e9b685ec812414417bf8c360',
+              rewardAddress: 'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray',
               vrfKeyHash: 'd9f5cf491f19ca61c13f5706ef82c6537d73d372481077c5aa7276b0889bbcb3'
             }
           },
@@ -9835,7 +9835,7 @@ export const searchTxWithPoolRegistrationFilter = [
               pledge: '150000000000',
               poolOwners: ['stake1uxlr2tdm0nu3v9c3l9y0tkkcglvmpyepamym0q3nxeerdrgcp9wak'],
               relays: [],
-              rewardAddress: 'e1be352dbb7cf9161711f948f5dad847d9b09321eec9b782333672368d',
+              rewardAddress: 'stake1uxlr2tdm0nu3v9c3l9y0tkkcglvmpyepamym0q3nxeerdrgcp9wak',
               vrfKeyHash: '6cde8a370e264ba8ef9a8a25c50cc7d62ae28bcbad46bc3811ba191521599ddc'
             }
           },
@@ -9947,7 +9947,7 @@ export const searchTxWithPoolRegistrationFilter = [
               pledge: '50000000',
               poolOwners: ['stake1uxcq6542wk30pncy8tqg52lgm4ugp7a3u8t429hfuh8m54gs72zj8'],
               relays: [],
-              rewardAddress: 'e1b00d52aa75a2f0cf043ac08a2be8dd7880fbb1e1d75516e9e5cfba55',
+              rewardAddress: 'stake1uxcq6542wk30pncy8tqg52lgm4ugp7a3u8t429hfuh8m54gs72zj8',
               vrfKeyHash: '38ee540c8ed10762b6a43ed4a3c3094c1ac76b3ad838c341e3cb92174db4b4d6'
             }
           },
@@ -11567,7 +11567,7 @@ export const searchTxWithPoolRegistrationBlockFilters = [
               pledge: '50000000',
               poolOwners: ['stake1uxcq6542wk30pncy8tqg52lgm4ugp7a3u8t429hfuh8m54gs72zj8'],
               relays: [],
-              rewardAddress: 'e1b00d52aa75a2f0cf043ac08a2be8dd7880fbb1e1d75516e9e5cfba55',
+              rewardAddress: 'stake1uxcq6542wk30pncy8tqg52lgm4ugp7a3u8t429hfuh8m54gs72zj8',
               vrfKeyHash: '38ee540c8ed10762b6a43ed4a3c3094c1ac76b3ad838c341e3cb92174db4b4d6'
             }
           },
@@ -11696,7 +11696,7 @@ export const searchTxWithPoolRegistrationBlockFilters = [
                 'stake1uxzkym2524wme8qv3vaj55jlqrmqdnyvv83vrmtvvgsawwq8aw9xu'
               ],
               relays: [],
-              rewardAddress: 'e1d1c53050b2a78d5e01bf1b7fc43aef37e9b685ec812414417bf8c360',
+              rewardAddress: 'stake1u8gu2vzsk2nc6hsphudhl3p6aum7nd59ajqjg9zp00uvxcqwsdray',
               vrfKeyHash: 'd9f5cf491f19ca61c13f5706ef82c6537d73d372481077c5aa7276b0889bbcb3'
             }
           },
@@ -15368,7 +15368,7 @@ export const searchTxsWithPoolRegistrationCoinFilters = [
               pledge: '50000000',
               poolOwners: ['stake1uxcq6542wk30pncy8tqg52lgm4ugp7a3u8t429hfuh8m54gs72zj8'],
               relays: [],
-              rewardAddress: 'e1b00d52aa75a2f0cf043ac08a2be8dd7880fbb1e1d75516e9e5cfba55',
+              rewardAddress: 'stake1uxcq6542wk30pncy8tqg52lgm4ugp7a3u8t429hfuh8m54gs72zj8',
               vrfKeyHash: '38ee540c8ed10762b6a43ed4a3c3094c1ac76b3ad838c341e3cb92174db4b4d6'
             }
           },
