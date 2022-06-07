@@ -259,6 +259,7 @@ INNER JOIN pool_hash ph
 INNER JOIN tx
   ON d.tx_id = tx.id
 WHERE tx.hash = ANY($1)
+ORDER BY d.id DESC
 `;
 
 const findLatestBlockNumber = `
@@ -345,6 +346,7 @@ ${poolRegistrationQuery}
       ON  po.pool_update_id = pr."updateId"
     JOIN stake_address sa
       ON po.addr_id = sa.id
+    ORDER BY po.id DESC
 `;
 
 const findTransactionPoolRelays = `
