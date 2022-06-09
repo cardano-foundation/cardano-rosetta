@@ -10,7 +10,7 @@ export interface Block {
   createdBy: string;
   size: number;
   epochNo: number;
-  slotNo: number;
+  slotNo: string;
 }
 
 export interface GenesisBlock {

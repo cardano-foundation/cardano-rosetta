@@ -22,20 +22,31 @@ export interface NetworkService {
 interface Producer {
   addr: string;
 }
-
+interface AccessPoint {
+  address: string;
+}
+interface PublicRoot {
+  publicRoots: {
+    accessPoints: AccessPoint[];
+  };
+}
 export interface TopologyConfig {
-  Producers: Producer[];
+  Producers?: Producer[];
+  PublicRoots?: PublicRoot[];
 }
 
 export interface Peer {
   addr: string;
 }
 
+const getPublicRoots = (publicRoots?: PublicRoot[]) =>
+  publicRoots?.map(pr => pr.publicRoots.accessPoints.map(ap => ({ addr: ap.address }))).flat() || [];
+
 const getPeersFromConfig = (logger: Logger, topologyFile: TopologyConfig): Peer[] => {
   logger.info('[getPeersFromConfig] Looking for peers from topologyFile');
-  const { Producers } = topologyFile;
+  const Producers = topologyFile?.Producers || getPublicRoots(topologyFile.PublicRoots);
   logger.debug(`[getPeersFromConfig] Found ${Producers.length} peers`);
-  return Producers;
+  return Producers as Peer[];
 };
 
 const getExemptionFile = (logger: Logger): Components.Schemas.BalanceExemption[] => {

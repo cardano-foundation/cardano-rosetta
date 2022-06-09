@@ -207,7 +207,7 @@ const mapToTransactionPoolRegistrations = (
   poolRelays: FindTransactionPoolRelays[]
 ): TransactionPoolRegistrations[] =>
   poolRegistrations.map(poolRegistration => {
-    const owners = poolOwners.filter(owner => owner.poolId === poolRegistration.poolId).map(o => o.owner);
+    const owners = poolOwners.filter(owner => owner.updateId === poolRegistration.updateId).map(o => o.owner);
 
     const relays = poolRelays
       .filter(relay => relay.updateId === poolRegistration.updateId)

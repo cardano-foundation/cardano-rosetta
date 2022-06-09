@@ -19,7 +19,7 @@ describe('Data Mapper', () => {
           createdBy: '7ec249d',
           size: 238,
           epochNo: 75,
-          slotNo: 0 // not needed
+          slotNo: '0' // not needed
         },
         utxos: [
           {

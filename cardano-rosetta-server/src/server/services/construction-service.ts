@@ -22,7 +22,7 @@ const configure = (blockService: BlockService, defaultRelativeTTL: number): Cons
 
   calculateTtl: async (logger, ttlOffset) => {
     const latestBlock = await blockService.getLatestBlock(logger);
-    return latestBlock.slotNo + ttlOffset;
+    return Number(latestBlock.slotNo) + ttlOffset;
   }
 });
 

@@ -121,6 +121,11 @@ SELECT hash_id
 FROM pool_update 
 WHERE registered_tx_id IN ($SELECT_TX_ID)"
 
+POOL_UPDATE_IDS_QUERY="
+SELECT id
+FROM pool_update 
+WHERE registered_tx_id IN ($SELECT_TX_ID)"
+
 POOL_RETIRE_POOL_HASH_QUERY="
 SELECT hash_id
 FROM pool_retire
@@ -129,8 +134,7 @@ WHERE announced_tx_id IN ($SELECT_TX_ID)
 OWNERS_ADDRESSES_QUERY="
 SELECT addr_id
 FROM pool_owner
-WHERE registered_tx_id IN ($SELECT_TX_ID)
-  AND pool_hash_id IN ($POOL_UPDATE_POOL_HASH_QUERY)
+WHERE pool_update_id IN ($POOL_UPDATE_IDS_QUERY)
 "
 MA_TX_OUT_IDS_QUERY="SELECT ident FROM ma_tx_out WHERE tx_out_id IN ($TX_OUT_IDS_QUERY)"
 
@@ -142,12 +146,12 @@ echo "\." >> $OUT_FILE;
 echo "ALTER TABLE public.tx_out DISABLE TRIGGER ALL;" >> $OUT_FILE;
 
 echo "-- Dumping spent outputs" >> $OUT_FILE;
-echo 'COPY public.tx_out (id, tx_id, index, address, address_raw, address_has_script, payment_cred, stake_address_id, value, data_hash) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.tx_out (id, tx_id, index, address, address_raw, address_has_script, payment_cred, stake_address_id, value, data_hash, inline_datum_id, reference_script_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT source_tx_out.* FROM $INPUT_TX_QUERY) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
 echo "-- Dumping transactions outputs" >> $OUT_FILE;
-echo 'COPY public.tx_out (id, tx_id, index, address, address_raw, address_has_script, payment_cred, stake_address_id, value, data_hash) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.tx_out (id, tx_id, index, address, address_raw, address_has_script, payment_cred, stake_address_id, value, data_hash, inline_datum_id, reference_script_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from tx_out WHERE tx_id IN $SELECT_TX_ID) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -159,7 +163,7 @@ echo "\." >> $OUT_FILE;
 
 echo "-- Dumping Block transaction withdrawals stake addresses" >> $OUT_FILE;
 echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.stake_address (id, hash_raw, view, script_hash, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, script_hash, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from stake_address WHERE id IN ($WITHDRAWAL_ADDRESSES_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -171,7 +175,7 @@ echo "\." >> $OUT_FILE;
 
 echo "-- Dumping Block transactions stake_registrations stake addresses" >> $OUT_FILE;
 echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.stake_address (id, hash_raw, view, script_hash, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, script_hash, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from stake_address WHERE id IN ($REGISTRATION_ADDRESSES_QUERY) AND id NOT IN ($WITHDRAWAL_ADDRESSES_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -179,12 +183,12 @@ echo "\." >> $OUT_FILE;
 echo "-- Dumping Block rewards" >> $OUT_FILE;
 echo "ALTER TABLE public.reward DISABLE TRIGGER ALL;" >> $OUT_FILE;
 echo 'COPY public.reward (id, addr_id, type, amount, earned_epoch, spendable_epoch,  pool_id) FROM stdin WITH CSV;' >> $OUT_FILE;
-psql -c "\copy (SELECT * from reward WHERE spendable_epoch in ($SELECT_BLOCK_EPOCH) OR addr_id = 12126) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+psql -c "\copy (SELECT * from reward WHERE spendable_epoch in ($SELECT_BLOCK_EPOCH) OR addr_id = (SELECT id FROM stake_address WHERE view = 'stake1uyqq2a22arunrft3k9ehqc7yjpxtxjmvgndae80xw89mwyge9skyp')) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
 echo "-- Dumping Block rewards stake_addresses" >> $OUT_FILE;
 echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.stake_address (id, hash_raw, view, script_hash, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, script_hash, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from stake_address WHERE id IN ($REWARD_ADDRESSES_QUERY) AND id NOT IN ($WITHDRAWAL_ADDRESSES_QUERY) AND id NOT IN ($REGISTRATION_ADDRESSES_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -202,7 +206,7 @@ echo "\." >> $OUT_FILE;
 
 echo "-- Dumping Block transaction deregistrations stake addresses" >> $OUT_FILE;
 echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.stake_address (id, hash_raw, view, script_hash, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, script_hash, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from stake_address WHERE id IN ($DEREGISTRATION_ADDRESSES_QUERY) AND id NOT IN ($REWARD_ADDRESSES_QUERY) AND id NOT IN ($WITHDRAWAL_ADDRESSES_QUERY) AND id NOT IN ($REGISTRATION_ADDRESSES_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -220,7 +224,7 @@ echo "\." >> $OUT_FILE;
 
 echo "-- Dumping Block transaction delegations stake addresses" >> $OUT_FILE;
 echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.stake_address (id, hash_raw, view, script_hash, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, script_hash, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from stake_address WHERE id IN ($DELEGATIONS_ADDRESSES_QUERY) AND id NOT IN ($DEREGISTRATION_ADDRESSES_QUERY) AND id NOT IN ($REWARD_ADDRESSES_QUERY) AND id NOT IN ($WITHDRAWAL_ADDRESSES_QUERY) AND id NOT IN ($REGISTRATION_ADDRESSES_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -250,19 +254,19 @@ echo "\." >> $OUT_FILE;
 
 echo "-- Dumping addresses of pool owners" >> $OUT_FILE;
 echo "ALTER TABLE public.stake_address DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.stake_address (id, hash_raw, view, script_hash, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.stake_address (id, hash_raw, view, script_hash, tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from stake_address WHERE id IN ($OWNERS_ADDRESSES_QUERY) AND id NOT IN ($DELEGATIONS_ADDRESSES_QUERY) AND id NOT IN ($DEREGISTRATION_ADDRESSES_QUERY) AND id NOT IN ($REWARD_ADDRESSES_QUERY) AND id NOT IN ($WITHDRAWAL_ADDRESSES_QUERY) AND id NOT IN ($REGISTRATION_ADDRESSES_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
 echo "-- Dumping owners of pool registrations" >> $OUT_FILE;
 echo "ALTER TABLE public.pool_owner DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.pool_owner (id, addr_id, pool_hash_id, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
-psql -c "\copy (SELECT * from pool_owner WHERE registered_tx_id IN ($SELECT_TX_ID) AND pool_hash_id IN ($POOL_UPDATE_POOL_HASH_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
+echo 'COPY public.pool_owner (id, addr_id, pool_update_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+psql -c "\copy (SELECT * from pool_owner WHERE pool_update_id IN ($POOL_UPDATE_IDS_QUERY)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
 echo "-- Dumping pool registrations" >> $OUT_FILE;
 echo "ALTER TABLE public.pool_update DISABLE TRIGGER ALL;" >> $OUT_FILE;
-echo 'COPY public.pool_update (id, hash_id, cert_index, vrf_key_hash, pledge, reward_addr, active_epoch_no, meta_id, margin, fixed_cost, registered_tx_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+echo 'COPY public.pool_update (id, hash_id, cert_index, vrf_key_hash, pledge, active_epoch_no, meta_id, margin, fixed_cost, registered_tx_id, reward_addr_id) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from pool_update WHERE registered_tx_id IN ($SELECT_TX_ID)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 
@@ -281,9 +285,9 @@ echo "\." >> $OUT_FILE;
 echo "-- Dumping epoch params" >> $OUT_FILE;
 echo "ALTER TABLE public.epoch_param DISABLE TRIGGER ALL;" >> $OUT_FILE;
 echo 'COPY public.epoch_param (id,epoch_no,min_fee_a,min_fee_b,max_block_size,max_tx_size,max_bh_size,key_deposit,pool_deposit,max_epoch,
-optimal_pool_count,influence,monetary_expand_rate,treasury_growth_rate, decentralisation,entropy,protocol_major,protocol_minor,min_utxo_value,
-min_pool_cost,nonce,coins_per_utxo_word,cost_model_id,price_mem,price_step,max_tx_ex_mem,max_tx_ex_steps,max_block_ex_mem,max_block_ex_steps,max_val_size,
-collateral_percent,max_collateral_inputs,block_id) FROM stdin WITH CSV;' >> $OUT_FILE;
+optimal_pool_count,influence,monetary_expand_rate,treasury_growth_rate, decentralisation,protocol_major,protocol_minor,min_utxo_value,
+min_pool_cost,nonce,cost_model_id,price_mem,price_step,max_tx_ex_mem,max_tx_ex_steps,max_block_ex_mem,max_block_ex_steps,max_val_size,
+collateral_percent,max_collateral_inputs,block_id, extra_entropy, coins_per_utxo_size) FROM stdin WITH CSV;' >> $OUT_FILE;
 psql -c "\copy (SELECT * from epoch_param WHERE epoch_no IN ($SELECT_BLOCK_EPOCH)) to STDOUT WITH CSV" $DB >> $OUT_FILE;
 echo "\." >> $OUT_FILE;
 

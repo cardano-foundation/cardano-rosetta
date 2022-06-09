@@ -343,7 +343,7 @@ export const mapToRosettaBlock = (
     createdBy: block.createdBy,
     size: block.size,
     epochNo: block.epochNo,
-    slotNo: block.slotNo
+    slotNo: Number(block.slotNo)
   },
   transactions: transactions.map(t => mapToRosettaTransaction(t, poolDeposit))
 });
