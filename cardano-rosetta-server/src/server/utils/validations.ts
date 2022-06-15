@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {
   PUBLIC_KEY_BYTES_LENGTH,
   ADA,
@@ -60,16 +61,32 @@ export const isEd25519Signature = (hash: string): boolean => {
   return !!ed25519Signature;
 };
 
-export const isVoteDataValid = (jsonObject: any): boolean => {
-  const isObject = typeof jsonObject === 'object';
-  const dataIndexes = Object.keys(CatalystDataIndexes).filter(key => parseInt(key) > 0);
-  return isObject && dataIndexes.every(index => index in jsonObject);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const isHexString = (value: any) => typeof value === 'string' && new RegExp('^(0x)?[0-9a-fA-F]+$').test(value);
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const validateVoteDataFields = (object: any) => {
+  const hexStringIndexes = [
+    CatalystDataIndexes.REWARD_ADDRESS,
+    CatalystDataIndexes.STAKE_KEY,
+    CatalystDataIndexes.VOTING_KEY
+  ];
+  const isValidVotingNonce =
+    object[CatalystDataIndexes.VOTING_NONCE] && !Number.isNaN(object[CatalystDataIndexes.VOTING_NONCE]);
+  return isValidVotingNonce && hexStringIndexes.every(index => index in object && isHexString(object[index]));
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const isVoteDataValid = (jsonObject: any): boolean => {
+  const isObject = typeof jsonObject === 'object';
+  return isObject && validateVoteDataFields(jsonObject);
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isVoteSignatureValid = (jsonObject: any): boolean => {
   const isObject = typeof jsonObject === 'object';
   const dataIndexes = Object.keys(CatalystSigIndexes).filter(key => parseInt(key) > 0);
-  return isObject && dataIndexes.every(index => index in jsonObject);
+  return isObject && dataIndexes.every(index => index in jsonObject && isHexString(jsonObject[index]));
 };
 
 const validateStatus = (status: string): void => {
