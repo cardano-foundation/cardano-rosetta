@@ -122,11 +122,18 @@ export const parseToRewardAddress = (address: string): CardanoWasm.RewardAddress
 };
 
 /**
- * Returns Address type from hex string
+ * Returns Address type if given string is a valid address
+ * otherwise will return undefined
  * @param hex address as hex string
  */
-export const getAddressFromHexString = (hex: string): Address => Address.from_bytes(hexStringToBuffer(hex));
-
+export const getAddressFromHexString = (hex: string): Address | undefined => {
+  try {
+    return Address.from_bytes(hexStringToBuffer(hex));
+  } catch {
+    // eslint-disable-next-line consistent-return
+    return undefined;
+  }
+};
 /**
  * Returns true if the address's prefix belongs to stake address
  * @param address bench 32 address

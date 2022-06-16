@@ -424,6 +424,9 @@ const parseVoteMetadataToOperation = (
   const dataParsed = JSON.parse(dataJson);
   const sigParsed = JSON.parse(sigJson);
 
+  const rewardAddress = getAddressFromHexString(remove0xPrefix(dataParsed[CatalystDataIndexes.REWARD_ADDRESS]));
+  if (rewardAddress === undefined) throw ErrorFactory.invalidAddressError();
+
   const parsedMetadata: Components.Schemas.VoteRegistrationMetadata = {
     votingKey: {
       hex_bytes: remove0xPrefix(dataParsed[CatalystDataIndexes.VOTING_KEY]),
@@ -433,7 +436,7 @@ const parseVoteMetadataToOperation = (
       hex_bytes: remove0xPrefix(dataParsed[CatalystDataIndexes.STAKE_KEY]),
       curve_type: CurveType.edwards25519
     },
-    rewardAddress: getAddressFromHexString(remove0xPrefix(dataParsed[CatalystDataIndexes.REWARD_ADDRESS])).to_bech32(),
+    rewardAddress: rewardAddress.to_bech32(),
     votingNonce: dataParsed[CatalystDataIndexes.VOTING_NONCE],
     votingSignature: remove0xPrefix(sigParsed[CatalystSigIndexes.VOTING_SIGNATURE])
   };
