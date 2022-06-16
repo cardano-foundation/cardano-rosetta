@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.7.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.7.0...1.7.1) (2022-06-16)
+
+
+### Bug Fixes
+
+* validate type of  metadata field for vote registrations ([b266a4b](https://github.com/input-output-hk/cardano-rosetta/commit/b266a4b2577ed0f92565823b5dc80e402b0198be))
+
 ## [1.7.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0...1.8.0) (2022-01-25)
 
 
