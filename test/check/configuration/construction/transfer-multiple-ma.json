@@ -1,7 +1,7 @@
 {
   "network": {
     "blockchain": "cardano",
-    "network": "3"
+    "network": "testnet"
   },
   "online_url": "http://localhost:8080",
   "http_timeout": 300,
