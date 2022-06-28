@@ -178,11 +178,12 @@ COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
 COPY ecosystem.config.js .
 COPY postgresql.conf /etc/postgresql/12/main/postgresql.conf
-COPY scripts/start_cardano-db-sync.sh scripts/maybe_download_cardano-db-sync_snapshot.sh /scripts/
+COPY scripts/start_cardano-db-sync.sh scripts/maybe_download_cardano-db-sync_snapshot.sh scripts/modify_cardano-db-sync_prometheus_port.sh /scripts/
 COPY config/network/${NETWORK} /config/
 ENV PGPASSFILE=/config/cardano-db-sync/pgpass
 RUN echo "/var/run/postgresql:5432:cexplorer:*:*" > $PGPASSFILE &&\
  chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
 RUN mkdir /snapshot &&\
-  ./scripts/maybe_download_cardano-db-sync_snapshot.sh $SNAPSHOT_URL /snapshot
+  ./scripts/maybe_download_cardano-db-sync_snapshot.sh $SNAPSHOT_URL /snapshot &&\
+  ./scripts/modify_cardano-db-sync_prometheus_port.sh
 COPY scripts/entrypoint.sh .
