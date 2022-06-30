@@ -7468,6 +7468,416 @@ export const searchTxsWithCoinAndInvalidFilters = [
   }
 ];
 
+export const searchTxByAddressWithInputs = [
+  {
+    block_identifier: {
+      hash: '57e16e0bf74356f949d6d7a06f33f031283c81887233d33c76692790e8137e7f',
+      index: 31322
+    },
+    transaction: {
+      metadata: {
+        scriptSize: 0,
+        size: 216
+      },
+      operations: [
+        {
+          account: {
+            address:
+              'DdzFFzCqrhsje6fw2vbCiDkkgUAs8oMhqH4VkFdiPGGJNo28gbXEXqJ2igZYqnA4Zk3H7b9Wd8iPXnCqPuRDj7Npz4Rx6tVNMZuDSoxk'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '-684988315368'
+          },
+          coin_change: {
+            coin_action: 'coin_spent',
+            coin_identifier: {
+              identifier: '96ce9dd0565d2d255925dc33461488c8d3bcbca0622616a3cf87bbe9248ca6df:0'
+            }
+          },
+          operation_identifier: {
+            index: 0
+          },
+          status: 'success',
+          type: 'input'
+        },
+        {
+          account: {
+            address:
+              'DdzFFzCqrhsiHvdrwXtzmLzJb8yp1qY7nVR5FkwdEQoaPZSYLf6K9BzbDG1vQsp3gdyHGFN6ST3eL6MkKZmGGhVoA9F6G859gPdtC14d'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '684987144298'
+          },
+          coin_change: {
+            coin_action: 'coin_created',
+            coin_identifier: {
+              identifier: '20e1d2343cbe16ab4b02c57ab17fa99d9a562af57a82dc562f48ee170f866f16:0'
+            }
+          },
+          operation_identifier: {
+            index: 1,
+            network_index: 0
+          },
+          related_operations: [
+            {
+              index: 0
+            }
+          ],
+          status: 'success',
+          type: 'output'
+        },
+        {
+          account: {
+            address:
+              'DdzFFzCqrht7kRa3H83VGtMagziigeStH1CgywX5VsKoRhveG9bHXbJdZWbsrbh2GSfoqJtUNMQvjcaGyXmEnPRta7EGHr5oyMmUayuM'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '1000000'
+          },
+          coin_change: {
+            coin_action: 'coin_created',
+            coin_identifier: {
+              identifier: '20e1d2343cbe16ab4b02c57ab17fa99d9a562af57a82dc562f48ee170f866f16:1'
+            }
+          },
+          operation_identifier: {
+            index: 2,
+            network_index: 1
+          },
+          related_operations: [
+            {
+              index: 0
+            }
+          ],
+          status: 'success',
+          type: 'output'
+        }
+      ],
+      transaction_identifier: {
+        hash: '20e1d2343cbe16ab4b02c57ab17fa99d9a562af57a82dc562f48ee170f866f16'
+      }
+    }
+  },
+  {
+    block_identifier: {
+      hash: 'c779a8dd67b482c43881258686024d998c08bc94b3c4e39919665b3e4c6dc36d',
+      index: 29556
+    },
+    transaction: {
+      metadata: {
+        scriptSize: 0,
+        size: 220
+      },
+      operations: [
+        {
+          account: {
+            address:
+              'DdzFFzCqrht61X549z7YfhvyBsGKLn21AzatXMnrpL4YYHcXuwBmXFNi2RzjgZQW3kotv1GwjNNRgWbsPSmLuMD4DMX9zARubmdaLYjh'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '-704988486614'
+          },
+          coin_change: {
+            coin_action: 'coin_spent',
+            coin_identifier: {
+              identifier: '654b1fb68a4f54cc0e64cf1e0e2461573cb4cc95b5cd09692a8f3b0ec4fac383:0'
+            }
+          },
+          operation_identifier: {
+            index: 0
+          },
+          status: 'success',
+          type: 'input'
+        },
+        {
+          account: {
+            address:
+              'DdzFFzCqrhsje6fw2vbCiDkkgUAs8oMhqH4VkFdiPGGJNo28gbXEXqJ2igZYqnA4Zk3H7b9Wd8iPXnCqPuRDj7Npz4Rx6tVNMZuDSoxk'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '684988315368'
+          },
+          coin_change: {
+            coin_action: 'coin_created',
+            coin_identifier: {
+              identifier: '96ce9dd0565d2d255925dc33461488c8d3bcbca0622616a3cf87bbe9248ca6df:0'
+            }
+          },
+          operation_identifier: {
+            index: 1,
+            network_index: 0
+          },
+          related_operations: [
+            {
+              index: 0
+            }
+          ],
+          status: 'success',
+          type: 'output'
+        },
+        {
+          account: {
+            address:
+              'DdzFFzCqrht13mgsdsfXzJJxCjeEcbwQ4HJCm3mUhxfHAgFRGCnQo2r13mLzEEGJBYu1AXkkGbDx7ADb2hyUfyGv41z7R2CYuejp3gQX'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '20000000000'
+          },
+          coin_change: {
+            coin_action: 'coin_created',
+            coin_identifier: {
+              identifier: '96ce9dd0565d2d255925dc33461488c8d3bcbca0622616a3cf87bbe9248ca6df:1'
+            }
+          },
+          operation_identifier: {
+            index: 2,
+            network_index: 1
+          },
+          related_operations: [
+            {
+              index: 0
+            }
+          ],
+          status: 'success',
+          type: 'output'
+        }
+      ],
+      transaction_identifier: {
+        hash: '96ce9dd0565d2d255925dc33461488c8d3bcbca0622616a3cf87bbe9248ca6df'
+      }
+    }
+  }
+];
+
+export const searchTxWithCoinSpent = [
+  {
+    block_identifier: {
+      hash: '57e16e0bf74356f949d6d7a06f33f031283c81887233d33c76692790e8137e7f',
+      index: 31322
+    },
+    transaction: {
+      metadata: {
+        scriptSize: 0,
+        size: 216
+      },
+      operations: [
+        {
+          account: {
+            address:
+              'DdzFFzCqrhsje6fw2vbCiDkkgUAs8oMhqH4VkFdiPGGJNo28gbXEXqJ2igZYqnA4Zk3H7b9Wd8iPXnCqPuRDj7Npz4Rx6tVNMZuDSoxk'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '-684988315368'
+          },
+          coin_change: {
+            coin_action: 'coin_spent',
+            coin_identifier: {
+              identifier: '96ce9dd0565d2d255925dc33461488c8d3bcbca0622616a3cf87bbe9248ca6df:0'
+            }
+          },
+          operation_identifier: {
+            index: 0
+          },
+          status: 'success',
+          type: 'input'
+        },
+        {
+          account: {
+            address:
+              'DdzFFzCqrhsiHvdrwXtzmLzJb8yp1qY7nVR5FkwdEQoaPZSYLf6K9BzbDG1vQsp3gdyHGFN6ST3eL6MkKZmGGhVoA9F6G859gPdtC14d'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '684987144298'
+          },
+          coin_change: {
+            coin_action: 'coin_created',
+            coin_identifier: {
+              identifier: '20e1d2343cbe16ab4b02c57ab17fa99d9a562af57a82dc562f48ee170f866f16:0'
+            }
+          },
+          operation_identifier: {
+            index: 1,
+            network_index: 0
+          },
+          related_operations: [
+            {
+              index: 0
+            }
+          ],
+          status: 'success',
+          type: 'output'
+        },
+        {
+          account: {
+            address:
+              'DdzFFzCqrht7kRa3H83VGtMagziigeStH1CgywX5VsKoRhveG9bHXbJdZWbsrbh2GSfoqJtUNMQvjcaGyXmEnPRta7EGHr5oyMmUayuM'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '1000000'
+          },
+          coin_change: {
+            coin_action: 'coin_created',
+            coin_identifier: {
+              identifier: '20e1d2343cbe16ab4b02c57ab17fa99d9a562af57a82dc562f48ee170f866f16:1'
+            }
+          },
+          operation_identifier: {
+            index: 2,
+            network_index: 1
+          },
+          related_operations: [
+            {
+              index: 0
+            }
+          ],
+          status: 'success',
+          type: 'output'
+        }
+      ],
+      transaction_identifier: {
+        hash: '20e1d2343cbe16ab4b02c57ab17fa99d9a562af57a82dc562f48ee170f866f16'
+      }
+    }
+  },
+  {
+    block_identifier: {
+      hash: 'c779a8dd67b482c43881258686024d998c08bc94b3c4e39919665b3e4c6dc36d',
+      index: 29556
+    },
+    transaction: {
+      metadata: {
+        scriptSize: 0,
+        size: 220
+      },
+      operations: [
+        {
+          account: {
+            address:
+              'DdzFFzCqrht61X549z7YfhvyBsGKLn21AzatXMnrpL4YYHcXuwBmXFNi2RzjgZQW3kotv1GwjNNRgWbsPSmLuMD4DMX9zARubmdaLYjh'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '-704988486614'
+          },
+          coin_change: {
+            coin_action: 'coin_spent',
+            coin_identifier: {
+              identifier: '654b1fb68a4f54cc0e64cf1e0e2461573cb4cc95b5cd09692a8f3b0ec4fac383:0'
+            }
+          },
+          operation_identifier: {
+            index: 0
+          },
+          status: 'success',
+          type: 'input'
+        },
+        {
+          account: {
+            address:
+              'DdzFFzCqrhsje6fw2vbCiDkkgUAs8oMhqH4VkFdiPGGJNo28gbXEXqJ2igZYqnA4Zk3H7b9Wd8iPXnCqPuRDj7Npz4Rx6tVNMZuDSoxk'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '684988315368'
+          },
+          coin_change: {
+            coin_action: 'coin_created',
+            coin_identifier: {
+              identifier: '96ce9dd0565d2d255925dc33461488c8d3bcbca0622616a3cf87bbe9248ca6df:0'
+            }
+          },
+          operation_identifier: {
+            index: 1,
+            network_index: 0
+          },
+          related_operations: [
+            {
+              index: 0
+            }
+          ],
+          status: 'success',
+          type: 'output'
+        },
+        {
+          account: {
+            address:
+              'DdzFFzCqrht13mgsdsfXzJJxCjeEcbwQ4HJCm3mUhxfHAgFRGCnQo2r13mLzEEGJBYu1AXkkGbDx7ADb2hyUfyGv41z7R2CYuejp3gQX'
+          },
+          amount: {
+            currency: {
+              decimals: 6,
+              symbol: 'ADA'
+            },
+            value: '20000000000'
+          },
+          coin_change: {
+            coin_action: 'coin_created',
+            coin_identifier: {
+              identifier: '96ce9dd0565d2d255925dc33461488c8d3bcbca0622616a3cf87bbe9248ca6df:1'
+            }
+          },
+          operation_identifier: {
+            index: 2,
+            network_index: 1
+          },
+          related_operations: [
+            {
+              index: 0
+            }
+          ],
+          status: 'success',
+          type: 'output'
+        }
+      ],
+      transaction_identifier: {
+        hash: '96ce9dd0565d2d255925dc33461488c8d3bcbca0622616a3cf87bbe9248ca6df'
+      }
+    }
+  }
+];
+
 export const searchWithCurrencyFilter = [
   {
     block_identifier: {

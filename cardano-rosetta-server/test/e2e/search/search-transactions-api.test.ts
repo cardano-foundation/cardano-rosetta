@@ -10,9 +10,7 @@ import {
   searchTxsWithNoFiltersMaxBlock,
   searchTxWithCoinFilter,
   searchLastTxWithNoFilters,
-  searchNotSucceededTx,
   searchFilteredByTxHash,
-  searchTxsWithCoinAndInvalidFilters,
   searchWithCurrencyFilter,
   searchTxWithAddressFilter,
   searchTxWithStakeAddressFilter,
@@ -50,7 +48,9 @@ import {
   searchTxWithCoinDelegationFilters,
   searchTxWithCoinDeregistrationFilters,
   searchTxsWithCoinStakeRegistrationFilters,
-  searchTxComposedWithdrawal
+  searchTxComposedWithdrawal,
+  searchTxByAddressWithInputs,
+  searchTxWithCoinSpent
 } from '../fixture-data';
 
 const SEARCH_TRANSACTIONS_ENDPOINT = '/search/transactions';
@@ -424,6 +424,22 @@ describe('/search/transactions endpoint', () => {
         total_count: 1
       });
     });
+    test('Should return transactions where the coin was created and spent', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          coinIdentifier: '96ce9dd0565d2d255925dc33461488c8d3bcbca0622616a3cf87bbe9248ca6df:0',
+          limit: 2,
+          operator: OR_OPERATOR
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxWithCoinSpent,
+        total_count: 2
+      });
+    });
     test('Should throw an error when given coin is bad formed', async () => {
       const response = await server.inject({
         method: 'post',
@@ -656,6 +672,21 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithAddressFilter,
+        total_count: 2
+      });
+    });
+    test('Should return txs where the address received and spent funds', async () => {
+      const response = await server.inject({
+        method: 'post',
+        url: SEARCH_TRANSACTIONS_ENDPOINT,
+        payload: generateSearchTransactionsPayload(CARDANO, MAINNET, {
+          address:
+            'DdzFFzCqrhsje6fw2vbCiDkkgUAs8oMhqH4VkFdiPGGJNo28gbXEXqJ2igZYqnA4Zk3H7b9Wd8iPXnCqPuRDj7Npz4Rx6tVNMZuDSoxk'
+        })
+      });
+      expect(response.statusCode).toEqual(StatusCodes.OK);
+      expect(response.json()).toEqual({
+        transactions: searchTxByAddressWithInputs,
         total_count: 2
       });
     });
@@ -1427,7 +1458,7 @@ describe('/search/transactions endpoint', () => {
         total_count: 1
       });
     });
-    test('Should return transactions with input type, max block, coin, success and address filters', async () => {
+    test(' Should return transactions with input type, max block, coin, success and address filters ', async () => {
       const response = await server.inject({
         method: 'post',
         url: SEARCH_TRANSACTIONS_ENDPOINT,
@@ -1837,7 +1868,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxsWithAllFiltersAndInputsOrOperator,
-        total_count: 18420,
+        total_count: 18421,
         next_offset: 2
       });
     });
@@ -1860,7 +1891,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxsWithAllFiltersAndInputsOrOperator,
-        total_count: 18420,
+        total_count: 18421,
         next_offset: 2
       });
     });
@@ -1883,7 +1914,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxsWithAllFiltersPoolRegistrationOrOperator,
-        total_count: 4,
+        total_count: 8,
         next_offset: 2
       });
     });
@@ -1906,7 +1937,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxsWithAllFiltersPoolRegistrationOrOperator,
-        total_count: 4,
+        total_count: 8,
         next_offset: 2
       });
     });
@@ -1929,7 +1960,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithAllFiltersPoolRetirementOrOperator,
-        total_count: 4,
+        total_count: 6,
         next_offset: 2
       });
     });
@@ -1952,7 +1983,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithAllFiltersDelegationsOrOperator,
-        total_count: 54,
+        total_count: 55,
         next_offset: 2
       });
     });
@@ -1975,7 +2006,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithAllFiltersDeregistrationsOrOperator,
-        total_count: 6,
+        total_count: 7,
         next_offset: 2
       });
     });
@@ -1998,7 +2029,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithAllFiltersStakeRegistrationOrOperator,
-        total_count: 25,
+        total_count: 26,
         next_offset: 2
       });
     });
@@ -2021,11 +2052,11 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithAllFiltersVoteRegistrationOrOperator,
-        total_count: 13,
+        total_count: 14,
         next_offset: 2
       });
     });
-    test('Should return transactions with withdrawal type, max block, coin, success, address and currency filters with OR operator', async () => {
+    test('Should return transactions with withdrawal type, max block, coin, success, address and currency filters with OR operator ', async () => {
       const response = await server.inject({
         method: 'post',
         url: SEARCH_TRANSACTIONS_ENDPOINT,
@@ -2044,7 +2075,7 @@ describe('/search/transactions endpoint', () => {
       expect(response.statusCode).toEqual(StatusCodes.OK);
       expect(response.json()).toEqual({
         transactions: searchTxWithAllFiltersWithdrawalOrOperator,
-        total_count: 38,
+        total_count: 39,
         next_offset: 2
       });
     });
