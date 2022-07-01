@@ -1,9 +1,9 @@
 {
     "online_url": "http://localhost:8080",
     "data": {
+      "start_index":  1,
       "end_conditions": {
-        "tip": true,
-        "coverage": 0.95
+        "index": 10000
       }
     },
     "network": {
