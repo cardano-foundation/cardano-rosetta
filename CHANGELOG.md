@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.8.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0...1.8.0) (2022-07-01)
+
+
+### Features
+
+* adapt network service to vasil-qa topology file ([7eaede5](https://github.com/input-output-hk/cardano-rosetta/commit/7eaede52152e3c12ebccd2f34d4a07dc56bd925f))
+* update pool registrations query ([8c9a478](https://github.com/input-output-hk/cardano-rosetta/commit/8c9a4787f2885c404374288a8209cdae16234084))
+
+
+### Bug Fixes
+
+* add order by to delegations and pool owners queries ([6f6152d](https://github.com/input-output-hk/cardano-rosetta/commit/6f6152d522c5a36c0d602e4172d690d9bb26d97a))
+
 ### [1.7.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.7.0...1.7.1) (2022-06-16)
 
 
