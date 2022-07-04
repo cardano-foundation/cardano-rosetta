@@ -2,7 +2,7 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 /* eslint-disable max-len */
 /* eslint-disable no-magic-numbers */
-import CardanoWasm from 'cardano-serialization-lib';
+import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import cbor from 'cbor';
 import {
   OperationType,
@@ -5106,7 +5106,7 @@ export const SIGNED_TRANSACTION =
 // using 1000, therefore we need to subtract 2 bytes (that will be added in metadata endpoint)
 export const TRANSACTION_SIZE_IN_BYTES = SIGNED_TRANSACTION.length / 2 - 2;
 
-// The following transactions were generated using using the `cardano-serialization-lib` with dummy signatures
+// The following transactions were generated using using the `@emurgo/cardano-serialization-lib-nodejs` with dummy signatures
 // (so no need to subtract 2). The idea of this test vectors is not to test the serialization bit but to check
 // the way the operations are parsed corresponds to the calls and the operation parsing
 

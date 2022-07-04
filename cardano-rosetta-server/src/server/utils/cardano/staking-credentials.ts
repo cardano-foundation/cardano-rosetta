@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import CardanoWasm, { StakeCredential } from 'cardano-serialization-lib';
+import CardanoWasm, { StakeCredential } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../errors';
 import { hexStringToBuffer } from '../formatters';

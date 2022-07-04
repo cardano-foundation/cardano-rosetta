@@ -16,7 +16,7 @@ import CardanoWasm, {
   AuxiliaryData,
   TransactionMetadatum,
   Value
-} from 'cardano-serialization-lib';
+} from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import {
   CatalystDataIndexes,

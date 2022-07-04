@@ -15,7 +15,7 @@ import {
 } from './constants';
 import { ErrorFactory } from './errors';
 import { hexStringToBuffer, isEmptyHexString } from './formatters';
-import CardanoWasm from 'cardano-serialization-lib';
+import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { CoinIdentifier } from '../models';
 
 const tokenNameValidation = new RegExp(`^[0-9a-fA-F]{0,${ASSET_NAME_LENGTH}}$`);
