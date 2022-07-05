@@ -33,7 +33,7 @@ const defaultTransactionQuery = (maxBlock?: number) => `
 `;
 
 const findTransactionsWithInputs = (conditions: SearchFilters) => {
-  const { maxBlock, status } = conditions;
+  const { maxBlock } = conditions;
   return `FROM tx
   JOIN tx_in
       ON tx_in.tx_in_id = tx.id
@@ -197,46 +197,84 @@ const queryOrTypeMapping: {
 const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolean): string => {
   const { transactionHash, status, coinIdentifier, limit, offset, currencyIdentifier, address, type } = filters;
   const txOutAlreadyJoined = !!type && type === OperationType.OUTPUT;
+  const txInAlreadyJoined = !!type && type === OperationType.INPUT;
   const whereConditions = [];
   let whereSentence = '';
-  let joinSentence = '';
-  const joinTables = [];
-
+  let leftJoinSentence = '';
+  const leftJoinTables = [];
   if (!isNullOrUndefined(status)) {
     whereConditions.push(`tx.valid_contract = ${status}`);
   }
   if (coinIdentifier) {
     const { index } = coinIdentifier;
     // eslint-disable-next-line sonarjs/no-duplicate-string
-    !txOutAlreadyJoined && joinTables.push('tx_out ON tx.id = tx_out.tx_id');
+    !txOutAlreadyJoined && leftJoinTables.push('tx_out ON tx.id = tx_out.tx_id');
     // eslint-disable-next-line sonarjs/no-duplicate-string
-    whereConditions.push('tx.hash = $1');
-    whereConditions.push(`tx_out.index = ${index}`);
+    !txInAlreadyJoined && leftJoinTables.push('tx_in ON tx_in.tx_in_id = tx.id');
+    leftJoinTables.push(
+      'tx_out AS tx_out_in ON tx_in.tx_out_id = tx_out_in.tx_id AND tx_out_in.index = tx_in.tx_out_index',
+      'tx AS tx_out_in_tx ON tx_out_in.tx_id = tx_out_in_tx.id'
+    );
+    // eslint-disable-next-line sonarjs/no-duplicate-string
+    whereConditions.push(
+      `((tx.hash = $1 AND tx_out.index = ${index}) OR (tx_out_in_tx.hash = $1 AND tx_out_in.index = ${index}))`
+    );
   }
   if (transactionHash && !coinIdentifier) {
+    // eslint-disable-next-line sonarjs/no-duplicate-string
     whereConditions.push('tx.hash = $1');
   }
   if (currencyIdentifier) {
     const { policy, symbol } = currencyIdentifier;
-    !coinIdentifier && joinTables.push('tx_out ON tx.id = tx_out.tx_id');
-    joinTables.push(`ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id 
-                    JOIN multi_asset AS asset ON asset.id = ma_tx_out.ident
-                      AND asset.name = DECODE('${symbol}', 'hex')
-                      AND asset.policy = DECODE('${policy}', 'hex')`);
+    !coinIdentifier &&
+      leftJoinTables.push(
+        'tx_out ON tx.id = tx_out.tx_id',
+        'tx_in ON tx_in.tx_in_id = tx.id',
+        'tx_out AS tx_out_in ON (tx_in.tx_out_id = tx_out_in.tx_id AND tx_out_in.index = tx_in.tx_out_index)'
+      );
+    leftJoinTables.push(
+      `ma_tx_out ON ma_tx_out.tx_out_id = tx_out.id 
+      LEFT JOIN multi_asset AS asset ON asset.id = ma_tx_out.ident`,
+      `
+        ma_tx_out AS ma_tx_out_in ON ma_tx_out_in.tx_out_id = tx_out_in.id 
+      LEFT JOIN multi_asset AS asset_in ON asset_in.id = ma_tx_out_in.ident`
+    );
+    whereConditions.push(
+      `(
+        (asset.name= DECODE('${symbol}', 'hex') AND asset.policy = DECODE('${policy}', 'hex')) OR
+        (asset_in.name = DECODE('${symbol}', 'hex') AND asset_in.policy = DECODE('${policy}', 'hex'))
+      )`
+    );
   }
   if (address) {
     const isStake = isStakeAddress(address);
-    !currencyIdentifier && !coinIdentifier && joinTables.push('tx_out ON tx.id = tx_out.tx_id');
-    isStake && joinTables.push('stake_address ON tx_out.stake_address_id = stake_address.id');
-    whereConditions.push(`${isStake ? `stake_address.view = '${address}'` : `tx_out.address = '${address}'`}`);
+    !currencyIdentifier &&
+      !coinIdentifier &&
+      leftJoinTables.push(
+        'tx_out ON tx.id = tx_out.tx_id',
+        'tx_in ON tx_in.tx_in_id = tx.id',
+        'tx_out AS tx_out_in ON tx_in.tx_out_id = tx_out_in.tx_id AND tx_in.tx_out_index = tx_out_in.index'
+      );
+    isStake &&
+      leftJoinTables.push(
+        'stake_address ON tx_out.stake_address_id = stake_address.id',
+        'stake_address AS stake_address_in ON tx_out_in.stake_address_id = stake_address_in.id'
+      );
+    whereConditions.push(
+      `${
+        isStake
+          ? `(stake_address.view = '${address}' OR stake_address_in.view = '${address}')`
+          : `(tx_out.address = '${address}' OR tx_out_in.address = '${address}')`
+      }`
+    );
   }
   if (whereConditions.length > 0) {
     whereSentence = `WHERE ${whereConditions.join(` ${OperatorType.AND} `)}`;
   }
-  if (joinTables.length > 0) {
-    joinSentence = `JOIN ${joinTables.join(' JOIN ')}`;
+  if (leftJoinTables.length > 0) {
+    leftJoinSentence = `LEFT JOIN ${leftJoinTables.join(' LEFT JOIN ')}`;
   }
-  const text = `${query} ${joinSentence} ${whereSentence}`;
+  const text = `${query} ${leftJoinSentence} ${whereSentence}`;
   return isTotalCount
     ? `SELECT COUNT(DISTINCT tx.id) AS "totalCount" ${text}`
     : `
@@ -257,72 +295,66 @@ const withFilters = (query: string, filters: SearchFilters, isTotalCount: boolea
 };
 
 const createCoinQuery = (coinIdentifier: CoinIdentifier, filters: SearchFilters, isTotalCount: boolean) => {
-  const { maxBlock, operator, limit, offset, status, address } = filters;
-  let txOutTxClause = '';
-  let txInTxClause = '';
+  const { maxBlock, limit, offset, status, address } = filters;
   let joinClause = '';
   let whereClause = '';
-  const txInTxConditions = [];
-  const txOutTxConditions = [];
   const joinTables = [];
   const conditions = [];
   if (maxBlock) {
-    txInTxConditions.push(`tx_in_tx.block_id <= (select id from block where block_no = ${maxBlock})`);
-    txOutTxConditions.push(`tx_out_tx.block_id <= (select id from block where block_no = ${maxBlock})`);
+    conditions.push(`tx.block_id <= (select id from block where block_no = ${maxBlock})`);
   }
   if (!isNullOrUndefined(status)) {
-    txOutTxConditions.push(`tx_out_tx.valid_contract  = ${status}`);
+    conditions.push(`tx.valid_contract  = ${status}`);
   }
   if (address) {
     const isStake = isStakeAddress(address);
     isStake && joinTables.push('stake_address ON stake_address.id = tx_out.stake_address_id');
-    conditions.push(`${isStake ? `stake_address.view = '${address}'` : `tx_out.address = '${address}'`}`);
-  }
-  if (txOutTxConditions.length > 0) {
-    txOutTxClause = ` AND (${txOutTxConditions.join(` ${operator} `)})`;
-  }
-  if (txInTxConditions.length > 0) {
-    txInTxClause = ` AND (${txInTxConditions.join(` ${operator} `)})`;
+    conditions.push(
+      `${
+        isStake
+          ? `stake_address.view = '${address}'`
+          : `(tx_out.address = '${address}' OR tx_out_in.address = '${address}')`
+      }`
+    );
   }
   if (conditions.length > 0) {
-    whereClause = `AND ${conditions.join(' AND ')}`;
+    whereClause = `${OperatorType.AND} ${conditions.join(` ${OperatorType.AND} `)}`;
   }
   if (joinTables.length > 0) {
     joinClause = `JOIN ${joinTables.join(' JOIN ')}`;
   }
   const text = `
-  FROM tx_out
-  LEFT JOIN tx_in ON 
-    tx_out.tx_id = tx_in.tx_out_id AND 
-    tx_out.index::smallint = tx_in.tx_out_index::smallint 
-  LEFT JOIN tx as tx_in_tx ON 
-    tx_in_tx.id = tx_in.tx_in_id 
-    ${txInTxClause}
-  JOIN tx AS tx_out_tx ON
-    tx_out_tx.id = tx_out.tx_id
-    ${txOutTxClause}
+  FROM tx
+  LEFT JOIN tx_out ON
+    tx.id = tx_out.tx_id
+  LEFT JOIN tx_in 
+    ON tx_in.tx_in_id = tx.id
+  LEFT JOIN tx_out AS tx_out_in ON 
+    tx_out_in.tx_id = tx_in.tx_out_id AND
+    tx_out_in.index = tx_in.tx_out_index
+  LEFT JOIN tx AS tx_out_in_tx ON
+    tx_out_in_tx.id = tx_out_in.tx_id
   ${joinClause}
   WHERE 
-    tx_out_tx.hash = $1 AND
-    tx_out.index = ${coinIdentifier.index} AND
-    tx_in_tx.id IS NULL
+    ((tx.hash = $1 AND tx_out.index = ${coinIdentifier.index}) OR
+    (tx_out_in_tx.hash = $1 AND tx_out_in.index = ${coinIdentifier.index}))
     ${whereClause}`;
 
   return isTotalCount
-    ? `SELECT COUNT(tx_out_tx.id) AS "totalCount" ${text}`
+    ? `SELECT COUNT(tx.id) AS "totalCount" ${text}`
     : `
       WITH tx_query AS
         (SELECT
-          tx_out_tx.id,
-          tx_out_tx."size",
-          tx_out_tx.fee,
-          tx_out_tx.hash,
-          tx_out_tx.valid_contract,
-          tx_out_tx.script_size,
-          tx_out_tx.block_id
+          tx.id,
+          tx."size",
+          tx.fee,
+          tx.hash,
+          tx.valid_contract,
+          tx.script_size,
+          tx.block_id
         ${text}
-        GROUP BY tx_out_tx.id
-        ORDER BY tx_out_tx.id DESC
+        GROUP BY tx.id
+        ORDER BY tx.id DESC
         LIMIT ${limit}
         OFFSET ${offset})
       ${transactionBlockQuery}
@@ -394,62 +426,81 @@ const createCurrencyQuery = (currencyId: CurrencyId, filters: SearchFilters, isT
 };
 
 const getQueryWithAndOperator = (filters: SearchFilters, isTotalCount = false) => {
-  let query = defaultTransactionQuery(filters?.maxBlock);
   const { coinIdentifier, currencyIdentifier, type } = filters;
   if (type) {
     return withFilters(queryAndTypeMapping[type](filters), filters, isTotalCount);
   }
   if (currencyIdentifier) {
-    query = createCurrencyQuery(currencyIdentifier, filters, isTotalCount);
-    return query;
+    return createCurrencyQuery(currencyIdentifier, filters, isTotalCount);
   }
   if (coinIdentifier) {
-    query = createCoinQuery(coinIdentifier, filters, isTotalCount);
-    return query;
+    return createCoinQuery(coinIdentifier, filters, isTotalCount);
   }
+  const query = defaultTransactionQuery(filters?.maxBlock);
   return withFilters(query, filters, isTotalCount);
 };
 
 // Methods for requests with OR operator
-const generateCoinSelect = (
-  coinIdentifier?: CoinIdentifier,
-  maxBlock?: number,
-  status?: boolean,
-  txOutAlreadyJoined = false
-) =>
+const generateCoinSelect = (coinIdentifier?: CoinIdentifier, txOutAlreadyJoined = false, txInAlreadyJoined = false) =>
   coinIdentifier
     ? `
 ${
   !txOutAlreadyJoined
     ? `
 LEFT JOIN tx_out 
-ON tx_out.tx_id = tx.id`
+  ON tx_out.tx_id = tx.id`
     : ''
 }
-LEFT JOIN tx_in as utxo_tx_in
-ON utxo_tx_in.tx_out_id = tx_out.tx_id 
-  AND utxo_tx_in.tx_out_index::smallint = tx_out."index"::smallint
-LEFT JOIN tx as utxo_tx_in_tx
-ON utxo_tx_in_tx.id = utxo_tx_in.tx_in_id 
-${maxBlock ? `AND utxo_tx_in_tx.block_id <= (select id from block where block_no = ${maxBlock})` : ''}
-${!isNullOrUndefined(status) ? `AND utxo_tx_in_tx.valid_contract = ${status}` : ''}`
+${
+  !txInAlreadyJoined
+    ? `LEFT JOIN tx_in 
+ON tx_in.tx_in_id = tx.id`
+    : ''
+}
+LEFT JOIN tx_out AS tx_out_in
+  ON tx_out_in.index = tx_in.tx_out_index 
+  AND tx_out_in.tx_id = tx_in.tx_out_id
+LEFT JOIN tx AS tx_out_in_tx
+  ON tx_out_in_tx.id = tx_out_in.tx_id
+  `
     : '';
 
-const generateAddressSelect = (address?: string, coinIdentifier?: CoinIdentifier, txOutAlreadyJoined = false) =>
+const generateAddressSelect = (
+  address?: string,
+  coinIdentifier?: CoinIdentifier,
+  txOutAlreadyJoined = false,
+  txInAlreadyJoined = false
+) =>
   address
     ? `
   ${
-    !txOutAlreadyJoined && !coinIdentifier
-      ? `LEFT JOIN tx_out 
-  ON tx_out.tx_id = tx.id`
+    !coinIdentifier
+      ? `
+      ${
+        !txOutAlreadyJoined
+          ? `LEFT JOIN tx_out 
+      ON tx_out.tx_id = tx.id`
+          : ''
+      } 
+      ${
+        !txInAlreadyJoined
+          ? `LEFT JOIN tx_in 
+        ON tx_in.tx_in_id = tx.id`
+          : ''
+      }
+      LEFT JOIN tx_out AS tx_out_in
+        ON tx_out_in.tx_id = tx_in.tx_out_id
+        AND tx_out_in.index = tx_in.tx_out_index 
+  `
       : ''
   } 
   ${isStakeAddress(address) ? 'LEFT JOIN stake_address ON tx_out.stake_address_id = stake_address.id' : ''}`
     : '';
 
 const generateCoinWhere = (coinIdentifier: CoinIdentifier) => `
-  (utxo_tx_in_tx.id is null and (tx_out."index" = ${coinIdentifier.index}
-  and tx.hash = $1))`;
+    ((tx_out."index" = ${coinIdentifier.index} AND tx.hash = $1) 
+    OR (tx_out_in."index" = ${coinIdentifier.index} AND tx_out_in_tx.hash = $1))
+`;
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 const getQueryWithOrOperator = (filters: SearchFilters) => {
@@ -465,6 +516,7 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
     limit
   } = filters;
   const txOutAlreadyJoined = !!type && type === OperationType.OUTPUT;
+  const txInAlreadyJoined = !!type && type === OperationType.INPUT;
   const statusExists = !isNullOrUndefined(status);
   const whereConditions = [];
   let whereClause = '';
@@ -477,7 +529,11 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
   }
   if (address) {
     whereConditions.push(
-      `${isStakeAddress(address) ? `stake_address.view = '${address}'` : `tx_out.address = '${address}'`}`
+      `${
+        isStakeAddress(address)
+          ? `stake_address.view = '${address}'`
+          : `(tx_out.address = '${address}' OR tx_out_in.address = '${address}')`
+      }`
     );
   }
   if (type) {
@@ -497,8 +553,8 @@ const getQueryWithOrOperator = (filters: SearchFilters) => {
   JOIN block
     ON block.id = tx.block_id ${maxBlock ? ` AND block_no <= ${maxBlock}` : ''}
   ${type ? queryOrTypeMapping[type]().select : ''}
-  ${generateCoinSelect(coinIdentifier, maxBlock, status, txOutAlreadyJoined)}
-  ${generateAddressSelect(address, coinIdentifier, txOutAlreadyJoined)}
+  ${generateCoinSelect(coinIdentifier, txOutAlreadyJoined, txInAlreadyJoined)}
+  ${generateAddressSelect(address, coinIdentifier, txOutAlreadyJoined, txInAlreadyJoined)}
   ${currencyIdentifier && !txOutAlreadyJoined && !address ? 'LEFT JOIN tx_out ON tx_out.tx_id = tx.id' : ''}
   ${
     currencyIdentifier
@@ -542,7 +598,7 @@ const createComposedCountQuery = (filters: SearchFilters) => {
     countQueries.push(withFilters(defaultTxQuery, { ...mustFilters, address }, true));
   }
   if (countQueries.length === 0) countQueries.push(withFilters(defaultTxQuery, filters, true));
-  return `SELECT SUM("totalCount") AS "totalCount" FROM (${countQueries.join(' UNION ')}) filters_count`;
+  return `SELECT SUM("totalCount") AS "totalCount" FROM (${countQueries.join(' UNION ALL ')}) filters_count`;
 };
 
 const createQueryWithAndOperator = (filters: SearchFilters) => ({
