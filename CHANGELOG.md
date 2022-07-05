@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. See [standa
 ### Bug Fixes
 
 * add order by to delegations and pool owners queries ([6f6152d](https://github.com/input-output-hk/cardano-rosetta/commit/6f6152d522c5a36c0d602e4172d690d9bb26d97a))
+* fix on search by addresses and coins ([685d900](https://github.com/input-output-hk/cardano-rosetta/commit/685d900e8909fbc64193600fc1a68063fc6a3bd9))
 
 ### [1.7.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.7.0...1.7.1) (2022-06-16)
 
