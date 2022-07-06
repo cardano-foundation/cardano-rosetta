@@ -4,6 +4,7 @@ import { PREPROD, PREPROD_NETWORK_MAGIC, PREVIEW, PREVIEW_NETWORK_MAGIC } from '
 import { BlockService } from './block-service';
 import fs from 'fs';
 import path from 'path';
+import systemInformation from 'systeminformation';
 
 const filePath = process.env.EXEMPTION_TYPES_PATH;
 let exemptionsFile: Components.Schemas.BalanceExemption[] = [];
@@ -21,10 +22,10 @@ export interface NetworkService {
 }
 
 interface Producer {
-  addr: string;
+  port: number;
 }
 interface AccessPoint {
-  address: string;
+  port: number;
 }
 interface PublicRoot {
   publicRoots: {
@@ -41,13 +42,20 @@ export interface Peer {
 }
 
 const getPublicRoots = (publicRoots?: PublicRoot[]) =>
-  publicRoots?.map(pr => pr.publicRoots.accessPoints.map(ap => ({ addr: ap.address }))).flat() || [];
+  publicRoots?.map(pr => pr.publicRoots.accessPoints.map(ap => ({ port: ap.port }))).flat() || [];
 
-const getPeersFromConfig = (logger: Logger, topologyFile: TopologyConfig): Peer[] => {
+const getPeersFromConfig = async (logger: Logger, topologyFile: TopologyConfig): Promise<Peer[]> => {
   logger.info('[getPeersFromConfig] Looking for peers from topologyFile');
-  const Producers = topologyFile?.Producers || getPublicRoots(topologyFile.PublicRoots);
-  logger.debug(`[getPeersFromConfig] Found ${Producers.length} peers`);
-  return Producers as Peer[];
+  const producersPort = (topologyFile?.Producers || getPublicRoots(topologyFile.PublicRoots))
+    .filter(i => i !== undefined)
+    .map(p => p!.port.toString());
+
+  const peers = (await systemInformation.networkConnections())
+    .filter(item => producersPort.includes(item.peerPort))
+    .map(i => ({ addr: i.peerAddress }));
+
+  logger.debug(`[getPeersFromConfig] Found ${peers.length} peers`);
+  return peers;
 };
 
 const getExemptionFile = (logger: Logger): Components.Schemas.BalanceExemption[] => {
@@ -83,11 +91,10 @@ const configure = (
     logger.info('[networkStatus] Looking for genesis block');
     const genesisBlock = await blockchainService.getGenesisBlock(logger);
     logger.debug({ genesisBlock }, '[networkStatus] Genesis block found');
-
     return {
       latestBlock,
       genesisBlock,
-      peers: getPeersFromConfig(logger, topologyFile)
+      peers: await getPeersFromConfig(logger, topologyFile)
     };
   },
   getExemptionTypes(logger: Logger) {

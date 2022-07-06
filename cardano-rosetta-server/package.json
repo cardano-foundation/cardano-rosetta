@@ -91,6 +91,7 @@
     "http-status-codes": "1.4.0",
     "moment": "2.29.4",
     "pg": "8.3.0",
+    "systeminformation": "5.11.2",
     "temp-write": "4.0.0"
   },
   "resolutions": {
