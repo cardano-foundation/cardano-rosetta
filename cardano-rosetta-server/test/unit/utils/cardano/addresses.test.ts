@@ -1,5 +1,5 @@
 import { getAddressFromHexString } from '../../../../src/server/utils/cardano/addresses';
-import { Address } from 'cardano-serialization-lib';
+import { Address } from '@emurgo/cardano-serialization-lib-nodejs';
 
 describe('Addresses', () => {
   describe('getAddressFromHexString', () => {

@@ -1,4 +1,4 @@
-import CardanoWasm, { AuxiliaryData, BigNum } from 'cardano-serialization-lib';
+import CardanoWasm, { AuxiliaryData, BigNum } from '@emurgo/cardano-serialization-lib-nodejs';
 import cbor from 'cbor';
 import { Logger } from 'fastify';
 import {
