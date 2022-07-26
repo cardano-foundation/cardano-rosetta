@@ -16,14 +16,6 @@ let
     version = packageJSON.version;
     buildInputs = [ yarn nodejs ];
     src = ( ./.. + srcDir);
-    #src = nix-inclusive ( ./.. + srcDir ) [
-    #  ( ../. + srcDir + "/yarn.lock" )
-    #  ( ../. + srcDir + "/.yarnrc" )
-    #  ( ../. + srcDir + "/package.json" )
-    #  ( ../. + srcDir + "/packages-cache" )
-    #  ( ../. + srcDir + "/tsconfig.json" )
-    #  ( ../. + srcDir + "/tsconfig-dist.json" )
-    #];
     buildCommand = ''
       mkdir -p $out
       cp -r $src/. $out/
