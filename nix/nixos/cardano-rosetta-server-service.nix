@@ -31,9 +31,14 @@ in {
         default = null;
       };
 
-      cardanoCliPath = lib.mkOption {
+      ogmiosHost = lib.mkOption {
         type = lib.types.str;
-        default = null;
+        default = "127.0.0.1";
+      };
+
+      ogmiosPort = lib.mkOption {
+        type = lib.types.str;
+        default = "1337";
       };
 
       genesisPath = lib.mkOption {
@@ -109,7 +114,8 @@ in {
         BIND_ADDRESS             = cfg.bindAddress;
         DB_CONNECTION_STRING     = cfg.dbConnectionString;
         TOPOLOGY_FILE_PATH       = cfg.topologyFilePath;
-        CARDANO_CLI_PATH         = cfg.cardanoCliPath;
+        OGMIOS_HOST              = cfg.ogmiosHost;
+        OGMIOS_PORT              = cfg.ogmiosPort;
         GENESIS_SHELLEY_PATH     = cfg.genesisPath;
         CARDANO_NODE_PATH        = cfg.cardanoNodePath;
         CARDANO_NODE_SOCKET_PATH = cfg.cardanoNodeSocketPath;
