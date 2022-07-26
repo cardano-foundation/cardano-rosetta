@@ -276,18 +276,19 @@ const configure = (
         try {
           const logger = request.log;
           const [signedTransaction] = await decodeExtraData(request.body.signed_transaction);
+          logger.info('[constructionHash] About to get hash of signed transaction');
+          const transactionHash = cardanoService.getHashOfSignedTransaction(logger, signedTransaction);
           logger.info(`[constructionSubmit] About to submit ${signedTransaction}`);
           await cardanoCli.submitTransaction(
             logger,
             signedTransaction,
             request.body.network_identifier.network === 'mainnet'
           );
-          logger.info('[constructionHash] About to get hash of signed transaction');
-          const transactionHash = cardanoService.getHashOfSignedTransaction(logger, signedTransaction);
           // eslint-disable-next-line camelcase
           return { transaction_identifier: { hash: transactionHash } };
         } catch (error) {
           request.log.error(error);
+          if (error instanceof ApiError) throw error;
           return ErrorUtils.resolveApiErrorFromNodeError(error.message)
             .then((mappedError: ApiError) => mappedError)
             .catch(() => ErrorFactory.sendTransactionError(error.message));
