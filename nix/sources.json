@@ -22,5 +22,17 @@
         "type": "tarball",
         "url": "https://github.com/input-output-hk/nix-inclusive/archive/11d05e4f1ca04fd250a9734e27970ad73bbd872d.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixos2205": {
+        "branch": "nixos-22.05",
+        "description": "Nix Packages collection",
+        "homepage": "",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "d9536b9b1e33377fb520e115bc8588d093ed97be",
+        "sha256": "0sg0bb8d734a1ylrxz22zrwps4a8dbaya0mlv7h62lyg49fgjcqr",
+        "type": "tarball",
+        "url": "https://github.com/nixos/nixpkgs/archive/d9536b9b1e33377fb520e115bc8588d093ed97be.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
