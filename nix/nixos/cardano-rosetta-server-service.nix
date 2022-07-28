@@ -31,6 +31,11 @@ in {
         default = null;
       };
 
+      cardanoCliPath = lib.mkOption {
+        type = lib.types.str;
+        default = null;
+      };
+
       ogmiosHost = lib.mkOption {
         type = lib.types.str;
         default = "127.0.0.1";
