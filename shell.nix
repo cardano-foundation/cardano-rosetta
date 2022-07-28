@@ -5,6 +5,7 @@
 , pkgs ? import ./nix/pkgs.nix {}
 , sources ? import ./nix/sources.nix
 , iohkNix ? import sources.iohk-nix {}
+, nodejs ? (import sources.nixos2205 {}).nodejs
 , yarn2nix ? pkgs.yarn2nix-moretea.yarn2nix
 }:
 
