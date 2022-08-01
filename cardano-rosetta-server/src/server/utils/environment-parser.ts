@@ -10,13 +10,14 @@ export interface Environment {
   PORT: number;
   BIND_ADDRESS: string;
   DB_CONNECTION_STRING: string;
+  CARDANO_NODE_PATH: string;
   LOGGER_LEVEL: string;
   TOPOLOGY_FILE_PATH: string;
   DEFAULT_RELATIVE_TTL: number;
-  CARDANO_CLI_PATH: string;
   PAGE_SIZE: number;
-  CARDANO_NODE_PATH: string;
   DISABLE_SEARCH_API: boolean;
+  OGMIOS_HOST: string;
+  OGMIOS_PORT: number;
 }
 
 const existingFileValidator = makeValidator((filePath: string) => {
@@ -31,15 +32,16 @@ export const parseEnvironment = (): Environment => {
     PORT: num(),
     BIND_ADDRESS: host(),
     DB_CONNECTION_STRING: str(),
+    CARDANO_NODE_PATH: existingFileValidator(),
     LOGGER_LEVEL: str(),
     TOPOLOGY_FILE_PATH: existingFileValidator(),
     DEFAULT_RELATIVE_TTL: num(),
-    CARDANO_CLI_PATH: existingFileValidator(),
     PAGE_SIZE: num(),
-    CARDANO_NODE_PATH: existingFileValidator(),
     GENESIS_SHELLEY_PATH: existingFileValidator(),
     CARDANO_NODE_SOCKET_PATH: str(),
-    DISABLE_SEARCH_API: bool({ default: false })
+    DISABLE_SEARCH_API: bool({ default: false }),
+    OGMIOS_HOST: host(),
+    OGMIOS_PORT: num()
   });
   let topologyFile: TopologyConfig;
   try {

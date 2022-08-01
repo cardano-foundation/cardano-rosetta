@@ -47,6 +47,20 @@ module.exports = {
       out_file: 'NULL'
     },
     {
+      name: 'ogmios',
+      script: '/usr/local/bin/ogmios',
+      args:[
+        "--host", "0.0.0.0",
+        "--node-socket", "/ipc/node.socket",
+        "--node-config", "/config/cardano-node/config.json"
+      ],
+      autorestart: true,
+      exec_mode: 'fork_mode',
+      kill_timeout : 15000,
+      error_file: 'NULL',
+      out_file: 'NULL'
+    },
+    {
       name: 'cardano-rosetta-server',
       script: '/cardano-rosetta-server/dist/src/server/index.js',
       autorestart: true,
@@ -62,7 +76,9 @@ module.exports = {
         NODE_ENV: 'development',
         PAGE_SIZE: process.env.PAGE_SIZE,
         PORT: 8080,
-        TOPOLOGY_FILE_PATH: '/config/cardano-node/topology.json'
+        TOPOLOGY_FILE_PATH: '/config/cardano-node/topology.json',
+        OGMIOS_HOST: '0.0.0.0',
+        OGMIOS_PORT: 1337
       },
       env_production: {
         NODE_ENV: 'production'

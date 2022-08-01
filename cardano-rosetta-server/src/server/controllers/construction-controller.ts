@@ -9,14 +9,15 @@ import {
   mapAmount,
   mapToConstructionHashResponse
 } from '../utils/data-mapper';
-import { ErrorFactory, ErrorUtils } from '../utils/errors';
+import { ErrorFactory, Errors } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
-import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
 import { NetworkService } from '../services/network-service';
 import { AddressType } from '../utils/constants';
 import { isAddressTypeValid, isKeyValid } from '../utils/validations';
 import { BlockService } from '../services/block-service';
 import ApiError from '../api-error';
+import { OgmiosClient } from '../utils/cardano/node/ogmios-client';
+import { parseNodeErrorDetails } from '../utils/formatters';
 
 export interface ConstructionController {
   constructionDerive(
@@ -55,7 +56,7 @@ export interface ConstructionController {
 const configure = (
   constructionService: ConstructionService,
   cardanoService: CardanoService,
-  cardanoCli: CardanoCli,
+  ogmiosClient: OgmiosClient,
   networkService: NetworkService,
   blockService: BlockService
 ): ConstructionController => ({
@@ -277,21 +278,29 @@ const configure = (
           const logger = request.log;
           const [signedTransaction] = await decodeExtraData(request.body.signed_transaction);
           logger.info('[constructionHash] About to get hash of signed transaction');
-          const transactionHash = cardanoService.getHashOfSignedTransaction(logger, signedTransaction);
+          const hash = cardanoService.getHashOfSignedTransaction(logger, signedTransaction);
           logger.info(`[constructionSubmit] About to submit ${signedTransaction}`);
-          await cardanoCli.submitTransaction(
-            logger,
-            signedTransaction,
-            request.body.network_identifier.network === 'mainnet'
-          );
-          // eslint-disable-next-line camelcase
-          return { transaction_identifier: { hash: transactionHash } };
+          await ogmiosClient.submitTransaction(signedTransaction);
+          logger.info('[constructionHash] About to get hash of signed transaction');
+          return { transaction_identifier: { hash } };
         } catch (error) {
           request.log.error(error);
-          if (error instanceof ApiError) throw error;
-          return ErrorUtils.resolveApiErrorFromNodeError(error.message)
-            .then((mappedError: ApiError) => mappedError)
-            .catch(() => ErrorFactory.sendTransactionError(error.message));
+          if (Array.isArray(error)) {
+            const { code, message } = Errors.SEND_TRANSACTION_ERROR;
+            throw new ApiError(
+              code,
+              message,
+              false,
+              undefined,
+              // eslint-disable-next-line unicorn/prevent-abbreviations
+              error.map(err => ({
+                name: err.name,
+                details: parseNodeErrorDetails(err.message)
+              }))
+            );
+          } else {
+            throw ErrorFactory.sendTransactionError(error.message);
+          }
         }
       },
       request.log,

@@ -6,9 +6,10 @@ import createPool from './db/connection';
 import * as Repostories from './db/repositories';
 import buildServer from './server';
 import * as Services from './services/services';
-import * as CardanoCli from './utils/cardano/cli/cardanonode-cli';
-import * as CardanoNode from './utils/cardano/cli/cardano-node';
+import * as CardanoNode from './utils/cardano/node/cardano-node';
 import { Environment, parseEnvironment } from './utils/environment-parser';
+import { DepositParameters } from './services/cardano-services';
+import * as OgmiosClient from './utils/cardano/node/ogmios-client';
 
 // FIXME: validate the following paraemeters when implementing (2)
 // https://github.com/input-output-hk/cardano-rosetta/issues/101
@@ -18,13 +19,14 @@ const networkId = genesis.networkId.toLowerCase();
 
 const start = async (databaseInstance: Pool) => {
   let server;
+  let ogmiosClient: OgmiosClient.OgmiosClient | undefined;
   try {
     const environment: Environment = parseEnvironment();
     const repository = Repostories.configure(databaseInstance);
     // FIXME: validate the following paraemeters when implementing (2)
     // https://github.com/input-output-hk/cardano-rosetta/issues/101
+    ogmiosClient = await OgmiosClient.configure({ host: environment.OGMIOS_HOST, port: environment.OGMIOS_PORT });
     const cardanoNode = CardanoNode.configure(environment.CARDANO_NODE_PATH);
-    const cardanoCli = CardanoCli.configure(environment.CARDANO_CLI_PATH, networkMagic);
     const services = Services.configure(
       repository,
       networkId,
@@ -32,18 +34,22 @@ const start = async (databaseInstance: Pool) => {
       environment.TOPOLOGY_FILE,
       environment.DEFAULT_RELATIVE_TTL
     );
-    server = buildServer(services, cardanoCli, cardanoNode, environment.LOGGER_LEVEL, {
+    server = buildServer(services, ogmiosClient, cardanoNode, environment.LOGGER_LEVEL, {
       networkId,
       pageSize: environment.PAGE_SIZE,
       disableSearchApi: environment.DISABLE_SEARCH_API
     });
 
-    server.addHook('onClose', (_, done) => databaseInstance.end(done));
+    server.addHook('onClose', async (_, done) => {
+      await databaseInstance.end(done);
+      await ogmiosClient?.shutdown();
+    });
     // eslint-disable-next-line no-magic-numbers
     await server.listen(environment.PORT, environment.BIND_ADDRESS);
     server.blipp();
   } catch (error) {
     server?.log.error(error);
+    await ogmiosClient?.shutdown();
     await databaseInstance?.end();
     // eslint-disable-next-line unicorn/no-process-exit
     process.exit(1);

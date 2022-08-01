@@ -40,3 +40,11 @@ export const coinIdentifierFormatter = (coinIdentifier?: string): CoinIdentifier
   }
   throw ErrorFactory.badFormedCoinError(`Given coin identifier is ${coinIdentifier}`);
 };
+
+export const parseNodeErrorDetails = (errorMessage: string) => {
+  try {
+    return JSON.parse(errorMessage);
+  } catch {
+    return {};
+  }
+};

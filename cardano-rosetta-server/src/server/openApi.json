@@ -2460,6 +2460,19 @@
               "address": "0x1dcc4de8dec75d7aab85b567b6",
               "error": "not base64"
             }
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "details": {
+                }
+              }
+            }
           }
         }
       }

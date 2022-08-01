@@ -37,6 +37,8 @@ jobs:
           GENESIS_SHELLEY_PATH: test/e2e/utils/mainnet-genesis.json
           PAGE_SIZE: 5
           DEFAULT_RELATIVE_TTL: 1000
+          OGMIOS_HOST: localhost
+          OGMIOS_PORT: 1337
       - name: Build Cardano Rosetta
         uses: ./cardano-rosetta/.github/actions/build_cardano_rosetta
         with:

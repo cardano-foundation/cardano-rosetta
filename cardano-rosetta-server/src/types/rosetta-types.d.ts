@@ -540,6 +540,10 @@ declare namespace Components {
       details?: {
         message: string;
       };
+      reasons?: {
+        name?: string;
+        details?: any;
+      }[];
     }
     /**
      * EventsBlocksRequest is utilized to fetch a sequence of BlockEvents indicating which blocks were added and removed from storage to reach the current state.
@@ -854,7 +858,6 @@ declare namespace Components {
       network_identifier?: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       transaction_identifier: /* The transaction_identifier uniquely identifies a transaction in a particular network and block or in the mempool. */ TransactionIdentifier;
       direction: /* Used by RelatedTransaction to indicate the direction of the relation (i.e. cross-shard/cross-network sends may reference `backward` to an earlier transaction and async execution may reference `forward`). Can be used to indicate if a transaction relation is from child to parent or the reverse. */ Direction;
-      __type?: string;
     }
     export interface Relay {
       type?: string;

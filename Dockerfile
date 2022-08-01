@@ -66,10 +66,6 @@ RUN cabal install cardano-node \
   --install-method=copy \
   --installdir=/usr/local/bin \
   -f -systemd
-RUN cabal install cardano-cli \
-  --install-method=copy \
-  --installdir=/usr/local/bin \
-  -f -systemd
 WORKDIR /app/src
 ARG CARDANO_DB_SYNC_VERSION=13.0.2
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
@@ -78,6 +74,16 @@ RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   git checkout ${CARDANO_DB_SYNC_VERSION}
 WORKDIR /app/src/cardano-db-sync
 RUN cabal install cardano-db-sync \
+  --install-method=copy \
+  --installdir=/usr/local/bin
+WORKDIR /app/src
+ARG OGMIOS_VERSION=v5.5.3
+RUN git clone https://github.com/CardanoSolutions/ogmios.git &&\
+  cd ogmios &&\
+  git fetch --all --tags &&\
+  git checkout ${OGMIOS_VERSION}
+WORKDIR /app/src/ogmios/server
+RUN cabal install exe:ogmios \
   --install-method=copy \
   --installdir=/usr/local/bin
 # Cleanup for runtiume-base copy of /usr/local/lib
@@ -106,9 +112,9 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/key
   npm install pm2 -g
 COPY --from=haskell-builder /usr/local/lib /usr/local/lib
 COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
-COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-db-sync /usr/local/bin/
 COPY --from=haskell-builder /app/src/cardano-db-sync/schema /cardano-db-sync/schema
+COPY --from=haskell-builder /usr/local/bin/ogmios /usr/local/bin/
 # easy step-down from root
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VERSION 1.12
@@ -156,8 +162,7 @@ RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
 ARG NETWORK=mainnet
-COPY --from=haskell-builder /usr/local/bin/cardano-cli \
-  /usr/local/bin/cardano-node \
+COPY --from=haskell-builder /usr/local/bin/cardano-node \
   /usr/local/bin/
 COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
@@ -173,11 +178,12 @@ COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
 COPY ecosystem.config.js .
 COPY postgresql.conf /etc/postgresql/12/main/postgresql.conf
-COPY scripts/start_cardano-db-sync.sh scripts/maybe_download_cardano-db-sync_snapshot.sh /scripts/
+COPY scripts/start_cardano-db-sync.sh scripts/maybe_download_cardano-db-sync_snapshot.sh scripts/modify_cardano-db-sync_prometheus_port.sh /scripts/
 COPY config/network/${NETWORK} /config/
 ENV PGPASSFILE=/config/cardano-db-sync/pgpass
 RUN echo "/var/run/postgresql:5432:cexplorer:*:*" > $PGPASSFILE &&\
  chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
 RUN mkdir /snapshot &&\
-  ./scripts/maybe_download_cardano-db-sync_snapshot.sh $SNAPSHOT_URL /snapshot
+  ./scripts/maybe_download_cardano-db-sync_snapshot.sh $SNAPSHOT_URL /snapshot &&\
+  ./scripts/modify_cardano-db-sync_prometheus_port.sh
 COPY scripts/entrypoint.sh .

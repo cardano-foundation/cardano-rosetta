@@ -1,6 +1,6 @@
 import { FastifyRequest } from 'fastify';
 import { NetworkService } from '../services/network-service';
-import { CardanoNode } from '../utils/cardano/cli/cardano-node';
+import { CardanoNode } from '../utils/cardano/node/cardano-node';
 import {
   INVALID_OPERATION_STATE,
   MIDDLEWARE_VERSION,

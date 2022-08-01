@@ -9,9 +9,9 @@ import * as Services from '../../../src/server/services/services';
 import createPool from '../../../src/server/db/connection';
 import buildServer from '../../../src/server/server';
 import { Pool } from 'pg';
-import { CardanoCli } from '../../../src/server/utils/cardano/cli/cardanonode-cli';
-import { CardanoNode } from '../../../src/server/utils/cardano/cli/cardano-node';
+import { CardanoNode } from '../../../src/server/utils/cardano/node/cardano-node';
 import { OperationType } from '../../../src/server/utils/constants';
+import { OgmiosClient } from '../../../src/server/utils/cardano/node/ogmios-client';
 
 const DEFAULT_PAGE_SIZE = 5;
 
@@ -37,8 +37,9 @@ export const setupDatabase = (connectionString = process.env.DB_CONNECTION_STRIN
   return createPool(`postgresql://${user}:${password}@${host}:${port}/${database}`);
 };
 
-export const cardanoCliMock: CardanoCli = {
-  submitTransaction: jest.fn()
+export const ogmiosClientMock: OgmiosClient = {
+  submitTransaction: jest.fn(),
+  shutdown: jest.fn()
 };
 
 export const cardanoNodeMock: CardanoNode = {
@@ -63,7 +64,7 @@ export const setupServer = (database: Pool, disableSearchApi = false): FastifyIn
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
     Number(process.env.DEFAULT_RELATIVE_TTL)
   );
-  return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
+  return buildServer(services, ogmiosClientMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
     networkId: NETWORK_ID,
     pageSize: Number(process.env.PAGE_SIZE) || DEFAULT_PAGE_SIZE,
     mock: true,

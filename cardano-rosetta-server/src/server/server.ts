@@ -7,9 +7,9 @@ import ApiError from './api-error';
 import { Services } from './services/services';
 import * as Controllers from './controllers/controllers';
 import { IncomingMessage, Server, ServerResponse } from 'http';
-import { CardanoCli } from './utils/cardano/cli/cardanonode-cli';
-import { CardanoNode } from './utils/cardano/cli/cardano-node';
+import { CardanoNode } from './utils/cardano/node/cardano-node';
 import { ErrorFactory } from './utils/errors';
+import { OgmiosClient } from './utils/cardano/node/ogmios-client';
 
 interface ExtraParams {
   networkId: string;
@@ -32,7 +32,7 @@ const getBodyLimit = (): number | undefined => {
  */
 const buildServer = (
   services: Services,
-  cardanoCli: CardanoCli,
+  ogmiosClient: OgmiosClient,
   cardanoNode: CardanoNode,
   logLevel: string,
   extraParameters: ExtraParams
@@ -43,7 +43,7 @@ const buildServer = (
   server.register(fastifyBlipp);
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,
-    service: Controllers.configure(services, cardanoCli, cardanoNode, pageSize, disableSearchApi),
+    service: Controllers.configure(services, ogmiosClient, cardanoNode, pageSize, disableSearchApi),
     noAdditional: true
   });
 
