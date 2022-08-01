@@ -20,7 +20,7 @@ services:
       driver: "json-file"
       options:
         max-size: "200k"
-        max-file: "10"       
+        max-file: "10"
   cardano-node-ogmios:
     image: cardanosolutions/cardano-node-ogmios:${CARDANO_NODE_OGMIOS_VERSION:-v5.5.3_1.35.2}-${NETWORK:-mainnet}
     logging:

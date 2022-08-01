@@ -5,10 +5,10 @@
         "homepage": null,
         "owner": "input-output-hk",
         "repo": "iohk-nix",
-        "rev": "edfa1fdbe68fe0023b1a9a231bb41e7a757cb829",
-        "sha256": "09366r2kprvaxx38y9qk05zxqcgkh89x34n6ck1hkvncjg6r9bfc",
+        "rev": "9a604d01bd4420ab7f396f14d1947fbe2ce7db8b",
+        "sha256": "0w562wdmdhp83dw9rabiijj5hk1f4l8p8f3bwlr7virakgbg8lf8",
         "type": "tarball",
-        "url": "https://github.com/input-output-hk/iohk-nix/archive/edfa1fdbe68fe0023b1a9a231bb41e7a757cb829.tar.gz",
+        "url": "https://github.com/input-output-hk/iohk-nix/archive/9a604d01bd4420ab7f396f14d1947fbe2ce7db8b.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     },
     "nix-inclusive": {
@@ -21,6 +21,18 @@
         "sha256": "0j0cfs5vpsnbk0bnz0bhfajgjhchd82cfhjp5qxkb68iqi9mg7z1",
         "type": "tarball",
         "url": "https://github.com/input-output-hk/nix-inclusive/archive/11d05e4f1ca04fd250a9734e27970ad73bbd872d.tar.gz",
+        "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
+    },
+    "nixos2205": {
+        "branch": "nixos-22.05",
+        "description": "Nix Packages collection",
+        "homepage": "",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "d9536b9b1e33377fb520e115bc8588d093ed97be",
+        "sha256": "0sg0bb8d734a1ylrxz22zrwps4a8dbaya0mlv7h62lyg49fgjcqr",
+        "type": "tarball",
+        "url": "https://github.com/nixos/nixpkgs/archive/d9536b9b1e33377fb520e115bc8588d093ed97be.tar.gz",
         "url_template": "https://github.com/<owner>/<repo>/archive/<rev>.tar.gz"
     }
 }
