@@ -52,7 +52,7 @@
 					"response": []
 				},
 				{
-					"name": "/account/balance",
+					"name": "/account/coins",
 					"event": [
 						{
 							"listen": "prerequest",
@@ -122,13 +122,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{URL}}/account/balance",
+							"raw": "{{URL}}/account/coins",
 							"host": [
 								"{{URL}}"
 							],
 							"path": [
 								"account",
-								"balance"
+								"coins"
 							]
 						}
 					},
@@ -147,7 +147,7 @@
 									"",
 									"pm.test(\"Body has correct address\", function () {",
 									"    const recipientAddress = pm.environment.get(\"recipientAddress\");",
-									"    pm.expect(pm.response.json().address).eq(recipientAddress)",
+									"    pm.expect(pm.response.json().account_identifier.address).eq(recipientAddress)",
 									"});"
 								],
 								"type": "text/javascript"
@@ -375,7 +375,7 @@
 									"});",
 									"",
 									"pm.test(\"Body signers is empty\", function () {",
-									"    pm.expect(pm.response.json().signers).to.be.empty;",
+									"    pm.expect(pm.response.json().account_identifier_signers).to.be.empty;",
 									"});"
 								],
 								"type": "text/javascript"
