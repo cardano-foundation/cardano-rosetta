@@ -266,6 +266,11 @@ This workflow generates a transaction that:
 Keys from previous test and:
 
 ```bash
+cardano-cli node key-gen \
+--cold-verification-key-file cold2.vkey \
+--cold-signing-key-file cold2.skey \
+--operational-certificate-issue-counter-file cold.counter
+
 cardano-cli  stake-address key-gen \
  --verification-key-file stake2.vkey \
  --signing-key-file stake2.skey
@@ -276,7 +281,7 @@ cardano-cli stake-address build \
  $NETWORK_ID
 
 cardano-cli stake-pool registration-certificate \
---cold-verification-key-file cold.vkey \
+--cold-verification-key-file cold2.vkey \
 --vrf-verification-key-file vrf.vkey \
 --pool-pledge 1000000000 \
 --pool-cost 340000000 \
@@ -292,8 +297,8 @@ $NETWORK_ID \
 
 ```bash
 POOL_REGISTRATION_CERT="$(cat pool.cert | jq .cborHex)" \
-PUBLIC_COLD_KEY="$(cat cold.vkey | jq .cborHex | cut --complement -c2-5)" \
-PRIVATE_COLD_KEY="$(cat cold.skey | jq .cborHex | cut --complement -c2-5)" \
+PUBLIC_COLD_KEY="$(cat cold2.vkey | jq .cborHex | cut --complement -c2-5)" \
+PRIVATE_COLD_KEY="$(cat cold2.skey | jq .cborHex | cut --complement -c2-5)" \
 POOL_KEY_HASH="\"$(cardano-cli stake-pool id --cold-verification-key-file cold.vkey | bech32)\"" \
 OWNER_PRIVATE_KEY="$(cat stake2.skey | jq .cborHex | cut --complement -c2-5)" \
 OWNER_PUBLIC_KEY="$(cat stake2.vkey | jq .cborHex | cut --complement -c2-5)" \
@@ -362,7 +367,7 @@ voter-registration \
     --slot-no $SLOT_TIP \
     --json > metadata.json
 
-export VOTING_PUBLIC_KEY=$(cat metadata.json | jq '.["61284"]["1"][0][0]' | cut --complement -c2-3)
+export VOTING_PUBLIC_KEY=$(cat metadata.json | jq '.["61284"]["1"]' | cut --complement -c2-3)
 export VOTING_SIGNATURE=$(cat metadata.json | jq '.["61285"]["1"]' | cut --complement -c2-3)
 ```
 2. Run rosetta-cli.
