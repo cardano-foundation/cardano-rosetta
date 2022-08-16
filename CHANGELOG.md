@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [1.8.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.4.0...1.8.0) (2022-07-01)
+## [1.8.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.7.1...1.8.0) (2022-08-16)
 
 
 ### Features
@@ -15,6 +15,11 @@ All notable changes to this project will be documented in this file. See [standa
 
 * add order by to delegations and pool owners queries ([6f6152d](https://github.com/input-output-hk/cardano-rosetta/commit/6f6152d522c5a36c0d602e4172d690d9bb26d97a))
 * fix on search by addresses and coins ([685d900](https://github.com/input-output-hk/cardano-rosetta/commit/685d900e8909fbc64193600fc1a68063fc6a3bd9))
+* move submit tx method before the hash of the tx was obtained ([b9b43c6](https://github.com/input-output-hk/cardano-rosetta/commit/b9b43c6650473d34018a3b5d2fc8c13dc978f8c9))
+* postman tests ([da7143c](https://github.com/input-output-hk/cardano-rosetta/commit/da7143c84f2c2723d489d5cc3340b70f93656496))
+* updated test readme ([9d7c546](https://github.com/input-output-hk/cardano-rosetta/commit/9d7c546c700bed2ec38413e4c46966df36f3860a))
+* validate type of  metadata field for vote registrations ([0d862e5](https://github.com/input-output-hk/cardano-rosetta/commit/0d862e55847b8a4faa1ad9ad8389b5a7827a37cf))
+
 
 ### [1.7.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.7.0...1.7.1) (2022-06-16)
 
