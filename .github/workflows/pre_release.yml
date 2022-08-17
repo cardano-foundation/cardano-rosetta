@@ -18,14 +18,14 @@ jobs:
         with:
           tag: ${{ github.sha }}
           test-exe: ./test/smoke_test.sh
-      - name: Build from Git URL with local cache, configured for testnet
+      - name: Build from Git URL with local cache, configured for preprod
         run: docker build
-          --build-arg NETWORK=testnet
-          -t cardano-rosetta:testnet-${{ github.sha }}
+          --build-arg NETWORK=preprod
+          -t cardano-rosetta:preprod-${{ github.sha }}
           https://github.com/input-output-hk/cardano-rosetta.git#${{ github.sha }}
-      - name: Smoke test remote testnet build with local cache
+      - name: Smoke test remote preprod build with local cache
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
-          tag: testnet-${{ github.sha }}
-          network-identifier: testnet
+          tag: preprod-${{ github.sha }}
+          network-identifier: preprod
           test-exe: ./test/smoke_test.sh

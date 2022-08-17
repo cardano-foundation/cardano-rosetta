@@ -13,7 +13,7 @@ A snapshot of the state is stored in an S3 bucket, and is maintained by this wor
 [![Pre-release][img_src_Pre-release]][workflow_Pre-release]
 
 The defined workflow perform a Docker build without using the available cache, and then follows 
-up with a testnet build. This is supplemented with other manual more comprehensive [check]s, 
+up with test network builds. This is supplemented with other manual more comprehensive [check]s, 
 including the `check:construction` due to limitations with the tooling. The intention is to 
 automate [when possible].
 

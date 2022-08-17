@@ -95,7 +95,7 @@ describe('/block/transactions endpoint', () => {
         // eslint-disable-next-line camelcase
         network_identifier: {
           blockchain: 'cardano',
-          network: 'testnet'
+          network: 'preprod'
         },
         // eslint-disable-next-line camelcase
         transaction_identifier: {

@@ -85,8 +85,10 @@ export enum CurveType {
 export const SUCCESS_STATUS = 'success';
 
 export const MAINNET = 'mainnet';
-export const TESTNET = 'testnet';
-export const MAIN_TESTNET_NETWORK_MAGIC = 1097911063;
+export const PREPROD = 'preprod';
+export const PREVIEW = 'preview';
+export const PREPROD_NETWORK_MAGIC = 1;
+export const PREVIEW_NETWORK_MAGIC = 2;
 
 export const SUCCESS_OPERATION_STATE = {
   status: OperationTypeStatus.SUCCESS,

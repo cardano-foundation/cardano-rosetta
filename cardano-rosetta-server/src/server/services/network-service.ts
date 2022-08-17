@@ -1,9 +1,10 @@
 import { Logger } from 'fastify';
 import { Block, GenesisBlock, Network } from '../models';
-import { MAIN_TESTNET_NETWORK_MAGIC } from '../utils/constants';
+import { PREPROD, PREPROD_NETWORK_MAGIC, PREVIEW, PREVIEW_NETWORK_MAGIC } from '../utils/constants';
 import { BlockService } from './block-service';
 import fs from 'fs';
 import path from 'path';
+
 const filePath = process.env.EXEMPTION_TYPES_PATH;
 let exemptionsFile: Components.Schemas.BalanceExemption[] = [];
 
@@ -71,7 +72,8 @@ const configure = (
 ): NetworkService => ({
   getSupportedNetwork() {
     if (networkId === 'mainnet') return { networkId };
-    if (networkMagic === MAIN_TESTNET_NETWORK_MAGIC) return { networkId: 'testnet' };
+    if (networkMagic === PREPROD_NETWORK_MAGIC) return { networkId: PREPROD };
+    if (networkMagic === PREVIEW_NETWORK_MAGIC) return { networkId: PREVIEW };
     return { networkId: networkMagic.toString() };
   },
   getNetworkStatus: async logger => {

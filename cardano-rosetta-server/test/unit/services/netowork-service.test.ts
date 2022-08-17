@@ -5,7 +5,7 @@ import { Logger } from 'fastify';
 
 describe('Network Service', () => {
   const NETWORK_MAGIC = 123;
-  const TESTNET_NETWORK_MAGIC = 1097911063;
+  const PREPROD_NETWORK_MAGIC = 1;
 
   let blockService: BlockService;
   let topologyConfig: TopologyConfig;
@@ -15,12 +15,12 @@ describe('Network Service', () => {
       const service = configure('mainnet', NETWORK_MAGIC, blockService, topologyConfig);
       expect(service.getSupportedNetwork()).toEqual({ networkId: 'mainnet' });
     });
-    it('Return testnet if networkId is the main testnet', () => {
-      const service = configure('testnet', TESTNET_NETWORK_MAGIC, blockService, topologyConfig);
-      expect(service.getSupportedNetwork()).toEqual({ networkId: 'testnet' });
+    it('Return preprod if networkId matches', () => {
+      const service = configure('preprod', PREPROD_NETWORK_MAGIC, blockService, topologyConfig);
+      expect(service.getSupportedNetwork()).toEqual({ networkId: 'preprod' });
     });
-    it('Return the network magic if networkId is not mainnet', () => {
-      const service = configure('testnet', NETWORK_MAGIC, blockService, topologyConfig);
+    it('Return the network magic if networkId is not a known network', () => {
+      const service = configure('preprod', NETWORK_MAGIC, blockService, topologyConfig);
       expect(service.getSupportedNetwork()).toEqual({ networkId: NETWORK_MAGIC.toString() });
     });
   });
@@ -33,10 +33,10 @@ describe('Network Service', () => {
     };
 
     it('Should properly detect an invalid network', async () => {
-      const service = configure('testnet', NETWORK_MAGIC, blockService, topologyConfig);
+      const service = configure('preprod', NETWORK_MAGIC, blockService, topologyConfig);
       const validation = async () =>
         await withNetworkValidation(
-          { blockchain: 'cardano', network: 'testnet' },
+          { blockchain: 'cardano', network: 'preprod' },
           undefined,
           () => {
             fail('It should have thrown an error');
@@ -60,11 +60,11 @@ describe('Network Service', () => {
       await expect(validation()).resolves.toBe(true);
     });
 
-    it('Should properly detect testnet', async () => {
-      const service = configure('testnet', TESTNET_NETWORK_MAGIC, blockService, topologyConfig);
+    it('Should properly detect preprod', async () => {
+      const service = configure('preprod', PREPROD_NETWORK_MAGIC, blockService, topologyConfig);
       const validation = async () =>
         await withNetworkValidation(
-          { blockchain: 'cardano', network: 'testnet' },
+          { blockchain: 'cardano', network: 'preprod' },
           undefined,
           () => true,
           logger,
@@ -74,7 +74,7 @@ describe('Network Service', () => {
     });
 
     it('Should properly detect another network', async () => {
-      const service = configure('testnet', NETWORK_MAGIC, blockService, topologyConfig);
+      const service = configure('preprod', NETWORK_MAGIC, blockService, topologyConfig);
       const validation = async () =>
         await withNetworkValidation(
           { blockchain: 'cardano', network: NETWORK_MAGIC.toString() },

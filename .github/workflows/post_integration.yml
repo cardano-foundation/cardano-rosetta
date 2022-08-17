@@ -18,14 +18,22 @@ jobs:
           build-context: ${{ github.workspace }}
           tag: ${{ github.sha }}
           
-      - name: Build Cardano Rosetta - testnet
+      - name: Build Cardano Rosetta - preprod
         uses: ./.github/actions/build_cardano_rosetta
         with:
           build-cache-image: cardano-rosetta:${{ github.sha }}
           build-context: ${{ github.workspace }}
-          network-identifier: testnet
-          tag: ${{ github.sha }}-testnet
-          
+          network-identifier: preprod
+          tag: ${{ github.sha }}-preprod
+
+      - name: Build Cardano Rosetta - preview
+        uses: ./.github/actions/build_cardano_rosetta
+        with:
+          build-cache-image: cardano-rosetta:${{ github.sha }}
+          build-context: ${{ github.workspace }}
+          network-identifier: preview
+          tag: ${{ github.sha }}-preview
+
       - name: Smoke test Cardano Rosetta image
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
@@ -35,8 +43,10 @@ jobs:
         run: |
           docker tag cardano-rosetta:${{ github.sha }} inputoutput/cardano-rosetta:${{ github.sha }}
           docker tag cardano-rosetta:${{ github.sha }} inputoutput/cardano-rosetta:master
-          docker tag cardano-rosetta:${{ github.sha }}-testnet inputoutput/cardano-rosetta:${{ github.sha }}-testnet
-          docker tag cardano-rosetta:${{ github.sha }}-testnet inputoutput/cardano-rosetta:master-testnet
+          docker tag cardano-rosetta:${{ github.sha }}-preprod inputoutput/cardano-rosetta:${{ github.sha }}-preprod
+          docker tag cardano-rosetta:${{ github.sha }}-preprod inputoutput/cardano-rosetta:master-preprod
+          docker tag cardano-rosetta:${{ github.sha }}-preview inputoutput/cardano-rosetta:${{ github.sha }}-preview
+          docker tag cardano-rosetta:${{ github.sha }}-preview inputoutput/cardano-rosetta:master-preview
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -47,5 +57,7 @@ jobs:
         run: |
           docker push inputoutput/cardano-rosetta:${{ github.sha }}
           docker push inputoutput/cardano-rosetta:master
-          docker push inputoutput/cardano-rosetta:${{ github.sha }}-testnet
-          docker push inputoutput/cardano-rosetta:master-testnet
+          docker push inputoutput/cardano-rosetta:${{ github.sha }}-preprod
+          docker push inputoutput/cardano-rosetta:master-preprod
+          docker push inputoutput/cardano-rosetta:${{ github.sha }}-preview
+          docker push inputoutput/cardano-rosetta:master-preview

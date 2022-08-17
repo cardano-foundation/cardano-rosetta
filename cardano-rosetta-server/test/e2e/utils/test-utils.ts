@@ -95,7 +95,7 @@ export const testInvalidNetworkParameters = (
     const response = await server().inject({
       method: 'post',
       url: endpoint,
-      payload: generateRequest('cardano', 'testnet')
+      payload: generateRequest('cardano', 'preprod')
     });
     expect(response.statusCode).toEqual(StatusCodes.INTERNAL_SERVER_ERROR);
     expect(response.json()).toEqual({

@@ -40,7 +40,7 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
       url: CONSTRUCTION_SUBMIT_ENDPOINT,
       payload: generatePayloadWithSignedTransaction(
         'cardano',
-        'testnet',
+        'preprod',
         // eslint-disable-next-line max-len
         '83a400818258203b40265111d8bb3c3c608d95b3a0bf83461ace32d79336579a1939b3aad1c0b700018182581d61a6274badf4c9ca583df893a73139625ff4dc73aaa3082e67d6d5d08e0102182a030aa10081825820e7d33eeb6f1df124f9f4c226428bc46b4c93ac4bc89dacc85748d1a2b47ded135840f39ee9a72d5de64b5a8ccffb7830cd7af4438944ffb16698f7e3b3a11ae684e14f213c5ac38a50852bf1d531f13f02fc0510610f7b549bec10d01dfe81ee080ef6'
       )
