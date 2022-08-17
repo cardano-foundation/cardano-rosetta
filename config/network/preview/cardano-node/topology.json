@@ -15,13 +15,13 @@
       "publicRoots": {
         "accessPoints": [
           {
-            "address": "vasil-qa-node.world.dev.cardano.org",
-            "port": 30000
+            "address": "preview-node.world.dev.cardano.org",
+            "port": 30002
           }
         ],
         "advertise": false
       }
     }
   ],
-  "useLedgerAfterSlot": 136794
+  "useLedgerAfterSlot": 322000
 }
