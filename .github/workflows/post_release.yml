@@ -17,13 +17,22 @@ jobs:
           build-context: ${{ github.workspace }}
           tag: ${{ github.event.release.tag_name }}
           
-      - name: Build Cardano Rosetta - testnet
+      - name: Build Cardano Rosetta - preprod
         uses: ./.github/actions/build_cardano_rosetta
         with:
           build-cache-image: cardano-rosetta:${{ github.event.release.tag_name }}
           build-context: ${{ github.workspace }}
-          network-identifier: testnet
-          tag: ${{ github.event.release.tag_name }}-testnet
+          network-identifier: preprod
+          tag: ${{ github.event.release.tag_name }}-preprod
+
+      - name: Build Cardano Rosetta - preview
+        uses: ./.github/actions/build_cardano_rosetta
+        with:
+          build-cache-image: cardano-rosetta:${{ github.event.release.tag_name }}
+          build-context: ${{ github.workspace }}
+          network-identifier: preview
+          tag: ${{ github.event.release.tag_name }}-preview
+
           
       - name: Smoke test Cardano Rosetta image
         uses: ./.github/actions/smoke_test_cardano_rosetta
@@ -35,7 +44,8 @@ jobs:
         run: |
           docker tag cardano-rosetta:${{ github.event.release.tag_name }} inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}
           docker tag cardano-rosetta:${{ github.event.release.tag_name }} inputoutput/cardano-rosetta:latest
-          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-testnet inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-testnet
+          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-preprod inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-preprod
+          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-preview inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-preview
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -47,4 +57,5 @@ jobs:
         run: |
           docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}
           docker push inputoutput/cardano-rosetta:latest
-          docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-testnet
+          docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-preprod
+          docker push inputoutput/cardano-rosetta:${{ github.event.release.tag_name }}-preview

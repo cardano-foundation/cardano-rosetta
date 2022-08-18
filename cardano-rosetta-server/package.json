@@ -13,8 +13,10 @@
     "service-dependencies": "docker-compose config --services | grep -v \"cardano-rosetta-server\" | xargs docker-compose",
     "mainnet:services:up": "yarn service-dependencies -p mainnet up --build",
     "mainnet:services:down": "docker-compose -p mainnet down",
-    "testnet:services:up": "yarn service-dependencies -p testnet up --build",
-    "testnet:services:down": "docker-compose -p testnet down"
+    "preprod:services:up": "yarn service-dependencies -p preprod up --build",
+    "preprod:services:down": "docker-compose -p preprod down",
+    "preview:services:up": "yarn service-dependencies -p preview up --build",
+    "preview:services:down": "docker-compose -p preview down"
   },
   "lint-staged": {
     "src/**/*.{js,ts}": [

@@ -823,7 +823,7 @@
             "example": "bitcoin"
           },
           "network": {
-            "description": "If a blockchain has a specific chain-id or network identifier, it should go in this field. It is up to the client to determine which network-specific identifier is mainnet or testnet.",
+            "description": "If a blockchain has a specific chain-id or network identifier, it should go in this field. It is up to the client to determine which network-specific identifier is mainnet, preprod, or preview.",
             "type": "string",
             "example": "mainnet"
           },

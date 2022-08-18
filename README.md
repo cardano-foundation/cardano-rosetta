@@ -25,15 +25,30 @@ docker build \
 </details>
 
 <details>
-  <summary>testnet</summary>
+  <summary>preprod</summary>
 
 ```console
 DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --build-arg NETWORK=testnet \
+  --build-arg NETWORK=preprod \
   --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:1.8.0-testnet \
+  -t inputoutput/cardano-rosetta:1.8.0-preprod \
+  https://github.com/input-output-hk/cardano-rosetta.git#1.8.0
+```
+
+</details>
+
+<details>
+  <summary>preview</summary>
+
+```console
+DOCKER_BUILDKIT=1 \
+docker build \
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg NETWORK=preview \
+  --cache-from=inputoutput/cardano-rosetta:master \
+  -t inputoutput/cardano-rosetta:1.8.0-preview \
   https://github.com/input-output-hk/cardano-rosetta.git#1.8.0
 ```
 
@@ -59,15 +74,29 @@ docker run \
 </details>
 
 <details>
-  <summary>testnet</summary>
+  <summary>preprod</summary>
 
 ```console
 docker run \
-  --name cardano-rosetta-testnet \
+  --name cardano-rosetta-preprod \
   -p 8081:8080 \
-  -v cardano-rosetta-testnet:/data \
+  -v cardano-rosetta-preprod:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:1.8.0-testnet
+  inputoutput/cardano-rosetta:1.8.0-preprod
+```
+
+</details>
+
+<details>
+  <summary>preview</summary>
+
+```console
+docker run \
+  --name cardano-rosetta-preview \
+  -p 8081:8080 \
+  -v cardano-rosetta-preview:/data \
+  --shm-size=2g \
+  inputoutput/cardano-rosetta:1.8.0-preview
 ```
 
 </details>
@@ -129,22 +158,6 @@ docker build \
 
 </details>
 
-<details>
-  <summary>testnet</summary>
-
-```console
-DOCKER_BUILDKIT=1 \
-docker build \
-  --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --build-arg NETWORK=testnet \
-  --build-arg SNAPSHOT_URL=https://updates-cardano-testnet.s3.amazonaws.com/cardano-db-sync/13/db-sync-snapshot-schema-13-block-3673999-x86_64.tgz \
-  --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:1.8.0-testnet-apply-snapshot \
-  https://github.com/input-output-hk/cardano-rosetta.git#1.8.0
-```
-
-</details>
-
 ##### Run
 
 <details open>
@@ -157,20 +170,6 @@ docker run \
   -v cardano-rosetta:/data \
   --shm-size=2g \
   inputoutput/cardano-rosetta:1.8.0-apply-snapshot
-```
-
-</details>
-
-<details>
-  <summary>testnet</summary>
-
-```console
-docker run \
-  --name cardano-rosetta-testnet \
-  -p 8081:8080 \
-  -v cardano-rosetta-testnet:/data \
-  --shm-size=2g \
-  inputoutput/cardano-rosetta:1.8.0-testnet-apply-snapshot
 ```
 
 </details>

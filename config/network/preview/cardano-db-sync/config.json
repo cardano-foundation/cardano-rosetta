@@ -1,7 +1,7 @@
 {
   "EnableLogMetrics": false,
   "EnableLogging": true,
-  "NetworkName": "vasil-qa",
+  "NetworkName": "preview",
   "NodeConfigFile": "../cardano-node/config.json",
   "PrometheusPort": 8080,
   "RequiresNetworkMagic": "RequiresMagic",
