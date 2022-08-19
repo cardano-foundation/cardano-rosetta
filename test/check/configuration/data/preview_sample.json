@@ -8,7 +8,7 @@
     },
     "network": {
       "blockchain": "cardano",
-      "network": "9"
+      "network": "preview"
     },
     "http_timeout": 100000,
     "tip_delay": 10000,
