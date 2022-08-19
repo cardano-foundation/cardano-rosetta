@@ -29,7 +29,7 @@ request_funds(1){
 
 create_account(1){
   create{
-    network = {"network":"testnet", "blockchain":"cardano"};
+    network = {"network":"preview", "blockchain":"cardano"};
     key = generate_key({"curve_type": "edwards25519"});
     account = derive({
       "network_identifier": {{network}},
@@ -46,7 +46,7 @@ create_account(1){
 
 transfer(10){
   transfer_dry_run{
-    transfer_dry_run.network = {"network":"testnet", "blockchain":"cardano"};
+    transfer_dry_run.network = {"network":"preview", "blockchain":"cardano"};
     currency = {"symbol":"ADA", "decimals":6};
 
     // We set the max_fee_amount to know how much buffer we should
@@ -167,7 +167,7 @@ transfer(10){
 
 return_funds(10){
   transfer_dry_run{
-    transfer_dry_run.network = {"network":"testnet", "blockchain":"cardano"};
+    transfer_dry_run.network = {"network":"preview", "blockchain":"cardano"};
     currency = {"symbol":"ADA", "decimals":6};
 
     // We look for a sender that is able to pay the 
