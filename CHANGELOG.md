@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.8.2](https://github.com/input-output-hk/cardano-rosetta/compare/1.8.1...1.8.2) (2022-08-31)
+
+* optimize search transaction queries ([df4e927](https://github.com/input-output-hk/cardano-rosetta/commit/df4e927f840574c2f7ed7ae9ec27a255dd298c2e))
+
 ## [1.8.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.8.0...1.8.1) (2022-08-18)
 
 * introduce support for new test networks ([32200ae](https://github.com/input-output-hk/cardano-rosetta/commit/32200aecc0f7030e0ec42d0e621d8f008060728e))
