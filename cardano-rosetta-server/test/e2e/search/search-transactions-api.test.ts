@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable camelcase */
 /* eslint-disable no-magic-numbers */
 import { Pool } from 'pg';
@@ -147,15 +148,11 @@ describe('/search/transactions endpoint', () => {
   let database: Pool;
   let server: FastifyInstance;
   let serverWithoutSearchApi: FastifyInstance;
-  let alonzoDatabase: Pool;
-  let serverWithAlonzoSupport: FastifyInstance;
   const total_count = 32977;
   beforeAll(async () => {
     database = setupDatabase();
     server = setupServer(database);
     serverWithoutSearchApi = setupServer(database, true);
-    alonzoDatabase = setupDatabase(process.env.DB_CONNECTION_STRING, 'purple');
-    serverWithAlonzoSupport = setupServer(alonzoDatabase);
   });
 
   afterAll(async () => {
@@ -2056,7 +2053,7 @@ describe('/search/transactions endpoint', () => {
         next_offset: 2
       });
     });
-    test('Should return transactions with withdrawal type, max block, coin, success, address and currency filters with OR operator ', async () => {
+    test('Should return transactions with withdrawal type, max block, coin, success, address and currency filters with OR operator', async () => {
       const response = await server.inject({
         method: 'post',
         url: SEARCH_TRANSACTIONS_ENDPOINT,
