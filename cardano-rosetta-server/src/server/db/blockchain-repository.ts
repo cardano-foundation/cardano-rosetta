@@ -44,7 +44,7 @@ import Queries, {
   FindUtxo,
   FindMaBalance
 } from './queries/blockchain-queries';
-import SearchQueries from './queries/search-transactions-queries';
+import { generateComposedQuery } from './queries/search-transactions-queries';
 import { ADA, CatalystDataIndexes, CatalystSigIndexes, OperatorType } from '../utils/constants';
 import {
   isVoteDataValid,
@@ -771,7 +771,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       };
       conditionsToQueryBy.currencyIdentifier = currencyId;
     }
-    const { data: dataQuery, count: totalCountQuery } = SearchQueries.generateComposedQuery(conditionsToQueryBy);
+    const { data: dataQuery, count: totalCountQuery } = generateComposedQuery(conditionsToQueryBy);
     logger.debug('[findTransactionsByConditions] About to search transactions');
     const parameters = [];
     if (transactionHash || coinIdentifier)
