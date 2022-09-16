@@ -32,7 +32,7 @@ export const isNullOrUndefined = (object: any) => object === null || object === 
 export const TYPES_TO_IGNORE = [OperationType.INPUT, OperationType.OUTPUT];
 
 export const generateInputCoinWhereCondition = (coinIdentifier: CoinIdentifier) =>
-  `(tx_out."index" = ${coinIdentifier.index} AND (tx.hash = $1 OR tx_out_tx.hash = $1))`;
+  `(tx_out."index" = ${coinIdentifier.index} AND tx_out_tx.hash = $1)`;
 export const generateOutputCoinWhereCondition = (coinIdentifier: CoinIdentifier) =>
   `(tx_out."index" = ${coinIdentifier?.index} AND tx.hash = $1)`;
 
