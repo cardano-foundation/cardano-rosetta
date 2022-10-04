@@ -65,13 +65,6 @@ export interface BlockService {
   getGenesisBlock(logger: Logger): Promise<GenesisBlock>;
 
   /**
-   * Returns the linear fee parameters
-   *
-   * @param logger
-   */
-  getLinearFeeParameters(logger: Logger): Promise<LinearFeeParameters>;
-
-  /**
    * Returns the best block (tip of the chain)
    * @param logger
    */
@@ -179,10 +172,6 @@ const configure = (repository: BlockchainRepository, cardanoService: CardanoServ
     }
     logger.debug({ genesisBlock }, '[getGenesisBlock] Returning genesis block');
     return genesisBlock;
-  },
-  getLinearFeeParameters(logger) {
-    logger.info('[getLinearFeeParameters] Getting linear fee parameters from epoch_param');
-    return repository.getLinearFeeParameters(logger);
   },
   async findBalanceDataByAddressAndBlock(logger, address, number, hash) {
     const block = await this.findBlock(logger, number, hash);

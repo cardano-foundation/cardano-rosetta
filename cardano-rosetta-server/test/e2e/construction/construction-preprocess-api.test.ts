@@ -49,7 +49,8 @@ import {
   CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT,
   TRANSACTION_WITH_BYRON_INPUT_SIZE,
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
-  SIGNED_TX_WITH_POOL_RETIREMENT
+  SIGNED_TX_WITH_POOL_RETIREMENT,
+  LATEST_EPOCH_PROTOCOL_PARAMS
 } from '../fixture-data';
 import { modifyMAOperation, setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 
@@ -62,6 +63,11 @@ type ProcessPayloadType = {
   network?: string;
   operations?: Components.Schemas.Operation[];
   relativeTtl?: number;
+};
+
+const deposit_parameters = {
+  poolDeposit: LATEST_EPOCH_PROTOCOL_PARAMS.poolDeposit,
+  keyDeposit: LATEST_EPOCH_PROTOCOL_PARAMS.keyDeposit
 };
 
 const generateProcessPayload = ({
@@ -77,9 +83,10 @@ const generateProcessPayload = ({
   operations,
   metadata: relativeTtl
     ? {
-        relative_ttl: relativeTtl
+        relative_ttl: relativeTtl,
+        deposit_parameters
       }
-    : undefined
+    : { deposit_parameters }
 });
 
 describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {

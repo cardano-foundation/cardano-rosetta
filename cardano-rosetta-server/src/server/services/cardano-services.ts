@@ -8,8 +8,8 @@ import CardanoWasm, {
   Vkey,
   AuxiliaryData
 } from '@emurgo/cardano-serialization-lib-nodejs';
-import { BlockchainRepository } from '../db/blockchain-repository';
 import cbor from 'cbor';
+import { BlockchainRepository } from '../db/blockchain-repository';
 import { Logger } from 'fastify';
 import {
   generateBaseAddress,
@@ -104,6 +104,13 @@ export interface CardanoService {
   ): string;
 
   /**
+   * Returns protocol parameters
+   *
+   * @param logger
+   */
+  getProtocolParameters(logger: Logger): Promise<Components.Schemas.ProtocolParameters>;
+
+  /**
    * Returns the era address type (either Shelley or Byron) based on an encoded string
    *
    * @param address to be parsed
@@ -134,15 +141,9 @@ export interface CardanoService {
     logger: Logger,
     networkId: NetworkIdentifier,
     operations: Components.Schemas.Operation[],
-    ttl: number
-  ): Promise<UnsignedTransaction>;
-
-  /**
-   * Returns deposit parameters
-   *
-   * @param logger
-   */
-  getDepositParameters(logger: Logger): Promise<DepositParameters>;
+    ttl: number,
+    depositParameters: DepositParameters
+  ): UnsignedTransaction;
 
   /**
    * Calculates the transaction size in bytes for the given operations
@@ -150,13 +151,15 @@ export interface CardanoService {
    * @param logger
    * @param operations
    * @param ttl
+   * @param depositParameters
    */
   calculateTxSize(
     logger: Logger,
     networkId: NetworkIdentifier,
     operations: Components.Schemas.Operation[],
-    ttl: number
-  ): Promise<number>;
+    ttl: number,
+    depositParameters?: Components.Schemas.DepositParameters
+  ): number;
 
   /**
    * Updates calculated tx size if ttl was replaced with a different value
@@ -169,11 +172,11 @@ export interface CardanoService {
 
   /**
    * Returns the transaction minimum fee given the transaction size using the
-   * linear fee calculation formula
+   * protocol parameters
    *
    * @param transactionSize in bytes
    */
-  calculateTxMinimumFee(transactionSize: number, linearFeeParameters: LinearFeeParameters): BigInt;
+  calculateTxMinimumFee(transactionSize: number, protocolParameters: Components.Schemas.ProtocolParameters): BigInt;
 
   /**
    * Generates an hex encoded signed transaction
@@ -392,7 +395,7 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
   }
 };
 
-const configure = (repository: BlockchainRepository): CardanoService => ({
+const configure = (repository: BlockchainRepository, defaultDepositParameters: DepositParameters): CardanoService => ({
   generateAddress(logger, network, publicKeyString, stakingCredentialString, type = AddressType.ENTERPRISE) {
     logger.info(
       `[generateAddress] About to generate address from public key ${JSON.stringify(
@@ -462,11 +465,10 @@ const configure = (repository: BlockchainRepository): CardanoService => ({
       throw ErrorFactory.cantBuildSignedTransaction();
     }
   },
-  async createUnsignedTransaction(logger, network, operations, ttl): Promise<UnsignedTransaction> {
+  createUnsignedTransaction(logger, network, operations, ttl, depositParameters): UnsignedTransaction {
     logger.info(
       `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
     );
-    const depositParameters = await repository.getDepositParameters(logger);
     const {
       transactionInputs,
       transactionOutputs,
@@ -511,8 +513,14 @@ const configure = (repository: BlockchainRepository): CardanoService => ({
     return toReturn;
   },
 
-  async calculateTxSize(logger, network, operations, ttl) {
-    const { bytes, addresses, metadata } = await this.createUnsignedTransaction(logger, network, operations, ttl);
+  calculateTxSize(logger, network, operations, ttl, depositParameters) {
+    const { bytes, addresses, metadata } = this.createUnsignedTransaction(
+      logger,
+      network,
+      operations,
+      ttl,
+      depositParameters ? depositParameters : defaultDepositParameters
+    );
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
       const eraAddressType = this.getEraAddressType(address);
@@ -534,8 +542,9 @@ const configure = (repository: BlockchainRepository): CardanoService => ({
     return previousTxSize + cbor.encode(updatedTtl).byteLength - cbor.encode(previousTtl).byteLength;
   },
 
-  calculateTxMinimumFee(transactionSize: number, linearFeeParameters: LinearFeeParameters): BigInt {
-    return BigInt(linearFeeParameters.minFeeA) * BigInt(transactionSize) + BigInt(linearFeeParameters.minFeeB);
+  calculateTxMinimumFee(transactionSize: number, protocolParameters: Components.Schemas.ProtocolParameters): BigInt {
+    const { minFeeCoefficient, minFeeConstant } = protocolParameters;
+    return BigInt(minFeeCoefficient) * BigInt(transactionSize) + BigInt(minFeeConstant);
   },
 
   parseSignedTransaction(logger, networkId, transaction, extraData) {
@@ -576,9 +585,9 @@ const configure = (repository: BlockchainRepository): CardanoService => ({
       throw ErrorFactory.cantCreateUnsignedTransactionFromBytes();
     }
   },
-  getDepositParameters(logger) {
-    logger.info('[getDepositParameters] About to return deposit parameters');
-    return repository.getDepositParameters(logger);
+  getProtocolParameters(logger) {
+    logger.info('[getProtocolParameters] About to get protocol parameters');
+    return repository.getProtocolParameters(logger);
   }
 });
 

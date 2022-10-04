@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { FastifyRequest } from 'fastify';
 import { CardanoService } from '../services/cardano-services';
 import { ConstructionService } from '../services/construction-service';
@@ -15,7 +16,6 @@ import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
 import { NetworkService } from '../services/network-service';
 import { AddressType } from '../utils/constants';
 import { isAddressTypeValid, isKeyValid } from '../utils/validations';
-import { BlockService } from '../services/block-service';
 import ApiError from '../api-error';
 
 export interface ConstructionController {
@@ -56,8 +56,7 @@ const configure = (
   constructionService: ConstructionService,
   cardanoService: CardanoService,
   cardanoCli: CardanoCli,
-  networkService: NetworkService,
-  blockService: BlockService
+  networkService: NetworkService
 ): ConstructionController => ({
   constructionDerive: async request =>
     withNetworkValidation(
@@ -144,12 +143,13 @@ const configure = (
       async () => {
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         // eslint-disable-next-line camelcase
-        const relativeTtl = await constructionService.calculateRelativeTtl(request.body.metadata?.relative_ttl);
-        const transactionSize = await cardanoService.calculateTxSize(
+        const relativeTtl = constructionService.calculateRelativeTtl(request.body.metadata?.relative_ttl);
+        const transactionSize = cardanoService.calculateTxSize(
           request.log,
           networkIdentifier,
           request.body.operations,
-          0
+          0,
+          request.body.metadata?.deposit_parameters
         );
         // eslint-disable-next-line camelcase
         return { options: { relative_ttl: relativeTtl, transaction_size: transactionSize } };
@@ -172,13 +172,19 @@ const configure = (
         // now that we have it already
         logger.debug(`[constructionMetadata] updating tx size from ${txSize}`);
         const updatedTxSize = cardanoService.updateTxSize(txSize, 0, ttl);
-        const linearFeeParameters = await blockService.getLinearFeeParameters(logger);
-        logger.debug(`[constructionMetadata] gotten linear fee parameters from block-service ${linearFeeParameters}`);
         logger.debug(`[constructionMetadata] updated txSize size is ${updatedTxSize}`);
-        const suggestedFee: BigInt = cardanoService.calculateTxMinimumFee(updatedTxSize, linearFeeParameters);
+        const protocolParameters: Components.Schemas.ProtocolParameters = await cardanoService.getProtocolParameters(
+          logger
+        );
+        logger.debug(`[constructionMetadata] gotten protocol parameters from block-service ${protocolParameters}`);
+        const suggestedFee: BigInt = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParameters);
         logger.debug(`[constructionMetadata] suggested fee is ${suggestedFee}`);
         // eslint-disable-next-line camelcase
-        return { metadata: { ttl: ttl.toString() }, suggested_fee: [mapAmount(suggestedFee.toString())] };
+        return {
+          metadata: { ttl: ttl.toString() },
+          suggested_fee: [mapAmount(suggestedFee.toString())],
+          protocol_parameters: protocolParameters
+        };
       },
       request.log,
       networkService
@@ -194,20 +200,20 @@ const configure = (
         const operations = request.body.operations;
         const networkIdentifier = getNetworkIdentifierByRequestParameters(request.body.network_identifier);
         logger.info(operations, '[constuctionPayloads] Operations about to be processed');
+        const { keyDeposit, poolDeposit } = request.body.metadata.protocol_parameters;
         const unsignedTransaction = await cardanoService.createUnsignedTransaction(
           logger,
           networkIdentifier,
           operations,
-          parseInt(ttl)
+          parseInt(ttl),
+          { keyDeposit, poolDeposit }
         );
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);
         return {
-          /* eslint-disable camelcase */
           unsigned_transaction: await encodeExtraData(unsignedTransaction.bytes, {
             operations: request.body.operations,
             transactionMetadataHex: unsignedTransaction.metadata
           }),
-          /* eslint-disable camelcase */
           payloads
         };
       },

@@ -10,7 +10,7 @@ import {
   setupServer,
   testInvalidNetworkParameters
 } from '../utils/test-utils';
-import { latestBlockSlot, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
+import { latestBlockSlot, LATEST_EPOCH_PROTOCOL_PARAMS, TRANSACTION_SIZE_IN_BYTES } from '../fixture-data';
 
 const CONSTRUCTION_METADATA_ENDPOINT = '/construction/metadata';
 
@@ -67,7 +67,8 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
             linearFeeParameters.minFeeB
           ).toString()
         }
-      ]
+      ],
+      protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
     });
   });
 

@@ -41,7 +41,7 @@ services:
     ]
     environment:
       - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
+      - POSTGRES_PORT=5432  
       - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}
       - RESTORE_RECREATE_DB=N
     depends_on:
@@ -79,6 +79,8 @@ services:
       - PAGE_SIZE=30
       - PORT=8080
       - TOPOLOGY_FILE_PATH=/config/cardano-node/topology.json
+      - DEFAULT_POOL_DEPOSIT=340000000
+      - DEFAULT_KEY_DEPOSIT=2000000
     expose:
       - 8080
     ports:

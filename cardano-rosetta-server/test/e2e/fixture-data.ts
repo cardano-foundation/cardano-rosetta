@@ -36,6 +36,18 @@ export const block1000WithoutTxs = {
     transactions: []
   }
 };
+export const LATEST_EPOCH_PROTOCOL_PARAMS = {
+  coinsPerUtxoSize: '0',
+  maxTxSize: 16384,
+  maxValSize: 0,
+  keyDeposit: '2000000',
+  maxCollateralInputs: 0,
+  minFeeCoefficient: 44,
+  minFeeConstant: 155381,
+  minPoolCost: '340000000',
+  poolDeposit: '500000000',
+  protocol: 4
+};
 
 export const latestBlockHash = '1c42fd317888b2aafe9f84787fdd3b90b95be06687a217cf4e6ca95130157eb5';
 export const latestBlockSlot = 26912827;
@@ -1270,7 +1282,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST: Components.Schemas.ConstructionPaylo
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -1351,7 +1364,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TTL: Components.Schemas.Const
     }
   ],
   metadata: {
-    ttl: '1'
+    ttl: '1',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -1432,7 +1446,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_INPUT: Components.Schemas.
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -1514,7 +1529,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_WITH_BYRON_OUTPUT: Components.Schemas
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -1655,7 +1671,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_WITH_SEVERAL_MA: Components.Schemas.C
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -1782,7 +1799,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_WITH_MULTIPLE_MA: Components.Schemas.
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -1895,7 +1913,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_WITM_MA_WITHOUT_NAME: Components.Sche
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2008,7 +2027,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA: Components.Schemas.Construct
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2103,7 +2123,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION: Components.Schem
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2198,7 +2219,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_DEREGISTRATION: Components.Sch
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2248,7 +2270,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT: Components.Schemas.Cons
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2310,7 +2333,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT_NO_EPOCH: Components.Sch
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2406,7 +2430,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION: Components.Schemas.Con
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2516,7 +2541,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_REGISTRATION_AND_DELEGATION: Compo
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2624,7 +2650,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_STAKE_DELEGAT
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2726,7 +2753,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_WITHDRAWAL: Components.Schemas.Construct
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2847,7 +2875,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_TWO_WITHDRAWALS: Components.Schemas.Cons
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -2963,7 +2992,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL: C
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -3092,7 +3122,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_AND_PLEDGE: Components
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -3230,7 +3261,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTIPLE_RELAY: C
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -3345,7 +3377,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_ADDR:
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -3455,7 +3488,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_METADATA: Comp
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -3568,7 +3602,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_SINGLE_HOST_NAME:
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -3680,7 +3715,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_MULTI_HOST_NAME: 
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -3789,7 +3825,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_NO_COLD_KEY: Comp
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -3897,7 +3934,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_CERT: Components.
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -3989,7 +4027,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT: Com
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -4082,7 +4121,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_POOL_REGISTRATION_WITH_INVALID_CERT_TYPE
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -4108,7 +4148,8 @@ export const CONSTRUCTION_PAYLOADS_INVALID_OPERATION_TYPE: Components.Schemas.Co
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -4220,7 +4261,8 @@ export const CONSTRUCTION_PAYLOADS_MULTIPLE_INPUTS: Components.Schemas.Construct
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -4324,7 +4366,8 @@ export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION: Components.Schemas.Co
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -4902,7 +4945,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_OUTPUTS: Components.Schemas.C
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -5002,7 +5046,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_INPUTS: Components.Schemas.Co
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 
@@ -5095,7 +5140,8 @@ export const CONSTRUCTION_PAYLOADS_REQUEST_INVALID_TRANSACTION_ID = {
     }
   ],
   metadata: {
-    ttl: '1000'
+    ttl: '1000',
+    protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
   }
 };
 

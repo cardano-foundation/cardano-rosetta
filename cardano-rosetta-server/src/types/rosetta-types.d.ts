@@ -398,8 +398,10 @@ declare namespace Components {
        */
       metadata: {
         ttl?: string;
+        protocol_parameters?: ProtocolParameters;
       };
       suggested_fee?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount[];
+      protocol_parameters?: ProtocolParameters;
     }
     /**
      * ConstructionParseRequest is the input to the `/construction/parse` endpoint. It allows the caller to parse either an unsigned or signed transaction.
@@ -435,6 +437,7 @@ declare namespace Components {
       operations: /* Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction. Operations are used both to represent on-chain data (Data API) and to construct new transactions (Construction API), creating a standard interface for reading and writing to blockchains. */ Operation[];
       metadata: {
         ttl: string;
+        protocol_parameters: ProtocolParameters;
       };
       public_keys?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey[];
     }
@@ -452,7 +455,8 @@ declare namespace Components {
       network_identifier: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       operations: /* Operations contain all balance-changing information within a transaction. They are always one-sided (only affect 1 AccountIdentifier) and can succeed or fail independently from a Transaction. Operations are used both to represent on-chain data (Data API) and to construct new transactions (Construction API), creating a standard interface for reading and writing to blockchains. */ Operation[];
       metadata?: {
-        relative_ttl: number;
+        relative_ttl?: number;
+        deposit_parameters?: DepositParameters;
       };
       max_fee?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount[];
       suggested_fee_multiplier?: number; // double
@@ -499,6 +503,16 @@ declare namespace Components {
      * CurveType is the type of cryptographic curve associated with a PublicKey. * secp256k1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * secp256r1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * edwards25519: `y (255-bits) || x-sign-bit (1-bit)` - `32 bytes` (https://ed25519.cr.yp.to/ed25519-20110926.pdf) * tweedle: 1st pk : Fq.t (32 bytes) || 2nd pk : Fq.t (32 bytes) (https://github.com/CodaProtocol/coda/blob/develop/rfcs/0038-rosetta-construction-api.md#marshal-keys)
      */
     export type CurveType = 'secp256k1' | 'secp256r1' | 'edwards25519' | 'tweedle';
+    export interface DepositParameters {
+      /**
+       * key registration cost in Lovelace
+       */
+      keyDeposit: string;
+      /**
+       * pool registration cost in Lovelace
+       */
+      poolDeposit: string;
+    }
     /**
      * Used by RelatedTransaction to indicate the direction of the relation (i.e. cross-shard/cross-network sends may reference `backward` to an earlier transaction and async execution may reference `forward`). Can be used to indicate if a transaction relation is from child to parent or the reverse.
      */
@@ -621,7 +635,7 @@ declare namespace Components {
        */
       blockchain: string;
       /**
-       * If a blockchain has a specific chain-id or network identifier, it should go in this field. It is up to the client to determine which network-specific identifier is mainnet or testnet.
+       * If a blockchain has a specific chain-id or network identifier, it should go in this field. It is up to the client to determine which network-specific identifier is mainnet, preprod, or preview.
        * example:
        * mainnet
        */
@@ -837,6 +851,24 @@ declare namespace Components {
       margin_percentage?: string;
       poolMetadata?: PoolMetadata;
     }
+    export interface ProtocolParameters {
+      coinsPerUtxoSize: string;
+      maxTxSize: number;
+      maxValSize: number;
+      /**
+       * key registration cost in Lovelace
+       */
+      keyDeposit: string;
+      maxCollateralInputs: number;
+      minFeeCoefficient: number;
+      minFeeConstant: number;
+      minPoolCost: string;
+      /**
+       * pool registration cost in Lovelace
+       */
+      poolDeposit: string;
+      protocol: number;
+    }
     /**
      * PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation.
      */
@@ -854,7 +886,6 @@ declare namespace Components {
       network_identifier?: /* The network_identifier specifies which network a particular object is associated with. */ NetworkIdentifier;
       transaction_identifier: /* The transaction_identifier uniquely identifies a transaction in a particular network and block or in the mempool. */ TransactionIdentifier;
       direction: /* Used by RelatedTransaction to indicate the direction of the relation (i.e. cross-shard/cross-network sends may reference `backward` to an earlier transaction and async execution may reference `forward`). Can be used to indicate if a transaction relation is from child to parent or the reverse. */ Direction;
-      __type?: string;
     }
     export interface Relay {
       type?: string;

@@ -4,7 +4,7 @@ import blockController, { BlockController } from './block-controller';
 import accountController, { AccountController } from './account-controller';
 import networkController, { NetworkController } from './network-controller';
 import constructionController, { ConstructionController } from './construction-controller';
-import searchController, { SearchController } from './search-controller';
+import searchController from './search-controller';
 import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
 import { CardanoNode } from '../utils/cardano/cli/cardano-node';
 
@@ -34,8 +34,7 @@ export const configure = (
       services.constructionService,
       services.cardanoService,
       cardanoCli,
-      services.networkService,
-      services.blockService
+      services.networkService
     )
   };
   if (!disableSearchApi)
