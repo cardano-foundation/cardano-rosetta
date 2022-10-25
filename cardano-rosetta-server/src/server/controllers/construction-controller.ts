@@ -176,7 +176,7 @@ const configure = (
         const protocolParameters: Components.Schemas.ProtocolParameters = await cardanoService.getProtocolParameters(
           logger
         );
-        logger.debug(`[constructionMetadata] gotten protocol parameters from block-service ${protocolParameters}`);
+        logger.debug(`[constructionMetadata] received protocol parameters from block-service ${protocolParameters}`);
         const suggestedFee: BigInt = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParameters);
         logger.debug(`[constructionMetadata] suggested fee is ${suggestedFee}`);
         // eslint-disable-next-line camelcase
