@@ -71,7 +71,7 @@ RUN cabal install cardano-cli \
   --installdir=/usr/local/bin \
   -f -systemd
 WORKDIR /app/src
-ARG CARDANO_DB_SYNC_VERSION=13.0.4
+ARG CARDANO_DB_SYNC_VERSION=13.0.5
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\

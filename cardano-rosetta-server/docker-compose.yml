@@ -34,14 +34,14 @@ services:
         max-size: "400k"
         max-file: "20"
   cardano-db-sync:
-    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-13.0.4}
+    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-13.0.5}
     command: [
       "--config", "/config/cardano-db-sync/config.json",
       "--socket-path", "/node-ipc/node.socket"
     ]
     environment:
       - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432  
+      - POSTGRES_PORT=5432
       - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}
       - RESTORE_RECREATE_DB=N
     depends_on:
