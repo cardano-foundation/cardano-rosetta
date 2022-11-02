@@ -1,27 +1,9 @@
 {
-  "LocalRoots": {
-    "groups": [
-      {
-        "localRoots": {
-          "accessPoints": [],
-          "advertise": false
-        },
-        "valency": 1
-      }
-    ]
-  },
-  "PublicRoots": [
+  "Producers": [
     {
-      "publicRoots": {
-        "accessPoints": [
-          {
-            "address": "preprod-node.world.dev.cardano.org",
-            "port": 30000
-          }
-        ],
-        "advertise": false
-      }
+      "addr": "preprod-node.world.dev.cardano.org",
+      "port": 30000,
+      "valency": 1
     }
-  ],
-  "useLedgerAfterSlot": 4642000
+  ]
 }
