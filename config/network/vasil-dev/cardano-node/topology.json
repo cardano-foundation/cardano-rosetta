@@ -1,27 +1,9 @@
 {
-  "LocalRoots": {
-    "groups": [
-      {
-        "localRoots": {
-          "accessPoints": [],
-          "advertise": false
-        },
-        "valency": 1
-      }
-    ]
-  },
-  "PublicRoots": [
+  "Producers": [
     {
-      "publicRoots": {
-        "accessPoints": [
-          {
-            "address": "vasil-dev-node.world.dev.cardano.org",
-            "port": 30001
-          }
-        ],
-        "advertise": false
-      }
+      "addr": "vasil-dev-node.world.dev.cardano.org",
+      "port": 30001,
+      "valency": 1
     }
-  ],
-  "useLedgerAfterSlot": 60000
+  ]
 }
