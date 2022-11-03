@@ -3,8 +3,8 @@ import * as BlockchainRepository from '../../../src/server/db/blockchain-reposit
 import configure, { CardanoService } from '../../../src/server/services/cardano-services';
 import { EraAddressType } from '../../../src/server/utils/constants';
 import { setupDatabase } from '../../e2e/utils/test-utils';
-const minKeyDeposit = 2000000;
-const poolDeposit = 500000000;
+const minKeyDeposit = '2000000';
+const poolDeposit = '500000000';
 
 describe('Cardano Service', () => {
   let database: Pool;
@@ -14,7 +14,7 @@ describe('Cardano Service', () => {
   beforeAll(() => {
     database = setupDatabase();
     blockchainRepository = BlockchainRepository.configure(database);
-    cardanoService = configure(blockchainRepository);
+    cardanoService = configure(blockchainRepository, { keyDeposit: minKeyDeposit, poolDeposit });
   });
 
   afterAll(async () => {

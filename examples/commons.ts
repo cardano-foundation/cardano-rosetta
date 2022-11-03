@@ -93,14 +93,21 @@ const waitForBalanceToBe = async (
   } while (!fetchAccountBalance || !fetchAccountCoins);
   return { balances: fetchAccountBalance, unspents: fetchAccountCoins };
 };
+
+const depositParameters = {
+  keyDeposit: "2000000",
+  poolDeposit: "500000000",
+};
+
 const constructionPreprocess = async (
   operations: any,
-  relative_ttl: number
+  relative_ttl: number,
+  deposit_parameters = depositParameters
 ) => {
   const response = await httpClient.post("/construction/preprocess", {
     network_identifier,
     operations,
-    metadata: { relative_ttl },
+    metadata: { relative_ttl, deposit_parameters },
   });
   return response.data.options;
 };

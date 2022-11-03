@@ -150,7 +150,7 @@ For example:
 DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/13/db-sync-snapshot-schema-13-block-6849999-x86_64.tgz \
+  --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/13/db-sync-snapshot-schema-13-block-7960123-x86_64.tgz \
   --cache-from=inputoutput/cardano-rosetta:master \
   -t inputoutput/cardano-rosetta:1.8.1-apply-snapshot \
   https://github.com/input-output-hk/cardano-rosetta.git#1.8.1

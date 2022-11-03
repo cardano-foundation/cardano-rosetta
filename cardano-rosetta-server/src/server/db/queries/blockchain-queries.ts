@@ -490,18 +490,19 @@ const findBalanceByAddressAndBlock = `
     AS balance
 `;
 
-const findLatestMinFeeAAndMinFeeB = `
-SELECT 
-  min_fee_a, min_fee_b FROM epoch_param 
-WHERE 
-  min_fee_a is not null and min_fee_b is not null 
-ORDER BY id 
-DESC LIMIT 1
-`;
-
-const findLatestDepositParameters = `
+const findProtocolParameters = `
   SELECT 
-    key_deposit, pool_deposit FROM epoch_param  
+    coins_per_utxo_size,
+    max_tx_size,
+    max_val_size,
+    key_deposit,
+    max_collateral_inputs,
+    min_fee_a,
+    min_fee_b,
+    min_pool_cost,
+    pool_deposit,
+    protocol_major
+  FROM epoch_param  
   ORDER BY id 
   DESC LIMIT 1
 `;
@@ -526,8 +527,7 @@ const Queries = {
   findPoolRetirements,
   findTransactionsOutputs,
   findUtxoByAddressAndBlock,
-  findLatestMinFeeAAndMinFeeB,
-  findLatestDepositParameters
+  findProtocolParameters
 };
 
 export default Queries;

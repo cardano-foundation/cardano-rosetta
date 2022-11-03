@@ -34,7 +34,7 @@ services:
         max-size: "400k"
         max-file: "20"
   cardano-db-sync:
-    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-13.0.4}
+    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-13.0.5}
     command: [
       "--config", "/config/cardano-db-sync/config.json",
       "--socket-path", "/node-ipc/node.socket"
@@ -79,6 +79,8 @@ services:
       - PAGE_SIZE=30
       - PORT=8080
       - TOPOLOGY_FILE_PATH=/config/cardano-node/topology.json
+      - DEFAULT_POOL_DEPOSIT=340000000
+      - DEFAULT_KEY_DEPOSIT=2000000
     expose:
       - 8080
     ports:

@@ -35,7 +35,7 @@ const configure = (
         if (block !== null) {
           logger.info('[block] Block was found');
           const transactionsFound = await blockService.findTransactionsByBlock(logger, block);
-          const { poolDeposit } = await cardanoService.getDepositParameters(logger);
+          const { poolDeposit } = await cardanoService.getProtocolParameters(logger);
           if (transactionsFound.length > PAGE_SIZE) {
             logger.info('[block] Returning only transactions hashes since the number of them is bigger than PAGE_SIZE');
             return {
@@ -82,7 +82,7 @@ const configure = (
           logger.error('[blockTransaction] No transaction found');
           throw ErrorFactory.transactionNotFound();
         }
-        const { poolDeposit } = await cardanoService.getDepositParameters(logger);
+        const { poolDeposit } = await cardanoService.getProtocolParameters(logger);
         const response = mapToRosettaTransaction(transaction, poolDeposit);
         logger.debug({ response }, '[blockTransaction] Returning response ');
         return {

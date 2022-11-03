@@ -17,6 +17,8 @@ export interface Environment {
   PAGE_SIZE: number;
   CARDANO_NODE_PATH: string;
   DISABLE_SEARCH_API: boolean;
+  DEFAULT_KEY_DEPOSIT: string;
+  DEFAULT_POOL_DEPOSIT: string;
 }
 
 const existingFileValidator = makeValidator((filePath: string) => {
@@ -39,7 +41,9 @@ export const parseEnvironment = (): Environment => {
     CARDANO_NODE_PATH: existingFileValidator(),
     GENESIS_SHELLEY_PATH: existingFileValidator(),
     CARDANO_NODE_SOCKET_PATH: str(),
-    DISABLE_SEARCH_API: bool({ default: false })
+    DISABLE_SEARCH_API: bool({ default: false }),
+    DEFAULT_KEY_DEPOSIT: str(),
+    DEFAULT_POOL_DEPOSIT: str()
   });
   let topologyFile: TopologyConfig;
   try {

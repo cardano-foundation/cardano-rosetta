@@ -61,7 +61,11 @@ export const setupServer = (database: Pool, disableSearchApi = false): FastifyIn
     // eslint-disable-next-line no-magic-numbers
     1097911063,
     JSON.parse(fs.readFileSync(path.resolve(process.env.TOPOLOGY_FILE_PATH)).toString()),
-    Number(process.env.DEFAULT_RELATIVE_TTL)
+    Number(process.env.DEFAULT_RELATIVE_TTL),
+    {
+      keyDeposit: process.env.DEFAULT_KEY_DEPOSIT as string,
+      poolDeposit: process.env.DEFAULT_POOL_DEPOSIT as string
+    }
   );
   return buildServer(services, cardanoCliMock, cardanoNodeMock, process.env.LOGGER_LEVEL, {
     networkId: NETWORK_ID,

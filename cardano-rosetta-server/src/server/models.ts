@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { FindTransactionInOutResult } from './db/queries/blockchain-queries';
 
 export interface Block {
@@ -218,4 +219,17 @@ export interface BlockUtxosMultiAssets extends BlockUtxos {
 export interface BalanceAtBlock {
   block: Block;
   balance: string;
+}
+
+export interface ProtocolParameters {
+  coins_per_utxo_size?: string;
+  max_tx_size: number;
+  max_val_size?: number;
+  key_deposit: string;
+  max_collateral_inputs?: number;
+  min_fee_a: number;
+  min_fee_b: number;
+  min_pool_cost: string;
+  pool_deposit: string;
+  protocol_major: number;
 }

@@ -30,7 +30,11 @@ const start = async (databaseInstance: Pool) => {
       networkId,
       networkMagic,
       environment.TOPOLOGY_FILE,
-      environment.DEFAULT_RELATIVE_TTL
+      environment.DEFAULT_RELATIVE_TTL,
+      {
+        keyDeposit: environment.DEFAULT_KEY_DEPOSIT,
+        poolDeposit: environment.DEFAULT_POOL_DEPOSIT
+      }
     );
     server = buildServer(services, cardanoCli, cardanoNode, environment.LOGGER_LEVEL, {
       networkId,

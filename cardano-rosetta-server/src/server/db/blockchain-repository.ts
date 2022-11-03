@@ -16,9 +16,10 @@ import {
   Utxo,
   MaBalance,
   TotalCount,
-  SearchFilters
+  SearchFilters,
+  ProtocolParameters
 } from '../models';
-import { DepositParameters, LinearFeeParameters } from '../services/cardano-services';
+import { LinearFeeParameters } from '../services/cardano-services';
 import {
   hexStringToBuffer,
   hexFormatter,
@@ -105,14 +106,9 @@ export interface BlockchainRepository {
   findGenesisBlock(logger: Logger): Promise<GenesisBlock | null>;
 
   /**
-   * Get the lastest minFeeA and minFeeB
+   * Get the protocol parameters
    */
-  getLinearFeeParameters(logger: Logger): Promise<LinearFeeParameters>;
-
-  /**
-   * Get the lastest deposit parameters
-   */
-  getDepositParameters(logger: Logger): Promise<DepositParameters>;
+  getProtocolParameters(logger: Logger): Promise<Components.Schemas.ProtocolParameters>;
 
   /**
    * Returns an array containing all utxo for address till block identified by blockIdentifier if present, else the last
@@ -664,16 +660,21 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     return latestBlockNumber;
   },
 
-  async getLinearFeeParameters(logger: Logger): Promise<LinearFeeParameters> {
-    logger.debug('[getLinearFeeParameters] About to run getLinearFeeParameters query');
-    const result = await databaseInstance.query(Queries.findLatestMinFeeAAndMinFeeB);
-    return { minFeeA: result.rows[0].min_fee_a, minFeeB: result.rows[0].min_fee_b };
-  },
-
-  async getDepositParameters(logger: Logger): Promise<DepositParameters> {
-    logger.debug('[getLinearFeeParameters] About to run findLatestDepositParameters query');
-    const result = await databaseInstance.query(Queries.findLatestDepositParameters);
-    return { keyDeposit: result.rows[0].key_deposit, poolDeposit: result.rows[0].pool_deposit };
+  async getProtocolParameters(logger: Logger): Promise<Components.Schemas.ProtocolParameters> {
+    logger.debug('[getLinearFeeParameters] About to run findProtocolParameters query');
+    const result: QueryResult<ProtocolParameters> = await databaseInstance.query(Queries.findProtocolParameters);
+    return {
+      coinsPerUtxoSize: result.rows[0].coins_per_utxo_size || '0',
+      maxTxSize: result.rows[0].max_tx_size,
+      maxValSize: result.rows[0].max_val_size || 0,
+      keyDeposit: result.rows[0].key_deposit,
+      maxCollateralInputs: result.rows[0].max_collateral_inputs || 0,
+      minFeeCoefficient: result.rows[0].min_fee_a,
+      minFeeConstant: result.rows[0].min_fee_b,
+      minPoolCost: result.rows[0].min_pool_cost,
+      poolDeposit: result.rows[0].pool_deposit,
+      protocol: result.rows[0].protocol_major
+    };
   },
 
   async findGenesisBlock(logger: Logger): Promise<GenesisBlock | null> {

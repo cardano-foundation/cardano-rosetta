@@ -38,7 +38,7 @@ const configure = (
         const transactionsFound = await blockService.findTransactionsByFilters(logger, filters, limit, offset);
         logger.info('[searchTransactions] Looking for transactions full data');
         const transactions = await blockService.fillTransactions(logger, transactionsFound.transactions);
-        const { poolDeposit } = await cardanoService.getDepositParameters(logger);
+        const { poolDeposit } = await cardanoService.getProtocolParameters(logger);
         const parameters = {
           transactions,
           poolDeposit,
