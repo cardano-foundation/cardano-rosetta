@@ -36,6 +36,7 @@ import { TransactionExtraData } from '../utils/data-mapper';
 import { ErrorFactory } from '../utils/errors';
 import { hexFormatter, hexStringToBuffer, bytesToHex } from '../utils/formatters';
 import { isEd25519KeyHash } from '../utils/validations';
+import { ManagedFreeableScope, usingAutoFree } from '../utils/freeable';
 
 export interface Signatures {
   signature: string;
@@ -265,41 +266,44 @@ const getPoolSigners = (
   logger: Logger,
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
-): string[] => {
-  const signers = [];
-  switch (operation.type) {
-    case OperationType.POOL_REGISTRATION: {
-      const poolRegistrationParameters = operation.metadata?.poolRegistrationParams;
-      if (operation.account?.address) signers.push(operation.account?.address);
-      if (poolRegistrationParameters) {
-        const { rewardAddress, poolOwners } = poolRegistrationParameters;
-        signers.push(rewardAddress);
-        signers.push(...poolOwners);
+): string[] =>
+  usingAutoFree(scope => {
+    const signers = [];
+    switch (operation.type) {
+      case OperationType.POOL_REGISTRATION: {
+        const poolRegistrationParameters = operation.metadata?.poolRegistrationParams;
+        if (operation.account?.address) signers.push(operation.account?.address);
+        if (poolRegistrationParameters) {
+          const { rewardAddress, poolOwners } = poolRegistrationParameters;
+          signers.push(rewardAddress);
+          signers.push(...poolOwners);
+        }
+        break;
       }
-      break;
+      case OperationType.POOL_REGISTRATION_WITH_CERT: {
+        const poolCertAsHex = operation.metadata?.poolRegistrationCert;
+        const { addresses } = OperationsProcessor.validateAndParsePoolRegistrationCert(
+          scope,
+          logger,
+          network,
+          poolCertAsHex,
+          operation.account?.address
+        );
+        signers.push(...addresses);
+        break;
+      }
+      // pool retirement case
+      default: {
+        if (operation.account?.address) signers.push(operation.account?.address);
+        break;
+      }
     }
-    case OperationType.POOL_REGISTRATION_WITH_CERT: {
-      const poolCertAsHex = operation.metadata?.poolRegistrationCert;
-      const { addresses } = OperationsProcessor.validateAndParsePoolRegistrationCert(
-        logger,
-        network,
-        poolCertAsHex,
-        operation.account?.address
-      );
-      signers.push(...addresses);
-      break;
-    }
-    // pool retirement case
-    default: {
-      if (operation.account?.address) signers.push(operation.account?.address);
-      break;
-    }
-  }
-  logger.info(`[getPoolSigners] About to return ${signers.length} signers for ${operation.type} operation`);
-  return signers;
-};
+    logger.info(`[getPoolSigners] About to return ${signers.length} signers for ${operation.type} operation`);
+    return signers;
+  });
 
 const getSignerFromOperation = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
@@ -313,11 +317,12 @@ const getSignerFromOperation = (
   if (operation.type === OperationType.VOTE_REGISTRATION) {
     return [];
   }
-  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  const credential = getStakingCredentialFromHex(scope, logger, operation.metadata?.staking_credential);
   return [generateRewardAddress(logger, network, credential)];
 };
 
 const processOperations = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   network: NetworkIdentifier,
   operations: Components.Schemas.Operation[],
@@ -325,7 +330,7 @@ const processOperations = (
 ) => {
   logger.info('[processOperations] About to calculate fee');
   const { keyDeposit: minKeyDeposit, poolDeposit } = depositParameters;
-  const result = OperationsProcessor.convert(logger, network, operations);
+  const result = OperationsProcessor.convert(scope, logger, network, operations);
   const refundsSum = BigInt(result.stakeKeyDeRegistrationsCount) * BigInt(minKeyDeposit);
   const keyDepositsSum = BigInt(result.stakeKeyRegistrationsCount) * BigInt(minKeyDeposit);
   const poolDepositsSum = BigInt(result.poolRegistrationsCount) * BigInt(poolDeposit);
@@ -356,15 +361,23 @@ const getEraAddressTypeOrNull = (address: string) => {
   }
 };
 
-const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): CardanoWasm.TransactionWitnessSet => {
+const getWitnessesForTransaction = (
+  scope: ManagedFreeableScope,
+  logger: Logger,
+  signatures: Signatures[]
+): CardanoWasm.TransactionWitnessSet => {
   try {
-    const witnesses = CardanoWasm.TransactionWitnessSet.new();
-    const vkeyWitnesses = CardanoWasm.Vkeywitnesses.new();
-    const bootstrapWitnesses = CardanoWasm.BootstrapWitnesses.new();
+    const witnesses = scope.manage(CardanoWasm.TransactionWitnessSet.new());
+    const vkeyWitnesses = scope.manage(CardanoWasm.Vkeywitnesses.new());
+    const bootstrapWitnesses = scope.manage(CardanoWasm.BootstrapWitnesses.new());
     logger.info('[getWitnessesForTransaction] Extracting witnesses from signatures');
     signatures.forEach(signature => {
-      const vkey: Vkey = Vkey.new(PublicKey.from_bytes(Buffer.from(signature.publicKey, 'hex')));
-      const ed25519Signature: Ed25519Signature = Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'));
+      const vkey: Vkey = scope.manage(
+        Vkey.new(scope.manage(PublicKey.from_bytes(Buffer.from(signature.publicKey, 'hex'))))
+      );
+      const ed25519Signature: Ed25519Signature = scope.manage(
+        Ed25519Signature.from_bytes(Buffer.from(signature.signature, 'hex'))
+      );
       const { address } = signature;
       if (address && getEraAddressTypeOrNull(address) === EraAddressType.Byron) {
         // byron case
@@ -373,16 +386,18 @@ const getWitnessesForTransaction = (logger: Logger, signatures: Signatures[]): C
           logger.error('[getWitnessesForTransaction] Missing chain code for byron address signature');
           throw ErrorFactory.missingChainCodeError();
         }
-        const byronAddress = CardanoWasm.ByronAddress.from_base58(address);
-        const bootstrap = CardanoWasm.BootstrapWitness.new(
-          vkey,
-          ed25519Signature,
-          hexStringToBuffer(chainCode),
-          byronAddress.attributes()
+        const byronAddress = scope.manage(CardanoWasm.ByronAddress.from_base58(address));
+        const bootstrap = scope.manage(
+          CardanoWasm.BootstrapWitness.new(
+            vkey,
+            ed25519Signature,
+            hexStringToBuffer(chainCode),
+            byronAddress.attributes()
+          )
         );
         bootstrapWitnesses.add(bootstrap);
       } else {
-        vkeyWitnesses.add(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature));
+        vkeyWitnesses.add(scope.manage(CardanoWasm.Vkeywitness.new(vkey, ed25519Signature)));
       }
     });
     logger.info(`[getWitnessesForTransaction] ${vkeyWitnesses.len()} witnesses were extracted to sign transaction`);
@@ -403,28 +418,30 @@ const configure = (repository: BlockchainRepository, defaultDepositParameters: D
       )} and network identifier ${network}`
     );
 
-    const publicKeyBuffer = Buffer.from(publicKeyString, 'hex');
-    const pub = CardanoWasm.PublicKey.from_bytes(publicKeyBuffer);
-    const paymentCredential = StakeCredential.from_keyhash(pub.hash());
+    return usingAutoFree(scope => {
+      const publicKeyBuffer = Buffer.from(publicKeyString, 'hex');
+      const pub = scope.manage(CardanoWasm.PublicKey.from_bytes(publicKeyBuffer));
+      const paymentCredential = scope.manage(StakeCredential.from_keyhash(scope.manage(pub.hash())));
 
-    if (type === AddressType.REWARD) {
-      return generateRewardAddress(logger, network, paymentCredential);
-    }
-
-    if (type === AddressType.BASE) {
-      if (!stakingCredentialString) {
-        logger.error('[constructionDerive] No staking key was provided for base address creation');
-        throw ErrorFactory.missingStakingKeyError();
+      if (type === AddressType.REWARD) {
+        return generateRewardAddress(logger, network, paymentCredential);
       }
-      const stakingCredential = getStakingCredentialFromHex(logger, {
-        hex_bytes: stakingCredentialString,
-        curve_type: CurveType.edwards25519
-      });
 
-      return generateBaseAddress(logger, network, paymentCredential, stakingCredential);
-    }
+      if (type === AddressType.BASE) {
+        if (!stakingCredentialString) {
+          logger.error('[constructionDerive] No staking key was provided for base address creation');
+          throw ErrorFactory.missingStakingKeyError();
+        }
+        const stakingCredential = getStakingCredentialFromHex(scope, logger, {
+          hex_bytes: stakingCredentialString,
+          curve_type: CurveType.edwards25519
+        });
 
-    return generateEnterpriseAddress(logger, network, paymentCredential);
+        return generateBaseAddress(logger, network, paymentCredential, stakingCredential);
+      }
+
+      return generateEnterpriseAddress(logger, network, paymentCredential);
+    });
   },
 
   getEraAddressType(address) {
@@ -434,83 +451,96 @@ const configure = (repository: BlockchainRepository, defaultDepositParameters: D
     return isStakeAddress(address);
   },
   getHashOfSignedTransaction(logger, signedTransaction) {
-    try {
-      logger.info(`[getHashOfSignedTransaction] About to hash signed transaction ${signedTransaction}`);
-      const signedTransactionBytes = Buffer.from(signedTransaction, 'hex');
-      logger.info('[getHashOfSignedTransaction] About to parse transaction from signed transaction bytes');
-      const parsed = CardanoWasm.Transaction.from_bytes(signedTransactionBytes);
-      logger.info('[getHashOfSignedTransaction] Returning transaction hash');
-      const hashBuffer = parsed && parsed.body() && Buffer.from(CardanoWasm.hash_transaction(parsed.body()).to_bytes());
-      return hexFormatter(hashBuffer);
-    } catch (error) {
-      logger.error({ error }, '[getHashOfSignedTransaction] There was an error parsing signed transaction');
-      throw ErrorFactory.parseSignedTransactionError();
-    }
+    return usingAutoFree(scope => {
+      try {
+        logger.info(`[getHashOfSignedTransaction] About to hash signed transaction ${signedTransaction}`);
+        const signedTransactionBytes = Buffer.from(signedTransaction, 'hex');
+        logger.info('[getHashOfSignedTransaction] About to parse transaction from signed transaction bytes');
+        const parsed = scope.manage(CardanoWasm.Transaction.from_bytes(signedTransactionBytes));
+        logger.info('[getHashOfSignedTransaction] Returning transaction hash');
+        const body = scope.manage(parsed.body());
+        const hashBuffer = parsed && body && Buffer.from(scope.manage(CardanoWasm.hash_transaction(body)).to_bytes());
+        return hexFormatter(hashBuffer);
+      } catch (error) {
+        logger.error({ error }, '[getHashOfSignedTransaction] There was an error parsing signed transaction');
+        throw ErrorFactory.parseSignedTransactionError();
+      }
+    });
   },
   buildTransaction(logger, unsignedTransaction, signatures, metadata) {
-    logger.info(`[buildTransaction] About to signed a transaction with ${signatures.length} signatures`);
-    const witnesses = getWitnessesForTransaction(logger, signatures);
-    try {
-      logger.info('[buildTransaction] Instantiating transaction body from unsigned transaction bytes');
-      const transactionBody = CardanoWasm.TransactionBody.from_bytes(Buffer.from(unsignedTransaction, 'hex'));
-      logger.info('[buildTransaction] Creating transaction using transaction body and extracted witnesses');
-      let auxiliaryData: AuxiliaryData | undefined;
-      if (metadata) {
-        logger.info('[buildTransaction] Adding transaction metadata');
-        auxiliaryData = CardanoWasm.AuxiliaryData.from_bytes(hexStringToBuffer(metadata));
+    return usingAutoFree(scope => {
+      logger.info(`[buildTransaction] About to signed a transaction with ${signatures.length} signatures`);
+      const witnesses = getWitnessesForTransaction(scope, logger, signatures);
+      try {
+        logger.info('[buildTransaction] Instantiating transaction body from unsigned transaction bytes');
+        const transactionBody = scope.manage(
+          CardanoWasm.TransactionBody.from_bytes(Buffer.from(unsignedTransaction, 'hex'))
+        );
+        logger.info('[buildTransaction] Creating transaction using transaction body and extracted witnesses');
+        let auxiliaryData: AuxiliaryData | undefined;
+        if (metadata) {
+          logger.info('[buildTransaction] Adding transaction metadata');
+          auxiliaryData = scope.manage(CardanoWasm.AuxiliaryData.from_bytes(hexStringToBuffer(metadata)));
+        }
+        return bytesToHex(
+          scope.manage(CardanoWasm.Transaction.new(transactionBody, witnesses, auxiliaryData)).to_bytes()
+        );
+      } catch (error) {
+        logger.error({ error }, '[buildTransaction] There was an error building signed transaction');
+        throw ErrorFactory.cantBuildSignedTransaction();
       }
-      return bytesToHex(CardanoWasm.Transaction.new(transactionBody, witnesses, auxiliaryData).to_bytes());
-    } catch (error) {
-      logger.error({ error }, '[buildTransaction] There was an error building signed transaction');
-      throw ErrorFactory.cantBuildSignedTransaction();
-    }
+    });
   },
   createUnsignedTransaction(logger, network, operations, ttl, depositParameters): UnsignedTransaction {
-    logger.info(
-      `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
-    );
-    const {
-      transactionInputs,
-      transactionOutputs,
-      certificates,
-      withdrawals,
-      addresses,
-      fee,
-      voteRegistrationMetadata
-    } = processOperations(logger, network, operations, depositParameters);
+    return usingAutoFree(scope => {
+      logger.info(
+        `[createUnsignedTransaction] About to create an unsigned transaction with ${operations.length} operations`
+      );
+      const {
+        transactionInputs,
+        transactionOutputs,
+        certificates,
+        withdrawals,
+        addresses,
+        fee,
+        voteRegistrationMetadata
+      } = processOperations(scope, logger, network, operations, depositParameters);
 
-    logger.info('[createUnsignedTransaction] About to create transaction body');
-    const transactionBody = CardanoWasm.TransactionBody.new(
-      transactionInputs,
-      transactionOutputs,
-      BigNum.from_str(fee.toString()),
-      ttl
-    );
-    if (voteRegistrationMetadata) {
-      logger.info('[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body');
-      const metadataHash = CardanoWasm.hash_auxiliary_data(voteRegistrationMetadata);
-      transactionBody.set_auxiliary_data_hash(metadataHash);
-    }
+      logger.info('[createUnsignedTransaction] About to create transaction body');
+      const transactionBody = scope.manage(
+        CardanoWasm.TransactionBody.new(
+          transactionInputs,
+          transactionOutputs,
+          scope.manage(BigNum.from_str(fee.toString())),
+          ttl
+        )
+      );
+      if (voteRegistrationMetadata) {
+        logger.info('[createUnsignedTransaction] Hashing vote registration metadata and adding to transaction body');
+        const metadataHash = scope.manage(CardanoWasm.hash_auxiliary_data(voteRegistrationMetadata));
+        transactionBody.set_auxiliary_data_hash(metadataHash);
+      }
 
-    if (certificates.len() > 0) transactionBody.set_certs(certificates);
-    if (withdrawals.len() > 0) transactionBody.set_withdrawals(withdrawals);
+      if (certificates.len() > 0) transactionBody.set_certs(certificates);
+      if (withdrawals.len() > 0) transactionBody.set_withdrawals(withdrawals);
 
-    const transactionBytes = hexFormatter(Buffer.from(transactionBody.to_bytes()));
-    logger.info('[createUnsignedTransaction] Hashing transaction body');
-    const bodyHash = CardanoWasm.hash_transaction(transactionBody).to_bytes();
-    const toReturn: UnsignedTransaction = {
-      bytes: transactionBytes,
-      hash: hexFormatter(Buffer.from(bodyHash)),
-      addresses
-    };
-    if (voteRegistrationMetadata) {
-      toReturn.metadata = Buffer.from(voteRegistrationMetadata.to_bytes()).toString('hex');
-    }
-    logger.info(
-      toReturn,
-      '[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash'
-    );
-    return toReturn;
+      const transactionBytes = hexFormatter(Buffer.from(transactionBody.to_bytes()));
+      logger.info('[createUnsignedTransaction] Hashing transaction body');
+      const bodyHash = scope.manage(CardanoWasm.hash_transaction(transactionBody)).to_bytes();
+      const toReturn: UnsignedTransaction = {
+        bytes: transactionBytes,
+        hash: hexFormatter(Buffer.from(bodyHash)),
+        addresses
+      };
+      if (voteRegistrationMetadata) {
+        toReturn.metadata = Buffer.from(voteRegistrationMetadata.to_bytes()).toString('hex');
+      }
+      logger.info(
+        toReturn,
+        '[createUnsignedTransaction] Returning unsigned transaction, hash to sign and addresses that will sign hash'
+      );
+      return toReturn;
+    });
   },
 
   calculateTxSize(logger, network, operations, ttl, depositParameters) {
@@ -548,42 +578,46 @@ const configure = (repository: BlockchainRepository, defaultDepositParameters: D
   },
 
   parseSignedTransaction(logger, networkId, transaction, extraData) {
-    try {
-      const transactionBuffer = Buffer.from(transaction, 'hex');
-      logger.info('[parseSignedTransaction] About to create signed transaction from bytes');
-      const parsed = CardanoWasm.Transaction.from_bytes(transactionBuffer);
-      logger.info('[parseSignedTransaction] About to parse operations from transaction body');
-      const operations = TransactionProcessor.convert(logger, parsed.body(), extraData, networkId);
-      logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
-      logger.info(operations, '[parseSignedTransaction] Returning operations');
-      const accountIdentifierSigners = getUniqueAccountIdentifiers(
-        extraData.operations.reduce(
-          (accum, data) => accum.concat(getSignerFromOperation(logger, networkId, data)),
-          [] as Array<string>
-        )
-      );
-      return { operations, account_identifier_signers: accountIdentifierSigners };
-    } catch (error) {
-      logger.error({ error }, '[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes');
-      throw ErrorFactory.cantCreateSignedTransactionFromBytes();
-    }
+    return usingAutoFree(scope => {
+      try {
+        const transactionBuffer = Buffer.from(transaction, 'hex');
+        logger.info('[parseSignedTransaction] About to create signed transaction from bytes');
+        const parsed = scope.manage(CardanoWasm.Transaction.from_bytes(transactionBuffer));
+        logger.info('[parseSignedTransaction] About to parse operations from transaction body');
+        const operations = TransactionProcessor.convert(logger, scope.manage(parsed.body()), extraData, networkId);
+        logger.info('[parseSignedTransaction] About to get signatures from parsed transaction');
+        logger.info(operations, '[parseSignedTransaction] Returning operations');
+        const accountIdentifierSigners = getUniqueAccountIdentifiers(
+          extraData.operations.reduce(
+            (accum, data) => accum.concat(getSignerFromOperation(scope, logger, networkId, data)),
+            [] as Array<string>
+          )
+        );
+        return { operations, account_identifier_signers: accountIdentifierSigners };
+      } catch (error) {
+        logger.error({ error }, '[parseSignedTransaction] Cant instantiate signed transaction from transaction bytes');
+        throw ErrorFactory.cantCreateSignedTransactionFromBytes();
+      }
+    });
   },
   parseUnsignedTransaction(logger, networkId, transaction, extraData) {
-    try {
-      logger.info(transaction, '[parseUnsignedTransaction] About to create unsigned transaction from bytes');
-      const transactionBuffer = Buffer.from(transaction, 'hex');
-      const parsed = CardanoWasm.TransactionBody.from_bytes(transactionBuffer);
-      logger.info({ extraData }, '[parseUnsignedTransaction] About to parse operations from transaction body');
-      const operations = TransactionProcessor.convert(logger, parsed, extraData, networkId);
-      logger.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
-      return { operations, account_identifier_signers: [] };
-    } catch (error) {
-      logger.error(
-        { error },
-        '[parseUnsignedTransaction] Cant instantiate unsigned transaction from transaction bytes'
-      );
-      throw ErrorFactory.cantCreateUnsignedTransactionFromBytes();
-    }
+    return usingAutoFree(scope => {
+      try {
+        logger.info(transaction, '[parseUnsignedTransaction] About to create unsigned transaction from bytes');
+        const transactionBuffer = Buffer.from(transaction, 'hex');
+        const parsed = scope.manage(CardanoWasm.TransactionBody.from_bytes(transactionBuffer));
+        logger.info({ extraData }, '[parseUnsignedTransaction] About to parse operations from transaction body');
+        const operations = TransactionProcessor.convert(logger, parsed, extraData, networkId);
+        logger.info(operations, `[parseUnsignedTransaction] Returning ${operations.length} operations`);
+        return { operations, account_identifier_signers: [] };
+      } catch (error) {
+        logger.error(
+          { error },
+          '[parseUnsignedTransaction] Cant instantiate unsigned transaction from transaction bytes'
+        );
+        throw ErrorFactory.cantCreateUnsignedTransactionFromBytes();
+      }
+    });
   },
   getProtocolParameters(logger) {
     logger.info('[getProtocolParameters] About to get protocol parameters');

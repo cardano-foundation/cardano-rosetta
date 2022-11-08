@@ -17,6 +17,7 @@ import { ErrorFactory } from './errors';
 import { hexStringToBuffer, isEmptyHexString } from './formatters';
 import CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { CoinIdentifier } from '../models';
+import { usingAutoFree } from '../utils/freeable';
 
 const tokenNameValidation = new RegExp(`^[0-9a-fA-F]{0,${ASSET_NAME_LENGTH}}$`);
 
@@ -41,25 +42,27 @@ export const validateCurrencies = (currencies: Components.Schemas.Currency[]): v
       throw ErrorFactory.invalidPolicyIdError(`Given policy id is ${metadata.policyId}`);
   });
 };
-export const isEd25519KeyHash = (hash: string): boolean => {
-  let edd25519Hash: CardanoWasm.Ed25519KeyHash;
-  try {
-    edd25519Hash = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(hash, 'hex'));
-  } catch (error) {
-    return false;
-  }
-  return !!edd25519Hash;
-};
+export const isEd25519KeyHash = (hash: string): boolean =>
+  usingAutoFree(scope => {
+    let edd25519Hash: CardanoWasm.Ed25519KeyHash;
+    try {
+      edd25519Hash = scope.manage(CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(hash, 'hex')));
+    } catch (error) {
+      return false;
+    }
+    return !!edd25519Hash;
+  });
 
-export const isEd25519Signature = (hash: string): boolean => {
-  let ed25519Signature: CardanoWasm.Ed25519Signature;
-  try {
-    ed25519Signature = CardanoWasm.Ed25519Signature.from_bytes(hexStringToBuffer(hash));
-  } catch (error) {
-    return false;
-  }
-  return !!ed25519Signature;
-};
+export const isEd25519Signature = (hash: string): boolean =>
+  usingAutoFree(scope => {
+    let ed25519Signature: CardanoWasm.Ed25519Signature;
+    try {
+      ed25519Signature = scope.manage(CardanoWasm.Ed25519Signature.from_bytes(hexStringToBuffer(hash)));
+    } catch (error) {
+      return false;
+    }
+    return !!ed25519Signature;
+  });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const isHexString = (value: any) => typeof value === 'string' && new RegExp('^(0x)?[0-9a-fA-F]+$').test(value);

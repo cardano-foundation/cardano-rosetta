@@ -17,6 +17,7 @@ import { ErrorFactory } from '../errors';
 import { hexFormatter, remove0xPrefix } from '../formatters';
 import { generateRewardAddress, getAddressFromHexString, getAddressPrefix, parseAddress } from './addresses';
 import { getStakingCredentialFromHex } from './staking-credentials';
+import { usingAutoFree } from '../freeable';
 
 const compareStrings = (a: string, b: string): number => {
   if (a === b) return 0;
@@ -40,36 +41,46 @@ const parseInputToOperation = (input: CardanoWasm.TransactionInput, index: numbe
   type: OperationType.INPUT
 });
 
-// eslint-disable-next-line consistent-return
-const parsePoolMetadata = (poolParameters: CardanoWasm.PoolParams): Components.Schemas.PoolMetadata | undefined => {
-  const metadata = poolParameters.pool_metadata();
-  if (metadata) {
-    const hash = Buffer.from(metadata.pool_metadata_hash().to_bytes()).toString('hex');
-    const url = metadata.url().url();
-    return { url, hash };
-  }
-};
+const parsePoolMetadata = (poolParameters: CardanoWasm.PoolParams): Components.Schemas.PoolMetadata | undefined =>
+  // eslint-disable-next-line consistent-return
+  usingAutoFree(scope => {
+    const metadata = scope.manage(poolParameters.pool_metadata());
+    if (metadata) {
+      const hash = Buffer.from(scope.manage(metadata.pool_metadata_hash()).to_bytes()).toString('hex');
+      const url = scope.manage(metadata.url()).url();
+      return { url, hash };
+    }
+  });
 
 export const parsePoolOwners = (
   logger: Logger,
   network: number,
   poolParameters: CardanoWasm.PoolParams
-): Array<string> => {
-  const poolOwners: Array<string> = [];
-  const ownersCount = poolParameters.pool_owners().len();
-  for (let i = 0; i < ownersCount; i++) {
-    const owner = poolParameters.pool_owners().get(i);
-    const address = generateRewardAddress(logger, network, CardanoWasm.StakeCredential.from_keyhash(owner));
-    poolOwners.push(address);
-  }
-  return poolOwners;
-};
+): Array<string> =>
+  usingAutoFree(scope => {
+    const poolOwners: Array<string> = [];
+    const owners = scope.manage(poolParameters.pool_owners());
+    const ownersCount = owners.len();
+    for (let i = 0; i < ownersCount; i++) {
+      const owner = scope.manage(owners.get(i));
+      const address = generateRewardAddress(
+        logger,
+        network,
+        scope.manage(CardanoWasm.StakeCredential.from_keyhash(owner))
+      );
+      poolOwners.push(address);
+    }
+    return poolOwners;
+  });
 
 export const parsePoolRewardAccount = (
   logger: Logger,
   network: number,
   poolParameters: CardanoWasm.PoolParams
-): string => generateRewardAddress(logger, network, poolParameters.reward_account().payment_cred());
+): string =>
+  usingAutoFree(scope =>
+    generateRewardAddress(logger, network, scope.manage(scope.manage(poolParameters.reward_account()).payment_cred()))
+  );
 
 const parseIpv4 = (wasmIp?: CardanoWasm.Ipv4): string | undefined => {
   if (wasmIp) {
@@ -92,63 +103,61 @@ const parseIpv6 = (wasmIp?: CardanoWasm.Ipv6): string | undefined => {
   return wasmIp;
 };
 
-const parsePoolRelays = (poolParameters: CardanoWasm.PoolParams): Array<Components.Schemas.Relay> => {
-  const poolRelays: Array<Components.Schemas.Relay> = [];
-  const relaysCount = poolParameters.relays().len();
-  for (let i = 0; i < relaysCount; i++) {
-    const relay = poolParameters.relays().get(i);
-    const multiHostRelay = relay.as_multi_host_name();
-    if (multiHostRelay) {
-      poolRelays.push({ type: RelayType.MULTI_HOST_NAME, dnsName: multiHostRelay.dns_name().record() });
-      continue;
+const parsePoolRelays = (poolParameters: CardanoWasm.PoolParams): Array<Components.Schemas.Relay> =>
+  usingAutoFree(scope => {
+    const poolRelays: Array<Components.Schemas.Relay> = [];
+    const relays = scope.manage(poolParameters.relays());
+    const relaysCount = relays.len();
+    for (let i = 0; i < relaysCount; i++) {
+      const relay = scope.manage(relays.get(i));
+      const multiHostRelay = scope.manage(relay.as_multi_host_name());
+      if (multiHostRelay) {
+        poolRelays.push({ type: RelayType.MULTI_HOST_NAME, dnsName: scope.manage(multiHostRelay.dns_name()).record() });
+        continue;
+      }
+      const singleHostName = scope.manage(relay.as_single_host_name());
+      if (singleHostName) {
+        poolRelays.push({
+          type: RelayType.SINGLE_HOST_NAME,
+          dnsName: scope.manage(singleHostName.dns_name()).record(),
+          port: singleHostName.port()?.toString()
+        });
+        continue;
+      }
+      const singleHostAddr = scope.manage(relay.as_single_host_addr());
+      if (singleHostAddr) {
+        const ipv4 = parseIpv4(scope.manage(singleHostAddr.ipv4()));
+        const ipv6 = parseIpv6(scope.manage(singleHostAddr.ipv6()));
+        poolRelays.push({ type: RelayType.SINGLE_HOST_ADDR, port: singleHostAddr.port()?.toString(), ipv4, ipv6 });
+      }
     }
-    const singleHostName = relay.as_single_host_name();
-    if (singleHostName) {
-      poolRelays.push({
-        type: RelayType.SINGLE_HOST_NAME,
-        dnsName: singleHostName.dns_name().record(),
-        port: singleHostName.port()?.toString()
-      });
-      continue;
-    }
-    const singleHostAddr = relay.as_single_host_addr();
-    if (singleHostAddr) {
-      const ipv4 = parseIpv4(singleHostAddr.ipv4());
-      const ipv6 = parseIpv6(singleHostAddr.ipv6());
-      poolRelays.push({ type: RelayType.SINGLE_HOST_ADDR, port: singleHostAddr.port()?.toString(), ipv4, ipv6 });
-    }
-  }
-  return poolRelays;
-};
+    return poolRelays;
+  });
 
-const parsePoolMargin = (poolParameters: CardanoWasm.PoolParams): Components.Schemas.PoolMargin => ({
-  denominator: poolParameters
-    .margin()
-    .denominator()
-    .to_str(),
-  numerator: poolParameters
-    .margin()
-    .numerator()
-    .to_str()
-});
+const parsePoolMargin = (poolParameters: CardanoWasm.PoolParams): Components.Schemas.PoolMargin =>
+  usingAutoFree(scope => ({
+    denominator: scope.manage(scope.manage(poolParameters.margin()).denominator()).to_str(),
+    numerator: scope.manage(scope.manage(poolParameters.margin()).numerator()).to_str()
+  }));
 
 const parsePoolRegistration = (
   logger: Logger,
   network: number,
   poolRegistration: CardanoWasm.PoolRegistration
-): Components.Schemas.PoolRegistrationParams => {
-  const poolParameters = poolRegistration.pool_params();
-  return {
-    vrfKeyHash: Buffer.from(poolParameters.vrf_keyhash().to_bytes()).toString('hex'),
-    rewardAddress: parsePoolRewardAccount(logger, network, poolParameters),
-    pledge: poolParameters.pledge().to_str(),
-    cost: poolParameters.cost().to_str(),
-    poolOwners: parsePoolOwners(logger, network, poolParameters),
-    relays: parsePoolRelays(poolParameters),
-    margin: parsePoolMargin(poolParameters),
-    poolMetadata: parsePoolMetadata(poolParameters)
-  };
-};
+): Components.Schemas.PoolRegistrationParams =>
+  usingAutoFree(scope => {
+    const poolParameters = scope.manage(poolRegistration.pool_params());
+    return {
+      vrfKeyHash: Buffer.from(scope.manage(poolParameters.vrf_keyhash()).to_bytes()).toString('hex'),
+      rewardAddress: parsePoolRewardAccount(logger, network, poolParameters),
+      pledge: scope.manage(poolParameters.pledge()).to_str(),
+      cost: scope.manage(poolParameters.cost()).to_str(),
+      poolOwners: parsePoolOwners(logger, network, poolParameters),
+      relays: parsePoolRelays(poolParameters),
+      margin: parsePoolMargin(poolParameters),
+      poolMetadata: parsePoolMetadata(poolParameters)
+    };
+  });
 
 /**
  * Create policy id or asset name keys array
@@ -169,52 +178,55 @@ const parseAsset = (
   logger: Logger,
   assets: CardanoWasm.Assets,
   key: CardanoWasm.AssetName
-): Components.Schemas.Amount => {
-  // When getting the key we are obtaining a cbor encoded string instead of the actual name.
-  // This might need to be changed in the serialization lib in the future
-  const assetSymbol = hexFormatter(cbor.decode(Buffer.from(key.to_bytes())));
-  const assetValue = assets.get(key);
-  if (!assetValue) {
-    logger.error(`[parseTokenBundle] asset value for symbol: '${assetSymbol}' not provided`);
-    throw ErrorFactory.tokenAssetValueMissingError();
-  }
-  return mapAmount(assetValue.to_str(), assetSymbol, 0);
-};
+): Components.Schemas.Amount =>
+  usingAutoFree(scope => {
+    // When getting the key we are obtaining a cbor encoded string instead of the actual name.
+    // This might need to be changed in the serialization lib in the future
+    const assetSymbol = hexFormatter(cbor.decode(Buffer.from(key.to_bytes())));
+    const assetValue = scope.manage(assets.get(key));
+    if (!assetValue) {
+      logger.error(`[parseTokenBundle] asset value for symbol: '${assetSymbol}' not provided`);
+      throw ErrorFactory.tokenAssetValueMissingError();
+    }
+    return mapAmount(assetValue.to_str(), assetSymbol, 0);
+  });
 
 const parseTokenAsset = (
   logger: Logger,
   multiassets: CardanoWasm.MultiAsset,
   multiassetKey: CardanoWasm.ScriptHash
-): Components.Schemas.TokenBundleItem => {
-  const policyId = hexFormatter(Buffer.from(multiassetKey.to_bytes()));
-  const assets = multiassets.get(multiassetKey);
-  if (!assets) {
-    logger.error(`[parseTokenBundle] assets for policyId: '${policyId}' not provided`);
-    throw ErrorFactory.tokenBundleAssetsMissingError();
-  }
+): Components.Schemas.TokenBundleItem =>
+  usingAutoFree(scope => {
+    const policyId = hexFormatter(Buffer.from(multiassetKey.to_bytes()));
+    const assets = scope.manage(multiassets.get(multiassetKey));
+    if (!assets) {
+      logger.error(`[parseTokenBundle] assets for policyId: '${policyId}' not provided`);
+      throw ErrorFactory.tokenBundleAssetsMissingError();
+    }
 
-  return {
-    policyId,
-    tokens: (keys(assets) as CardanoWasm.AssetName[])
-      .map(key => parseAsset(logger, assets, key))
-      .sort((assetA, assetB) => compareStrings(assetA.currency.symbol, assetB.currency.symbol))
-  };
-};
+    return {
+      policyId,
+      tokens: (keys(assets) as CardanoWasm.AssetName[])
+        .map(key => parseAsset(logger, assets, key))
+        .sort((assetA, assetB) => compareStrings(assetA.currency.symbol, assetB.currency.symbol))
+    };
+  });
 
 const parseTokenBundle = (
   logger: Logger,
   output: CardanoWasm.TransactionOutput
-): Components.Schemas.OperationMetadata | undefined => {
-  const multiassets = output.amount().multiasset();
-  let tokenBundle: Components.Schemas.TokenBundleItem[] = [];
-  if (multiassets) {
-    logger.info(`[parseTokenBundle] About to parse ${multiassets.len()} multiassets from token bundle`);
-    tokenBundle = (keys(multiassets) as CardanoWasm.ScriptHash[])
-      .map(key => parseTokenAsset(logger, multiassets, key))
-      .sort((tokenA, tokenB) => compareStrings(tokenA.policyId, tokenB.policyId));
-  }
-  return multiassets ? { tokenBundle } : undefined;
-};
+): Components.Schemas.OperationMetadata | undefined =>
+  usingAutoFree(scope => {
+    const multiassets = scope.manage(scope.manage(output.amount()).multiasset());
+    let tokenBundle: Components.Schemas.TokenBundleItem[] = [];
+    if (multiassets) {
+      logger.info(`[parseTokenBundle] About to parse ${multiassets.len()} multiassets from token bundle`);
+      tokenBundle = (keys(multiassets) as CardanoWasm.ScriptHash[])
+        .map(key => parseTokenAsset(logger, multiassets, key))
+        .sort((tokenA, tokenB) => compareStrings(tokenA.policyId, tokenB.policyId));
+    }
+    return multiassets ? { tokenBundle } : undefined;
+  });
 
 const parseOutputToOperation = (
   logger: Logger,
@@ -222,21 +234,19 @@ const parseOutputToOperation = (
   index: number,
   relatedOperations: Components.Schemas.OperationIdentifier[],
   address: string
-): Components.Schemas.Operation => ({
-  operation_identifier: { index },
-  related_operations: relatedOperations,
-  account: { address },
-  amount: {
-    value: output
-      .amount()
-      .coin()
-      .to_str(),
-    currency: { symbol: ADA, decimals: ADA_DECIMALS }
-  },
-  status: '',
-  type: OperationType.OUTPUT,
-  metadata: parseTokenBundle(logger, output)
-});
+): Components.Schemas.Operation =>
+  usingAutoFree(scope => ({
+    operation_identifier: { index },
+    related_operations: relatedOperations,
+    account: { address },
+    amount: {
+      value: scope.manage(scope.manage(output.amount()).coin()).to_str(),
+      currency: { symbol: ADA, decimals: ADA_DECIMALS }
+    },
+    status: '',
+    type: OperationType.OUTPUT,
+    metadata: parseTokenBundle(logger, output)
+  }));
 
 const parsePoolCertToOperation = (
   logger: Logger,
@@ -277,71 +287,76 @@ const parseCertToOperation = (
   hash: string,
   type: string,
   address: string
-): Components.Schemas.Operation => {
-  const operation: Components.Schemas.Operation = {
-    operation_identifier: { index },
-    status: '',
-    type,
-    account: { address },
-    metadata: {
-      staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
-    }
-  };
-  const delegationCert = cert.as_stake_delegation();
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  if (delegationCert)
-    operation.metadata!.pool_key_hash = Buffer.from(delegationCert.pool_keyhash().to_bytes()).toString('hex');
-  return operation;
-};
+): Components.Schemas.Operation =>
+  usingAutoFree(scope => {
+    const operation: Components.Schemas.Operation = {
+      operation_identifier: { index },
+      status: '',
+      type,
+      account: { address },
+      metadata: {
+        staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
+      }
+    };
+    const delegationCert = scope.manage(cert.as_stake_delegation());
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (delegationCert)
+      operation.metadata!.pool_key_hash = Buffer.from(scope.manage(delegationCert.pool_keyhash()).to_bytes()).toString(
+        'hex'
+      );
+    return operation;
+  });
 
 const parseCertsToOperations = (
   logger: Logger,
   transactionBody: CardanoWasm.TransactionBody,
   certOps: Components.Schemas.Operation[],
   network: number
-): Components.Schemas.Operation[] => {
-  const parsedOperations = [];
-  const certsCount = transactionBody.certs()?.len() || 0;
-  logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
+): Components.Schemas.Operation[] =>
+  usingAutoFree(scope => {
+    const parsedOperations = [];
+    const certs = scope.manage(transactionBody.certs());
+    const certsCount = certs?.len() || 0;
+    logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
 
-  for (let i = 0; i < certsCount; i++) {
-    const certOperation = certOps[i];
-    if (StakingOperations.includes(certOperation.type as OperationType)) {
-      const hex = certOperation.metadata?.staking_credential?.hex_bytes;
-      if (!hex) {
-        logger.error('[parseCertsToOperations] Staking key not provided');
-        throw ErrorFactory.missingStakingKeyError();
-      }
-      const credential = getStakingCredentialFromHex(logger, certOperation.metadata?.staking_credential);
-      const address = generateRewardAddress(logger, network, credential);
-      const cert = transactionBody.certs()?.get(i);
-      if (cert) {
-        const parsedOperation = parseCertToOperation(
-          cert,
-          certOperation.operation_identifier.index,
-          hex,
-          certOperation.type,
-          address
-        );
-        parsedOperations.push(parsedOperation);
-      }
-    } else {
-      const cert = transactionBody.certs()?.get(i);
-      if (cert) {
-        const parsedOperation = parsePoolCertToOperation(
-          logger,
-          network,
-          cert,
-          certOperation.operation_identifier.index,
-          certOperation.type
-        );
-        parsedOperations.push({ ...parsedOperation, account: certOperation.account });
+    for (let i = 0; i < certsCount; i++) {
+      const certOperation = certOps[i];
+      if (StakingOperations.includes(certOperation.type as OperationType)) {
+        const hex = certOperation.metadata?.staking_credential?.hex_bytes;
+        if (!hex) {
+          logger.error('[parseCertsToOperations] Staking key not provided');
+          throw ErrorFactory.missingStakingKeyError();
+        }
+        const credential = getStakingCredentialFromHex(scope, logger, certOperation.metadata?.staking_credential);
+        const address = generateRewardAddress(logger, network, credential);
+        const cert = scope.manage(certs?.get(i));
+        if (cert) {
+          const parsedOperation = parseCertToOperation(
+            cert,
+            certOperation.operation_identifier.index,
+            hex,
+            certOperation.type,
+            address
+          );
+          parsedOperations.push(parsedOperation);
+        }
+      } else {
+        const cert = scope.manage(certs?.get(i));
+        if (cert) {
+          const parsedOperation = parsePoolCertToOperation(
+            logger,
+            network,
+            cert,
+            certOperation.operation_identifier.index,
+            certOperation.type
+          );
+          parsedOperations.push({ ...parsedOperation, account: certOperation.account });
+        }
       }
     }
-  }
 
-  return parsedOperations;
-};
+    return parsedOperations;
+  });
 
 const parseWithdrawalToOperation = (
   value: string,
@@ -371,24 +386,25 @@ const parseWithdrawalsToOperations = (
   withdrawalsCount: number,
   operations: Components.Schemas.Operation[],
   network: number
-) => {
-  logger.info(`[parseWithdrawalsToOperations] About to parse ${withdrawalsCount} withdrawals`);
-  for (let i = 0; i < withdrawalsCount; i++) {
-    const withdrawalOperation = withdrawalOps[i];
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const credential = getStakingCredentialFromHex(logger, withdrawalOperation.metadata!.staking_credential);
-    const address = generateRewardAddress(logger, network, credential);
-    const parsedOperation = parseWithdrawalToOperation(
+) =>
+  usingAutoFree(scope => {
+    logger.info(`[parseWithdrawalsToOperations] About to parse ${withdrawalsCount} withdrawals`);
+    for (let i = 0; i < withdrawalsCount; i++) {
+      const withdrawalOperation = withdrawalOps[i];
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      withdrawalOperation.amount!.value,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      withdrawalOperation.metadata!.staking_credential!.hex_bytes,
-      withdrawalOperation.operation_identifier.index,
-      address
-    );
-    operations.push(parsedOperation);
-  }
-};
+      const credential = getStakingCredentialFromHex(scope, logger, withdrawalOperation.metadata!.staking_credential);
+      const address = generateRewardAddress(logger, network, credential);
+      const parsedOperation = parseWithdrawalToOperation(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        withdrawalOperation.amount!.value,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        withdrawalOperation.metadata!.staking_credential!.hex_bytes,
+        withdrawalOperation.operation_identifier.index,
+        address
+      );
+      operations.push(parsedOperation);
+    }
+  });
 
 const getRelatedOperationsFromInputs = (
   inputs: Components.Schemas.Operation[]
@@ -398,56 +414,59 @@ const parseVoteMetadataToOperation = (
   logger: Logger,
   index: number,
   transactionMetadataHex?: string
-): Components.Schemas.Operation => {
-  logger.info('[parseVoteMetadataToOperation] About to parse a vote registration operation');
-  if (!transactionMetadataHex) {
-    logger.error('[parseVoteMetadataToOperation] Missing vote registration metadata');
-    throw ErrorFactory.missingVoteRegistrationMetadata();
-  }
-  const transactionMetadata = AuxiliaryData.from_bytes(Buffer.from(transactionMetadataHex, 'hex'));
+): Components.Schemas.Operation =>
+  usingAutoFree(scope => {
+    logger.info('[parseVoteMetadataToOperation] About to parse a vote registration operation');
+    if (!transactionMetadataHex) {
+      logger.error('[parseVoteMetadataToOperation] Missing vote registration metadata');
+      throw ErrorFactory.missingVoteRegistrationMetadata();
+    }
+    const transactionMetadata = scope.manage(AuxiliaryData.from_bytes(Buffer.from(transactionMetadataHex, 'hex')));
 
-  const generalMetadata = CardanoWasm.GeneralTransactionMetadata.from_bytes(
-    CardanoWasm.MetadataList.from_bytes(transactionMetadata.to_bytes())
-      .get(0)
-      .to_bytes()
-  );
+    const metadataList = scope.manage(CardanoWasm.MetadataList.from_bytes(transactionMetadata.to_bytes()));
+    const generalMetadata = scope.manage(
+      CardanoWasm.GeneralTransactionMetadata.from_bytes(scope.manage(metadataList.get(0)).to_bytes())
+    );
 
-  const data = generalMetadata.get(BigNum.from_str(CatalystLabels.DATA));
-  if (!data) throw ErrorFactory.missingVoteRegistrationMetadata();
+    const data = scope.manage(generalMetadata.get(scope.manage(BigNum.from_str(CatalystLabels.DATA))));
+    if (!data) throw ErrorFactory.missingVoteRegistrationMetadata();
 
-  const sig = generalMetadata.get(BigNum.from_str(CatalystLabels.SIG));
-  if (!sig) throw ErrorFactory.invalidVotingSignature();
+    const sig = scope.manage(generalMetadata.get(scope.manage(BigNum.from_str(CatalystLabels.SIG))));
+    if (!sig) throw ErrorFactory.invalidVotingSignature();
 
-  const dataJson = CardanoWasm.decode_metadatum_to_json_str(data, CardanoWasm.MetadataJsonSchema.BasicConversions);
-  const sigJson = CardanoWasm.decode_metadatum_to_json_str(sig, CardanoWasm.MetadataJsonSchema.BasicConversions);
+    const dataJson = CardanoWasm.decode_metadatum_to_json_str(data, CardanoWasm.MetadataJsonSchema.BasicConversions);
+    const sigJson = CardanoWasm.decode_metadatum_to_json_str(sig, CardanoWasm.MetadataJsonSchema.BasicConversions);
 
-  const dataParsed = JSON.parse(dataJson);
-  const sigParsed = JSON.parse(sigJson);
+    const dataParsed = JSON.parse(dataJson);
+    const sigParsed = JSON.parse(sigJson);
 
-  const rewardAddress = getAddressFromHexString(remove0xPrefix(dataParsed[CatalystDataIndexes.REWARD_ADDRESS]));
-  if (rewardAddress === undefined) throw ErrorFactory.invalidAddressError();
+    const rewardAddress = getAddressFromHexString(
+      scope,
+      remove0xPrefix(dataParsed[CatalystDataIndexes.REWARD_ADDRESS])
+    );
+    if (rewardAddress === undefined) throw ErrorFactory.invalidAddressError();
 
-  const parsedMetadata: Components.Schemas.VoteRegistrationMetadata = {
-    votingKey: {
-      hex_bytes: remove0xPrefix(dataParsed[CatalystDataIndexes.VOTING_KEY]),
-      curve_type: CurveType.edwards25519
-    },
-    stakeKey: {
-      hex_bytes: remove0xPrefix(dataParsed[CatalystDataIndexes.STAKE_KEY]),
-      curve_type: CurveType.edwards25519
-    },
-    rewardAddress: rewardAddress.to_bech32(),
-    votingNonce: dataParsed[CatalystDataIndexes.VOTING_NONCE],
-    votingSignature: remove0xPrefix(sigParsed[CatalystSigIndexes.VOTING_SIGNATURE])
-  };
+    const parsedMetadata: Components.Schemas.VoteRegistrationMetadata = {
+      votingKey: {
+        hex_bytes: remove0xPrefix(dataParsed[CatalystDataIndexes.VOTING_KEY]),
+        curve_type: CurveType.edwards25519
+      },
+      stakeKey: {
+        hex_bytes: remove0xPrefix(dataParsed[CatalystDataIndexes.STAKE_KEY]),
+        curve_type: CurveType.edwards25519
+      },
+      rewardAddress: rewardAddress.to_bech32(),
+      votingNonce: dataParsed[CatalystDataIndexes.VOTING_NONCE],
+      votingSignature: remove0xPrefix(sigParsed[CatalystSigIndexes.VOTING_SIGNATURE])
+    };
 
-  return {
-    operation_identifier: { index },
-    status: '',
-    type: OperationType.VOTE_REGISTRATION,
-    metadata: { voteRegistrationMetadata: parsedMetadata }
-  };
-};
+    return {
+      operation_identifier: { index },
+      status: '',
+      type: OperationType.VOTE_REGISTRATION,
+      metadata: { voteRegistrationMetadata: parsedMetadata }
+    };
+  });
 
 /**
  * Converts a Cardano Transaction into a Rosetta Operation array.
@@ -462,52 +481,53 @@ export const convert = (
   transactionBody: CardanoWasm.TransactionBody,
   extraData: TransactionExtraData,
   network: number
-): Components.Schemas.Operation[] => {
-  const operations = [];
-  const inputsCount = transactionBody.inputs().len();
-  const outputsCount = transactionBody.outputs().len();
-  logger.info(`[parseOperationsFromTransactionBody] About to parse ${inputsCount} inputs`);
-  const inputOperations = extraData.operations.filter(({ type }) => type === OperationType.INPUT);
-  for (let i = 0; i < inputsCount; i++) {
-    const input = transactionBody.inputs().get(i);
-    const inputParsed = parseInputToOperation(input, operations.length);
-    operations.push({ ...inputParsed, ...inputOperations[i], status: '' });
-  }
-  // till this line operations only contains inputs
-  const relatedOperations = getRelatedOperationsFromInputs(operations);
-  logger.info(`[parseOperationsFromTransactionBody] About to parse ${outputsCount} outputs`);
-  for (let i = 0; i < outputsCount; i++) {
-    const output = transactionBody.outputs().get(i);
-    const address = parseAddress(output.address(), getAddressPrefix(network));
-    const outputParsed = parseOutputToOperation(logger, output, operations.length, relatedOperations, address);
-    operations.push(outputParsed);
-  }
+): Components.Schemas.Operation[] =>
+  usingAutoFree(scope => {
+    const operations = [];
+    const inputs = scope.manage(transactionBody.inputs());
+    const outputs = scope.manage(transactionBody.outputs());
+    logger.info(`[parseOperationsFromTransactionBody] About to parse ${inputs.len()} inputs`);
+    const inputOperations = extraData.operations.filter(({ type }) => type === OperationType.INPUT);
+    for (let i = 0; i < inputs.len(); i++) {
+      const input = scope.manage(inputs.get(i));
+      const inputParsed = parseInputToOperation(input, operations.length);
+      operations.push({ ...inputParsed, ...inputOperations[i], status: '' });
+    }
+    // till this line operations only contains inputs
+    const relatedOperations = getRelatedOperationsFromInputs(operations);
+    logger.info(`[parseOperationsFromTransactionBody] About to parse ${outputs.len()} outputs`);
+    for (let i = 0; i < outputs.len(); i++) {
+      const output = scope.manage(outputs.get(i));
+      const address = parseAddress(scope.manage(output.address()), getAddressPrefix(network));
+      const outputParsed = parseOutputToOperation(logger, output, operations.length, relatedOperations, address);
+      operations.push(outputParsed);
+    }
 
-  const certOps = extraData.operations.filter(({ type }) =>
-    [
-      OperationType.STAKE_KEY_REGISTRATION,
-      OperationType.STAKE_KEY_DEREGISTRATION,
-      OperationType.STAKE_DELEGATION,
-      OperationType.POOL_REGISTRATION,
-      OperationType.POOL_REGISTRATION_WITH_CERT,
-      OperationType.POOL_RETIREMENT
-    ].includes(type as OperationType)
-  );
-  const parsedCertOperations = parseCertsToOperations(logger, transactionBody, certOps, network);
-  operations.push(...parsedCertOperations);
-  const withdrawalOps = extraData.operations.filter(({ type }) => type === OperationType.WITHDRAWAL);
-  const withdrawalsCount = transactionBody.withdrawals()?.len() || 0;
-  parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations, network);
-
-  const voteOp = extraData.operations.find(({ type }) => type === OperationType.VOTE_REGISTRATION);
-  if (voteOp) {
-    const parsedVoteOperations = parseVoteMetadataToOperation(
-      logger,
-      voteOp.operation_identifier.index,
-      extraData.transactionMetadataHex
+    const certOps = extraData.operations.filter(({ type }) =>
+      [
+        OperationType.STAKE_KEY_REGISTRATION,
+        OperationType.STAKE_KEY_DEREGISTRATION,
+        OperationType.STAKE_DELEGATION,
+        OperationType.POOL_REGISTRATION,
+        OperationType.POOL_REGISTRATION_WITH_CERT,
+        OperationType.POOL_RETIREMENT
+      ].includes(type as OperationType)
     );
-    operations.push(parsedVoteOperations);
-  }
+    const parsedCertOperations = parseCertsToOperations(logger, transactionBody, certOps, network);
+    operations.push(...parsedCertOperations);
+    const withdrawalOps = extraData.operations.filter(({ type }) => type === OperationType.WITHDRAWAL);
+    const withdrawalsCount = scope.manage(transactionBody.withdrawals())?.len() || 0;
+    parseWithdrawalsToOperations(logger, withdrawalOps, withdrawalsCount, operations, network);
 
-  return operations;
-};
+    const voteOp = extraData.operations.find(({ type }) => type === OperationType.VOTE_REGISTRATION);
+    if (voteOp) {
+      const parsedVoteOperations = parseVoteMetadataToOperation(
+        logger,
+        voteOp.operation_identifier.index,
+        extraData.transactionMetadataHex
+      );
+      operations.push(parsedVoteOperations);
+    }
+
+    return operations;
+  });
