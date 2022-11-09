@@ -216,7 +216,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"\",\n            \"account\": {\n                \"address\": \"{{senderAddress}}\"\n            },\n            \"amount\": {\n                \"value\": \"-{{utxo_ada_value}}\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"{{utxo_addr_and_id}}\"\n                },\n                \"coin_action\": \"coin_spent\"\n            },\n            \"metadata\": {\n                \"tokenBundle\": {{json_testcoin_metadata}}\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"type\": \"output\",\n            \"status\": \"\",\n            \"account\": {\n                \"address\": \"{{recipientAddress}}\"\n            },\n            \"amount\": {\n                \"value\": {{ada_value}},\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"metadata\": {\n                \"tokenBundle\": {{json_testcoin_metadata}}\n            }\n        }\n    ]\n}",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\":{},\n    \"operations\": [\n        {\n            \"operation_identifier\": {\n                \"index\": 0\n            },\n            \"type\": \"input\",\n            \"status\": \"\",\n            \"account\": {\n                \"address\": \"{{senderAddress}}\"\n            },\n            \"amount\": {\n                \"value\": \"-{{utxo_ada_value}}\",\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"coin_change\": {\n                \"coin_identifier\": {\n                    \"identifier\": \"{{utxo_addr_and_id}}\"\n                },\n                \"coin_action\": \"coin_spent\"\n            },\n            \"metadata\": {\n                \"tokenBundle\": {{json_testcoin_metadata}}\n            }\n        },\n        {\n            \"operation_identifier\": {\n                \"index\": 1\n            },\n            \"type\": \"output\",\n            \"status\": \"\",\n            \"account\": {\n                \"address\": \"{{recipientAddress}}\"\n            },\n            \"amount\": {\n                \"value\": {{ada_value}},\n                \"currency\": {\n                    \"symbol\": \"ADA\",\n                    \"decimals\": 6\n                }\n            },\n            \"metadata\": {\n                \"tokenBundle\": {{json_testcoin_metadata}}\n            }\n        }\n    ]\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -255,7 +255,9 @@
 									"    pm.expect(pm.response.json()).to.have.property('suggested_fee');",
 									"});",
 									"",
-									"pm.collectionVariables.set(\"json_metadata\", JSON.stringify(pm.response.json().metadata));",
+									"",
+									"let protocol_parameters = {...pm.response.json().protocol_parameters}",
+									"pm.collectionVariables.set(\"json_metadata\", JSON.stringify({...pm.response.json().metadata, protocol_parameters}));",
 									"pm.collectionVariables.set(\"json_suggested_fee\", JSON.stringify(pm.response.json().suggested_fee));"
 								],
 								"type": "text/javascript"
