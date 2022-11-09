@@ -4,13 +4,15 @@ import { Logger } from 'fastify';
 import { ErrorFactory } from '../errors';
 import { hexStringToBuffer } from '../formatters';
 import { isKeyValid } from '../validations';
+import { ManagedFreeableScope } from '../freeable';
 
 /**
  * Turns a `Components.Schemas.PublicKey` into a `CardanoWasm.PublicKey`
+ * @param scope
  * @param logger
  * @param publicKey
  */
-export const getPublicKey = (logger: Logger, publicKey?: Components.Schemas.PublicKey) => {
+export const getPublicKey = (scope: ManagedFreeableScope, logger: Logger, publicKey?: Components.Schemas.PublicKey) => {
   if (!publicKey || !publicKey.hex_bytes) {
     logger.error('[getPublicKey] Staking key not provided');
     throw ErrorFactory.missingStakingKeyError();
@@ -20,18 +22,20 @@ export const getPublicKey = (logger: Logger, publicKey?: Components.Schemas.Publ
     throw ErrorFactory.invalidStakingKeyFormat();
   }
   const stakingKeyBuffer = hexStringToBuffer(publicKey.hex_bytes);
-  return CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer);
+  return scope.manage(CardanoWasm.PublicKey.from_bytes(stakingKeyBuffer));
 };
 
 /**
  * Generates a staking credential for the given PublicKey
+ * @param scope
  * @param logger
  * @param staking_credential
  */
 export const getStakingCredentialFromHex = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   staking_credential?: Components.Schemas.PublicKey
 ): StakeCredential => {
-  const stakingKey = getPublicKey(logger, staking_credential);
-  return StakeCredential.from_keyhash(stakingKey.hash());
+  const stakingKey = getPublicKey(scope, logger, staking_credential);
+  return scope.manage(StakeCredential.from_keyhash(stakingKey.hash()));
 };

@@ -12,6 +12,7 @@ import {
   VoteOperations
 } from '../../src/server/utils/constants';
 import { TransactionExtraData } from '../../src/server/utils/data-mapper';
+import { usingAutoFree } from '../../src/server/utils/freeable';
 
 /* eslint-disable camelcase */
 const slotLeader2b1 = 'ByronGenesis-52df0f2c5539b2b1';
@@ -4669,38 +4670,53 @@ export const CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_EMPTY_METADATA: C
   ]
 };
 
-const constructVoteRegistrationMetadata = (requestMetadata: Components.Schemas.VoteRegistrationMetadata): string => {
-  const { rewardAddress, votingSignature, votingNonce, votingKey, stakeKey } = requestMetadata;
-  const wasmAddress = CardanoWasm.RewardAddress.from_address(CardanoWasm.Address.from_bech32(rewardAddress));
-  if (!wasmAddress) throw new Error('Should never happen');
-  const rewardAddressHex = Buffer.from(wasmAddress.to_address().to_bytes()).toString('hex');
-  const generalMetadata = CardanoWasm.GeneralTransactionMetadata.new();
-  generalMetadata.insert(
-    CardanoWasm.BigNum.from_str('61284'),
-    CardanoWasm.encode_json_str_to_metadatum(
-      JSON.stringify({
-        1: `0x${votingKey.hex_bytes}`,
-        2: `0x${stakeKey.hex_bytes}`,
-        3: `0x${rewardAddressHex}`,
-        4: votingNonce
-      }),
-      CardanoWasm.MetadataJsonSchema.BasicConversions
-    )
-  );
-  generalMetadata.insert(
-    CardanoWasm.BigNum.from_str('61285'),
-    CardanoWasm.encode_json_str_to_metadatum(
-      JSON.stringify({
-        1: `0x${votingSignature}`
-      }),
-      CardanoWasm.MetadataJsonSchema.BasicConversions
-    )
-  );
-  const metadataList = CardanoWasm.MetadataList.new();
-  metadataList.add(CardanoWasm.TransactionMetadatum.from_bytes(generalMetadata.to_bytes()));
-  metadataList.add(CardanoWasm.TransactionMetadatum.new_list(CardanoWasm.MetadataList.new()));
-  return Buffer.from(CardanoWasm.AuxiliaryData.from_bytes(metadataList.to_bytes()).to_bytes()).toString('hex');
-};
+const constructVoteRegistrationMetadata = (requestMetadata: Components.Schemas.VoteRegistrationMetadata): string =>
+  usingAutoFree(scope => {
+    const { rewardAddress, votingSignature, votingNonce, votingKey, stakeKey } = requestMetadata;
+    const wasmAddress = scope.manage(
+      CardanoWasm.RewardAddress.from_address(scope.manage(CardanoWasm.Address.from_bech32(rewardAddress)))
+    );
+    if (!wasmAddress) throw new Error('Should never happen');
+    const rewardAddressHex = Buffer.from(scope.manage(wasmAddress.to_address()).to_bytes()).toString('hex');
+    const generalMetadata = scope.manage(CardanoWasm.GeneralTransactionMetadata.new());
+    scope.manage(
+      generalMetadata.insert(
+        scope.manage(CardanoWasm.BigNum.from_str('61284')),
+        scope.manage(
+          CardanoWasm.encode_json_str_to_metadatum(
+            JSON.stringify({
+              1: `0x${votingKey.hex_bytes}`,
+              2: `0x${stakeKey.hex_bytes}`,
+              3: `0x${rewardAddressHex}`,
+              4: votingNonce
+            }),
+            CardanoWasm.MetadataJsonSchema.BasicConversions
+          )
+        )
+      )
+    );
+    scope.manage(
+      generalMetadata.insert(
+        scope.manage(CardanoWasm.BigNum.from_str('61285')),
+        scope.manage(
+          CardanoWasm.encode_json_str_to_metadatum(
+            JSON.stringify({
+              1: `0x${votingSignature}`
+            }),
+            CardanoWasm.MetadataJsonSchema.BasicConversions
+          )
+        )
+      )
+    );
+    const metadataList = scope.manage(CardanoWasm.MetadataList.new());
+    metadataList.add(scope.manage(CardanoWasm.TransactionMetadatum.from_bytes(generalMetadata.to_bytes())));
+    metadataList.add(
+      scope.manage(CardanoWasm.TransactionMetadatum.new_list(scope.manage(CardanoWasm.MetadataList.new())))
+    );
+    return Buffer.from(scope.manage(CardanoWasm.AuxiliaryData.from_bytes(metadataList.to_bytes())).to_bytes()).toString(
+      'hex'
+    );
+  });
 
 const constructionExtraData = (
   constructionPayloadsRequest: Components.Schemas.ConstructionPayloadsRequest,

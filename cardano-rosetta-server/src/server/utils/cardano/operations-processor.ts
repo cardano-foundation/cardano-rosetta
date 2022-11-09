@@ -32,10 +32,12 @@ import { isEd25519Signature, isKeyValid, isPolicyIdValid, isTokenNameValid } fro
 import { generateRewardAddress, generateAddress, parseToRewardAddress } from './addresses';
 import { getPublicKey, getStakingCredentialFromHex } from './staking-credentials';
 import { parsePoolOwners, parsePoolRewardAccount } from './transactions-processor';
+import { ManagedFreeableScope } from '../freeable';
 
 const isPositiveNumber = (value: string): boolean => /^\+?\d+/.test(value);
 
 const validateAndParseTokenBundle = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   tokenBundle: Components.Schemas.TokenBundleItem[]
 ): CardanoWasm.MultiAsset =>
@@ -44,13 +46,13 @@ const validateAndParseTokenBundle = (
       logger.error(`[validateAndParseTokenBundle] PolicyId ${policyId} is not valid`);
       throw ErrorFactory.transactionOutputsParametersMissingError(`PolicyId ${policyId} is not valid`);
     }
-    const policy = ScriptHash.from_bytes(hexStringToBuffer(policyId));
+    const policy = scope.manage(ScriptHash.from_bytes(hexStringToBuffer(policyId)));
     const assetsToAdd = tokens.reduce((assets, { currency: { symbol: tokenName }, value: assetValue }) => {
       if (!isTokenNameValid(tokenName)) {
         logger.error(`[validateAndParseTokenBundle] Token name ${tokenName} is not valid`);
         throw ErrorFactory.transactionOutputsParametersMissingError(`Token name ${tokenName} is not valid`);
       }
-      const assetName = AssetName.new(hexStringToBuffer(tokenName));
+      const assetName = scope.manage(AssetName.new(hexStringToBuffer(tokenName)));
       if (assets.get(assetName) !== undefined) {
         logger.error(
           `[validateAndParseTokenBundle] Token name ${tokenName} has already been added for policy ${policyId}`
@@ -73,20 +75,21 @@ const validateAndParseTokenBundle = (
           `Asset ${tokenName} has negative or invalid value '${assetValue}'`
         );
       }
-      assets.insert(assetName, BigNum.from_str(assetValue));
+      scope.manage(assets.insert(assetName, scope.manage(BigNum.from_str(assetValue))));
       return assets;
-    }, Assets.new());
-    multiAssets.insert(policy, assetsToAdd);
+    }, scope.manage(Assets.new()));
+    scope.manage(multiAssets.insert(policy, assetsToAdd));
     return multiAssets;
-  }, MultiAsset.new());
+  }, scope.manage(MultiAsset.new()));
 
 const validateAndParseTransactionOutput = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   output: Components.Schemas.Operation
 ): CardanoWasm.TransactionOutput => {
   let address;
   try {
-    address = output.account && generateAddress(output.account.address);
+    address = output.account && generateAddress(scope, output.account.address);
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(
       `Invalid input: ${output.account?.address} - ${error.toString()}`
@@ -105,11 +108,11 @@ const validateAndParseTransactionOutput = (
     logger.error(`[validateAndParseTransactionOutput] Output has negative or invalid value '${outputValue}'`);
     throw ErrorFactory.transactionOutputsParametersMissingError('Output has negative amount value');
   }
-  const value = Value.new(BigNum.from_str(outputValue));
+  const value = scope.manage(Value.new(scope.manage(BigNum.from_str(outputValue))));
   if (output.metadata?.tokenBundle)
-    value.set_multiasset(validateAndParseTokenBundle(logger, output.metadata.tokenBundle));
+    value.set_multiasset(validateAndParseTokenBundle(scope, logger, output.metadata.tokenBundle));
   try {
-    return CardanoWasm.TransactionOutput.new(address, value);
+    return scope.manage(CardanoWasm.TransactionOutput.new(address, value));
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(
       `Invalid input: ${output.account?.address} - ${error.toString()}`
@@ -118,6 +121,7 @@ const validateAndParseTransactionOutput = (
 };
 
 const validateAndParseTransactionInput = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   input: Components.Schemas.Operation
 ): CardanoWasm.TransactionInput => {
@@ -140,9 +144,11 @@ const validateAndParseTransactionInput = (
     throw ErrorFactory.transactionInputsParametersMissingError('Input has positive amount value');
   }
   try {
-    return CardanoWasm.TransactionInput.new(
-      CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex')),
-      Number(index)
+    return scope.manage(
+      CardanoWasm.TransactionInput.new(
+        scope.manage(CardanoWasm.TransactionHash.from_bytes(Buffer.from(transactionId, 'hex'))),
+        Number(index)
+      )
     );
   } catch (error) {
     throw ErrorFactory.transactionInputDeserializationError(
@@ -152,23 +158,28 @@ const validateAndParseTransactionInput = (
 };
 
 const processStakeKeyRegistration = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   operation: Components.Schemas.Operation
 ): CardanoWasm.Certificate => {
   logger.info('[processStakeKeyRegistration] About to process stake key registration');
   // eslint-disable-next-line camelcase
-  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
-  return CardanoWasm.Certificate.new_stake_registration(StakeRegistration.new(credential));
+  const credential = getStakingCredentialFromHex(scope, logger, operation.metadata?.staking_credential);
+  return scope.manage(CardanoWasm.Certificate.new_stake_registration(scope.manage(StakeRegistration.new(credential))));
 };
 
-const validateAndParsePoolKeyHash = (logger: Logger, poolKeyHash?: string): CardanoWasm.Ed25519KeyHash => {
+const validateAndParsePoolKeyHash = (
+  scope: ManagedFreeableScope,
+  logger: Logger,
+  poolKeyHash?: string
+): CardanoWasm.Ed25519KeyHash => {
   if (!poolKeyHash) {
     logger.error('[validateAndParsePoolKeyHash] no pool key hash provided');
     throw ErrorFactory.missingPoolKeyError();
   }
   let parsedPoolKeyHash: CardanoWasm.Ed25519KeyHash;
   try {
-    parsedPoolKeyHash = CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex'));
+    parsedPoolKeyHash = scope.manage(CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')));
   } catch (error) {
     logger.error('[validateAndParsePoolKeyHash] invalid pool key hash');
     throw ErrorFactory.invalidPoolKeyError(error);
@@ -176,10 +187,14 @@ const validateAndParsePoolKeyHash = (logger: Logger, poolKeyHash?: string): Card
   return parsedPoolKeyHash;
 };
 
-const validateAndParseRewardAddress = (logger: Logger, rwrdAddress: string): CardanoWasm.RewardAddress => {
+const validateAndParseRewardAddress = (
+  scope: ManagedFreeableScope,
+  logger: Logger,
+  rwrdAddress: string
+): CardanoWasm.RewardAddress => {
   let rewardAddress: CardanoWasm.RewardAddress | undefined;
   try {
-    rewardAddress = parseToRewardAddress(rwrdAddress);
+    rewardAddress = parseToRewardAddress(scope, rwrdAddress);
   } catch (error) {
     logger.error(`[validateAndParseRewardAddress] invalid reward address ${rwrdAddress}`);
     throw ErrorFactory.invalidAddressError();
@@ -188,7 +203,11 @@ const validateAndParseRewardAddress = (logger: Logger, rwrdAddress: string): Car
   return rewardAddress;
 };
 
-const validateAndParseVotingKey = (logger: Logger, votingKey: Components.Schemas.PublicKey): PublicKey => {
+const validateAndParseVotingKey = (
+  scope: ManagedFreeableScope,
+  logger: Logger,
+  votingKey: Components.Schemas.PublicKey
+): PublicKey => {
   if (!votingKey.hex_bytes) {
     logger.error('[validateAndParsePublicKey] Voting key not provided');
     throw ErrorFactory.missingVotingKeyError();
@@ -198,16 +217,20 @@ const validateAndParseVotingKey = (logger: Logger, votingKey: Components.Schemas
     throw ErrorFactory.invalidVotingKeyFormat();
   }
   const publicKeyBuffer = hexStringToBuffer(votingKey.hex_bytes);
-  return PublicKey.from_bytes(publicKeyBuffer);
+  return scope.manage(PublicKey.from_bytes(publicKeyBuffer));
 };
 
-const validateAndParsePoolOwners = (logger: Logger, owners: Array<string>): CardanoWasm.Ed25519KeyHashes => {
-  const parsedOwners = CardanoWasm.Ed25519KeyHashes.new();
+const validateAndParsePoolOwners = (
+  scope: ManagedFreeableScope,
+  logger: Logger,
+  owners: Array<string>
+): CardanoWasm.Ed25519KeyHashes => {
+  const parsedOwners = scope.manage(CardanoWasm.Ed25519KeyHashes.new());
   try {
     owners.forEach(owner => {
-      const rewardAddress = parseToRewardAddress(owner);
+      const rewardAddress = parseToRewardAddress(scope, owner);
       if (rewardAddress) {
-        const ownerKey = rewardAddress.payment_cred().to_keyhash();
+        const ownerKey = scope.manage(scope.manage(rewardAddress.payment_cred()).to_keyhash());
         ownerKey && parsedOwners.add(ownerKey);
       }
     });
@@ -221,6 +244,7 @@ const validateAndParsePoolOwners = (logger: Logger, owners: Array<string>): Card
 };
 
 export const validateAndParsePoolRegistrationCert = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   network: NetworkIdentifier,
   poolRegistrationCert?: string,
@@ -238,39 +262,44 @@ export const validateAndParsePoolRegistrationCert = (
   }
   let parsedCertificate: CardanoWasm.Certificate;
   try {
-    parsedCertificate = CardanoWasm.Certificate.from_bytes(Buffer.from(poolRegistrationCert, 'hex'));
+    parsedCertificate = scope.manage(CardanoWasm.Certificate.from_bytes(Buffer.from(poolRegistrationCert, 'hex')));
   } catch (error) {
     logger.error('[validateAndParsePoolRegistrationCert] invalid pool registration certificate');
     throw ErrorFactory.invalidPoolRegistrationCert(error);
   }
-  const poolRegistration = parsedCertificate.as_pool_registration();
+  const poolRegistration = scope.manage(parsedCertificate.as_pool_registration());
   if (!poolRegistration) {
     logger.error('[validateAndParsePoolRegistrationCert] invalid certificate type');
     throw ErrorFactory.invalidPoolRegistrationCertType();
   }
-  const poolParameters = poolRegistration.pool_params();
+  const poolParameters = scope.manage(poolRegistration.pool_params());
   const ownersAddresses = parsePoolOwners(logger, network, poolParameters);
   const rewardAddress = parsePoolRewardAccount(logger, network, poolParameters);
   return { certificate: parsedCertificate, addresses: [...ownersAddresses, poolKeyHash, rewardAddress] };
 };
 
 const processOperationCertification = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
 ): { certificate: CardanoWasm.Certificate; address: string } => {
   logger.info(`[processOperationCertification] About to process operation of type ${operation.type}`);
   // eslint-disable-next-line camelcase
-  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  const credential = getStakingCredentialFromHex(scope, logger, operation.metadata?.staking_credential);
   const address = generateRewardAddress(logger, network, credential);
   if (operation.type === OperationType.STAKE_DELEGATION) {
     // eslint-disable-next-line camelcase
-    const poolKeyHash = validateAndParsePoolKeyHash(logger, operation.metadata?.pool_key_hash);
-    const certificate = CardanoWasm.Certificate.new_stake_delegation(StakeDelegation.new(credential, poolKeyHash));
+    const poolKeyHash = validateAndParsePoolKeyHash(scope, logger, operation.metadata?.pool_key_hash);
+    const certificate = scope.manage(
+      CardanoWasm.Certificate.new_stake_delegation(scope.manage(StakeDelegation.new(credential, poolKeyHash)))
+    );
     return { certificate, address };
   }
   return {
-    certificate: CardanoWasm.Certificate.new_stake_deregistration(StakeDeregistration.new(credential)),
+    certificate: scope.manage(
+      CardanoWasm.Certificate.new_stake_deregistration(scope.manage(StakeDeregistration.new(credential)))
+    ),
     address
   };
 };
@@ -283,31 +312,39 @@ const validatePort = (logger: Logger, port: string): void => {
   }
 };
 
-const parseIpv4 = (ip?: string): CardanoWasm.Ipv4 | undefined => {
+const parseIpv4 = (scope: ManagedFreeableScope, ip?: string): CardanoWasm.Ipv4 | undefined => {
   if (ip) {
     const parsedIp = Buffer.from(ip.split('.'));
-    return CardanoWasm.Ipv4.new(parsedIp);
+    return scope.manage(CardanoWasm.Ipv4.new(parsedIp));
   }
   return ip as undefined;
 };
 
-const parseIpv6 = (ip?: string): CardanoWasm.Ipv6 | undefined => {
+const parseIpv6 = (scope: ManagedFreeableScope, ip?: string): CardanoWasm.Ipv6 | undefined => {
   if (ip) {
     const parsedIp = Buffer.from(ip.replace(/:/g, ''), 'hex');
-    return CardanoWasm.Ipv6.new(parsedIp);
+    return scope.manage(CardanoWasm.Ipv6.new(parsedIp));
   }
   return ip as undefined;
 };
 
-const generateSpecificRelay = (logger: Logger, relay: Components.Schemas.Relay): CardanoWasm.Relay => {
+const generateSpecificRelay = (
+  scope: ManagedFreeableScope,
+  logger: Logger,
+  relay: Components.Schemas.Relay
+): CardanoWasm.Relay => {
   try {
     switch (relay.type) {
       case RelayType.SINGLE_HOST_ADDR: {
-        return CardanoWasm.Relay.new_single_host_addr(
-          CardanoWasm.SingleHostAddr.new(
-            relay.port ? Number.parseInt(relay.port, 10) : undefined,
-            parseIpv4(relay.ipv4),
-            parseIpv6(relay.ipv6)
+        return scope.manage(
+          CardanoWasm.Relay.new_single_host_addr(
+            scope.manage(
+              CardanoWasm.SingleHostAddr.new(
+                relay.port ? Number.parseInt(relay.port, 10) : undefined,
+                parseIpv4(scope, relay.ipv4),
+                parseIpv6(scope, relay.ipv6)
+              )
+            )
           )
         );
       }
@@ -315,10 +352,14 @@ const generateSpecificRelay = (logger: Logger, relay: Components.Schemas.Relay):
         if (!relay.dnsName) {
           throw ErrorFactory.missingDnsNameError();
         }
-        return CardanoWasm.Relay.new_single_host_name(
-          CardanoWasm.SingleHostName.new(
-            relay.port ? Number.parseInt(relay.port, 10) : undefined,
-            CardanoWasm.DNSRecordAorAAAA.new(relay.dnsName)
+        return scope.manage(
+          CardanoWasm.Relay.new_single_host_name(
+            scope.manage(
+              CardanoWasm.SingleHostName.new(
+                relay.port ? Number.parseInt(relay.port, 10) : undefined,
+                scope.manage(CardanoWasm.DNSRecordAorAAAA.new(relay.dnsName))
+              )
+            )
           )
         );
       }
@@ -326,8 +367,10 @@ const generateSpecificRelay = (logger: Logger, relay: Components.Schemas.Relay):
         if (!relay.dnsName) {
           throw ErrorFactory.missingDnsNameError();
         }
-        return CardanoWasm.Relay.new_multi_host_name(
-          CardanoWasm.MultiHostName.new(CardanoWasm.DNSRecordSRV.new(relay.dnsName))
+        return scope.manage(
+          CardanoWasm.Relay.new_multi_host_name(
+            scope.manage(CardanoWasm.MultiHostName.new(scope.manage(CardanoWasm.DNSRecordSRV.new(relay.dnsName))))
+          )
         );
       }
       default: {
@@ -340,12 +383,16 @@ const generateSpecificRelay = (logger: Logger, relay: Components.Schemas.Relay):
   }
 };
 
-const validateAndParsePoolRelays = (logger: Logger, relays: Components.Schemas.Relay[]): CardanoWasm.Relays => {
+const validateAndParsePoolRelays = (
+  scope: ManagedFreeableScope,
+  logger: Logger,
+  relays: Components.Schemas.Relay[]
+): CardanoWasm.Relays => {
   if (relays.length === 0) throw ErrorFactory.invalidPoolRelaysError('Empty relays received');
-  const generatedRelays = CardanoWasm.Relays.new();
+  const generatedRelays = scope.manage(CardanoWasm.Relays.new());
   for (const relay of relays) {
     relay.port && validatePort(logger, relay.port);
-    const generatedRelay = generateSpecificRelay(logger, relay);
+    const generatedRelay = generateSpecificRelay(scope, logger, relay);
     generatedRelays.add(generatedRelay);
   }
 
@@ -353,6 +400,7 @@ const validateAndParsePoolRelays = (logger: Logger, relays: Components.Schemas.R
 };
 
 const validateAndParsePoolRegistationParameters = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   poolRegistrationParameters: Components.Schemas.PoolRegistrationParams
 ) => {
@@ -380,7 +428,7 @@ const validateAndParsePoolRegistationParameters = (
         logger.error(`[validateAndParsePoolRegistationParameters] Given ${k} ${value} is invalid`);
         throw ErrorFactory.invalidPoolRegistrationParameters(`Given ${k} ${value} is invalid`);
       }
-      parsedPoolParams[k] = CardanoWasm.BigNum.from_str(poolParameters[k]);
+      parsedPoolParams[k] = scope.manage(CardanoWasm.BigNum.from_str(poolParameters[k]));
     });
     return parsedPoolParams;
   } catch (error) {
@@ -390,15 +438,18 @@ const validateAndParsePoolRegistationParameters = (
 };
 
 const validateAndParsePoolMetadata = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   metadata?: Components.Schemas.PoolMetadata
 ): CardanoWasm.PoolMetadata | undefined => {
   let parsedMetadata: CardanoWasm.PoolMetadata | undefined;
   try {
     if (metadata)
-      parsedMetadata = CardanoWasm.PoolMetadata.new(
-        CardanoWasm.URL.new(metadata.url),
-        CardanoWasm.PoolMetadataHash.from_bytes(Buffer.from(metadata.hash, 'hex'))
+      parsedMetadata = scope.manage(
+        CardanoWasm.PoolMetadata.new(
+          scope.manage(CardanoWasm.URL.new(metadata.url)),
+          scope.manage(CardanoWasm.PoolMetadataHash.from_bytes(Buffer.from(metadata.hash, 'hex')))
+        )
       );
   } catch (error) {
     logger.error('[validateAndParsePoolMetadata] invalid pool metadata');
@@ -408,17 +459,18 @@ const validateAndParsePoolMetadata = (
 };
 
 const validateAndParseVoteRegistrationMetadata = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   voteRegistrationMetadata: Components.Schemas.VoteRegistrationMetadata
 ) => {
   const { stakeKey, rewardAddress, votingKey, votingNonce, votingSignature } = voteRegistrationMetadata;
 
   logger.info('[validateAndParseVoteRegistrationMetadata] About to validate and parse voting key');
-  const parsedVotingKey = validateAndParseVotingKey(logger, votingKey);
+  const parsedVotingKey = validateAndParseVotingKey(scope, logger, votingKey);
   logger.info('[validateAndParseVoteRegistrationMetadata] About to validate and parse stake key');
-  const parsedStakeKey = getPublicKey(logger, stakeKey);
+  const parsedStakeKey = getPublicKey(scope, logger, stakeKey);
   logger.info('[validateAndParseVoteRegistrationMetadata] About to validate and parse reward address');
-  const parsedAddress = validateAndParseRewardAddress(logger, rewardAddress);
+  const parsedAddress = validateAndParseRewardAddress(scope, logger, rewardAddress);
 
   logger.info('[validateAndParseVoteRegistrationMetadata] About to validate voting nonce');
   if (votingNonce <= 0) {
@@ -434,7 +486,7 @@ const validateAndParseVoteRegistrationMetadata = (
 
   const votingKeyHex = add0xPrefix(bytesToHex(parsedVotingKey.as_bytes()));
   const stakeKeyHex = add0xPrefix(bytesToHex(parsedStakeKey.as_bytes()));
-  const rewardAddressHex = add0xPrefix(bytesToHex(parsedAddress.to_address().to_bytes()));
+  const rewardAddressHex = add0xPrefix(bytesToHex(scope.manage(parsedAddress.to_address()).to_bytes()));
   const votingSignatureHex = add0xPrefix(votingSignature);
 
   return {
@@ -447,6 +499,7 @@ const validateAndParseVoteRegistrationMetadata = (
 };
 
 const processPoolRegistration = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
@@ -460,40 +513,51 @@ const processPoolRegistration = (
   const { rewardAddress, poolOwners, relays } = operation.metadata?.poolRegistrationParams;
 
   const { pledge, cost, numerator, denominator } = validateAndParsePoolRegistationParameters(
+    scope,
     logger,
     operation?.metadata?.poolRegistrationParams
   );
   // eslint-disable-next-line camelcase
-  const poolKeyHash = validateAndParsePoolKeyHash(logger, operation.account?.address);
+  const poolKeyHash = validateAndParsePoolKeyHash(scope, logger, operation.account?.address);
 
   logger.info('[processPoolRegistration] About to validate and parse reward address');
-  const parsedAddress = validateAndParseRewardAddress(logger, rewardAddress);
+  const parsedAddress = validateAndParseRewardAddress(scope, logger, rewardAddress);
 
   logger.info('[processPoolRegistration] About to generate pool owners');
-  const owners = validateAndParsePoolOwners(logger, poolOwners);
+  const owners = validateAndParsePoolOwners(scope, logger, poolOwners);
 
   logger.info('[processPoolRegistration] About to generate pool relays');
-  const parsedRelays = validateAndParsePoolRelays(logger, relays);
+  const parsedRelays = validateAndParsePoolRelays(scope, logger, relays);
 
   logger.info('[processPoolRegistration] About to generate pool metadata');
-  const poolMetadata = validateAndParsePoolMetadata(logger, operation.metadata?.poolRegistrationParams.poolMetadata);
+  const poolMetadata = validateAndParsePoolMetadata(
+    scope,
+    logger,
+    operation.metadata?.poolRegistrationParams.poolMetadata
+  );
 
   logger.info('[processPoolRegistration] About to generate Pool Registration');
-  const wasmPoolRegistration = CardanoWasm.PoolRegistration.new(
-    CardanoWasm.PoolParams.new(
-      poolKeyHash,
-      CardanoWasm.VRFKeyHash.from_bytes(Buffer.from(operation.metadata?.poolRegistrationParams.vrfKeyHash, 'hex')),
-      pledge,
-      cost,
-      CardanoWasm.UnitInterval.new(numerator, denominator),
-      parsedAddress,
-      owners,
-      parsedRelays,
-      poolMetadata
+  const wasmPoolRegistration = scope.manage(
+    CardanoWasm.PoolRegistration.new(
+      scope.manage(
+        CardanoWasm.PoolParams.new(
+          poolKeyHash,
+          scope.manage(
+            CardanoWasm.VRFKeyHash.from_bytes(Buffer.from(operation.metadata?.poolRegistrationParams.vrfKeyHash, 'hex'))
+          ),
+          pledge,
+          cost,
+          scope.manage(CardanoWasm.UnitInterval.new(numerator, denominator)),
+          parsedAddress,
+          owners,
+          parsedRelays,
+          poolMetadata
+        )
+      )
     )
   );
   logger.info('[processPoolRegistration] Generating Pool Registration certificate');
-  const certificate = CardanoWasm.Certificate.new_pool_registration(wasmPoolRegistration);
+  const certificate = scope.manage(CardanoWasm.Certificate.new_pool_registration(wasmPoolRegistration));
   logger.info('[processPoolRegistration] Successfully created Pool Registration certificate');
 
   const totalAddresses = [...poolOwners, rewardAddress, operation.account!.address];
@@ -501,11 +565,13 @@ const processPoolRegistration = (
 };
 
 const processPoolRegistrationWithCert = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
 ): { certificate: CardanoWasm.Certificate; addresses: string[] } => {
   const { certificate, addresses } = validateAndParsePoolRegistrationCert(
+    scope,
     logger,
     network,
     operation?.metadata?.poolRegistrationCert,
@@ -515,15 +581,18 @@ const processPoolRegistrationWithCert = (
 };
 
 const processPoolRetirement = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   operation: Components.Schemas.Operation
 ): { certificate: CardanoWasm.Certificate; poolKeyHash: string } => {
   logger.info(`[processPoolRetiring] About to process operation of type ${operation.type}`);
   if (operation.metadata?.epoch && operation.account?.address) {
     const epoch = operation.metadata.epoch;
-    const keyHash = validateAndParsePoolKeyHash(logger, operation.account?.address);
+    const keyHash = validateAndParsePoolKeyHash(scope, logger, operation.account?.address);
     return {
-      certificate: CardanoWasm.Certificate.new_pool_retirement(PoolRetirement.new(keyHash, epoch)),
+      certificate: scope.manage(
+        CardanoWasm.Certificate.new_pool_retirement(scope.manage(PoolRetirement.new(keyHash, epoch)))
+      ),
       poolKeyHash: operation.account?.address
     };
   }
@@ -532,18 +601,23 @@ const processPoolRetirement = (
 };
 
 const processWithdrawal = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   network: NetworkIdentifier,
   operation: Components.Schemas.Operation
 ): { reward: CardanoWasm.RewardAddress; address: string } => {
   logger.info('[processWithdrawal] About to process withdrawal');
   // eslint-disable-next-line camelcase
-  const credential = getStakingCredentialFromHex(logger, operation.metadata?.staking_credential);
+  const credential = getStakingCredentialFromHex(scope, logger, operation.metadata?.staking_credential);
   const address = generateRewardAddress(logger, network, credential);
-  return { reward: CardanoWasm.RewardAddress.new(network, credential), address };
+  return { reward: scope.manage(CardanoWasm.RewardAddress.new(network, credential)), address };
 };
 
-const processVoteRegistration = (logger: Logger, operation: Components.Schemas.Operation): AuxiliaryData => {
+const processVoteRegistration = (
+  scope: ManagedFreeableScope,
+  logger: Logger,
+  operation: Components.Schemas.Operation
+): AuxiliaryData => {
   logger.info('[processVoteRegistration] About to process vote registration');
   if (!operation?.metadata?.voteRegistrationMetadata) {
     logger.error('[processVoteRegistration] Vote registration metadata was not provided');
@@ -551,47 +625,53 @@ const processVoteRegistration = (logger: Logger, operation: Components.Schemas.O
   }
 
   const { votingKey, stakeKey, rewardAddress, votingNonce, votingSignature } = validateAndParseVoteRegistrationMetadata(
+    scope,
     logger,
     operation.metadata.voteRegistrationMetadata
   );
-  const registrationMetadata = CardanoWasm.encode_json_str_to_metadatum(
-    JSON.stringify({
-      [CatalystDataIndexes.VOTING_KEY]: votingKey,
-      [CatalystDataIndexes.STAKE_KEY]: stakeKey,
-      [CatalystDataIndexes.REWARD_ADDRESS]: rewardAddress,
-      [CatalystDataIndexes.VOTING_NONCE]: votingNonce
-    }),
-    MetadataJsonSchema.BasicConversions
+  const registrationMetadata = scope.manage(
+    CardanoWasm.encode_json_str_to_metadatum(
+      JSON.stringify({
+        [CatalystDataIndexes.VOTING_KEY]: votingKey,
+        [CatalystDataIndexes.STAKE_KEY]: stakeKey,
+        [CatalystDataIndexes.REWARD_ADDRESS]: rewardAddress,
+        [CatalystDataIndexes.VOTING_NONCE]: votingNonce
+      }),
+      MetadataJsonSchema.BasicConversions
+    )
   );
 
-  const signatureMetadata = CardanoWasm.encode_json_str_to_metadatum(
-    JSON.stringify({
-      [CatalystSigIndexes.VOTING_SIGNATURE]: votingSignature
-    }),
-    MetadataJsonSchema.BasicConversions
+  const signatureMetadata = scope.manage(
+    CardanoWasm.encode_json_str_to_metadatum(
+      JSON.stringify({
+        [CatalystSigIndexes.VOTING_SIGNATURE]: votingSignature
+      }),
+      MetadataJsonSchema.BasicConversions
+    )
   );
 
-  const generalMetadata = GeneralTransactionMetadata.new();
-  generalMetadata.insert(BigNum.from_str(CatalystLabels.DATA), registrationMetadata);
-  generalMetadata.insert(BigNum.from_str(CatalystLabels.SIG), signatureMetadata);
+  const generalMetadata = scope.manage(GeneralTransactionMetadata.new());
+  scope.manage(generalMetadata.insert(scope.manage(BigNum.from_str(CatalystLabels.DATA)), registrationMetadata));
+  scope.manage(generalMetadata.insert(scope.manage(BigNum.from_str(CatalystLabels.SIG)), signatureMetadata));
 
-  const metadataList = MetadataList.new();
-  metadataList.add(TransactionMetadatum.from_bytes(generalMetadata.to_bytes()));
-  metadataList.add(TransactionMetadatum.new_list(MetadataList.new()));
+  const metadataList = scope.manage(MetadataList.new());
+  metadataList.add(scope.manage(TransactionMetadatum.from_bytes(generalMetadata.to_bytes())));
+  metadataList.add(scope.manage(TransactionMetadatum.new_list(scope.manage(MetadataList.new()))));
 
-  return AuxiliaryData.from_bytes(metadataList.to_bytes());
+  return scope.manage(AuxiliaryData.from_bytes(metadataList.to_bytes()));
 };
 
 const operationProcessor: (
+  scope: ManagedFreeableScope,
   logger: Logger,
   operation: Components.Schemas.Operation,
   network: NetworkIdentifier,
   resultAccumulator: ProcessOperationsResult
 ) => {
   [type: string]: () => ProcessOperationsResult;
-} = (logger, operation, network, resultAccumulator) => ({
+} = (scope, logger, operation, network, resultAccumulator) => ({
   [OperationType.INPUT]: () => {
-    resultAccumulator.transactionInputs.add(validateAndParseTransactionInput(logger, operation));
+    resultAccumulator.transactionInputs.add(validateAndParseTransactionInput(scope, logger, operation));
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     resultAccumulator.addresses.push(operation.account!.address);
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -599,59 +679,59 @@ const operationProcessor: (
     return resultAccumulator;
   },
   [OperationType.OUTPUT]: () => {
-    resultAccumulator.transactionOutputs.add(validateAndParseTransactionOutput(logger, operation));
+    resultAccumulator.transactionOutputs.add(validateAndParseTransactionOutput(scope, logger, operation));
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     resultAccumulator.outputAmounts.push(operation.amount!.value);
     return resultAccumulator;
   },
   [OperationType.STAKE_KEY_REGISTRATION]: () => {
-    resultAccumulator.certificates.add(processStakeKeyRegistration(logger, operation));
+    resultAccumulator.certificates.add(processStakeKeyRegistration(scope, logger, operation));
     resultAccumulator.stakeKeyRegistrationsCount++;
     return resultAccumulator;
   },
   [OperationType.STAKE_KEY_DEREGISTRATION]: () => {
-    const { certificate, address } = processOperationCertification(logger, network, operation);
+    const { certificate, address } = processOperationCertification(scope, logger, network, operation);
     resultAccumulator.certificates.add(certificate);
     resultAccumulator.addresses.push(address);
     resultAccumulator.stakeKeyDeRegistrationsCount++;
     return resultAccumulator;
   },
   [OperationType.STAKE_DELEGATION]: () => {
-    const { certificate, address } = processOperationCertification(logger, network, operation);
+    const { certificate, address } = processOperationCertification(scope, logger, network, operation);
     resultAccumulator.certificates.add(certificate);
     resultAccumulator.addresses.push(address);
     return resultAccumulator;
   },
   [OperationType.WITHDRAWAL]: () => {
-    const { reward, address } = processWithdrawal(logger, network, operation);
+    const { reward, address } = processWithdrawal(scope, logger, network, operation);
     const withdrawalAmount = BigInt(operation.amount?.value);
     resultAccumulator.withdrawalAmounts.push(withdrawalAmount);
-    resultAccumulator.withdrawals.insert(reward, BigNum.from_str(withdrawalAmount.toString()));
+    resultAccumulator.withdrawals.insert(reward, scope.manage(BigNum.from_str(withdrawalAmount.toString())));
     resultAccumulator.addresses.push(address);
     return resultAccumulator;
   },
   [OperationType.POOL_REGISTRATION]: () => {
-    const { certificate, addresses } = processPoolRegistration(logger, network, operation);
+    const { certificate, addresses } = processPoolRegistration(scope, logger, network, operation);
     resultAccumulator.certificates.add(certificate);
     resultAccumulator.addresses.push(...addresses);
     resultAccumulator.poolRegistrationsCount++;
     return resultAccumulator;
   },
   [OperationType.POOL_REGISTRATION_WITH_CERT]: () => {
-    const { certificate, addresses } = processPoolRegistrationWithCert(logger, network, operation);
+    const { certificate, addresses } = processPoolRegistrationWithCert(scope, logger, network, operation);
     resultAccumulator.certificates.add(certificate);
     resultAccumulator.addresses.push(...addresses);
     resultAccumulator.poolRegistrationsCount++;
     return resultAccumulator;
   },
   [OperationType.POOL_RETIREMENT]: () => {
-    const { certificate, poolKeyHash } = processPoolRetirement(logger, operation);
+    const { certificate, poolKeyHash } = processPoolRetirement(scope, logger, operation);
     resultAccumulator.certificates.add(certificate);
     resultAccumulator.addresses.push(poolKeyHash);
     return resultAccumulator;
   },
   [OperationType.VOTE_REGISTRATION]: () => {
-    const voteRegistrationMetadata = processVoteRegistration(logger, operation);
+    const voteRegistrationMetadata = processVoteRegistration(scope, logger, operation);
     resultAccumulator.voteRegistrationMetadata = voteRegistrationMetadata;
     return resultAccumulator;
   }
@@ -679,20 +759,22 @@ export interface ProcessOperationsResult {
  * Extra information is added as it might be required and we are traversing the operations
  * already.
  *
+ * @param scope
  * @param logger
  * @param network
  * @param operations
  */
 export const convert = (
+  scope: ManagedFreeableScope,
   logger: Logger,
   network: NetworkIdentifier,
   operations: Components.Schemas.Operation[]
 ): ProcessOperationsResult => {
   const result: ProcessOperationsResult = {
-    transactionInputs: CardanoWasm.TransactionInputs.new(),
-    transactionOutputs: CardanoWasm.TransactionOutputs.new(),
-    certificates: CardanoWasm.Certificates.new(),
-    withdrawals: CardanoWasm.Withdrawals.new(),
+    transactionInputs: scope.manage(CardanoWasm.TransactionInputs.new()),
+    transactionOutputs: scope.manage(CardanoWasm.TransactionOutputs.new()),
+    certificates: scope.manage(CardanoWasm.Certificates.new()),
+    withdrawals: scope.manage(CardanoWasm.Withdrawals.new()),
     addresses: [],
     inputAmounts: [],
     outputAmounts: [],
@@ -705,7 +787,7 @@ export const convert = (
 
   return operations.reduce<ProcessOperationsResult>((previousResult, operation) => {
     const type = operation.type;
-    const processor = operationProcessor(logger, operation, network, previousResult);
+    const processor = operationProcessor(scope, logger, operation, network, previousResult);
     if (!processor[type]) {
       logger.error(`[processOperations] Operation with id ${operation.operation_identifier} has invalid type`);
       throw ErrorFactory.invalidOperationTypeError();
