@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.8.1...2.0.0) (2022-11-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* get protocol params from request: This is a breaking change in the construction flow to correct an oversight in the original implementation relating to handling current
+protocol parameters, and how it relates to running the service in _offline_ mode. In prior versions the protocol parameters were an internal concern, originally it was
+statically read from genesis, then later refactored to be queried from the DB. The former version created a valid offline mode, but after refactoring it violates the spec
+as the database cannot be running in this mode. Upgrading from v1 to v2: `/construction/metadata` now returns `protocol_parameters`, which must be used to construct a
+`deposit_parameters` object in the `/construction/preprocess` request metadata.
+
+### Performance
+
+* improve search transactions by coin query ([a721862](https://github.com/input-output-hk/cardano-rosetta/commit/a721862e9c4ca529100a9d10f3cf281b86b50f81))
+
+### Refactor
+* get protocol params from request ([ec56d25](https://github.com/input-output-hk/cardano-rosetta/commit/ec56d250c2a231991dc2ad83221875c2ab47304d))
+
+### Bug Fixes
+
+* handle WASM-bound objects produced when interacting with CSL ([069674e](https://github.com/input-output-hk/cardano-rosetta/commit/069674eb0345e85bb844aeffda91a4b99f40414f))
+
 ## [1.8.1](https://github.com/input-output-hk/cardano-rosetta/compare/1.8.0...1.8.1) (2022-08-18)
 
 * introduce support for new test networks ([32200ae](https://github.com/input-output-hk/cardano-rosetta/commit/32200aecc0f7030e0ec42d0e621d8f008060728e))
