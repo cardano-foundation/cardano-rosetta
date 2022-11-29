@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0-beta.1](https://github.com/input-output-hk/cardano-rosetta/compare/2.0.0-beta.0...2.0.0-beta.1) (2022-11-29)
+
+* bump to `cardano-serialization-lib@11.1.1`
+
 ## [2.0.0-beta.0](https://github.com/input-output-hk/cardano-rosetta/compare/1.8.1...2.0.0-beta.0) (2022-11-11)
 
 
