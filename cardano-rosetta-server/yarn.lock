@@ -324,10 +324,10 @@
     exec-sh "^0.3.2"
     minimist "^1.2.0"
 
-"@emurgo/cardano-serialization-lib-nodejs@11.0.0":
-  version "11.0.0"
-  resolved "https://registry.yarnpkg.com/@emurgo/cardano-serialization-lib-nodejs/-/cardano-serialization-lib-nodejs-11.0.0.tgz#16f5945e576a7ba36f8619279daef771c3079897"
-  integrity sha512-thm7g+NT9W4Iwor0S7oTewpLoKwGTGVdVWiZsUj3GjNNp+XJQHXffsOy9JyauMHjqaQeIpDLR1QckY5VnCWzhg==
+"@emurgo/cardano-serialization-lib-nodejs@11.1.1":
+  version "11.1.1"
+  resolved "https://registry.yarnpkg.com/@emurgo/cardano-serialization-lib-nodejs/-/cardano-serialization-lib-nodejs-11.1.1.tgz#4c53690c6ecf53fd791e27264a6ffed78fa784b0"
+  integrity sha512-qYMSlFWPY0bB7Lys+eaSN8p3NrwmmcMM0j3c3TgLeVl9jAJsNSFqwFLEyD50u6nF/DkA49ixo2P1K/luZ24thg==
 
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
