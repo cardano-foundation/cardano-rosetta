@@ -181,9 +181,8 @@ const configure = (
         logger.debug(`[constructionMetadata] suggested fee is ${suggestedFee}`);
         // eslint-disable-next-line camelcase
         return {
-          metadata: { ttl: ttl.toString() },
-          suggested_fee: [mapAmount(suggestedFee.toString())],
-          protocol_parameters: protocolParameters
+          metadata: { ttl: ttl.toString(), protocol_parameters: protocolParameters },
+          suggested_fee: [mapAmount(suggestedFee.toString())]
         };
       },
       request.log,
