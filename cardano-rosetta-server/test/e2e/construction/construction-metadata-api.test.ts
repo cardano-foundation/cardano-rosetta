@@ -53,7 +53,8 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       metadata: {
-        ttl: (latestBlockSlot + relativeTtl).toString()
+        ttl: (latestBlockSlot + relativeTtl).toString(),
+        protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
       },
       suggested_fee: [
         {
@@ -67,8 +68,7 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
             linearFeeParameters.minFeeB
           ).toString()
         }
-      ],
-      protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
+      ]
     });
   });
 

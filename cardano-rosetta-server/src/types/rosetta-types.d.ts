@@ -401,7 +401,6 @@ declare namespace Components {
         protocol_parameters?: ProtocolParameters;
       };
       suggested_fee?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount[];
-      protocol_parameters?: ProtocolParameters;
     }
     /**
      * ConstructionParseRequest is the input to the `/construction/parse` endpoint. It allows the caller to parse either an unsigned or signed transaction.
