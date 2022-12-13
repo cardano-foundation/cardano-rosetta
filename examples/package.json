@@ -21,7 +21,7 @@
     "axios": "0.21.2",
     "bip39": "3.0.4",
     "delay": "4.4.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-validator": "^6.10.0",
     "newman": "^5.2.2",
     "ts-node": "8.10.2",
