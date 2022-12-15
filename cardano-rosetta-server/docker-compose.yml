@@ -79,7 +79,7 @@ services:
       - PAGE_SIZE=30
       - PORT=8080
       - TOPOLOGY_FILE_PATH=/config/cardano-node/topology.json
-      - DEFAULT_POOL_DEPOSIT=340000000
+      - DEFAULT_POOL_DEPOSIT=500000000
       - DEFAULT_KEY_DEPOSIT=2000000
     expose:
       - 8080
