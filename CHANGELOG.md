@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0-rc.2](https://github.com/input-output-hk/cardano-rosetta/compare/2.0.0-rc.1...2.0.0-rc.2) (2022-12-16)
+
+### Bug Fixes
+
+* Updating the DEFAULT_POOL_DEPOSIT parameter ([d102687](https://github.com/input-output-hk/cardano-rosetta/commit/d102687576357d186d4df3984c0aa2e8df3b1870))
+
 ## [2.0.0-rc.1](https://github.com/input-output-hk/cardano-rosetta/compare/2.0.0-beta.1...2.0.0-rc.1) (2022-12-13)
 
 ### Bug Fixes
