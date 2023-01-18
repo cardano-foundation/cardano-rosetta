@@ -23,19 +23,36 @@ RUN apt-get update -y && apt-get install -y \
   tmux=3.* \
   wget=1.20.* \
   zlib1g-dev=1:1.2.*
-ARG CABAL_VERSION=3.2.0.0
-RUN wget --secure-protocol=TLSv1_2 \
-  https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
-  tar -xf cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz &&\
-  rm cabal-install-${CABAL_VERSION}-x86_64-unknown-linux.tar.xz cabal.sig &&\
+ARG TARGETARCH
+RUN \
+  if [ "$TARGETARCH" = "arm64" ]; then \
+    apt-get install -y libnuma-dev=2.0.* llvm-10; \
+  fi
+ARG CABAL_VERSION=3.6.2.0
+RUN \
+  if [ "$TARGETARCH" = "arm64" ]; then \
+    export TARGETARCH1=aarch64; \
+  else \
+    export TARGETARCH1=x86_64; \
+  fi; \
+  wget --secure-protocol=TLSv1_2 \
+    https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-$TARGETARCH1-linux-deb10.tar.xz &&\
+  tar -xf cabal-install-${CABAL_VERSION}-$TARGETARCH1-linux-deb10.tar.xz &&\
+  rm cabal-install-${CABAL_VERSION}-$TARGETARCH1-linux-deb10.tar.xz &&\
   mv cabal /usr/local/bin/
 RUN cabal update
 WORKDIR /app/ghc
 ARG GHC_VERSION=8.10.7
-RUN wget --secure-protocol=TLSv1_2 \
-  https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz &&\
-  tar -xf ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz &&\
-  rm ghc-${GHC_VERSION}-x86_64-deb9-linux.tar.xz
+RUN \
+  if [ "$TARGETARCH" = "arm64" ]; then \
+    export TARGETARCH1=aarch64; \
+  else \
+    export TARGETARCH1=x86_64; \
+  fi; \
+  wget --secure-protocol=TLSv1_2 \
+    https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-$TARGETARCH1-deb10-linux.tar.xz &&\
+  tar -xf ghc-${GHC_VERSION}-$TARGETARCH1-deb10-linux.tar.xz &&\
+  rm ghc-${GHC_VERSION}-$TARGETARCH1-deb10-linux.tar.xz
 WORKDIR /app/ghc/ghc-${GHC_VERSION}
 RUN ./configure && make install
 WORKDIR /app/src
@@ -96,6 +113,11 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://dl.yarnpkg.com/debian/pubkey
   apt-get update && apt-get install gcc g++ make gnupg2 yarn -y
 
 FROM ubuntu-nodejs as runtime-base
+ARG TARGETARCH
+RUN \
+  if [ "$TARGETARCH" = "arm64" ]; then \
+    apt-get update -y && apt-get install -y libnuma-dev=2.0.*; \
+  fi
 RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - &&\
   echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list &&\
   apt-get update && apt-get install -y --no-install-recommends \
