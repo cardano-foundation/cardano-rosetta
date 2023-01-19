@@ -54,9 +54,9 @@ RUN git clone https://github.com/bitcoin-core/secp256k1 &&\
   git checkout ac83be33
 WORKDIR /app/src/secp256k1
 RUN ./autogen.sh && ./configure --enable-module-schnorrsig --enable-experimental &&\
-    make && make install
+  make && make install
 WORKDIR /app/src
-ARG CARDANO_NODE_VERSION=1.35.3
+ARG CARDANO_NODE_VERSION=1.35.4
 RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
@@ -113,22 +113,22 @@ COPY --from=haskell-builder /app/src/cardano-db-sync/schema /cardano-db-sync/sch
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VERSION 1.12
 RUN set -eux; \
-	savedAptMark="$(apt-mark showmanual)"; \
-	rm -rf /var/lib/apt/lists/*; \
-	dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
-	curl --proto '=https' --tlsv1.2 -sSf -L -o /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${dpkgArch}"; \
-	curl --proto '=https' --tlsv1.2 -sSf -L -o /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${dpkgArch}.asc"; \
-	export GNUPGHOME="$(mktemp -d)"; \
- gpg --batch --keyserver keyserver.ubuntu.com --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
-	gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
-	gpgconf --kill all; \
-	rm -rf "${GNUPGHOME}" /usr/local/bin/gosu.asc; \
-	apt-mark auto '.*' > /dev/null; \
-	[ -z "${savedAptMark}" ] || apt-mark manual ${savedAptMark} > /dev/null; \
-	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
-	chmod +x /usr/local/bin/gosu; \
-	gosu --version; \
-	gosu nobody true
+  savedAptMark="$(apt-mark showmanual)"; \
+  rm -rf /var/lib/apt/lists/*; \
+  dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+  curl --proto '=https' --tlsv1.2 -sSf -L -o /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${dpkgArch}"; \
+  curl --proto '=https' --tlsv1.2 -sSf -L -o /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${dpkgArch}.asc"; \
+  export GNUPGHOME="$(mktemp -d)"; \
+  gpg --batch --keyserver keyserver.ubuntu.com --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+  gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+  gpgconf --kill all; \
+  rm -rf "${GNUPGHOME}" /usr/local/bin/gosu.asc; \
+  apt-mark auto '.*' > /dev/null; \
+  [ -z "${savedAptMark}" ] || apt-mark manual ${savedAptMark} > /dev/null; \
+  apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false; \
+  chmod +x /usr/local/bin/gosu; \
+  gosu --version; \
+  gosu nobody true
 RUN mkdir /ipc
 VOLUME /data
 EXPOSE 8080
@@ -177,7 +177,7 @@ COPY scripts/start_cardano-db-sync.sh scripts/maybe_download_cardano-db-sync_sna
 COPY config/network/${NETWORK} /config/
 ENV PGPASSFILE=/config/cardano-db-sync/pgpass
 RUN echo "/var/run/postgresql:5432:cexplorer:*:*" > $PGPASSFILE &&\
- chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
+  chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
 RUN mkdir /snapshot &&\
   ./scripts/maybe_download_cardano-db-sync_snapshot.sh $SNAPSHOT_URL /snapshot
 COPY scripts/entrypoint.sh .
