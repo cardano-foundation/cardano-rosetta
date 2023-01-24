@@ -1,4 +1,4 @@
-ARG UBUNTU_VERSION=20.04
+ARG UBUNTU_VERSION=22.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
 ENV DEBIAN_FRONTEND=nonintercative
 RUN mkdir -p /app/src
@@ -6,27 +6,27 @@ WORKDIR /app
 RUN apt-get update -y && apt-get install -y \
   automake=1:1.16.* \
   build-essential=12.* \
-  g++=4:9.3.* \
-  git=1:2.25.* \
+  g++=4:11.2.* \
+  git=1:2.34.* \
   jq \
   libffi-dev=3.* \
   libghc-postgresql-libpq-dev=0.9.4.* \
   libgmp-dev=2:6.2.* \
   libncursesw5=6.* \
-  libpq-dev=12.* \
-  libssl-dev=1.1.* \
-  libsystemd-dev=245.* \
+  libpq-dev=14.* \
+  libssl-dev=3.0.* \
+  libsystemd-dev=249.* \
   libtinfo-dev=6.* \
   libtool=2.4.* \
-  make=4.2.* \
+  make=4.3* \
   pkg-config=0.29.* \
   tmux=3.* \
-  wget=1.20.* \
+  wget=1.21.* \
   zlib1g-dev=1:1.2.*
 ARG TARGETARCH
 RUN \
   if [ "$TARGETARCH" = "arm64" ]; then \
-    apt-get install -y libnuma-dev=2.0.* llvm-10; \
+    apt-get install -y libnuma-dev=2.0.* llvm-14; \
   fi
 ARG CABAL_VERSION=3.6.2.0
 RUN \
@@ -130,6 +130,8 @@ COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-db-sync /usr/local/bin/
 COPY --from=haskell-builder /app/src/cardano-db-sync/schema /cardano-db-sync/schema
+# Configure dynamic linker
+RUN ldconfig
 # easy step-down from root
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VERSION 1.12
