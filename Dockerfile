@@ -79,14 +79,13 @@ RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   git fetch --all --tags &&\
   git checkout ${CARDANO_NODE_VERSION}
 WORKDIR /app/src/cardano-node
-RUN cabal install cardano-node \
-  --install-method=copy \
-  --installdir=/usr/local/bin \
-  -f -systemd
-RUN cabal install cardano-cli \
-  --install-method=copy \
-  --installdir=/usr/local/bin \
-  -f -systemd
+RUN cabal update
+RUN cabal build exe:cardano-node \
+    -f -systemd &&\
+    mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/
+RUN cabal build exe:cardano-cli \
+    -f -systemd &&\
+    mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
 WORKDIR /app/src
 ARG CARDANO_DB_SYNC_VERSION=13.1.0.0
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
