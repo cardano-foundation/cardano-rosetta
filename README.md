@@ -1,7 +1,7 @@
 # Cardano Rosetta
 [![CI][img_src_CI]][workflow_CI] [![Nightly][img_src_Nightly]][workflow_Nightly]
 
-An implementation of [Rosetta] for [Cardano], targeting the version defined in the [OpenApi 
+A multi-platform implementation of [Rosetta] for [Cardano], targeting the version defined in the [OpenApi 
 schema]. Skip to [run](#run) if wishing to use a pre-built image from the [Docker Hub repository]. 
 
 
@@ -9,6 +9,10 @@ schema]. Skip to [run](#run) if wishing to use a pre-built image from the [Docke
 Build [from anywhere], _optionally_ specifying a [network] name other than `mainnet` as a 
 build argument, and accessing cached build layers to reduce the initialization time. You can also 
 build with local source by replacing the GitHub link with `.`
+
+### Supported Architectures
+- `linux/amd64`
+- `linux/arm64`
 
 <details open>
   <summary>mainnet</summary>
