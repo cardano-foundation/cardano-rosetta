@@ -1,62 +1,63 @@
-ARG UBUNTU_VERSION=20.04
+ARG UBUNTU_VERSION=22.04
 FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
 ENV DEBIAN_FRONTEND=nonintercative
 RUN mkdir -p /app/src
 WORKDIR /app
 RUN apt-get update -y && apt-get install -y \
+  autoconf=2.71* \
   automake=1:1.16.* \
   build-essential=12.* \
-  g++=4:9.3.* \
-  git=1:2.25.* \
-  jq \
+  g++=4:11.2.* \
+  git=1:2.34.* \
+  jq=1.6* \
   libffi-dev=3.* \
   libghc-postgresql-libpq-dev=0.9.4.* \
   libgmp-dev=2:6.2.* \
   libncursesw5=6.* \
-  libpq-dev=12.* \
-  libssl-dev=1.1.* \
-  libsystemd-dev=245.* \
+  libpq-dev=14.* \
+  libssl-dev=3.0.* \
+  libsystemd-dev=249.* \
   libtinfo-dev=6.* \
   libtool=2.4.* \
-  make=4.2.* \
+  make=4.3* \
   pkg-config=0.29.* \
   tmux=3.* \
-  wget=1.20.* \
+  wget=1.21.* \
   zlib1g-dev=1:1.2.*
 ARG TARGETARCH
 RUN \
   if [ "$TARGETARCH" = "arm64" ]; then \
-    apt-get install -y libnuma-dev=2.0.* llvm-10; \
+    apt-get install -y libnuma-dev=2.0.* llvm-14; \
   fi
 ARG CABAL_VERSION=3.6.2.0
 RUN \
   if [ "$TARGETARCH" = "arm64" ]; then \
-    export TARGETARCH1=aarch64; \
+    TARGETARCH1=aarch64; \
   else \
-    export TARGETARCH1=x86_64; \
+    TARGETARCH1=x86_64; \
   fi; \
   wget --secure-protocol=TLSv1_2 \
-    https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-$TARGETARCH1-linux-deb10.tar.xz &&\
-  tar -xf cabal-install-${CABAL_VERSION}-$TARGETARCH1-linux-deb10.tar.xz &&\
-  rm cabal-install-${CABAL_VERSION}-$TARGETARCH1-linux-deb10.tar.xz &&\
+    https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-${TARGETARCH1}-linux-deb10.tar.xz &&\
+  tar -xf cabal-install-${CABAL_VERSION}-${TARGETARCH1}-linux-deb10.tar.xz &&\
+  rm cabal-install-${CABAL_VERSION}-${TARGETARCH1}-linux-deb10.tar.xz &&\
   mv cabal /usr/local/bin/
 RUN cabal update
 WORKDIR /app/ghc
 ARG GHC_VERSION=8.10.7
 RUN \
   if [ "$TARGETARCH" = "arm64" ]; then \
-    export TARGETARCH1=aarch64; \
+    TARGETARCH1=aarch64; \
   else \
-    export TARGETARCH1=x86_64; \
+    TARGETARCH1=x86_64; \
   fi; \
   wget --secure-protocol=TLSv1_2 \
-    https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-$TARGETARCH1-deb10-linux.tar.xz &&\
-  tar -xf ghc-${GHC_VERSION}-$TARGETARCH1-deb10-linux.tar.xz &&\
-  rm ghc-${GHC_VERSION}-$TARGETARCH1-deb10-linux.tar.xz
+    https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-${TARGETARCH1}-deb10-linux.tar.xz &&\
+  tar -xf ghc-${GHC_VERSION}-${TARGETARCH1}-deb10-linux.tar.xz &&\
+  rm ghc-${GHC_VERSION}-${TARGETARCH1}-deb10-linux.tar.xz
 WORKDIR /app/ghc/ghc-${GHC_VERSION}
 RUN ./configure && make install
 WORKDIR /app/src
-ARG IOHK_LIBSODIUM_GIT_REV=66f017f16633f2060db25e17c170c2afa0f2a8a1
+ARG IOHK_LIBSODIUM_GIT_REV=11bb20dba02b013bf1d83e3c16c51eab2ff07efc
 RUN git clone https://github.com/input-output-hk/libsodium.git &&\
   cd libsodium &&\
   git fetch --all --tags &&\
@@ -80,12 +81,24 @@ RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   git checkout ${CARDANO_NODE_VERSION}
 WORKDIR /app/src/cardano-node
 RUN cabal update
-RUN cabal build exe:cardano-node \
+RUN \
+    cabal build exe:cardano-node \
+      -f -systemd &&\
+    if [ "$TARGETARCH" = "arm64" ]; then \
+      TARGETARCH1=aarch64; \
+    else \
+      TARGETARCH1=x86_64; \
+    fi; \
+    mv ./dist-newstyle/build/${TARGETARCH1}-linux/ghc-${GHC_VERSION}/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/
+RUN \
+    cabal build exe:cardano-cli \
     -f -systemd &&\
-    mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/
-RUN cabal build exe:cardano-cli \
-    -f -systemd &&\
-    mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
+    if [ "$TARGETARCH" = "arm64" ]; then \
+      TARGETARCH1=aarch64; \
+    else \
+      TARGETARCH1=x86_64; \
+    fi; \
+    mv ./dist-newstyle/build/${TARGETARCH1}-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
 WORKDIR /app/src
 ARG CARDANO_DB_SYNC_VERSION=13.1.0.0
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
@@ -130,6 +143,8 @@ COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-db-sync /usr/local/bin/
 COPY --from=haskell-builder /app/src/cardano-db-sync/schema /cardano-db-sync/schema
+# Configure dynamic linker
+RUN ldconfig
 # easy step-down from root
 # https://github.com/tianon/gosu/releases
 ENV GOSU_VERSION 1.12
