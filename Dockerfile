@@ -31,28 +31,28 @@ RUN \
 ARG CABAL_VERSION=3.6.2.0
 RUN \
   if [ "$TARGETARCH" = "arm64" ]; then \
-    export TARGETARCH1=aarch64; \
+    TARGETARCH1=aarch64; \
   else \
-    export TARGETARCH1=x86_64; \
+    TARGETARCH1=x86_64; \
   fi; \
   wget --secure-protocol=TLSv1_2 \
-    https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-$TARGETARCH1-linux-deb10.tar.xz &&\
-  tar -xf cabal-install-${CABAL_VERSION}-$TARGETARCH1-linux-deb10.tar.xz &&\
-  rm cabal-install-${CABAL_VERSION}-$TARGETARCH1-linux-deb10.tar.xz &&\
+    https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-${TARGETARCH1}-linux-deb10.tar.xz &&\
+  tar -xf cabal-install-${CABAL_VERSION}-${TARGETARCH1}-linux-deb10.tar.xz &&\
+  rm cabal-install-${CABAL_VERSION}-${TARGETARCH1}-linux-deb10.tar.xz &&\
   mv cabal /usr/local/bin/
 RUN cabal update
 WORKDIR /app/ghc
 ARG GHC_VERSION=8.10.7
 RUN \
   if [ "$TARGETARCH" = "arm64" ]; then \
-    export TARGETARCH1=aarch64; \
+    TARGETARCH1=aarch64; \
   else \
-    export TARGETARCH1=x86_64; \
+    TARGETARCH1=x86_64; \
   fi; \
   wget --secure-protocol=TLSv1_2 \
-    https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-$TARGETARCH1-deb10-linux.tar.xz &&\
-  tar -xf ghc-${GHC_VERSION}-$TARGETARCH1-deb10-linux.tar.xz &&\
-  rm ghc-${GHC_VERSION}-$TARGETARCH1-deb10-linux.tar.xz
+    https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-${TARGETARCH1}-deb10-linux.tar.xz &&\
+  tar -xf ghc-${GHC_VERSION}-${TARGETARCH1}-deb10-linux.tar.xz &&\
+  rm ghc-${GHC_VERSION}-${TARGETARCH1}-deb10-linux.tar.xz
 WORKDIR /app/ghc/ghc-${GHC_VERSION}
 RUN ./configure && make install
 WORKDIR /app/src
@@ -80,12 +80,24 @@ RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   git checkout ${CARDANO_NODE_VERSION}
 WORKDIR /app/src/cardano-node
 RUN cabal update
-RUN cabal build exe:cardano-node \
+RUN \
+    cabal build exe:cardano-node \
+      -f -systemd &&\
+    if [ "$TARGETARCH" = "arm64" ]; then \
+      TARGETARCH1=aarch64; \
+    else \
+      TARGETARCH1=x86_64; \
+    fi; \
+    mv ./dist-newstyle/build/${TARGETARCH1}-linux/ghc-${GHC_VERSION}/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/
+RUN \
+    cabal build exe:cardano-cli \
     -f -systemd &&\
-    mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/
-RUN cabal build exe:cardano-cli \
-    -f -systemd &&\
-    mv ./dist-newstyle/build/x86_64-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
+    if [ "$TARGETARCH" = "arm64" ]; then \
+      TARGETARCH1=aarch64; \
+    else \
+      TARGETARCH1=x86_64; \
+    fi; \
+    mv ./dist-newstyle/build/${TARGETARCH1}-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
 WORKDIR /app/src
 ARG CARDANO_DB_SYNC_VERSION=13.1.0.0
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
