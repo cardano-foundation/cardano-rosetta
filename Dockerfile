@@ -4,11 +4,12 @@ ENV DEBIAN_FRONTEND=nonintercative
 RUN mkdir -p /app/src
 WORKDIR /app
 RUN apt-get update -y && apt-get install -y \
+  autoconf=2.71* \
   automake=1:1.16.* \
   build-essential=12.* \
   g++=4:11.2.* \
   git=1:2.34.* \
-  jq \
+  jq=1.6* \
   libffi-dev=3.* \
   libghc-postgresql-libpq-dev=0.9.4.* \
   libgmp-dev=2:6.2.* \
