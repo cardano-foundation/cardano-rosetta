@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/input-output-hk/cardano-rosetta/compare/2.0.0...2.1.0) (2023-01-25)
+
+* bump to Ubuntu 22.04 ([c34c4ce](https://github.com/input-output-hk/cardano-rosetta/commit/c34c4cedf5ea855469d58ccfdbdf925bfaa3cb9a))
+* bump cardano service deps and cabal ([be122ad](https://github.com/input-output-hk/cardano-rosetta/commit/be122adbb8ce422405505d26d87590bcd61820a9))
+* add support for building an aarch64 image ([50e653f](https://github.com/input-output-hk/cardano-rosetta/commit/50e653f23bf6f32654baa8444ecd3397f038ca55))
+
 ## [2.0.0](https://github.com/input-output-hk/cardano-rosetta/compare/2.0.0-rc.2...2.0.0) (2023-01-11)
 
 ## [2.0.0-rc.2](https://github.com/input-output-hk/cardano-rosetta/compare/2.0.0-rc.1...2.0.0-rc.2) (2022-12-16)
