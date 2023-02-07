@@ -11,6 +11,11 @@ in {
         default = 8080;
       };
 
+      package = lib.mkOption {
+        type = lib.types.package;
+        default = (import ../../. {}).cardano-rosetta-server;
+      };
+
       logLevel = lib.mkOption {
         type = lib.types.str;
         default = "debug";
@@ -99,7 +104,6 @@ in {
     pluginLibPath = pkgs.lib.makeLibraryPath [
       pkgs.stdenv.cc.cc.lib
     ];
-    cardano-rosetta-server = (import ../../. {}).cardano-rosetta-server;
   in lib.mkIf cfg.enable {
     systemd.services.cardano-rosetta-server = {
       wantedBy = [ "multi-user.target" ];
@@ -119,7 +123,7 @@ in {
       };
       path = with pkgs; [ netcat curl postgresql jq glibc.bin patchelf ];
       script = ''
-        exec ${cardano-rosetta-server}/bin/cardano-rosetta-server
+        exec ${cfg.package}/bin/cardano-rosetta-server
       '';
     };
   };
