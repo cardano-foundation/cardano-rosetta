@@ -139,7 +139,7 @@ Default: `25`
 ### Upgrading
 As per the release notes, you **_may_** be required to refresh the state managed by 
 `cardano-db-sync`. This can be achieved without requiring a network re-sync using one of the two 
-following approaches:
+following approaches :
 
 #### 1. Apply a Trusted `cardano-db-sync` Snapshot
 Run the build command with the addition of an argument providing a version and network-specific 
