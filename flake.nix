@@ -19,6 +19,7 @@
         (std.functions "hydraJobs")
         (tullia.tasks "pipelines")
         (std.functions "actions")
+        (std.installables "packages")
       ];
     }
     (
