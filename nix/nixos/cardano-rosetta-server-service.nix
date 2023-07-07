@@ -66,6 +66,16 @@ in {
         default = 1000;
       };
 
+      defaultKeyDeposit = lib.mkOption {
+        type = lib.types.int;
+        default = 2000000;
+      };
+
+      defaultPoolDeposit = lib.mkOption {
+        type = lib.types.int;
+        default = 500000000;
+      };
+
       dbHost = lib.mkOption {
         type = lib.types.str;
         default = "/run/postgresql";
@@ -119,6 +129,8 @@ in {
         CARDANO_NODE_SOCKET_PATH = cfg.cardanoNodeSocketPath;
         PAGE_SIZE                = toString cfg.pageSize;
         DEFAULT_RELATIVE_TTL     = toString cfg.defaultRelativeTTL;
+        DEFAULT_KEY_DEPOSIT      = toString cfg.defaultKeyDeposit;
+        DEFAULT_POOL_DEPOSIT     = toString cfg.defaultPoolDeposit;
         PROMETHEUS_METRICS       = boolToNodeJSEnv cfg.enablePrometheus;
       };
       path = with pkgs; [ netcat curl postgresql jq glibc.bin patchelf ];
