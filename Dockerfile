@@ -13,6 +13,7 @@ RUN apt-get update -y && apt-get install -y \
   libffi-dev=3.* \
   libghc-postgresql-libpq-dev=0.9.4.* \
   libgmp-dev=2:6.2.* \
+  liblmdb-dev \
   libncursesw5=6.* \
   libpq-dev=14.* \
   libssl-dev=3.0.* \
@@ -29,7 +30,7 @@ RUN \
   if [ "$TARGETARCH" = "arm64" ]; then \
     apt-get install -y libnuma-dev=2.0.* llvm-14; \
   fi
-ARG CABAL_VERSION=3.6.2.0
+ARG CABAL_VERSION=3.8.1.0
 RUN \
   if [ "$TARGETARCH" = "arm64" ]; then \
     TARGETARCH1=aarch64; \
@@ -57,7 +58,7 @@ RUN \
 WORKDIR /app/ghc/ghc-${GHC_VERSION}
 RUN ./configure && make install
 WORKDIR /app/src
-ARG IOHK_LIBSODIUM_GIT_REV=11bb20dba02b013bf1d83e3c16c51eab2ff07efc
+ARG IOHK_LIBSODIUM_GIT_REV=dbb48cc
 RUN git clone https://github.com/input-output-hk/libsodium.git &&\
   cd libsodium &&\
   git fetch --all --tags &&\
@@ -74,8 +75,13 @@ WORKDIR /app/src/secp256k1
 RUN ./autogen.sh && ./configure --enable-module-schnorrsig --enable-experimental &&\
     make && make install
 WORKDIR /app/src
-ARG CARDANO_NODE_VERSION=1.35.5
-RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
+RUN git clone https://github.com/supranational/blst &&\
+  cd blst &&\
+  git checkout v0.3.10 &&\
+  ./build.sh
+WORKDIR /app/src
+ARG CARDANO_NODE_VERSION=8.3.1-pre
+RUN git clone https://github.com/input-output-hk/cardano-node.git --recurse-submodules &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
   git checkout ${CARDANO_NODE_VERSION}
@@ -100,7 +106,7 @@ RUN \
     fi; \
     mv ./dist-newstyle/build/${TARGETARCH1}-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
 WORKDIR /app/src
-ARG CARDANO_DB_SYNC_VERSION=13.1.0.0
+ARG CARDANO_DB_SYNC_VERSION=sancho-1-1-0
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
@@ -138,6 +144,11 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/key
   postgresql-12 \
   postgresql-client-12 &&\
   npm install pm2 -g
+COPY libblst.pc /usr/local/lib/pkgconfig/
+COPY --from=haskell-builder /app/src/blst/bindings/blst_aux.h /usr/local/include/
+COPY --from=haskell-builder /app/src/blst/bindings/blst.h bindings/blst.hpp  /usr/local/include/
+COPY --from=haskell-builder /app/src/blst/bindings/blst.hpp  /usr/local/include/
+COPY --from=haskell-builder /app/src/blst/libblst.a /usr/local/lib
 COPY --from=haskell-builder /usr/local/lib /usr/local/lib
 COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
 COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
