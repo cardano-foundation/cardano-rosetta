@@ -1,6 +1,6 @@
 ARG UBUNTU_VERSION=22.04
 ARG TARGETARCH=amd64
-ARG CARDANO_NODE_VERSION=1.35.5
+ARG CARDANO_NODE_VERSION=1.35.7
 ARG CARDANO_DB_SYNC_VERSION=13.1.0.0
 ARG NODEJS_MAJOR_VERSION=14
 
@@ -19,53 +19,53 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/
   --extra-conf "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" \
   --init none --no-confirm
 ENV PATH="${PATH}:/nix/var/nix/profiles/default/bin"
-RUN mkdir -p /app
-WORKDIR /app
-# Note: since we don’t officially support `aarch64-linux`, we have to tweak the source a bit
-#       in this case; but otherwise, build straight from GitHub:
-RUN \
-  if [ "$TARGETARCH" = "arm64" ]; then \
-    mkdir -p src && cd src &&\
-    git clone https://github.com/input-output-hk/cardano-node.git &&\
-    cd cardano-node &&\
-    git fetch --all --tags &&\
-    git checkout ${CARDANO_NODE_VERSION} &&\
-    echo '["aarch64-linux"]' >nix/supported-systems.nix &&\
-    cd ../.. &&\
-    nix build -L -o cardano-node ./src/cardano-node#legacyPackages.aarch64-linux.hydraJobs.musl.cardano-node ;\
-  else \
-    nix build -L -o cardano-node github:input-output-hk/cardano-node/${CARDANO_NODE_VERSION}#legacyPackages.x86_64-linux.hydraJobs.musl.cardano-node ;\
-  fi
-RUN \
-  if [ "$TARGETARCH" = "arm64" ]; then \
-    nix build -L -o cardano-cli ./src/cardano-node#legacyPackages.aarch64-linux.hydraJobs.musl.cardano-cli ;\
-  else \
-    nix build -L -o cardano-cli github:input-output-hk/cardano-node/${CARDANO_NODE_VERSION}#legacyPackages.x86_64-linux.hydraJobs.musl.cardano-cli ;\
-  fi
-RUN \
-  mkdir -p src && cd src &&\
-  git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
-  cd cardano-db-sync &&\
-  git fetch --all --tags &&\
-  git checkout ${CARDANO_DB_SYNC_VERSION} &&\
-  cd ../.. &&\
-  if [ "$TARGETARCH" = "arm64" ]; then \
-    echo '["aarch64-linux"]' >src/cardano-db-sync/supported-systems.nix &&\
-    nix build -L -o cardano-db-sync--tar ./src/cardano-db-sync#hydraJobs.cardano-db-sync-linux.aarch64-linux ;\
-  else \
-    nix build -L -o cardano-db-sync--tar ./src/cardano-db-sync#hydraJobs.cardano-db-sync-linux.x86_64-linux ;\
-  fi &&\
-  mkdir cardano-db-sync && cd cardano-db-sync &&\
-  tar -xf ../cardano-db-sync--tar/cardano-db-sync*.tar.gz && chown -R 0:0 . && chmod -R -w . && cd ..
+# We don’t officially support AArch64, so we have to go through some hops:
+SHELL ["/bin/bash", "-c"]
+RUN mkdir -p /app && cat >/app/default.nix <<<$'\n\
+  let\n\
+    system = "'"$([ "$TARGETPLATFORM" = "linux/arm64" ] && echo "aarch64-linux" || echo "x86_64-linux")"$'";\n\
+    _nodeFlake   = __getFlake "github:input-output-hk/cardano-node/'"${CARDANO_NODE_VERSION}"$'";\n\
+    _dbSyncFlake = __getFlake "github:input-output-hk/cardano-db-sync/'"${CARDANO_DB_SYNC_VERSION}"$'";\n\
+    pkgs = _nodeFlake.inputs.nixpkgs.legacyPackages.${system};\n\
+    nix-bundle-exe = import (fetchTarball "https://github.com/3noch/nix-bundle-exe/archive/3522ae68aa4188f4366ed96b41a5881d6a88af97.zip") { inherit pkgs; };\n\
+    enableAArch64 = original: supportedSystemsPath:\n\
+      if system == "x86_64-linux" then original\n\
+      else if system == "aarch64-linux" then let\n\
+        patched = pkgs.runCommandNoCC "patched" {} "cp -r ${original} $out && chmod -R +w $out && echo ${with pkgs; with lib; escapeShellArg (__toJSON [system])} >$out/${supportedSystemsPath}";\n\
+      in (import _nodeFlake.inputs.flake-compat {\n\
+        src = {\n\
+          inherit (patched) outPath;\n\
+          inherit (original) rev shortRev lastModified lastModifiedDate;\n\
+        };\n\
+      }).defaultNix else throw "unsupported system: ${system}";\n\
+    nodeFlake = enableAArch64 _nodeFlake "nix/supported-systems.nix";\n\
+    dbSyncFlake = enableAArch64 _dbSyncFlake "supported-systems.nix";\n\
+  in\n\
+  # cardano-node doesn’t build for ARM before 1.35.7:\n\
+  assert system != "aarch64-linux" || _nodeFlake.sourceInfo.lastModifiedDate >= "20230328184650";\n\
+  {\n\
+    inherit _nodeFlake;\n\
+    cardano-node    = nix-bundle-exe   nodeFlake.packages.${system}.cardano-node;\n\
+    cardano-cli     = nix-bundle-exe   nodeFlake.packages.${system}.cardano-cli;\n\
+    cardano-db-sync = nix-bundle-exe dbSyncFlake.packages.${system}.cardano-db-sync;\n\
+    schema = pkgs.runCommandNoCC "schema" {} "cp -r ${_dbSyncFlake}/schema $out";\n\
+  }\n\
+  ' && cat /app/default.nix
+SHELL ["/bin/sh", "-c"]
+# Note: ‘GC_DONT_GC=1’ prevents rare segfaults in Nix’s Boehm GC:
+RUN GC_DONT_GC=1 nix-build /app/default.nix -A cardano-node    -o /app/cardano-node
+RUN GC_DONT_GC=1 nix-build /app/default.nix -A cardano-cli     -o /app/cardano-cli
+RUN GC_DONT_GC=1 nix-build /app/default.nix -A cardano-db-sync -o /app/cardano-db-sync
+RUN GC_DONT_GC=1 nix-build /app/default.nix -A schema          -o /app/schema
+RUN mkdir -p /opt && cp -rL /app/cardano-node /app/cardano-cli /app/cardano-db-sync /app/schema /opt/
 
-# Note: one more stage to detect Haskell errors earlier:
+# One more stage to detect Haskell errors early:
 FROM ${TARGETARCH}/ubuntu:${UBUNTU_VERSION} as haskell-runtime
-COPY --from=haskell-builder /app/cardano-node/bin/cardano-node    /usr/local/bin/
-COPY --from=haskell-builder /app/cardano-cli/bin/cardano-cli      /usr/local/bin/
-COPY --from=haskell-builder /app/cardano-db-sync/cardano-db-sync  /usr/local/bin/
-COPY --from=haskell-builder /app/src/cardano-db-sync/schema       /cardano-db-sync/schema
-RUN cardano-node --version && cardano-cli --version && cardano-db-sync --version
-RUN ls -alh /cardano-db-sync/schema
+COPY --from=haskell-builder /opt/ /opt/
+RUN stat /opt/schema &&\
+  /opt/cardano-node/bin/cardano-node       --version &&\
+  /opt/cardano-cli/bin/cardano-cli         --version &&\
+  /opt/cardano-db-sync/bin/cardano-db-sync --version
 
 FROM ${TARGETARCH}/ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
 ARG NODEJS_MAJOR_VERSION
@@ -93,8 +93,10 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/key
   postgresql-12 \
   postgresql-client-12 &&\
   npm install pm2 -g
-COPY --from=haskell-runtime /usr/local/bin/*        /usr/local/bin/
-COPY --from=haskell-runtime /cardano-db-sync/schema /cardano-db-sync/schema
+COPY --from=haskell-builder /opt/ /opt/
+RUN ln -s /opt/cardano-node/bin/* /opt/cardano-cli/bin/* /opt/cardano-db-sync/bin/* /usr/local/bin/ &&\
+  mkdir -p /cardano-db-sync &&\
+  ln -s /opt/schema /cardano-db-sync/schema
 # Configure dynamic linker
 RUN ldconfig
 # easy step-down from root
@@ -130,6 +132,7 @@ COPY cardano-rosetta-server/package.json \
   cardano-rosetta-server/yarn.lock \
   cardano-rosetta-server/.yarnrc \
   /app/
+RUN chmod -R g+rX,o+rX /app
 
 FROM rosetta-server-base as rosetta-server-builder
 COPY cardano-rosetta-server/tsconfig-dist.json \
@@ -137,6 +140,7 @@ COPY cardano-rosetta-server/tsconfig-dist.json \
   /app/
 RUN yarn --offline --frozen-lockfile --non-interactive
 COPY cardano-rosetta-server/src /app/src
+RUN chmod -R g+rX,o+rX /app
 RUN yarn build
 
 FROM rosetta-server-base as rosetta-server-production-deps
@@ -144,12 +148,12 @@ RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
 ARG NETWORK=mainnet
-COPY --from=haskell-runtime /usr/local/bin/cardano-cli \
-  /usr/local/bin/cardano-node \
-  /usr/local/bin/
+COPY --from=haskell-builder /opt/ /opt/
+RUN ln -s /opt/cardano-node/bin/* /opt/cardano-cli/bin/* /usr/local/bin/
 COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
 COPY config/network/${NETWORK} /config/
+RUN chmod -R g+rX,o+rX /config
 EXPOSE 8080
 CMD ["node", "/cardano-rosetta-server/dist/src/server/index.js"]
 
@@ -163,6 +167,7 @@ COPY ecosystem.config.js .
 COPY postgresql.conf /etc/postgresql/12/main/postgresql.conf
 COPY scripts/start_cardano-db-sync.sh scripts/maybe_download_cardano-db-sync_snapshot.sh /scripts/
 COPY config/network/${NETWORK} /config/
+RUN chmod -R g+rX,o+rX /ecosystem.config.js /etc/postgresql/12/main/postgresql.conf /scripts
 ENV PGPASSFILE=/config/cardano-db-sync/pgpass
 RUN echo "/var/run/postgresql:5432:cexplorer:*:*" > $PGPASSFILE &&\
  chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
