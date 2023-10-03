@@ -3,6 +3,7 @@ ARG TARGETARCH=amd64
 ARG CARDANO_NODE_VERSION=1.35.7
 ARG CARDANO_DB_SYNC_VERSION=13.1.0.0
 ARG NODEJS_MAJOR_VERSION=14
+ARG USE_IOG_BINARY_CACHE=
 
 FROM ${TARGETARCH}/ubuntu:${UBUNTU_VERSION} as haskell-builder
 ARG TARGETARCH
@@ -12,12 +13,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update -y
 RUN apt install curl git -y
 # Note: `sandbox = false` is for compatibility with Podman, Docker doesn’t require it.
-# Note: you can comment out `substituters` to build the world from source (including multiple GHC stages).
 RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix/tag/v0.11.0 | sh -s -- install linux \
   --extra-conf "sandbox = false" \
-  --extra-conf "substituters = https://cache.nixos.org https://cache.iog.io" \
-  --extra-conf "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" \
   --init none --no-confirm
+# Note: if you don’t set USE_IOG_BINARY_CACHE=1, you will be rebuilding our Haskell world from source (including multiple GHC stages).
+ARG USE_IOG_BINARY_CACHE
+RUN \
+  if [ -n "${USE_IOG_BINARY_CACHE}" ] ; then \
+    echo "substituters = https://cache.nixos.org https://cache.iog.io" >>/etc/nix/nix.conf &&\
+    echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" >>/etc/nix/nix.conf ;\
+  fi
 ENV PATH="${PATH}:/nix/var/nix/profiles/default/bin"
 # We don’t officially support AArch64, so we have to go through some hops:
 SHELL ["/bin/bash", "-c"]

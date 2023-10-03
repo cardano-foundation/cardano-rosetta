@@ -10,6 +10,8 @@ Build [from anywhere], _optionally_ specifying a [network] name other than `main
 build argument, and accessing cached build layers to reduce the initialization time. You can also 
 build with local source by replacing the GitHub link with `.`
 
+Note: if you don’t specify `--build-arg USE_IOG_BINARY_CACHE=1`, you will actually be rebuilding our Haskell world from source (including several stages of the Glasgow Haskell Compiler). It’s bound to take a lot of time.
+
 ### Supported Architectures
 - `linux/amd64`
 - `linux/arm64`
@@ -21,6 +23,7 @@ build with local source by replacing the GitHub link with `.`
 DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg USE_IOG_BINARY_CACHE=1 \
   --cache-from=inputoutput/cardano-rosetta:master \
   -t inputoutput/cardano-rosetta:2.1.0 \
   https://github.com/input-output-hk/cardano-rosetta.git#2.1.0
@@ -35,6 +38,7 @@ docker build \
 DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg USE_IOG_BINARY_CACHE=1 \
   --build-arg NETWORK=preprod \
   --cache-from=inputoutput/cardano-rosetta:master \
   -t inputoutput/cardano-rosetta:2.1.0-preprod \
@@ -50,6 +54,7 @@ docker build \
 DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg USE_IOG_BINARY_CACHE=1 \
   --build-arg NETWORK=preview \
   --cache-from=inputoutput/cardano-rosetta:master \
   -t inputoutput/cardano-rosetta:2.1.0-preview \
@@ -154,6 +159,7 @@ For example:
 DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg USE_IOG_BINARY_CACHE=1 \
   --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/13/db-sync-snapshot-schema-13-block-7960123-x86_64.tgz \
   --cache-from=inputoutput/cardano-rosetta:master \
   -t inputoutput/cardano-rosetta:2.1.0-apply-snapshot \
