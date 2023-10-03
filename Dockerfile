@@ -169,7 +169,7 @@ COPY scripts/start_cardano-db-sync.sh scripts/maybe_download_cardano-db-sync_sna
 COPY config/network/${NETWORK} /config/
 RUN chmod -R g+rX,o+rX /ecosystem.config.js /etc/postgresql/12/main/postgresql.conf /scripts
 ENV PGPASSFILE=/config/cardano-db-sync/pgpass
-RUN echo "/var/run/postgresql:5432:cexplorer:*:*" > $PGPASSFILE &&\
+RUN echo "/var/run/postgresql:5432:cexplorer:postgres:*" > $PGPASSFILE &&\
  chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
 RUN mkdir /snapshot &&\
   ./scripts/maybe_download_cardano-db-sync_snapshot.sh $SNAPSHOT_URL /snapshot
