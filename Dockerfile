@@ -15,6 +15,7 @@ RUN apt install curl git -y
 # Note: `sandbox = false` is for compatibility with Podman, Docker doesn’t require it.
 RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix/tag/v0.11.0 | sh -s -- install linux \
   --extra-conf "sandbox = false" \
+  --extra-conf "filter-syscalls = false" \
   --init none --no-confirm
 # Note: if you don’t set USE_IOG_BINARY_CACHE=1, you will be rebuilding our Haskell world from source (including multiple GHC stages).
 ARG USE_IOG_BINARY_CACHE
