@@ -31,6 +31,7 @@ elif [ "$MODE" == "online" ]; then
 
   chown postgres:postgres -R \
     /config \
+    /etc/postgresql \
     $DATA_DIR_DB_SYNC \
     $DATA_DIR_POSTGRES \
     $DATA_DIR_NODE \

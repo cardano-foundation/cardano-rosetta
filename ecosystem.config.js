@@ -17,8 +17,9 @@ module.exports = {
     },
     {
       name: 'cardano-node',
-      script: '/usr/local/bin/cardano-node',
+      script: '/bin/sh',
       args: [
+        '/usr/local/bin/cardano-node',
         'run',
         '--config', '/config/cardano-node/config.json',
         '--database-path', '/data/node-db',
