@@ -1,121 +1,82 @@
 ARG UBUNTU_VERSION=22.04
-FROM ubuntu:${UBUNTU_VERSION} as haskell-builder
-ENV DEBIAN_FRONTEND=nonintercative
-RUN mkdir -p /app/src
-WORKDIR /app
-RUN apt-get update -y && apt-get install -y \
-  autoconf=2.71* \
-  automake=1:1.16.* \
-  build-essential=12.* \
-  g++=4:11.2.* \
-  git=1:2.34.* \
-  jq=1.6* \
-  libffi-dev=3.* \
-  libghc-postgresql-libpq-dev=0.9.4.* \
-  libgmp-dev=2:6.2.* \
-  libncursesw5=6.* \
-  libpq-dev=14.* \
-  libssl-dev=3.0.* \
-  libsystemd-dev=249.* \
-  libtinfo-dev=6.* \
-  libtool=2.4.* \
-  make=4.3* \
-  pkg-config=0.29.* \
-  tmux=3.* \
-  wget=1.21.* \
-  zlib1g-dev=1:1.2.*
-ARG TARGETARCH
-RUN \
-  if [ "$TARGETARCH" = "arm64" ]; then \
-    apt-get install -y libnuma-dev=2.0.* llvm-14; \
-  fi
-ARG CABAL_VERSION=3.6.2.0
-RUN \
-  if [ "$TARGETARCH" = "arm64" ]; then \
-    TARGETARCH1=aarch64; \
-  else \
-    TARGETARCH1=x86_64; \
-  fi; \
-  wget --secure-protocol=TLSv1_2 \
-    https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-${TARGETARCH1}-linux-deb10.tar.xz &&\
-  tar -xf cabal-install-${CABAL_VERSION}-${TARGETARCH1}-linux-deb10.tar.xz &&\
-  rm cabal-install-${CABAL_VERSION}-${TARGETARCH1}-linux-deb10.tar.xz &&\
-  mv cabal /usr/local/bin/
-RUN cabal update
-WORKDIR /app/ghc
-ARG GHC_VERSION=8.10.7
-RUN \
-  if [ "$TARGETARCH" = "arm64" ]; then \
-    TARGETARCH1=aarch64; \
-  else \
-    TARGETARCH1=x86_64; \
-  fi; \
-  wget --secure-protocol=TLSv1_2 \
-    https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-${TARGETARCH1}-deb10-linux.tar.xz &&\
-  tar -xf ghc-${GHC_VERSION}-${TARGETARCH1}-deb10-linux.tar.xz &&\
-  rm ghc-${GHC_VERSION}-${TARGETARCH1}-deb10-linux.tar.xz
-WORKDIR /app/ghc/ghc-${GHC_VERSION}
-RUN ./configure && make install
-WORKDIR /app/src
-ARG IOHK_LIBSODIUM_GIT_REV=11bb20dba02b013bf1d83e3c16c51eab2ff07efc
-RUN git clone https://github.com/input-output-hk/libsodium.git &&\
-  cd libsodium &&\
-  git fetch --all --tags &&\
-  git checkout ${IOHK_LIBSODIUM_GIT_REV}
-WORKDIR /app/src/libsodium
-RUN ./autogen.sh && ./configure && make && make install
-ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
-ENV PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
-WORKDIR /app/src
-RUN git clone https://github.com/bitcoin-core/secp256k1 &&\
-  cd secp256k1 &&\
-  git checkout ac83be33
-WORKDIR /app/src/secp256k1
-RUN ./autogen.sh && ./configure --enable-module-schnorrsig --enable-experimental &&\
-    make && make install
-WORKDIR /app/src
-ARG CARDANO_NODE_VERSION=1.35.5
-RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
-  cd cardano-node &&\
-  git fetch --all --tags &&\
-  git checkout ${CARDANO_NODE_VERSION}
-WORKDIR /app/src/cardano-node
-RUN cabal update
-RUN \
-    cabal build exe:cardano-node \
-      -f -systemd &&\
-    if [ "$TARGETARCH" = "arm64" ]; then \
-      TARGETARCH1=aarch64; \
-    else \
-      TARGETARCH1=x86_64; \
-    fi; \
-    mv ./dist-newstyle/build/${TARGETARCH1}-linux/ghc-${GHC_VERSION}/cardano-node-${CARDANO_NODE_VERSION}/x/cardano-node/build/cardano-node/cardano-node /usr/local/bin/
-RUN \
-    cabal build exe:cardano-cli \
-    -f -systemd &&\
-    if [ "$TARGETARCH" = "arm64" ]; then \
-      TARGETARCH1=aarch64; \
-    else \
-      TARGETARCH1=x86_64; \
-    fi; \
-    mv ./dist-newstyle/build/${TARGETARCH1}-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
-WORKDIR /app/src
+ARG TARGETARCH=amd64
+ARG CARDANO_NODE_VERSION=1.35.7
 ARG CARDANO_DB_SYNC_VERSION=13.1.0.0
-RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
-  cd cardano-db-sync &&\
-  git fetch --all --tags &&\
-  git checkout ${CARDANO_DB_SYNC_VERSION}
-WORKDIR /app/src/cardano-db-sync
-RUN cabal install cardano-db-sync \
-  --install-method=copy \
-  --installdir=/usr/local/bin
-# Cleanup for runtiume-base copy of /usr/local/lib
-RUN rm -rf /usr/local/lib/ghc-${GHC_VERSION} /usr/local/lib/pkgconfig
-
-FROM ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
 ARG NODEJS_MAJOR_VERSION=14
-ENV DEBIAN_FRONTEND=nonintercative
-RUN apt-get update && apt-get install curl -y &&\
+ARG USE_IOG_BINARY_CACHE=
+
+FROM ${TARGETARCH}/ubuntu:${UBUNTU_VERSION} as haskell-builder
+ARG TARGETARCH
+ARG CARDANO_NODE_VERSION
+ARG CARDANO_DB_SYNC_VERSION
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt update -y
+RUN apt install curl git -y
+# Note: `sandbox = false` is for compatibility with Podman, Docker doesn’t require it.
+RUN curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix/tag/v0.11.0 | sh -s -- install linux \
+  --extra-conf "sandbox = false" \
+  --extra-conf "filter-syscalls = false" \
+  --init none --no-confirm
+# Note: if you don’t set USE_IOG_BINARY_CACHE=1, you will be rebuilding our Haskell world from source (including multiple GHC stages).
+ARG USE_IOG_BINARY_CACHE
+RUN \
+  if [ -n "${USE_IOG_BINARY_CACHE}" ] ; then \
+    echo "substituters = https://cache.nixos.org https://cache.iog.io" >>/etc/nix/nix.conf &&\
+    echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ=" >>/etc/nix/nix.conf ;\
+  fi
+ENV PATH="${PATH}:/nix/var/nix/profiles/default/bin"
+# We don’t officially support AArch64, so we have to go through some hops:
+SHELL ["/bin/bash", "-c"]
+RUN mkdir -p /app && cat >/app/default.nix <<<$'\n\
+  let\n\
+    system = "'"$([ "$TARGETPLATFORM" = "linux/arm64" ] && echo "aarch64-linux" || echo "x86_64-linux")"$'";\n\
+    _nodeFlake   = __getFlake "github:input-output-hk/cardano-node/'"${CARDANO_NODE_VERSION}"$'";\n\
+    _dbSyncFlake = __getFlake "github:input-output-hk/cardano-db-sync/'"${CARDANO_DB_SYNC_VERSION}"$'";\n\
+    pkgs = _nodeFlake.inputs.nixpkgs.legacyPackages.${system};\n\
+    nix-bundle-exe = import (fetchTarball "https://github.com/3noch/nix-bundle-exe/archive/3522ae68aa4188f4366ed96b41a5881d6a88af97.zip") { inherit pkgs; };\n\
+    enableAArch64 = original: supportedSystemsPath:\n\
+      if system == "x86_64-linux" then original\n\
+      else if system == "aarch64-linux" then let\n\
+        patched = pkgs.runCommandNoCC "patched" {} "cp -r ${original} $out && chmod -R +w $out && echo ${with pkgs; with lib; escapeShellArg (__toJSON [system])} >$out/${supportedSystemsPath}";\n\
+      in (import _nodeFlake.inputs.flake-compat {\n\
+        src = {\n\
+          inherit (patched) outPath;\n\
+          inherit (original) rev shortRev lastModified lastModifiedDate;\n\
+        };\n\
+      }).defaultNix else throw "unsupported system: ${system}";\n\
+    nodeFlake = enableAArch64 _nodeFlake "nix/supported-systems.nix";\n\
+    dbSyncFlake = enableAArch64 _dbSyncFlake "supported-systems.nix";\n\
+  in\n\
+  # cardano-node doesn’t build for ARM before 1.35.7:\n\
+  assert system != "aarch64-linux" || _nodeFlake.sourceInfo.lastModifiedDate >= "20230328184650";\n\
+  {\n\
+    inherit _nodeFlake;\n\
+    cardano-node    = nix-bundle-exe   nodeFlake.packages.${system}.cardano-node;\n\
+    cardano-cli     = nix-bundle-exe   nodeFlake.packages.${system}.cardano-cli;\n\
+    cardano-db-sync = nix-bundle-exe dbSyncFlake.packages.${system}.cardano-db-sync;\n\
+    schema = pkgs.runCommandNoCC "schema" {} "cp -r ${_dbSyncFlake}/schema $out";\n\
+  }\n\
+  ' && cat /app/default.nix
+SHELL ["/bin/sh", "-c"]
+# Note: ‘GC_DONT_GC=1’ prevents rare segfaults in Nix’s Boehm GC:
+RUN GC_DONT_GC=1 nix-build /app/default.nix -A cardano-node    -o /app/cardano-node
+RUN GC_DONT_GC=1 nix-build /app/default.nix -A cardano-cli     -o /app/cardano-cli
+RUN GC_DONT_GC=1 nix-build /app/default.nix -A cardano-db-sync -o /app/cardano-db-sync
+RUN GC_DONT_GC=1 nix-build /app/default.nix -A schema          -o /app/schema
+RUN mkdir -p /opt && cp -rL /app/cardano-node /app/cardano-cli /app/cardano-db-sync /app/schema /opt/
+
+# One more stage to detect Haskell errors early:
+FROM ${TARGETARCH}/ubuntu:${UBUNTU_VERSION} as haskell-runtime
+COPY --from=haskell-builder /opt/ /opt/
+RUN stat /opt/schema &&\
+  /opt/cardano-node/bin/cardano-node       --version &&\
+  /opt/cardano-cli/bin/cardano-cli         --version &&\
+  /opt/cardano-db-sync/bin/cardano-db-sync --version
+
+FROM ${TARGETARCH}/ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
+ARG NODEJS_MAJOR_VERSION
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install curl gnupg2 lsb-core -y &&\
   curl --proto '=https' --tlsv1.2 -sSf -L https://deb.nodesource.com/setup_${NODEJS_MAJOR_VERSION}.x | bash - &&\
   apt-get install nodejs -y
 
@@ -138,11 +99,10 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/key
   postgresql-12 \
   postgresql-client-12 &&\
   npm install pm2 -g
-COPY --from=haskell-builder /usr/local/lib /usr/local/lib
-COPY --from=haskell-builder /usr/local/bin/cardano-node /usr/local/bin/
-COPY --from=haskell-builder /usr/local/bin/cardano-cli /usr/local/bin/
-COPY --from=haskell-builder /usr/local/bin/cardano-db-sync /usr/local/bin/
-COPY --from=haskell-builder /app/src/cardano-db-sync/schema /cardano-db-sync/schema
+COPY --from=haskell-builder /opt/ /opt/
+RUN ln -s /opt/cardano-node/bin/* /opt/cardano-cli/bin/* /opt/cardano-db-sync/bin/* /usr/local/bin/ &&\
+  mkdir -p /cardano-db-sync &&\
+  ln -s /opt/schema /cardano-db-sync/schema
 # Configure dynamic linker
 RUN ldconfig
 # easy step-down from root
@@ -178,6 +138,7 @@ COPY cardano-rosetta-server/package.json \
   cardano-rosetta-server/yarn.lock \
   cardano-rosetta-server/.yarnrc \
   /app/
+RUN chmod -R g+rX,o+rX /app
 
 FROM rosetta-server-base as rosetta-server-builder
 COPY cardano-rosetta-server/tsconfig-dist.json \
@@ -185,6 +146,7 @@ COPY cardano-rosetta-server/tsconfig-dist.json \
   /app/
 RUN yarn --offline --frozen-lockfile --non-interactive
 COPY cardano-rosetta-server/src /app/src
+RUN chmod -R g+rX,o+rX /app
 RUN yarn build
 
 FROM rosetta-server-base as rosetta-server-production-deps
@@ -192,12 +154,12 @@ RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
 ARG NETWORK=mainnet
-COPY --from=haskell-builder /usr/local/bin/cardano-cli \
-  /usr/local/bin/cardano-node \
-  /usr/local/bin/
+COPY --from=haskell-builder /opt/ /opt/
+RUN ln -s /opt/cardano-node/bin/* /opt/cardano-cli/bin/* /usr/local/bin/
 COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
 COPY config/network/${NETWORK} /config/
+RUN chmod -R g+rX,o+rX /config
 EXPOSE 8080
 CMD ["node", "/cardano-rosetta-server/dist/src/server/index.js"]
 
@@ -211,8 +173,9 @@ COPY ecosystem.config.js .
 COPY postgresql.conf /etc/postgresql/12/main/postgresql.conf
 COPY scripts/start_cardano-db-sync.sh scripts/maybe_download_cardano-db-sync_snapshot.sh /scripts/
 COPY config/network/${NETWORK} /config/
+RUN chmod -R g+rX,o+rX /ecosystem.config.js /etc/postgresql/12/main/postgresql.conf /scripts
 ENV PGPASSFILE=/config/cardano-db-sync/pgpass
-RUN echo "/var/run/postgresql:5432:cexplorer:*:*" > $PGPASSFILE &&\
+RUN echo "/var/run/postgresql:5432:cexplorer:postgres:*" > $PGPASSFILE &&\
  chmod 600 $PGPASSFILE && chown postgres:postgres $PGPASSFILE
 RUN mkdir /snapshot &&\
   ./scripts/maybe_download_cardano-db-sync_snapshot.sh $SNAPSHOT_URL /snapshot
