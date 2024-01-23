@@ -74,7 +74,7 @@ WORKDIR /app/src/secp256k1
 RUN ./autogen.sh && ./configure --enable-module-schnorrsig --enable-experimental &&\
     make && make install
 WORKDIR /app/src
-ARG CARDANO_NODE_VERSION=1.35.5
+ARG CARDANO_NODE_VERSION=8.1.1
 RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
@@ -100,7 +100,7 @@ RUN \
     fi; \
     mv ./dist-newstyle/build/${TARGETARCH1}-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
 WORKDIR /app/src
-ARG CARDANO_DB_SYNC_VERSION=13.1.0.0
+ARG CARDANO_DB_SYNC_VERSION=13.1.1.3
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
