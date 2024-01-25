@@ -57,7 +57,7 @@ RUN \
 WORKDIR /app/ghc/ghc-${GHC_VERSION}
 RUN ./configure && make install
 WORKDIR /app/src
-ARG IOHK_LIBSODIUM_GIT_REV=11bb20dba02b013bf1d83e3c16c51eab2ff07efc
+ARG IOHK_LIBSODIUM_GIT_REV=dbb48cce5429cb6585c9034f002568964f1ce567
 RUN git clone https://github.com/input-output-hk/libsodium.git &&\
   cd libsodium &&\
   git fetch --all --tags &&\
