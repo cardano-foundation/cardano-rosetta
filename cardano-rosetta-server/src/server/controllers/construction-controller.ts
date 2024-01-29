@@ -10,7 +10,7 @@ import {
   mapAmount,
   mapToConstructionHashResponse
 } from '../utils/data-mapper';
-import { ErrorFactory, ErrorUtils } from '../utils/errors';
+import { ErrorFactory, ErrorUtils, getErrorMessage } from '../utils/errors';
 import { withNetworkValidation } from './controllers-helper';
 import { CardanoCli } from '../utils/cardano/cli/cardanonode-cli';
 import { NetworkService } from '../services/network-service';
@@ -292,11 +292,11 @@ const configure = (
           // eslint-disable-next-line camelcase
           return { transaction_identifier: { hash: transactionHash } };
         } catch (error) {
-          request.log.error(error);
+          request.log.error(error as Error);
           if (error instanceof ApiError) throw error;
-          return ErrorUtils.resolveApiErrorFromNodeError(error.message)
+          return ErrorUtils.resolveApiErrorFromNodeError(getErrorMessage(error))
             .then((mappedError: ApiError) => mappedError)
-            .catch(() => ErrorFactory.sendTransactionError(error.message));
+            .catch(() => ErrorFactory.sendTransactionError(getErrorMessage(error)));
         }
       },
       request.log,

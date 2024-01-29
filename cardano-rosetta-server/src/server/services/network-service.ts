@@ -51,9 +51,9 @@ const getPeersFromConfig = (logger: Logger, topologyFile: TopologyConfig): Peer[
 };
 
 const getExemptionFile = (logger: Logger): Components.Schemas.BalanceExemption[] => {
-  if (exemptionsFile === []) {
+  if (exemptionsFile.length === 0) {
     try {
-      exemptionsFile = JSON.parse(filePath ? fs.readFileSync(path.resolve(filePath)).toString() : filePath);
+      exemptionsFile = filePath ? JSON.parse(fs.readFileSync(path.resolve(filePath)).toString()) : [];
       return exemptionsFile;
     } catch (error) {
       logger.error('[getExemptionFile]', error);

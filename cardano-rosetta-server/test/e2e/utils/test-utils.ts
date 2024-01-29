@@ -143,6 +143,7 @@ export const modifyPoolKeyHash = (
     findBy((operation: Components.Schemas.Operation) => operation && operation.type === operationType),
     'metadata',
     'pool_key_hash'
+  // @ts-ignore FIXME
   )(() => poolKeyHash)(payload);
 
 export const modfyPoolParameters = (
@@ -156,6 +157,7 @@ export const modfyPoolParameters = (
     ),
     'metadata',
     'poolRegistrationParams'
+  // @ts-ignore FIXME
   )(() => poolParameters)(payload);
 
 export const modifyAccount = (

@@ -6,6 +6,8 @@ import { setupDatabase, setupServer } from '../utils/test-utils';
 import { generateNetworkPayload } from '../network/common';
 import { CARDANO, MAINNET } from '../../../src/server/utils/constants';
 
+let dbClosed = false;
+
 const genericErrorMatcher = (regexp: RegExp) =>
   expect.objectContaining({
     code: 5000,
@@ -28,7 +30,7 @@ describe('Server test', () => {
   });
 
   afterAll(async () => {
-    await database.end();
+    if (!dbClosed) await database.end();
   });
 
   test('should return a generic error if payload is not valid', async () => {
@@ -46,6 +48,7 @@ describe('Server test', () => {
 
   test('should return a generic error if there is db connection problem', async () => {
     await database.end();
+    dbClosed = true;
     const response = await server.inject({
       method: 'post',
       url: '/network/status',

@@ -40,7 +40,7 @@ const buildServer = (
   const server = fastify({ logger: { level: logLevel }, bodyLimit: getBodyLimit() });
   const { networkId, pageSize, mock, disableSearchApi } = extraParameters;
   if (!mock) server.register(metricsPlugin, { endpoint: '/metrics' });
-  server.register(fastifyBlipp);
+  // server.register(fastifyBlipp); TODO
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,
     service: Controllers.configure(services, cardanoCli, cardanoNode, pageSize, disableSearchApi),

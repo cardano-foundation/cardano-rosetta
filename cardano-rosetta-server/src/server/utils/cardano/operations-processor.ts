@@ -26,13 +26,14 @@ import {
   OperationType,
   RelayType
 } from '../constants';
-import { ErrorFactory } from '../errors';
+import { ErrorFactory, getErrorMessage } from '../errors';
 import { add0xPrefix, bytesToHex, hexStringToBuffer } from '../formatters';
 import { isEd25519Signature, isKeyValid, isPolicyIdValid, isTokenNameValid } from '../validations';
 import { generateRewardAddress, generateAddress, parseToRewardAddress } from './addresses';
 import { getPublicKey, getStakingCredentialFromHex } from './staking-credentials';
 import { parsePoolOwners, parsePoolRewardAccount } from './transactions-processor';
 import { ManagedFreeableScope } from '../freeable';
+import ApiError from '../../api-error';
 
 const isPositiveNumber = (value: string): boolean => /^\+?\d+/.test(value);
 
@@ -92,7 +93,7 @@ const validateAndParseTransactionOutput = (
     address = output.account && generateAddress(scope, output.account.address);
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(
-      `Invalid input: ${output.account?.address} - ${error.toString()}`
+      `Invalid input: ${output.account?.address} - ${getErrorMessage(error)}`
     );
   }
   if (!address) {
@@ -115,7 +116,7 @@ const validateAndParseTransactionOutput = (
     return scope.manage(CardanoWasm.TransactionOutput.new(address, value));
   } catch (error) {
     throw ErrorFactory.transactionOutputDeserializationError(
-      `Invalid input: ${output.account?.address} - ${error.toString()}`
+      `Invalid input: ${output.account?.address} - ${getErrorMessage(error)}`
     );
   }
 };
@@ -152,7 +153,7 @@ const validateAndParseTransactionInput = (
     );
   } catch (error) {
     throw ErrorFactory.transactionInputDeserializationError(
-      'There was an error deserializating transaction input: '.concat(error)
+      'There was an error deserializating transaction input: '.concat(getErrorMessage(error))
     );
   }
 };
@@ -182,7 +183,7 @@ const validateAndParsePoolKeyHash = (
     parsedPoolKeyHash = scope.manage(CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(poolKeyHash, 'hex')));
   } catch (error) {
     logger.error('[validateAndParsePoolKeyHash] invalid pool key hash');
-    throw ErrorFactory.invalidPoolKeyError(error);
+    throw ErrorFactory.invalidPoolKeyError(getErrorMessage(error));
   }
   return parsedPoolKeyHash;
 };
@@ -236,7 +237,7 @@ const validateAndParsePoolOwners = (
     });
   } catch (error) {
     logger.error('[validateAndParsePoolOwners] there was an error parsing pool owners');
-    throw ErrorFactory.invalidPoolOwnersError(error);
+    throw ErrorFactory.invalidPoolOwnersError(getErrorMessage(error));
   }
   if (parsedOwners.len() !== owners.length)
     throw ErrorFactory.invalidPoolOwnersError('Invalid pool owners addresses provided');
@@ -265,7 +266,7 @@ export const validateAndParsePoolRegistrationCert = (
     parsedCertificate = scope.manage(CardanoWasm.Certificate.from_bytes(Buffer.from(poolRegistrationCert, 'hex')));
   } catch (error) {
     logger.error('[validateAndParsePoolRegistrationCert] invalid pool registration certificate');
-    throw ErrorFactory.invalidPoolRegistrationCert(error);
+    throw ErrorFactory.invalidPoolRegistrationCert(getErrorMessage(error));
   }
   const poolRegistration = scope.manage(parsedCertificate.as_pool_registration());
   if (!poolRegistration) {
@@ -379,7 +380,7 @@ const generateSpecificRelay = (
     }
   } catch (error) {
     logger.error('[validateAndParsePoolRelays] invalid pool relay');
-    throw ErrorFactory.invalidPoolRelaysError(error);
+    throw ErrorFactory.invalidPoolRelaysError(getErrorMessage(error));
   }
 };
 
@@ -432,8 +433,9 @@ const validateAndParsePoolRegistationParameters = (
     });
     return parsedPoolParams;
   } catch (error) {
+    const error_ = error as ApiError;
     logger.error('[validateAndParsePoolRegistationParameters] Given pool parameters are invalid');
-    throw ErrorFactory.invalidPoolRegistrationParameters(error?.details?.message ? error.details.message : error);
+    throw ErrorFactory.invalidPoolRegistrationParameters(error_.details?.message ?? getErrorMessage(error));
   }
 };
 
@@ -453,7 +455,7 @@ const validateAndParsePoolMetadata = (
       );
   } catch (error) {
     logger.error('[validateAndParsePoolMetadata] invalid pool metadata');
-    throw ErrorFactory.invalidPoolMetadataError(error);
+    throw ErrorFactory.invalidPoolMetadataError(getErrorMessage(error));
   }
   return parsedMetadata;
 };
@@ -704,7 +706,7 @@ const operationProcessor: (
   },
   [OperationType.WITHDRAWAL]: () => {
     const { reward, address } = processWithdrawal(scope, logger, network, operation);
-    const withdrawalAmount = BigInt(operation.amount?.value);
+    const withdrawalAmount = BigInt(operation.amount?.value || 0);
     resultAccumulator.withdrawalAmounts.push(withdrawalAmount);
     resultAccumulator.withdrawals.insert(reward, scope.manage(BigNum.from_str(withdrawalAmount.toString())));
     resultAccumulator.addresses.push(address);
