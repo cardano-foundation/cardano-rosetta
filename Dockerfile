@@ -127,6 +127,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://dl.yarnpkg.com/debian/pubkey
 FROM ubuntu-nodejs as runtime-base
 ARG TARGETARCH
 RUN \
+  apt-get update -y && apt-get install lsb-release -y; \
   if [ "$TARGETARCH" = "arm64" ]; then \
     apt-get update -y && apt-get install -y libnuma-dev=2.0.*; \
   fi
