@@ -1,6 +1,11 @@
 {
   "parser": "@typescript-eslint/parser",
-  "extends": ["@atixlabs/eslint-config/configurations/node", "plugin:@typescript-eslint/recommended"],
+  "plugins": ["prettier", "sonarjs"],
+  "extends": [
+    "plugin:sonarjs/recommended",
+    "plugin:unicorn/recommended",
+    "plugin:@typescript-eslint/recommended",
+  ],
   "ignorePatterns": ["rosetta-types.d.ts"],
   "settings": {
     "import/resolver": {
@@ -8,6 +13,23 @@
     }
   },
   "rules": {
+    "prettier/prettier": "error",
+    "strict": "off",
+    "curly": "off",
+    "indent": "off",
+    "max-statements": ["error", 30],
+    "quote-props": "off",
+    "arrow-parens": "off",
+    "no-extra-parens": "off",
+    "max-len": ["warn", 120],
+    "nonblock-statement-body-position": "off",
+    // Deprecated https://eslint.org/blog/2018/11/jsdoc-end-of-life
+    "valid-jsdoc": "off",
+    "require-jsdoc": "off",
+    "operator-linebreak": "off",
+    "max-params": ["error", 5],
+    "object-property-newline": "off",
+    "filenames/match-regex": "off", // As this rule is already defined by unicorn/filename-case
     "quotes": ["error", "single", { "avoidEscape": true }],
     "unicorn/numeric-separators-style": "off",
     "unicorn/prefer-spread": "off",
@@ -17,6 +39,7 @@
     "unicorn/no-null": "off",
     "unicorn/no-array-for-each": "off",
     "unicorn/prefer-top-level-await": "off",
+    "unicorn/expiring-todo-comments": "off",
     "sonarjs/no-nested-template-literals": "off",
     "no-shadow": "off",
     "@typescript-eslint/no-shadow": ["error"]
