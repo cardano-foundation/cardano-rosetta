@@ -177,7 +177,7 @@ const configure = (
           logger
         );
         logger.debug(`[constructionMetadata] received protocol parameters from block-service ${protocolParameters}`);
-        const suggestedFee: BigInt = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParameters);
+        const suggestedFee: bigint = cardanoService.calculateTxMinimumFee(updatedTxSize, protocolParameters);
         logger.debug(`[constructionMetadata] suggested fee is ${suggestedFee}`);
         // eslint-disable-next-line camelcase
         return {
@@ -204,7 +204,7 @@ const configure = (
           logger,
           networkIdentifier,
           operations,
-          parseInt(ttl),
+          Number.parseInt(ttl),
           { keyDeposit, poolDeposit }
         );
         const payloads = constructPayloadsForTransactionBody(unsignedTransaction.hash, unsignedTransaction.addresses);

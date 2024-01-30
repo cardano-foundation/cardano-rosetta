@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-magic-numbers */
 /* eslint-disable camelcase */
 import StatusCodes from 'http-status-codes';

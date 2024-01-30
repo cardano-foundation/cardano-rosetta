@@ -48,7 +48,7 @@ export const parseEnvironment = (): Environment => {
   let topologyFile: TopologyConfig;
   try {
     topologyFile = JSON.parse(fs.readFileSync(path.resolve(environment.TOPOLOGY_FILE_PATH)).toString());
-  } catch (error) {
+  } catch {
     throw configNotFoundError();
   }
   return { ...environment, TOPOLOGY_FILE: topologyFile };

@@ -8,18 +8,6 @@ import path from 'path';
 const filePath = process.env.EXEMPTION_TYPES_PATH;
 let exemptionsFile: Components.Schemas.BalanceExemption[] = [];
 
-export interface NetworkStatus {
-  latestBlock: Block;
-  genesisBlock: GenesisBlock;
-  peers: Peer[];
-}
-
-export interface NetworkService {
-  getSupportedNetwork(): Network;
-  getExemptionTypes(logger: Logger): Components.Schemas.BalanceExemption[];
-  getNetworkStatus(logger: Logger): Promise<NetworkStatus>;
-}
-
 interface Producer {
   addr: string;
 }
@@ -38,6 +26,18 @@ export interface TopologyConfig {
 
 export interface Peer {
   addr: string;
+}
+
+export interface NetworkStatus {
+  latestBlock: Block;
+  genesisBlock: GenesisBlock;
+  peers: Peer[];
+}
+
+export interface NetworkService {
+  getSupportedNetwork(): Network;
+  getExemptionTypes(logger: Logger): Components.Schemas.BalanceExemption[];
+  getNetworkStatus(logger: Logger): Promise<NetworkStatus>;
 }
 
 const getPublicRoots = (publicRoots?: PublicRoot[]) =>

@@ -11,7 +11,7 @@ import {
 } from '../models';
 import { ErrorFactory } from '../utils/errors';
 import { BlockchainRepository } from '../db/blockchain-repository';
-import { CardanoService, LinearFeeParameters } from './cardano-services';
+import { CardanoService } from './cardano-services';
 
 /* eslint-disable camelcase */
 export interface BlockService {

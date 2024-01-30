@@ -18,7 +18,7 @@ export interface ConstructionService {
 }
 
 const configure = (blockService: BlockService, defaultRelativeTTL: number): ConstructionService => ({
-  calculateRelativeTtl: relativeTtl => (relativeTtl ? relativeTtl : defaultRelativeTTL),
+  calculateRelativeTtl: relativeTtl => relativeTtl ?? defaultRelativeTTL,
 
   calculateTtl: async (logger, ttlOffset) => {
     const latestBlock = await blockService.getLatestBlock(logger);

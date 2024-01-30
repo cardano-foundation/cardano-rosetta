@@ -14,7 +14,6 @@ import {
   transactionBlock4853177WithPoolRetirement,
   transactionWithPoolRegistrationWithMultipleOwners,
   transactionWithBadFormedVote,
-  invalidAlonzoTransaction,
   transactionWithVoteOperation
 } from '../fixture-data';
 import { setupDatabase, setupServer } from '../utils/test-utils';

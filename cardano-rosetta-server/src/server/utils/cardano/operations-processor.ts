@@ -196,7 +196,7 @@ const validateAndParseRewardAddress = (
   let rewardAddress: CardanoWasm.RewardAddress | undefined;
   try {
     rewardAddress = parseToRewardAddress(scope, rwrdAddress);
-  } catch (error) {
+  } catch {
     logger.error(`[validateAndParseRewardAddress] invalid reward address ${rwrdAddress}`);
     throw ErrorFactory.invalidAddressError();
   }
@@ -243,6 +243,21 @@ const validateAndParsePoolOwners = (
     throw ErrorFactory.invalidPoolOwnersError('Invalid pool owners addresses provided');
   return parsedOwners;
 };
+
+export interface ProcessOperationsResult {
+  transactionInputs: CardanoWasm.TransactionInputs;
+  transactionOutputs: CardanoWasm.TransactionOutputs;
+  certificates: CardanoWasm.Certificates;
+  withdrawals: CardanoWasm.Withdrawals;
+  addresses: string[];
+  inputAmounts: string[];
+  outputAmounts: string[];
+  withdrawalAmounts: bigint[];
+  stakeKeyRegistrationsCount: number;
+  stakeKeyDeRegistrationsCount: number;
+  poolRegistrationsCount: number;
+  voteRegistrationMetadata: CardanoWasm.AuxiliaryData | undefined;
+}
 
 export const validateAndParsePoolRegistrationCert = (
   scope: ManagedFreeableScope,
@@ -323,7 +338,7 @@ const parseIpv4 = (scope: ManagedFreeableScope, ip?: string): CardanoWasm.Ipv4 |
 
 const parseIpv6 = (scope: ManagedFreeableScope, ip?: string): CardanoWasm.Ipv6 | undefined => {
   if (ip) {
-    const parsedIp = Buffer.from(ip.replace(/:/g, ''), 'hex');
+    const parsedIp = Buffer.from(ip.replaceAll(':', ''), 'hex');
     return scope.manage(CardanoWasm.Ipv6.new(parsedIp));
   }
   return ip as undefined;
@@ -738,21 +753,6 @@ const operationProcessor: (
     return resultAccumulator;
   }
 });
-
-export interface ProcessOperationsResult {
-  transactionInputs: CardanoWasm.TransactionInputs;
-  transactionOutputs: CardanoWasm.TransactionOutputs;
-  certificates: CardanoWasm.Certificates;
-  withdrawals: CardanoWasm.Withdrawals;
-  addresses: string[];
-  inputAmounts: string[];
-  outputAmounts: string[];
-  withdrawalAmounts: bigint[];
-  stakeKeyRegistrationsCount: number;
-  stakeKeyDeRegistrationsCount: number;
-  poolRegistrationsCount: number;
-  voteRegistrationMetadata: CardanoWasm.AuxiliaryData | undefined;
-}
 
 /**
  * Processes the given operations and generates according Cardano related objects to be used

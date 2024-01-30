@@ -11,7 +11,7 @@ import { CardanoCli } from './utils/cardano/cli/cardanonode-cli';
 import { CardanoNode } from './utils/cardano/cli/cardano-node';
 import { ErrorFactory } from './utils/errors';
 
-interface ExtraParams {
+interface ExtraParameters {
   networkId: string;
   pageSize: number;
   mock?: boolean;
@@ -19,8 +19,8 @@ interface ExtraParams {
 }
 
 const getBodyLimit = (): number | undefined => {
-  const bodyLimit = parseInt(process.env.BODY_LIMIT, 10);
-  return !Number.isNaN(bodyLimit) ? bodyLimit : undefined;
+  const bodyLimit = Number.parseInt(process.env.BODY_LIMIT, 10);
+  return Number.isNaN(bodyLimit) ? undefined : bodyLimit;
 };
 
 /**
@@ -35,12 +35,14 @@ const buildServer = (
   cardanoCli: CardanoCli,
   cardanoNode: CardanoNode,
   logLevel: string,
-  extraParameters: ExtraParams
+  extraParameters: ExtraParameters
 ): fastify.FastifyInstance<Server, IncomingMessage, ServerResponse> => {
   const server = fastify({ logger: { level: logLevel }, bodyLimit: getBodyLimit() });
-  const { networkId, pageSize, mock, disableSearchApi } = extraParameters;
+  const { pageSize, mock, disableSearchApi } = extraParameters;
   if (!mock) server.register(metricsPlugin, { endpoint: '/metrics' });
-  // server.register(fastifyBlipp); TODO
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore Types don't fit here but nothing was introduced. It should be checked later.
+  server.register(fastifyBlipp);
   server.register(openapiGlue, {
     specification: `${__dirname}/openApi.json`,
     service: Controllers.configure(services, cardanoCli, cardanoNode, pageSize, disableSearchApi),

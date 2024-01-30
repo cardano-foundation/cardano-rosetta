@@ -141,10 +141,13 @@ export const modifyPoolKeyHash = (
   mod(
     'operations',
     findBy((operation: Components.Schemas.Operation) => operation && operation.type === operationType),
-    'metadata',
-    'pool_key_hash'
-  // @ts-ignore FIXME
-  )(() => poolKeyHash)(payload);
+    'metadata'
+  )(metadata => {
+    const toReturn = metadata ?? {};
+    // eslint-disable-next-line camelcase
+    toReturn.pool_key_hash = poolKeyHash;
+    return toReturn;
+  })(payload);
 
 export const modfyPoolParameters = (
   payload: Components.Schemas.ConstructionPayloadsRequest,
@@ -155,10 +158,13 @@ export const modfyPoolParameters = (
     findBy(
       (operation: Components.Schemas.Operation) => operation && operation.type === OperationType.POOL_REGISTRATION
     ),
-    'metadata',
-    'poolRegistrationParams'
-  // @ts-ignore FIXME
-  )(() => poolParameters)(payload);
+    'metadata'
+  )(metadata => {
+    const toReturn = metadata ?? {};
+    // eslint-disable-next-line camelcase
+    toReturn.poolRegistrationParams = poolParameters;
+    return toReturn;
+  })(payload);
 
 export const modifyAccount = (
   payload: Components.Schemas.ConstructionPayloadsRequest,

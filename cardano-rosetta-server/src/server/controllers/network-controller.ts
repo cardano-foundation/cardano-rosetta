@@ -75,7 +75,7 @@ const configure = (networkService: NetworkService, cardanoNode: CardanoNode): Ne
             operation_statuses: [SUCCESS_OPERATION_STATE, INVALID_OPERATION_STATE],
             operation_types: OPERATION_TYPES,
             errors: Object.values(ErrorFactory)
-              .map(fn => fn())
+              .map(function_ => function_())
               // Return them sorted by code
               .sort((error1, error2) => error1.code - error2.code),
             historical_balance_lookup: true,

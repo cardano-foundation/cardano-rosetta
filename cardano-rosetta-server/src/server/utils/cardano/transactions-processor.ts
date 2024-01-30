@@ -61,8 +61,8 @@ export const parsePoolOwners = (
     const poolOwners: Array<string> = [];
     const owners = scope.manage(poolParameters.pool_owners());
     const ownersCount = owners.len();
-    for (let i = 0; i < ownersCount; i++) {
-      const owner = scope.manage(owners.get(i));
+    for (let index = 0; index < ownersCount; index++) {
+      const owner = scope.manage(owners.get(index));
       const address = generateRewardAddress(
         logger,
         network,
@@ -85,7 +85,7 @@ export const parsePoolRewardAccount = (
 const parseIpv4 = (wasmIp?: CardanoWasm.Ipv4): string | undefined => {
   if (wasmIp) {
     const ip = wasmIp.ip().toString();
-    return ip.replace(/,/g, '.');
+    return ip.replaceAll(',', '.');
   }
   return wasmIp;
 };
@@ -94,9 +94,9 @@ const parseIpv6 = (wasmIp?: CardanoWasm.Ipv6): string | undefined => {
   if (wasmIp) {
     const parsedIp = Buffer.from(wasmIp.ip()).toString('hex');
     const finalParse = [];
-    for (let i = 0; i < parsedIp.length; i += QUARTER) {
-      const end = i + QUARTER;
-      finalParse.push(parsedIp.slice(i, end));
+    for (let index = 0; index < parsedIp.length; index += QUARTER) {
+      const end = index + QUARTER;
+      finalParse.push(parsedIp.slice(index, end));
     }
     return finalParse.join(':');
   }
@@ -108,8 +108,8 @@ const parsePoolRelays = (poolParameters: CardanoWasm.PoolParams): Array<Componen
     const poolRelays: Array<Components.Schemas.Relay> = [];
     const relays = scope.manage(poolParameters.relays());
     const relaysCount = relays.len();
-    for (let i = 0; i < relaysCount; i++) {
-      const relay = scope.manage(relays.get(i));
+    for (let index = 0; index < relaysCount; index++) {
+      const relay = scope.manage(relays.get(index));
       const multiHostRelay = scope.manage(relay.as_multi_host_name());
       if (multiHostRelay) {
         poolRelays.push({ type: RelayType.MULTI_HOST_NAME, dnsName: scope.manage(multiHostRelay.dns_name()).record() });
@@ -168,8 +168,8 @@ const keys = (
   collection: CardanoWasm.Assets | CardanoWasm.MultiAsset
 ): (CardanoWasm.AssetName | CardanoWasm.ScriptHash)[] => {
   const keysArray = [];
-  for (let j = 0; j < collection.len(); j++) {
-    keysArray.push(collection.keys().get(j));
+  for (let index = 0; index < collection.len(); index++) {
+    keysArray.push(collection.keys().get(index));
   }
   return keysArray;
 };
@@ -319,8 +319,8 @@ const parseCertsToOperations = (
     const certsCount = certs?.len() || 0;
     logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
 
-    for (let i = 0; i < certsCount; i++) {
-      const certOperation = certOps[i];
+    for (let index = 0; index < certsCount; index++) {
+      const certOperation = certOps[index];
       if (StakingOperations.includes(certOperation.type as OperationType)) {
         const hex = certOperation.metadata?.staking_credential?.hex_bytes;
         if (!hex) {
@@ -329,7 +329,7 @@ const parseCertsToOperations = (
         }
         const credential = getStakingCredentialFromHex(scope, logger, certOperation.metadata?.staking_credential);
         const address = generateRewardAddress(logger, network, credential);
-        const cert = scope.manage(certs?.get(i));
+        const cert = scope.manage(certs?.get(index));
         if (cert) {
           const parsedOperation = parseCertToOperation(
             cert,
@@ -341,7 +341,7 @@ const parseCertsToOperations = (
           parsedOperations.push(parsedOperation);
         }
       } else {
-        const cert = scope.manage(certs?.get(i));
+        const cert = scope.manage(certs?.get(index));
         if (cert) {
           const parsedOperation = parsePoolCertToOperation(
             logger,
@@ -389,8 +389,8 @@ const parseWithdrawalsToOperations = (
 ) =>
   usingAutoFree(scope => {
     logger.info(`[parseWithdrawalsToOperations] About to parse ${withdrawalsCount} withdrawals`);
-    for (let i = 0; i < withdrawalsCount; i++) {
-      const withdrawalOperation = withdrawalOps[i];
+    for (let index = 0; index < withdrawalsCount; index++) {
+      const withdrawalOperation = withdrawalOps[index];
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const credential = getStakingCredentialFromHex(scope, logger, withdrawalOperation.metadata!.staking_credential);
       const address = generateRewardAddress(logger, network, credential);
@@ -488,16 +488,16 @@ export const convert = (
     const outputs = scope.manage(transactionBody.outputs());
     logger.info(`[parseOperationsFromTransactionBody] About to parse ${inputs.len()} inputs`);
     const inputOperations = extraData.operations.filter(({ type }) => type === OperationType.INPUT);
-    for (let i = 0; i < inputs.len(); i++) {
-      const input = scope.manage(inputs.get(i));
+    for (let index = 0; index < inputs.len(); index++) {
+      const input = scope.manage(inputs.get(index));
       const inputParsed = parseInputToOperation(input, operations.length);
-      operations.push({ ...inputParsed, ...inputOperations[i], status: '' });
+      operations.push({ ...inputParsed, ...inputOperations[index], status: '' });
     }
     // till this line operations only contains inputs
     const relatedOperations = getRelatedOperationsFromInputs(operations);
     logger.info(`[parseOperationsFromTransactionBody] About to parse ${outputs.len()} outputs`);
-    for (let i = 0; i < outputs.len(); i++) {
-      const output = scope.manage(outputs.get(i));
+    for (let index = 0; index < outputs.len(); index++) {
+      const output = scope.manage(outputs.get(index));
       const address = parseAddress(scope.manage(output.address()), getAddressPrefix(network));
       const outputParsed = parseOutputToOperation(logger, output, operations.length, relatedOperations, address);
       operations.push(outputParsed);

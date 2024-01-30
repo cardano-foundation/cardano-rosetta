@@ -8,6 +8,17 @@
     }
   },
   "rules": {
-    "quotes": ["error", "single", { "avoidEscape": true }]
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "unicorn/numeric-separators-style": "off",
+    "unicorn/prefer-spread": "off",
+    "unicorn/prefer-node-protocol": "off",
+    "unicorn/prefer-module": "off",
+    "unicorn/no-array-reduce": "off",
+    "unicorn/no-null": "off",
+    "unicorn/no-array-for-each": "off",
+    "unicorn/prefer-top-level-await": "off",
+    "sonarjs/no-nested-template-literals": "off",
+    "no-shadow": "off",
+    "@typescript-eslint/no-shadow": ["error"]
   }
 }
