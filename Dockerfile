@@ -74,7 +74,7 @@ WORKDIR /app/src/secp256k1
 RUN ./autogen.sh && ./configure --enable-module-schnorrsig --enable-experimental &&\
     make && make install
 WORKDIR /app/src
-ARG CARDANO_NODE_VERSION=8.1.1
+ARG CARDANO_NODE_VERSION=8.1.2
 RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
