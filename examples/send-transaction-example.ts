@@ -13,37 +13,44 @@ import {
   waitForBalanceToBe,
   buildOperation,
   generateKeys,
+  getPaymentPrivateKeyAsHex, getPaymentPrivateKey, getPaymentPublicKeyAsHex, getPaymentKeys,
 } from "./commons";
+import { vars } from "./variables";
 const logger = console;
-
-const PRIVATE_KEY =
-  "41d9523b87b9bd89a4d07c9b957ae68a7472d8145d7956a692df1a8ad91957a2c117d9dd874447f47306f50a650f1e08bf4bec2cfcb2af91660f23f2db912977";
-const SEND_FUNDS_ADDRESS =
-  "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
-
+/**
+ * Test is using vars.PRIVATE_KEY and vars.SEND_FUNDS_ADDRESS
+ */
 const doRun = async (): Promise<void> => {
+  if (vars.MNEMONIC == undefined || vars.SEND_FUNDS_ADDRESS == undefined) {
+    logger.error(`Please set the MNEMONIC and SEND_FUNDS_ADDRESS in in variables.ts`);
+  }
+
   const keyAddressMapper = {};
-  const keys = generateKeys(PRIVATE_KEY);
+  const keys = getPaymentKeys();
   logger.info(
-    `[doRun] secretKey ${Buffer.from(keys.secretKey).toString("hex")}`
+    `[doRun] secretKey ${Buffer.from(keys.secretKey.as_bytes()).toString("hex")}`
   );
+
   const address = await constructionDerive(
-    Buffer.from(keys.publicKey).toString("hex")
+      Buffer.from(keys.publicKey.to_raw_key().as_bytes()).toString("hex")
   );
   keyAddressMapper[address] = keys;
   const { unspents, balances } = await waitForBalanceToBe(
     address,
-    (response) => response.coins.length !== 0
+    (response) => response.coins.length !== 0, // check if there are any coins
+    (response) => Number(response.balances[0].value) > 0, // check if there is ADA
   );
+
   const builtOperations = buildOperation(
     unspents,
     balances,
     address,
-    SEND_FUNDS_ADDRESS
+    vars.SEND_FUNDS_ADDRESS
   );
+
   const preprocess = await constructionPreprocess(
     builtOperations.operations,
-    1000
+    10
   );
   const metadata = await constructionMetadata(preprocess);
   const payloads = await constructionPayloads({

@@ -14,18 +14,16 @@ import {
   signPayloads,
   waitForBalanceToBe,
   buildOperation,
-  generateKeys,
+  generateKeys, getPaymentPrivateKey, getPaymentKeys, getStakeKeys,
 } from "./commons";
+import { vars } from "./variables";
 const logger = console;
 
-const SEND_FUNDS_ADDRESS =
-  "addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3";
-const STAKE_POOL_KEY_HASH =
-  "6be215192dc01e5ca4cfba0959586f581a865bfccc2984478dad1657";
 
 const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};
-  const paymentKeys = generateKeys();
+
+  const paymentKeys = getPaymentKeys();
   logger.info(
     `[doRun] payment secretKey ${Buffer.from(paymentKeys.secretKey).toString(
       "hex"
@@ -33,15 +31,18 @@ const doRun = async (): Promise<void> => {
   );
   const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
 
-  const stakingKeys = generateKeys();
+  const stakingKeys = getStakeKeys();
   logger.info(
     `[doRun] staking secretKey ${Buffer.from(stakingKeys.secretKey).toString(
       "hex"
     )}`
   );
+
   const stakingPublicKey = Buffer.from(stakingKeys.publicKey).toString("hex");
   const stakeAddress = await constructionDerive(stakingPublicKey, "Reward");
+
   logger.info(`[doRun] stake address is ${stakeAddress}`);
+
   keyAddressMapper[stakeAddress] = stakingKeys;
 
   const paymentAddress = await constructionDerive(
@@ -59,8 +60,8 @@ const doRun = async (): Promise<void> => {
     unspents,
     balances,
     paymentAddress,
-    SEND_FUNDS_ADDRESS,
-    true
+    vars.SEND_FUNDS_ADDRESS,
+    false
   );
   const currentIndex = builtOperations.operations.length - 1;
   const builtRegistrationOperation = buildRegistrationOperation(
@@ -70,7 +71,7 @@ const doRun = async (): Promise<void> => {
   const builtDelegationOperation = buildDelegationOperation(
     stakingPublicKey,
     currentIndex + 1,
-    STAKE_POOL_KEY_HASH
+    vars.STAKE_POOL_KEY_HASH
   );
   builtOperations.operations.push(builtRegistrationOperation);
   builtOperations.operations.push(builtDelegationOperation);
