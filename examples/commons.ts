@@ -104,8 +104,8 @@ const constructionPreprocess = async (
   deposit_parameters = depositParameters
 ) => {
   const response = await httpClient.post("/construction/preprocess", {
-    network_identifier,
-    operations,
+    network_identifier: network_identifier,
+    operations: operations,
     metadata: { relative_ttl, deposit_parameters },
   });
   return response.data.options;
@@ -115,8 +115,99 @@ const constructionMetadata = async (options: any) => {
     network_identifier,
     options,
   });
-  return response.data.metadata;
+  return response.data;
 };
+
+const buildOperationsToPayAda = (
+    unspents: any,
+    balances: any,
+    address: string,
+    destination: string,
+    ada_to_pay: number
+    ) => {
+      let availableAda = balances.balances.reduce((acc: number , value ) => value.currency.symbol == "ADA" ? acc + Number(value.value) : acc, 0);
+      if (availableAda < ada_to_pay) {
+          throw new Error(`Not enough funds to pay ${ada_to_pay} ADA`);
+      }
+      // lets find the first unspent that has enough ada
+      let unspentsEnoughToPayAda = unspents.coins.filter((coin: any) => Number(coin.amount.value) > ada_to_pay && coin.amount.currency.symbol == "ADA");
+      if(unspentsEnoughToPayAda.length == 0) {
+        throw new Error(`No UTXO is big enough to pay ${ada_to_pay} ADA. Multiple UTXOs are not supported yet.`);
+      }
+      const utxoToPay = unspentsEnoughToPayAda.sort((a: any, b: any) => Number(a.amount.value) - Number(b.amount.value))[0];
+      let operations = [];
+      operations.push({
+        operation_identifier: {
+          index: 0,
+          network_index: 0,
+        },
+        related_operations: [],
+        type: "input",
+        status: "success",
+        account: {
+          address,
+          metadata: {},
+        },
+        amount: {
+          value: "-" + utxoToPay.amount.value,
+          currency: {
+            symbol: "ADA",
+            decimals: 6,
+          },
+        },
+        coin_change: {
+          coin_identifier: utxoToPay.coin_identifier,
+          coin_action: "coin_created",
+        },
+        metadata: {},
+      });
+      operations.push({
+          operation_identifier: {
+          index: 1,
+          network_index: 0,
+          },
+          related_operations: [],
+          type: "output",
+          status: "success",
+          account: {
+          address: destination,
+          metadata: {},
+          },
+          amount: {
+          value: ada_to_pay.toString(),
+          currency: {
+              symbol: "ADA",
+              decimals: 6,
+          },
+          },
+          metadata: {},
+      });
+      // change if needed
+      if(Number(utxoToPay.amount.value) > ada_to_pay) {
+          operations.push({
+              operation_identifier: {
+                index: 2,
+                network_index: 0,
+              },
+              related_operations: [],
+              type: "output",
+              status: "success",
+              account: {
+                address,
+                metadata: {},
+              },
+              amount: {
+                value: (Number(utxoToPay.amount.value) - ada_to_pay).toString(),
+                currency: {
+                    symbol: "ADA",
+                    decimals: 6,
+                },
+              },
+              metadata: {},
+          });
+      }
+        return operations;
+    };
 
 const buildOperation = (
   unspents: any,
@@ -208,6 +299,13 @@ const buildOperation = (
     operations: inputs.concat(outputs),
   };
 };
+
+const substractFee = (operations: any, fee: number) => {
+  var changeOperation = operations[2];
+  changeOperation.amount.value = ""+ (Number(changeOperation.amount.value) - (Number(fee) * 2)); // we are paying double fee
+  operations[2] = changeOperation;
+  return operations;
+}
 
 const constructionPayloads = async (payload: any) => {
   const response = await httpClient.post("/construction/payloads", {
@@ -412,6 +510,7 @@ const getStakeKeys = (
 export {
   buildDelegationOperation,
   buildOperation,
+  buildOperationsToPayAda,
   buildRegistrationOperation,
   constructionDerive,
   constructionPreprocess,
@@ -422,6 +521,7 @@ export {
   signPayloads,
   waitForBalanceToBe,
   generateKeys,
+  substractFee,
   getAccount,
   getPaymentPrivateKey,
   getPaymentPrivateKeyAsHex,

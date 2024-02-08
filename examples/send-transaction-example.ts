@@ -13,7 +13,12 @@ import {
   waitForBalanceToBe,
   buildOperation,
   generateKeys,
-  getPaymentPrivateKeyAsHex, getPaymentPrivateKey, getPaymentPublicKeyAsHex, getPaymentKeys,
+  getPaymentPrivateKeyAsHex,
+  getPaymentPrivateKey,
+  getPaymentPublicKeyAsHex,
+  getPaymentKeys,
+  buildOperationsToPayAda,
+  substractFee,
 } from "./commons";
 import { vars } from "./variables";
 const logger = console;
@@ -41,21 +46,31 @@ const doRun = async (): Promise<void> => {
     (response) => Number(response.balances[0].value) > 0, // check if there is ADA
   );
 
-  const builtOperations = buildOperation(
+  var builtOperations = buildOperationsToPayAda(
     unspents,
     balances,
     address,
-    vars.SEND_FUNDS_ADDRESS
+    vars.SEND_FUNDS_ADDRESS,
+      vars.LOVELACE_TO_SEND
   );
-
+  const aaa = buildOperation(
+      unspents,
+      balances,
+      address,
+      vars.SEND_FUNDS_ADDRESS
+  );
+  console.log(aaa);
   const preprocess = await constructionPreprocess(
-    builtOperations.operations,
+      builtOperations,
     10
   );
   const metadata = await constructionMetadata(preprocess);
+  const suggestedFee = metadata.suggested_fee[0].value;
+  builtOperations = substractFee(builtOperations, suggestedFee);
+
   const payloads = await constructionPayloads({
-    operations: builtOperations.operations,
-    metadata,
+    operations: builtOperations,
+    metadata: metadata.metadata,
   });
   const signatures = signPayloads(payloads.payloads, keyAddressMapper);
   const combined = await constructionCombine(

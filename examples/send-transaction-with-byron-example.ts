@@ -21,7 +21,7 @@ const logger = console;
 
 
 
-const signPayloads = (payloads: any, keyAddressMapper: any) =>
+const signPayloads = (payloads: any, keyAddressMapper: any, chaincode: any) =>
   payloads.map((signing_payload: any) => {
     const {
       account_identifier: { address },
@@ -33,7 +33,7 @@ const signPayloads = (payloads: any, keyAddressMapper: any) =>
         account_identifier: {
           ...signing_payload.account_identifier,
           metadata: {
-            chain_code: vars.CHAIN_CODE,
+            chain_code: Buffer.from(chaincode).toString("hex"),
           },
         },
       },
@@ -62,10 +62,7 @@ const doRun = async (): Promise<void> => {
       address,
     (response) => response.coins.length !== 0
   );
-  
-  const priv_key = getPaymentPrivateKey();
-  const chainCode = priv_key.to_public().chaincode();
-  // priv_key.to_public().to_raw_key().
+
   const builtOperations = buildOperation(
     unspents,
     balances,
@@ -81,7 +78,7 @@ const doRun = async (): Promise<void> => {
     operations: builtOperations.operations,
     metadata,
   });
-  const signatures = signPayloads(payloads.payloads, keyAddressMapper);
+  const signatures = signPayloads(payloads.payloads, keyAddressMapper, keys.secretKey.chaincode());
   const combined = await constructionCombine(
     payloads.unsigned_transaction,
     signatures
