@@ -3,19 +3,18 @@
   "license": "Apache-2.0",
   "scripts": {
     "send-transactions-example": "ts-node ./send-transaction-example.ts",
-    "send-transaction-using-cardano-address-example": "ts-node ./send-transaction-using-cardano-address-example.ts",
+    "send-transaction-with-byron-example": "ts-node ./send-transaction-with-byron-example.ts",
     "delegate-stake-example": "ts-node ./delegate-stake-example.ts",
     "withdrawal-example": "ts-node ./withdrawal-example.ts",
     "ma-transfer-example": "ts-node ./ma-transfer-example.ts",
     "pool-registration-example": "ts-node ./pool-registration-example.ts",
     "pool-registration-with-cert-example": "ts-node ./pool-registration-with-cert-example.ts",
     "pool-retirement-example": "ts-node ./pool-retirement-example.ts",
-    "send-transaction-with-byron-example": "ts-node ./send-transaction-with-byron-example.ts",
     "send-transaction-postman-example": "node ./postman/send-transaction-example send_transaction_postman_environment.json",
     "vote-registration-example": "ts-node ./vote-registration-example.ts"
   },
   "dependencies": {
-    "@emurgo/cardano-serialization-lib-nodejs": "2.0.0",
+    "@emurgo/cardano-serialization-lib-nodejs": "11.5.0",
     "@types/node": "14.14.10",
     "@types/temp-write": "4.0.0",
     "axios": "1.6.7",

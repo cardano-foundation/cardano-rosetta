@@ -10,36 +10,25 @@ import {
   constructionSubmit,
   signPayloads,
   waitForBalanceToBe,
-  buildOperation,
+  buildOperation, getPaymentKeys, constructionDerive,
 } from "./commons";
+import {vars} from "./variables";
 const logger = console;
 
-// address with ma balance
-const PAYMENT_ADDRESS =
-  "addr_test1vpcv26kdu8hr9x939zktp275xhwz4478c8hcdt7l8wrl0ecjftnfa";
 
 const EXPECTED_TOKEN = {
-  policy: "3e6fc736d30770b830db70994f25111c18987f1407585c0f55ca470f",
-  symbol: "6a78546f6b656e31",
+  policy: vars.TOKEN_POLICY,
+  symbol: vars.TOKEN_SYMBOL,
 };
 
-const PAYMENT_KEYS = {
-  secretKey: Buffer.from(
-    "67b638cef68135c4005cb71782b070c4805c9e1077c7ab6145b152206073272974dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106",
-    "hex"
-  ),
-  publicKey: Buffer.from(
-    "74dabdc594506574a9b58f719787d36ea1af291d141d3e5e5ccfe076909ae106",
-    "hex"
-  ),
-};
-
-const SEND_FUNDS_ADDRESS =
-  "addr_test1vz4nrdp83nksz0w3szxpav2peasm0xsdfc44lt2ml20420qclwuqu";
+const PAYMENT_KEYS = getPaymentKeys();
 
 const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};
-  keyAddressMapper[PAYMENT_ADDRESS] = PAYMENT_KEYS;
+  const address = await constructionDerive(
+      Buffer.from(PAYMENT_KEYS.publicKey.to_raw_key().as_bytes()).toString("hex")
+  );
+  keyAddressMapper[address] = PAYMENT_KEYS;
 
   const coinsCondition = (response) => response.coins.length !== 0;
   const balanceCondition = (response) =>
@@ -49,18 +38,21 @@ const doRun = async (): Promise<void> => {
         balance.currency?.metadata?.policyId === EXPECTED_TOKEN.policy
     );
 
-  logger.info(`[doRun] address ${PAYMENT_ADDRESS} expects to receive funds.`);
+  logger.info(`[doRun] address ${address} expects to receive funds.`);
   const { unspents, balances } = await waitForBalanceToBe(
-    PAYMENT_ADDRESS,
+      address,
     coinsCondition,
     balanceCondition
   );
+  // TODO need to check the operations to refactor the buildOperation
   const builtOperations = buildOperation(
     unspents,
     balances,
-    PAYMENT_ADDRESS,
-    SEND_FUNDS_ADDRESS
+    address,
+    vars.SEND_FUNDS_ADDRESS
   );
+  // TODO adding correct fee estimation
+
   const preprocess = await constructionPreprocess(
     builtOperations.operations,
     1000
@@ -81,7 +73,7 @@ const doRun = async (): Promise<void> => {
     `[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent`
   );
   await waitForBalanceToBe(
-    PAYMENT_ADDRESS,
+    vars.SEND_FUNDS_ADDRESS,
     (response) => response.coins.length === 0
   );
 };

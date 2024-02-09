@@ -129,7 +129,7 @@ ARG TARGETARCH
 RUN \
   apt-get update -y && apt-get install lsb-release -y; \
   if [ "$TARGETARCH" = "arm64" ]; then \
-    apt-get update -y && apt-get install -y libnuma-dev=2.0.*; \
+    apt-get install -y libnuma-dev=2.0.*; \
   fi
 RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - &&\
   echo "deb http://apt.postgresql.org/pub/repos/apt/ `lsb_release -cs`-pgdg main" | tee  /etc/apt/sources.list.d/pgdg.list &&\

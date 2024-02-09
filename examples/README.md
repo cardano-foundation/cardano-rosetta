@@ -7,7 +7,7 @@ In this repository some examples can be found.
 ## Requirements
 
 1. `yarn` installed on your system.
-1. Launch `cardano-rosetta` server at port `8080`.
+1. Launch `cardano-rosetta` server and define path in `variables.ts`
 1. Install the dependencies:
 
 ```javascript
@@ -23,9 +23,9 @@ It generates an address based on a predefined private key, asks for funds and on
 - Once funds are received they can be moved somewhere else.
 
 Important notes:
-
+- All variables are defined in `variables.ts`
 - **This example doesn't follow `rosetta-cli` workflow.**
-- `PRIVATE_KEY` will be used to derive the address.
+- `MNEMONIC` will be used to derive the address.
 - You can request for testnet funds using the following [faucet](https://testnets.cardano.org/en/cardano/tools/faucet/).
 - Funds will be sent to `SEND_FUNDS_ADDRESS` by default as it's the address where testnet funds should be returned.
 
@@ -66,7 +66,7 @@ $ yarn send-transaction-using-cardano-address-example
 Uses a predefined Byron address to send ADA to `SEND_FUNDS_ADDRESS` address. Because of that the serialization lib is used to sign the transaction.
 
 Important notes:
-  - Byron address and the corresponding keys are generated outside Rosetta.
+  - Byron address and the corresponding keys are generated outside Rosetta and this examples.
   - A predefined `CHAIN_CODE` passed as hex string is used to sign the payloads.. 
 
 In order to execute the example, run:
