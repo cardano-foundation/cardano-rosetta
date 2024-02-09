@@ -11,37 +11,17 @@ import {
   constructionSubmit,
   signPayloads,
   waitForBalanceToBe,
-  buildOperation,
+  buildOperation, getStakeKeys, getPaymentKeys,
 } from "./commons";
+import {vars} from "./variables";
 const logger = console;
 
-const PAYMENT_ADDRESS =
-  "addr_test1qpzu48r4qv85a4meuxjjentanh4389cuefx07uqdvyq0lmg85v9kxr57rn7fy0jvlte69gjekwlu74240lxgpatsegjsa93kqf";
-const SEND_FUNDS_ADDRESS =
-  "addr1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknsug829n";
+
 const WITHDRAWAL_AMOUNT = "513664403";
 
-const PAYMENT_KEYS = {
-  secretKey: Buffer.from(
-    "a25e7990c35b84ee4ef8dbfa2fabab6f7a39c0424ca0b8aaf0e26af50b0f3218bd3a406e3d5d6bdde69de1b19b14305b87378aba3525dfe14f49620900bbd7a7",
-    "hex"
-  ),
-  publicKey: Buffer.from(
-    "bd3a406e3d5d6bdde69de1b19b14305b87378aba3525dfe14f49620900bbd7a7",
-    "hex"
-  ),
-};
+const PAYMENT_KEYS = getPaymentKeys();
 
-const STAKING_KEYS = {
-  secretKey: Buffer.from(
-    "5279a3b4697bd4ddb9255ba7f03fad5556f18a134ad4564baac693a4a4939003ab872cec116c85468bb12d78629e2190dc8a014447907f9669601d9669a81333",
-    "hex"
-  ),
-  publicKey: Buffer.from(
-    "ab872cec116c85468bb12d78629e2190dc8a014447907f9669601d9669a81333",
-    "hex"
-  ),
-};
+const STAKING_KEYS = getStakeKeys();
 const STAKE_ADDRESS =
   "stake_test1uqr6xzmrp60pelyj8ex04uaz5fvm8070242hlnyq74cv5fgvvwrpp";
 
@@ -70,6 +50,12 @@ const buildWithdrawalOperation = (
 });
 
 const doRun = async (): Promise<void> => {
+  const PAYMENT_ADDRESS  = await constructionDerive(
+      PAYMENT_KEYS.publicKey.to_raw_key().to_hex(),
+      "Base",
+      STAKING_KEYS.publicKey.to_raw_key().to_hex()
+  );
+
   logger.info(`[doRun] payment address is ${PAYMENT_ADDRESS}`);
   logger.info(`[doRun] staking address is ${STAKE_ADDRESS}`);
 
@@ -85,7 +71,7 @@ const doRun = async (): Promise<void> => {
     unspents,
     balances,
     PAYMENT_ADDRESS,
-    SEND_FUNDS_ADDRESS
+    vars.SEND_FUNDS_ADDRESS
   );
   const currentIndex = builtOperations.operations.length - 1;
   const builtWithdrawalOperation = buildWithdrawalOperation(

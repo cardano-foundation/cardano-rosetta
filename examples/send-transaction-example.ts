@@ -50,16 +50,9 @@ const doRun = async (): Promise<void> => {
     unspents,
     balances,
     address,
-    vars.SEND_FUNDS_ADDRESS,
-      vars.LOVELACE_TO_SEND
+    vars.SEND_FUNDS_ADDRESS, vars.LOVELACE_TO_SEND
   );
-  const aaa = buildOperation(
-      unspents,
-      balances,
-      address,
-      vars.SEND_FUNDS_ADDRESS
-  );
-  console.log(aaa);
+
   const preprocess = await constructionPreprocess(
       builtOperations,
     10

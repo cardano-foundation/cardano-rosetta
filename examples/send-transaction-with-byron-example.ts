@@ -13,7 +13,7 @@ import {
   getPaymentPublicKeyAsHex,
   getPaymentPrivateKeyAsHex,
   getPaymentPrivateKey,
-  getByronAddress, getPaymentKeys
+  getByronAddress, getPaymentKeys, buildOperationsToPayAda, substractFee
 } from "./commons";
 import { vars } from "./variables";
 import { PrivateKey } from "@emurgo/cardano-serialization-lib-nodejs";
@@ -63,20 +63,24 @@ const doRun = async (): Promise<void> => {
     (response) => response.coins.length !== 0
   );
 
-  const builtOperations = buildOperation(
-    unspents,
-    balances,
+  var builtOperations = buildOperationsToPayAda(
+      unspents,
+      balances,
       address,
-    vars.SEND_FUNDS_ADDRESS
+      vars.SEND_FUNDS_ADDRESS, vars.LOVELACE_TO_SEND
   );
   const preprocess = await constructionPreprocess(
-    builtOperations.operations,
+      builtOperations,
     10
   );
   const metadata = await constructionMetadata(preprocess);
+
+  const suggestedFee = metadata.suggested_fee[0].value;
+  builtOperations = substractFee(builtOperations, suggestedFee);
+
   const payloads = await constructionPayloads({
-    operations: builtOperations.operations,
-    metadata,
+    operations: builtOperations,
+    metadata: metadata.metadata,
   });
   const signatures = signPayloads(payloads.payloads, keyAddressMapper, keys.secretKey.chaincode());
   const combined = await constructionCombine(

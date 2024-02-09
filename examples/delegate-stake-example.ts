@@ -66,7 +66,7 @@ const doRun = async (): Promise<void> => {
     currentIndex + 1,
     vars.STAKE_POOL_KEY_HASH
   );
-  // builtOperations.operations.push(builtRegistrationOperation);
+  builtOperations.operations.push(builtRegistrationOperation);
   builtOperations.operations.push(builtDelegationOperation);
   logger.info(`[doRun] operations to be sent are ${JSON.stringify(builtOperations.operations)}`);
   const preprocess = await constructionPreprocess(
