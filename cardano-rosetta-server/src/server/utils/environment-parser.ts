@@ -1,4 +1,4 @@
-import envalid, { host, makeValidator, num, str, bool } from 'envalid';
+import { cleanEnv, host, makeValidator, num, str, bool } from 'envalid';
 /* eslint-disable no-console */
 import fs from 'fs';
 import path from 'path';
@@ -29,7 +29,7 @@ const existingFileValidator = makeValidator((filePath: string) => {
 });
 
 export const parseEnvironment = (): Environment => {
-  const environment = envalid.cleanEnv(process.env, {
+  const environment = cleanEnv(process.env, {
     PORT: num(),
     BIND_ADDRESS: host(),
     DB_CONNECTION_STRING: str(),
@@ -48,7 +48,7 @@ export const parseEnvironment = (): Environment => {
   let topologyFile: TopologyConfig;
   try {
     topologyFile = JSON.parse(fs.readFileSync(path.resolve(environment.TOPOLOGY_FILE_PATH)).toString());
-  } catch (error) {
+  } catch {
     throw configNotFoundError();
   }
   return { ...environment, TOPOLOGY_FILE: topologyFile };

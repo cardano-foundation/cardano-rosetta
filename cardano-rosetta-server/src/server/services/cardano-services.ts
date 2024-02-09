@@ -74,18 +74,18 @@ export interface DepositsSum {
 }
 
 // Shelley
-const SHELLEY_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
-const SHELLEY_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
+const SHELLEY_DUMMY_SIGNATURE = Array.from({ length: SIGNATURE_LENGTH + 1 }).join('0');
+const SHELLEY_DUMMY_PUBKEY = Array.from({ length: PUBLIC_KEY_BYTES_LENGTH + 1 }).join('0');
 
 // Byron
-const BYRON_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
-const BYRON_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
+const BYRON_DUMMY_SIGNATURE = Array.from({ length: SIGNATURE_LENGTH + 1 }).join('0');
+const BYRON_DUMMY_PUBKEY = Array.from({ length: PUBLIC_KEY_BYTES_LENGTH + 1 }).join('0');
 
 // Cold keys
-const COLD_DUMMY_SIGNATURE = new Array(SIGNATURE_LENGTH + 1).join('0');
-const COLD_DUMMY_PUBKEY = new Array(PUBLIC_KEY_BYTES_LENGTH + 1).join('0');
+const COLD_DUMMY_SIGNATURE = Array.from({ length: SIGNATURE_LENGTH + 1 }).join('0');
+const COLD_DUMMY_PUBKEY = Array.from({ length: PUBLIC_KEY_BYTES_LENGTH + 1 }).join('0');
 
-const CHAIN_CODE_DUMMY = new Array(CHAIN_CODE_LENGTH + 1).join('0');
+const CHAIN_CODE_DUMMY = Array.from({ length: CHAIN_CODE_LENGTH + 1 }).join('0');
 
 export interface CardanoService {
   /**
@@ -177,7 +177,7 @@ export interface CardanoService {
    *
    * @param transactionSize in bytes
    */
-  calculateTxMinimumFee(transactionSize: number, protocolParameters: Components.Schemas.ProtocolParameters): BigInt;
+  calculateTxMinimumFee(transactionSize: number, protocolParameters: Components.Schemas.ProtocolParameters): bigint;
 
   /**
    * Generates an hex encoded signed transaction
@@ -226,7 +226,7 @@ const calculateFee = (
   outputAmounts: string[],
   withdrawalAmounts: bigint[],
   depositsSum: DepositsSum
-): BigInt => {
+): bigint => {
   const { keyRefundsSum, keyDepositsSum, poolDepositsSum } = depositsSum;
   const inputsSum = inputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0)) * BigInt(-1);
   const outputsSum = outputAmounts.reduce((acum, current) => acum + BigInt(current), BigInt(0));
@@ -275,8 +275,7 @@ const getPoolSigners = (
         if (operation.account?.address) signers.push(operation.account?.address);
         if (poolRegistrationParameters) {
           const { rewardAddress, poolOwners } = poolRegistrationParameters;
-          signers.push(rewardAddress);
-          signers.push(...poolOwners);
+          signers.push(rewardAddress, ...poolOwners);
         }
         break;
       }
@@ -356,7 +355,7 @@ const processOperations = (
 const getEraAddressTypeOrNull = (address: string) => {
   try {
     return getEraAddressType(address);
-  } catch (error) {
+  } catch {
     return null;
   }
 };
@@ -549,7 +548,7 @@ const configure = (repository: BlockchainRepository, defaultDepositParameters: D
       network,
       operations,
       ttl,
-      depositParameters ? depositParameters : defaultDepositParameters
+      depositParameters ?? defaultDepositParameters
     );
     // eslint-disable-next-line consistent-return
     const signatures: Signatures[] = getUniqueAddresses(addresses).map(address => {
@@ -572,7 +571,7 @@ const configure = (repository: BlockchainRepository, defaultDepositParameters: D
     return previousTxSize + cbor.encode(updatedTtl).byteLength - cbor.encode(previousTtl).byteLength;
   },
 
-  calculateTxMinimumFee(transactionSize: number, protocolParameters: Components.Schemas.ProtocolParameters): BigInt {
+  calculateTxMinimumFee(transactionSize: number, protocolParameters: Components.Schemas.ProtocolParameters): bigint {
     const { minFeeCoefficient, minFeeConstant } = protocolParameters;
     return BigInt(minFeeCoefficient) * BigInt(transactionSize) + BigInt(minFeeConstant);
   },

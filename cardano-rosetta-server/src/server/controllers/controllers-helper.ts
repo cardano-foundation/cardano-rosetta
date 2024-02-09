@@ -6,7 +6,7 @@ import { NetworkService } from '../services/network-service';
 export const withNetworkValidation = async <T, R>(
   networkIdentifier: Components.Schemas.NetworkIdentifier,
   parameters: T,
-  nextFn: (param: T) => R,
+  nextFunction: (parameter: T) => R,
   logger: Logger,
   networkService: NetworkService
 ): Promise<R> => {
@@ -25,5 +25,5 @@ export const withNetworkValidation = async <T, R>(
     throw ErrorFactory.networkNotFoundError();
   }
   logger.debug('[withNetworkValidation] Network parameters are within expected');
-  return await nextFn(parameters);
+  return await nextFunction(parameters);
 };

@@ -60,11 +60,13 @@ export const configure = (
         logger.info('[submitTransaction] transaction successfully sent', stdout.toString());
         return;
       } catch (error) {
-        logger.error(error, '[submitTransaction] Command failed');
-        if (isWrongEra(error.stderr.toString())) {
+        const error_ = error as ProcessExecutorResult;
+        logger.error(error_, '[submitTransaction] Command failed');
+        if (error_.stderr === null) return;
+        if (isWrongEra(error_.stderr.toString())) {
           logger.debug(`[submitTransaction] Era mismatch when using era ${era}`);
         } else {
-          throw new Error(error.stderr.toString());
+          throw new Error(error_.stderr.toString());
         }
       } finally {
         await fs.promises.unlink(file);

@@ -426,7 +426,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     const invalidOperationErrorMessage = 'Transaction outputs parameters errors in operations array';
 
     test('Should fail if MultiAsset policy id is shorter than expected', async () => {
-      const invalidPolicy = new Array(POLICY_ID_LENGTH).join('0');
+      const invalidPolicy = Array.from({ length: POLICY_ID_LENGTH }).join('0');
 
       const operations = modifyMAOperation(invalidPolicy)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
 
@@ -453,7 +453,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
 
     test('Should fail if MultiAsset policy id is longer than expected', async () => {
-      const invalidPolicy = new Array(POLICY_ID_LENGTH + 2).join('0');
+      const invalidPolicy = Array.from({ length: POLICY_ID_LENGTH + 2 }).join('0');
 
       const operations = modifyMAOperation(invalidPolicy)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
 
@@ -480,7 +480,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
 
     test('Should fail if MultiAsset policy id is not a hex string', async () => {
-      const invalidPolicy = new Array(POLICY_ID_LENGTH + 1).join('w');
+      const invalidPolicy = Array.from({ length: POLICY_ID_LENGTH + 1 }).join('w');
 
       const operations = modifyMAOperation(invalidPolicy)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
 
@@ -507,7 +507,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
 
     test('Should fail if MultiAsset symbol longer than expected', async () => {
-      const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
+      const invalidSymbol = Array.from({ length: ASSET_NAME_LENGTH + 2 }).join('0');
 
       const operations = modifyMAOperation(undefined, invalidSymbol)(CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA.operations);
 

@@ -52,6 +52,7 @@ describe('Cardano Service', () => {
 
     it('Should return null if address is wrong', () => {
       const addressType = cardanoService.getEraAddressType('WRONG');
+      // eslint-disable-next-line unicorn/no-null
       expect(addressType).toBe(null);
     });
   });

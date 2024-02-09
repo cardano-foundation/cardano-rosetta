@@ -8,18 +8,6 @@ import path from 'path';
 const filePath = process.env.EXEMPTION_TYPES_PATH;
 let exemptionsFile: Components.Schemas.BalanceExemption[] = [];
 
-export interface NetworkStatus {
-  latestBlock: Block;
-  genesisBlock: GenesisBlock;
-  peers: Peer[];
-}
-
-export interface NetworkService {
-  getSupportedNetwork(): Network;
-  getExemptionTypes(logger: Logger): Components.Schemas.BalanceExemption[];
-  getNetworkStatus(logger: Logger): Promise<NetworkStatus>;
-}
-
 interface Producer {
   addr: string;
 }
@@ -40,6 +28,18 @@ export interface Peer {
   addr: string;
 }
 
+export interface NetworkStatus {
+  latestBlock: Block;
+  genesisBlock: GenesisBlock;
+  peers: Peer[];
+}
+
+export interface NetworkService {
+  getSupportedNetwork(): Network;
+  getExemptionTypes(logger: Logger): Components.Schemas.BalanceExemption[];
+  getNetworkStatus(logger: Logger): Promise<NetworkStatus>;
+}
+
 const getPublicRoots = (publicRoots?: PublicRoot[]) =>
   publicRoots?.map(pr => pr.publicRoots.accessPoints.map(ap => ({ addr: ap.address }))).flat() || [];
 
@@ -51,9 +51,9 @@ const getPeersFromConfig = (logger: Logger, topologyFile: TopologyConfig): Peer[
 };
 
 const getExemptionFile = (logger: Logger): Components.Schemas.BalanceExemption[] => {
-  if (exemptionsFile === []) {
+  if (exemptionsFile.length === 0) {
     try {
-      exemptionsFile = JSON.parse(filePath ? fs.readFileSync(path.resolve(filePath)).toString() : filePath);
+      exemptionsFile = filePath ? JSON.parse(fs.readFileSync(path.resolve(filePath)).toString()) : [];
       return exemptionsFile;
     } catch (error) {
       logger.error('[getExemptionFile]', error);

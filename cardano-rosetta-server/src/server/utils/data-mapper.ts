@@ -304,11 +304,11 @@ export const mapToRosettaTransaction = (
   );
   totalOperations.push(outputsAsOperations);
 
-  const operations = totalOperations.reduce((accum, operation) => accum.concat(operation), []);
-  const { size, scriptSize } = transaction;
+  const operations = totalOperations.flat();
+  const { size, scriptSize, hash } = transaction;
   return {
     transaction_identifier: {
-      hash: transaction.hash
+      hash
     },
     operations,
     metadata: {
@@ -531,7 +531,8 @@ export const encodeExtraData = async (transaction: string, extraData: Transactio
   if (transactionMetadataHex) {
     toEncode.transactionMetadataHex = transactionMetadataHex;
   }
-  return (await cbor.encodeAsync([transaction, toEncode])).toString('hex');
+  const encoded = await cbor.encodeAsync([transaction, toEncode]);
+  return encoded.toString('hex');
 };
 
 export const decodeExtraData = async (encoded: string): Promise<[string, TransactionExtraData]> => {
@@ -564,4 +565,4 @@ export const constructPayloadsForTransactionBody = (
 
 // if ADA is requested then all coins will be returned
 export const filterRequestedCurrencies = (currencies?: Components.Schemas.Currency[]): Components.Schemas.Currency[] =>
-  currencies && !currencies.map(currency => currency.symbol).some(s => s === ADA) ? currencies : [];
+  currencies && !currencies.map(currency => currency.symbol).includes(ADA) ? currencies : [];

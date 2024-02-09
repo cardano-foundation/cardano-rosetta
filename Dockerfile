@@ -57,7 +57,7 @@ RUN \
 WORKDIR /app/ghc/ghc-${GHC_VERSION}
 RUN ./configure && make install
 WORKDIR /app/src
-ARG IOHK_LIBSODIUM_GIT_REV=11bb20dba02b013bf1d83e3c16c51eab2ff07efc
+ARG IOHK_LIBSODIUM_GIT_REV=dbb48cce5429cb6585c9034f002568964f1ce567
 RUN git clone https://github.com/input-output-hk/libsodium.git &&\
   cd libsodium &&\
   git fetch --all --tags &&\
@@ -74,7 +74,7 @@ WORKDIR /app/src/secp256k1
 RUN ./autogen.sh && ./configure --enable-module-schnorrsig --enable-experimental &&\
     make && make install
 WORKDIR /app/src
-ARG CARDANO_NODE_VERSION=1.35.5
+ARG CARDANO_NODE_VERSION=8.1.2
 RUN git clone https://github.com/input-output-hk/cardano-node.git &&\
   cd cardano-node &&\
   git fetch --all --tags &&\
@@ -100,7 +100,7 @@ RUN \
     fi; \
     mv ./dist-newstyle/build/${TARGETARCH1}-linux/ghc-${GHC_VERSION}/cardano-cli-${CARDANO_NODE_VERSION}/x/cardano-cli/build/cardano-cli/cardano-cli /usr/local/bin/
 WORKDIR /app/src
-ARG CARDANO_DB_SYNC_VERSION=13.1.0.0
+ARG CARDANO_DB_SYNC_VERSION=13.1.1.3
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
@@ -113,7 +113,7 @@ RUN cabal install cardano-db-sync \
 RUN rm -rf /usr/local/lib/ghc-${GHC_VERSION} /usr/local/lib/pkgconfig
 
 FROM ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
-ARG NODEJS_MAJOR_VERSION=14
+ARG NODEJS_MAJOR_VERSION=18
 ENV DEBIAN_FRONTEND=nonintercative
 RUN apt-get update && apt-get install curl -y &&\
   curl --proto '=https' --tlsv1.2 -sSf -L https://deb.nodesource.com/setup_${NODEJS_MAJOR_VERSION}.x | bash - &&\
@@ -127,6 +127,7 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://dl.yarnpkg.com/debian/pubkey
 FROM ubuntu-nodejs as runtime-base
 ARG TARGETARCH
 RUN \
+  apt-get update -y && apt-get install lsb-release -y; \
   if [ "$TARGETARCH" = "arm64" ]; then \
     apt-get update -y && apt-get install -y libnuma-dev=2.0.*; \
   fi

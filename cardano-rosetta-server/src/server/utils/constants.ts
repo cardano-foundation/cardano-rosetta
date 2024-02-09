@@ -53,7 +53,7 @@ export enum RelayType {
   MULTI_HOST_NAME = 'multi_host_name'
 }
 
-export const OPERATION_TYPES = Object.values(OperationType);
+export const OPERATION_TYPES: string[] = Object.values(OperationType);
 
 export const StakingOperations = [
   OperationType.STAKE_DELEGATION,
@@ -99,7 +99,7 @@ export const INVALID_OPERATION_STATE = {
   successful: false
 };
 
-export const OPERATIONS_STATUSES = Object.values(OperationTypeStatus);
+export const OPERATIONS_STATUSES: string[] = Object.values(OperationTypeStatus);
 
 export enum AddressType {
   ENTERPRISE = 'Enterprise',

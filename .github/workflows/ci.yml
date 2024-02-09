@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 18
       - name: Lint and test
         working-directory: ./cardano-rosetta/cardano-rosetta-server
         run: |

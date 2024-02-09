@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { getAddressFromHexString } from '../../../../src/server/utils/cardano/addresses';
 import { usingAutoFree } from '../../../../src/server/utils/freeable';
 import { Address } from '@emurgo/cardano-serialization-lib-nodejs';

@@ -154,6 +154,7 @@ export const getAddressFromHexString = (scope: ManagedFreeableScope, hex: string
  * @param address bench 32 address
  */
 export const isStakeAddress = (address: string): boolean => {
+  // eslint-disable-next-line unicorn/prefer-set-has
   const addressPrefix = address.slice(0, PREFIX_LENGTH);
   return [StakeAddressPrefix.MAIN as string, StakeAddressPrefix.TEST as string].some(type =>
     addressPrefix.includes(type)
