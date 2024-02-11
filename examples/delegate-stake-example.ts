@@ -14,40 +14,34 @@ import {
   signPayloads,
   waitForBalanceToBe,
   buildOperation,
-  generateKeys,
+  generateKeys, getPaymentPrivateKey, getPaymentKeys, getStakeKeys, getPaymentPublicKeyAsHex,
 } from "./commons";
+import { vars } from "./variables";
 const logger = console;
 
-const SEND_FUNDS_ADDRESS =
-  "addr_test1qqr585tvlc7ylnqvz8pyqwauzrdu0mxag3m7q56grgmgu7sxu2hyfhlkwuxupa9d5085eunq2qywy7hvmvej456flknswgndm3";
-const STAKE_POOL_KEY_HASH =
-  "6be215192dc01e5ca4cfba0959586f581a865bfccc2984478dad1657";
 
 const doRun = async (): Promise<void> => {
   const keyAddressMapper = {};
-  const paymentKeys = generateKeys();
-  logger.info(
-    `[doRun] payment secretKey ${Buffer.from(paymentKeys.secretKey).toString(
-      "hex"
-    )}`
-  );
-  const paymentPublicKey = Buffer.from(paymentKeys.publicKey).toString("hex");
 
-  const stakingKeys = generateKeys();
+  const paymentKeys = getPaymentKeys();
   logger.info(
-    `[doRun] staking secretKey ${Buffer.from(stakingKeys.secretKey).toString(
-      "hex"
-    )}`
+    `[doRun] payment secretKey ${paymentKeys.secretKey.to_hex()}`
   );
-  const stakingPublicKey = Buffer.from(stakingKeys.publicKey).toString("hex");
-  const stakeAddress = await constructionDerive(stakingPublicKey, "Reward");
+
+  const stakingKeys = getStakeKeys();
+  logger.info(
+    `[doRun] staking secretKey ${stakingKeys.secretKey.to_hex()}`
+  );
+  const stakeAddress = await constructionDerive(stakingKeys.publicKey.to_raw_key().to_hex(), "Reward");
+
   logger.info(`[doRun] stake address is ${stakeAddress}`);
+
   keyAddressMapper[stakeAddress] = stakingKeys;
 
   const paymentAddress = await constructionDerive(
-    paymentPublicKey,
+    paymentKeys.publicKey.to_raw_key().to_hex(),
     "Base",
-    stakingPublicKey
+    stakingKeys.publicKey.to_raw_key().to_hex()
   );
 
   keyAddressMapper[paymentAddress] = paymentKeys;
@@ -59,25 +53,25 @@ const doRun = async (): Promise<void> => {
     unspents,
     balances,
     paymentAddress,
-    SEND_FUNDS_ADDRESS,
-    true
+    vars.SEND_FUNDS_ADDRESS,
+    false
   );
   const currentIndex = builtOperations.operations.length - 1;
   const builtRegistrationOperation = buildRegistrationOperation(
-    stakingPublicKey,
+      stakingKeys.publicKey.to_raw_key().to_hex(),
     currentIndex
   );
   const builtDelegationOperation = buildDelegationOperation(
-    stakingPublicKey,
+      stakingKeys.publicKey.to_raw_key().to_hex(),
     currentIndex + 1,
-    STAKE_POOL_KEY_HASH
+    vars.STAKE_POOL_KEY_HASH
   );
   builtOperations.operations.push(builtRegistrationOperation);
   builtOperations.operations.push(builtDelegationOperation);
   logger.info(`[doRun] operations to be sent are ${JSON.stringify(builtOperations.operations)}`);
   const preprocess = await constructionPreprocess(
     builtOperations.operations,
-    1000
+    100
   );
   const metadata = await constructionMetadata(preprocess);
   const payloads = await constructionPayloads({

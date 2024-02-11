@@ -32,7 +32,7 @@ export const coinIdentifierFormatter = (coinIdentifier?: string): CoinIdentifier
   // eslint-disable-next-line no-magic-numbers
   if (coin.length === 2) {
     const [hash, index] = coin;
-    if (Number.isNaN(parseInt(index)))
+    if (Number.isNaN(Number.parseInt(index)))
       // eslint-disable-next-line consistent-return
       throw ErrorFactory.badFormedCoinError(`Given coin identifier is ${coinIdentifier}`);
     // eslint-disable-next-line consistent-return

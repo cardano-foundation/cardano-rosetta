@@ -7,7 +7,7 @@ and interfacing with `cardano-node` via `cardano-cli`.
 
 ### Requirements
 
-- `node@v14.5.0`
+- `node@v18.8.0`
 - `yarn@1.22.4`
 - `docker`
 - `docker-compose`

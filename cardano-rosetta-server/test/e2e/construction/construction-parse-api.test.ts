@@ -136,7 +136,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION)
     );
     expect(
-      response.json().account_identifier_signers.map((account_signer: { address: any }) => account_signer.address)
+      response.json().account_identifier_signers.map((account_signer: { address: unknown }) => account_signer.address)
     ).toEqual([
       CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION.operations[0].account?.address,
       'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
@@ -160,7 +160,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL)
     );
     expect(
-      response.json().account_identifier_signers.map((account_signer: { address: any }) => account_signer.address)
+      response.json().account_identifier_signers.map((account_signer: { address: unknown }) => account_signer.address)
     ).toEqual([
       CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_WITHDRAWAL.operations[0].account?.address,
       'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'

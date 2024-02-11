@@ -1,4 +1,5 @@
 declare namespace NodeJS {
+  // eslint-disable-next-line unicorn/prevent-abbreviations
   interface ProcessEnv {
     PORT?: number;
     BIND_ADDRESS?: string;

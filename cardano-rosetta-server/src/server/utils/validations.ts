@@ -47,7 +47,7 @@ export const isEd25519KeyHash = (hash: string): boolean =>
     let edd25519Hash: CardanoWasm.Ed25519KeyHash;
     try {
       edd25519Hash = scope.manage(CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(hash, 'hex')));
-    } catch (error) {
+    } catch {
       return false;
     }
     return !!edd25519Hash;
@@ -58,7 +58,7 @@ export const isEd25519Signature = (hash: string): boolean =>
     let ed25519Signature: CardanoWasm.Ed25519Signature;
     try {
       ed25519Signature = scope.manage(CardanoWasm.Ed25519Signature.from_bytes(hexStringToBuffer(hash)));
-    } catch (error) {
+    } catch {
       return false;
     }
     return !!ed25519Signature;
@@ -88,12 +88,12 @@ export const isVoteDataValid = (jsonObject: any): boolean => {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const isVoteSignatureValid = (jsonObject: any): boolean => {
   const isObject = typeof jsonObject === 'object';
-  const dataIndexes = Object.keys(CatalystSigIndexes).filter(key => parseInt(key) > 0);
+  const dataIndexes = Object.keys(CatalystSigIndexes).filter(key => Number.parseInt(key) > 0);
   return isObject && dataIndexes.every(index => index in jsonObject && isHexString(jsonObject[index]));
 };
 
 const validateStatus = (status: string): void => {
-  const isValid = OPERATIONS_STATUSES.some(opStatus => opStatus === status);
+  const isValid = OPERATIONS_STATUSES.includes(status);
   if (!isValid) {
     throw ErrorFactory.invalidOperationStatus(`Given status is ${status}`);
   }
@@ -144,7 +144,7 @@ export const validateAccountIdAddressMatch = (
 };
 
 export const validateOperationType = (type: string): void => {
-  const isValid = OPERATION_TYPES.some(opType => opType === type);
+  const isValid = OPERATION_TYPES.includes(type);
   if (!isValid) {
     throw ErrorFactory.invalidOperationTypeError();
   }

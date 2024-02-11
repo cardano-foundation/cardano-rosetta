@@ -19,7 +19,6 @@ import {
   SearchFilters,
   ProtocolParameters
 } from '../models';
-import { LinearFeeParameters } from '../services/cardano-services';
 import {
   hexStringToBuffer,
   hexFormatter,
@@ -58,6 +57,8 @@ import {
 } from '../utils/validations';
 import { getAddressFromHexString } from '../utils/cardano/addresses';
 import { usingAutoFree } from '../utils/freeable';
+
+type TransactionsMap = NodeJS.Dict<PopulatedTransaction>;
 
 export interface BlockchainRepository {
   /**
@@ -229,8 +230,6 @@ const mapToTransactionPoolRegistrations = (
     };
   });
 
-type TransactionsMap = NodeJS.Dict<PopulatedTransaction>;
-
 const populateTransactionField = <T extends FindTransactionFieldResult>(
   transactionsMap: TransactionsMap,
   queryResults: T[],
@@ -300,7 +299,7 @@ const parseInOutRow = <T extends TransactionInOut, F extends FindTransactionInOu
   const collection = getCollection(transaction);
   // Look for it in case it already exists. This is the case when there are multi-assets associated
   // to the same output so several rows will be returned for the same input or output
-  const index = collection.findIndex(i => i.id === row.id);
+  const index = collection.findIndex(index_ => index_.id === row.id);
   if (index !== -1) {
     // If it exists, it means that several MA were returned so we need to try to add the token
     const updated = tryAddToken(collection[index], row);
@@ -513,7 +512,7 @@ const populateTransactions = async (
   databaseInstance: Pool,
   transactionsMap: TransactionsMap
 ): Promise<PopulatedTransaction[]> => {
-  const transactionsHashes = Object.keys(transactionsMap).map(hexStringToBuffer);
+  const transactionsHashes = Object.keys(transactionsMap).map(element => hexStringToBuffer(element));
   const operationsQueries = [
     Queries.findTransactionsInputs,
     Queries.findTransactionsOutputs,
@@ -564,7 +563,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     const query = Queries.findBlock(blockNumber, blockHash);
     logger.debug(`[findBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`);
     // Add paramter or short-circuit it
-    const parameters = [blockNumber ? blockNumber : true, blockHash ? hexStringToBuffer(blockHash) : true];
+    const parameters = [blockNumber ?? true, blockHash ? hexStringToBuffer(blockHash) : true];
     const result = await databaseInstance.query(query, parameters);
     /* eslint-disable camelcase */
     if (result.rows.length === 1) {
@@ -606,7 +605,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       `[findTransactionsByBlock] Parameters received for run query blockNumber: ${blockNumber}, blockHash: ${blockHash}`
     );
     // Add paramter or short-circuit it
-    const parameters = [blockNumber ? blockNumber : true, blockHash ? hexStringToBuffer(blockHash) : true];
+    const parameters = [blockNumber ?? true, blockHash ? hexStringToBuffer(blockHash) : true];
     logger.debug({ parameters }, '[findTransactionsByBlock] About to run findTransactionsByBlock query with params');
     const result: QueryResult<FindTransaction> = await databaseInstance.query(query, parameters);
     logger.debug(`[findTransactionsByBlock] Found ${result.rowCount} transactions`);
@@ -749,22 +748,33 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger.debug('[findTransactionsByConditions] Conditions received to run the query ', {
       conditions
     });
-    const { type, status, success, operator, currency } = conditions;
-    const coinIdentifier = coinIdentifierFormatter(conditions?.coin_identifier?.identifier);
-    const transactionHash = conditions?.transaction_identifier?.hash;
+    const {
+      type,
+      status,
+      success,
+      operator,
+      currency,
+      max_block,
+      address,
+      account_identifier,
+      coin_identifier,
+      transaction_identifier
+    } = conditions;
+    const coinIdentifier = coinIdentifierFormatter(coin_identifier?.identifier);
+    const transactionHash = transaction_identifier?.hash;
     const conditionsToQueryBy: SearchFilters = {
-      maxBlock: conditions?.max_block,
-      operator: operator ? operator : OperatorType.AND,
+      maxBlock: max_block,
+      operator: operator ?? OperatorType.AND,
       type,
       coinIdentifier,
       status: validateAndGetStatus(status, success),
       transactionHash,
       limit,
       offset,
-      address: conditions.address || conditions.account_identifier?.address
+      address: address || account_identifier?.address
     };
     validateTransactionCoinMatch(transactionHash, coinIdentifier);
-    validateAccountIdAddressMatch(conditions.address, conditions.account_identifier);
+    validateAccountIdAddressMatch(address, account_identifier);
     type && validateOperationType(type);
     if (currency && currency.symbol !== ADA) {
       validateCurrencies([currency]);

@@ -7,9 +7,5 @@ dotenv.config({ path: path.join(__dirname, '../../../.env.test') });
 
 module.exports = async () => {
   const { user, password, port } = parse(process.env.DB_CONNECTION_STRING);
-  await setupPostgresContainer(
-    user ? user : 'postgres',
-    password ? password : 'mysecretpassword',
-    port ? port : '5432'
-  );
+  await setupPostgresContainer(user ?? 'postgres', password ?? 'mysecretpassword', port ?? '5432');
 };

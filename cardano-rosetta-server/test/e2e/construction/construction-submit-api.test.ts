@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable no-magic-numbers */
 /* eslint-disable camelcase */
 import StatusCodes from 'http-status-codes';
@@ -103,7 +104,7 @@ describe(CONSTRUCTION_SUBMIT_ENDPOINT, () => {
     expect(response.json()).toEqual({
       code: 5006,
       details: {
-        message: ERROR_WHEN_CALLING_CARDANO_CLI
+        message: `Error: ${ERROR_WHEN_CALLING_CARDANO_CLI}`
       },
       message: 'Error when sending the transaction',
       retriable: true

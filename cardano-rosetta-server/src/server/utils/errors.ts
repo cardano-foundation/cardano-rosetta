@@ -16,6 +16,11 @@ export enum ErrorTypes {
   GENESIS_BLOCK_NOT_FOUND
 }
 
+export const getErrorMessage = (error: unknown) => {
+  if (error instanceof Error) return `Error: ${error.message}`;
+  return String(error);
+};
+
 export const Errors = {
   BLOCK_NOT_FOUND: { message: 'Block not found', code: 4001 },
   NETWORK_NOT_FOUND: { message: 'Network not found', code: 4002 },

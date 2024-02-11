@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable sonarjs/no-duplicate-string */
 /* eslint-disable max-statements */
 /* eslint-disable camelcase */
@@ -330,8 +331,7 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
     // We are triplicating the last output of 40k amount
     // eslint-disable-next-line no-magic-numbers
     const bigOutput = CONSTRUCTION_PAYLOADS_REQUEST.operations[2];
-    CONSTRUCTION_PAYLOADS_REQUEST.operations.push(bigOutput);
-    CONSTRUCTION_PAYLOADS_REQUEST.operations.push(bigOutput);
+    CONSTRUCTION_PAYLOADS_REQUEST.operations.push(bigOutput, bigOutput);
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -773,7 +773,7 @@ describe('Invalid request with MultiAssets', () => {
   const invalidOperationErrorMessage = 'Transaction outputs parameters errors in operations array';
 
   test('Should fail if MultiAsset policy id is shorter than expected', async () => {
-    const invalidPolicy = new Array(POLICY_ID_LENGTH).join('0');
+    const invalidPolicy = Array.from({ length: POLICY_ID_LENGTH }).join('0');
     const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
     const payload = {
       operations: modifyMAOperation(invalidPolicy)(operations),
@@ -796,7 +796,7 @@ describe('Invalid request with MultiAssets', () => {
   });
 
   test('Should fail if MultiAsset policy id is not a hex string', async () => {
-    const invalidPolicy = new Array(POLICY_ID_LENGTH + 1).join('w');
+    const invalidPolicy = Array.from({ length: POLICY_ID_LENGTH + 1 }).join('w');
     const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
     const payload = {
       operations: modifyMAOperation(invalidPolicy)(operations),
@@ -820,7 +820,7 @@ describe('Invalid request with MultiAssets', () => {
 
   test('Should fail if MultiAsset policy id is longer than expected', async () => {
     // eslint-disable-next-line no-magic-numbers
-    const invalidPolicy = new Array(POLICY_ID_LENGTH + 2).join('0');
+    const invalidPolicy = Array.from({ length: POLICY_ID_LENGTH + 2 }).join('0');
     const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
     const payload = {
       operations: modifyMAOperation(invalidPolicy)(operations),
@@ -868,7 +868,7 @@ describe('Invalid request with MultiAssets', () => {
 
   test('Should fail if MultiAsset symbol longer than expected', async () => {
     // eslint-disable-next-line no-magic-numbers
-    const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
+    const invalidSymbol = Array.from({ length: ASSET_NAME_LENGTH + 2 }).join('0');
     const { operations, ...restPayload } = CONSTRUCTION_PAYLOADS_REQUEST_WITH_MA;
     const payload = {
       operations: modifyMAOperation(undefined, invalidSymbol)(operations),

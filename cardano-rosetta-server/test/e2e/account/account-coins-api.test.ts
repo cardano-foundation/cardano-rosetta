@@ -306,7 +306,7 @@ describe('/account/coins endpoint', () => {
     });
   });
   test('should fail when querying for a currency with a symbol longer than expected', async () => {
-    const invalidSymbol = new Array(ASSET_NAME_LENGTH + 2).join('0');
+    const invalidSymbol = Array.from({ length: ASSET_NAME_LENGTH + 2 }).join('0');
     const response = await server.inject({
       method: 'post',
       url: ACCOUNT_COINS_ENDPOINT,
@@ -330,7 +330,7 @@ describe('/account/coins endpoint', () => {
     });
   });
   test('should fail when querying for a currency with a policy id longer than expected', async () => {
-    const invalidPolicy = new Array(POLICY_ID_LENGTH + 1).join('w');
+    const invalidPolicy = Array.from({ length: POLICY_ID_LENGTH + 1 }).join('w');
     const response = await server.inject({
       method: 'post',
       url: ACCOUNT_COINS_ENDPOINT,
