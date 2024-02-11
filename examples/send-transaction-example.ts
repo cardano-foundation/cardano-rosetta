@@ -75,7 +75,7 @@ const doRun = async (): Promise<void> => {
   logger.info(
     `[doRun] transaction with hash ${hashResponse.transaction_identifier.hash} sent`
   );
-  await waitForBalanceToBe(address, (response) => response.coins.length === 0);
+  // await waitForBalanceToBe(address, (response) => response.coins.length === 0);
 };
 
 doRun()
