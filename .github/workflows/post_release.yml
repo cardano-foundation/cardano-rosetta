@@ -42,10 +42,10 @@ jobs:
           
       - name: Apply latest tag
         run: |
-          docker tag cardano-rosetta:${{ github.event.release.tag_name }} cardano-foundation/cardano-rosetta:${{ github.event.release.tag_name }}
-          docker tag cardano-rosetta:${{ github.event.release.tag_name }} cardano-foundation/cardano-rosetta:latest
-          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-preprod cardano-foundation/cardano-rosetta:${{ github.event.release.tag_name }}-preprod
-          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-preview cardano-foundation/cardano-rosetta:${{ github.event.release.tag_name }}-preview
+          docker tag cardano-rosetta:${{ github.event.release.tag_name }} cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}
+          docker tag cardano-rosetta:${{ github.event.release.tag_name }} cardanofoundation/cardano-rosetta:latest
+          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-preprod cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-preprod
+          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-preview cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-preview
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -55,7 +55,7 @@ jobs:
       
       - name: Push to Docker Hub
         run: |
-          docker push cardano-foundation/cardano-rosetta:${{ github.event.release.tag_name }}
-          docker push cardano-foundation/cardano-rosetta:latest
-          docker push cardano-foundation/cardano-rosetta:${{ github.event.release.tag_name }}-preprod
-          docker push cardano-foundation/cardano-rosetta:${{ github.event.release.tag_name }}-preview
+          docker push cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}
+          docker push cardanofoundation/cardano-rosetta:latest
+          docker push cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-preprod
+          docker push cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-preview

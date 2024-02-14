@@ -41,12 +41,12 @@ jobs:
           test-exe: ./test/smoke_test.sh
       - name: Apply master tag
         run: |
-          docker tag cardano-rosetta:${{ github.sha }} cardano-foundation/cardano-rosetta:${{ github.sha }}
-          docker tag cardano-rosetta:${{ github.sha }} cardano-foundation/cardano-rosetta:master
-          docker tag cardano-rosetta:${{ github.sha }}-preprod cardano-foundation/cardano-rosetta:${{ github.sha }}-preprod
-          docker tag cardano-rosetta:${{ github.sha }}-preprod cardano-foundation/cardano-rosetta:master-preprod
-          docker tag cardano-rosetta:${{ github.sha }}-preview cardano-foundation/cardano-rosetta:${{ github.sha }}-preview
-          docker tag cardano-rosetta:${{ github.sha }}-preview cardano-foundation/cardano-rosetta:master-preview
+          docker tag cardano-rosetta:${{ github.sha }} cardanofoundation/cardano-rosetta:${{ github.sha }}
+          docker tag cardano-rosetta:${{ github.sha }} cardanofoundation/cardano-rosetta:master
+          docker tag cardano-rosetta:${{ github.sha }}-preprod cardanofoundation/cardano-rosetta:${{ github.sha }}-preprod
+          docker tag cardano-rosetta:${{ github.sha }}-preprod cardanofoundation/cardano-rosetta:master-preprod
+          docker tag cardano-rosetta:${{ github.sha }}-preview cardanofoundation/cardano-rosetta:${{ github.sha }}-preview
+          docker tag cardano-rosetta:${{ github.sha }}-preview cardanofoundation/cardano-rosetta:master-preview
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -55,9 +55,9 @@ jobs:
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
       - name: Push to Docker Hub
         run: |
-          docker push cardano-foundation/cardano-rosetta:${{ github.sha }}
-          docker push cardano-foundation/cardano-rosetta:master
-          docker push cardano-foundation/cardano-rosetta:${{ github.sha }}-preprod
-          docker push cardano-foundation/cardano-rosetta:master-preprod
-          docker push cardano-foundation/cardano-rosetta:${{ github.sha }}-preview
-          docker push cardano-foundation/cardano-rosetta:master-preview
+          docker push cardanofoundation/cardano-rosetta:${{ github.sha }}
+          docker push cardanofoundation/cardano-rosetta:master
+          docker push cardanofoundation/cardano-rosetta:${{ github.sha }}-preprod
+          docker push cardanofoundation/cardano-rosetta:master-preprod
+          docker push cardanofoundation/cardano-rosetta:${{ github.sha }}-preview
+          docker push cardanofoundation/cardano-rosetta:master-preview
