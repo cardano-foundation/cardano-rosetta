@@ -12,7 +12,7 @@ jobs:
       - name: Build from Git URL with no cache
         run: docker build
           -t cardano-rosetta:${{ github.sha }}
-          https://github.com/input-output-hk/cardano-rosetta.git#${{ github.sha }}
+          https://github.com/cardano-foundation/cardano-rosetta.git#${{ github.sha }}
       - name: Smoke test remote build
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
@@ -22,7 +22,7 @@ jobs:
         run: docker build
           --build-arg NETWORK=preprod
           -t cardano-rosetta:preprod-${{ github.sha }}
-          https://github.com/input-output-hk/cardano-rosetta.git#${{ github.sha }}
+          https://github.com/cardano-foundation/cardano-rosetta.git#${{ github.sha }}
       - name: Smoke test remote preprod build with local cache
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
