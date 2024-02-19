@@ -22,7 +22,7 @@ DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:2.2.0 \
+  -t cardanofoundation/cardano-rosetta:2.2.0 \
   .
 ```
 
@@ -37,7 +37,7 @@ docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=preprod \
   --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:2.2.0-preprod \
+  -t cardanofoundation/cardano-rosetta:2.2.0-preprod \
   .
 ```
 
@@ -52,7 +52,7 @@ docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=preview \
   --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:2.2.0-preview \
+  -t cardanofoundation/cardano-rosetta:2.2.0-preview \
   .
 ```
 
@@ -72,7 +72,7 @@ docker run \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:2.1.1
+  cardanofoundation/cardano-rosetta:2.1.1
 ```
 
 </details>
@@ -86,7 +86,7 @@ docker run \
   -p 8081:8080 \
   -v cardano-rosetta-preprod:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:2.2.0-preprod
+  cardanofoundation/cardano-rosetta:2.2.0-preprod
 ```
 
 </details>
@@ -100,7 +100,7 @@ docker run \
   -p 8081:8080 \
   -v cardano-rosetta-preview:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:2.2.0-preview
+  cardanofoundation/cardano-rosetta:2.2.0-preview
 ```
 
 </details>
@@ -156,8 +156,8 @@ docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/13/db-sync-snapshot-schema-13-block-7960123-x86_64.tgz \
   --cache-from=inputoutput/cardano-rosetta:master \
-  -t inputoutput/cardano-rosetta:2.1.0-apply-snapshot \
-  https://github.com/input-output-hk/cardano-rosetta.git#2.1.0
+  -t cardanofoundation/cardano-rosetta:2.2.0-apply-snapshot \
+  https://github.com/cardanofoundation/cardano-rosetta.git#2.1.0
 ```
 
 </details>
@@ -173,7 +173,7 @@ docker run \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
   --shm-size=2g \
-  inputoutput/cardano-rosetta:2.1.0-apply-snapshot
+  cardanofoundation/cardano-rosetta:2.1.0-apply-snapshot
 ```
 
 </details>
