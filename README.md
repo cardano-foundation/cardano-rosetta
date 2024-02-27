@@ -21,7 +21,7 @@ build with local source by replacing the GitHub link with `.`
 DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --cache-from=inputoutput/cardano-rosetta:master \
+  --cache-from=cardanofoundation/cardano-rosetta:master \
   -t cardanofoundation/cardano-rosetta:2.2.0 \
   .
 ```
@@ -36,7 +36,7 @@ DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=preprod \
-  --cache-from=inputoutput/cardano-rosetta:master \
+  --cache-from=cardanofoundation/cardano-rosetta:master \
   -t cardanofoundation/cardano-rosetta:2.2.0-preprod \
   .
 ```
@@ -51,7 +51,7 @@ DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=preview \
-  --cache-from=inputoutput/cardano-rosetta:master \
+  --cache-from=cardanofoundation/cardano-rosetta:master \
   -t cardanofoundation/cardano-rosetta:2.2.0-preview \
   .
 ```
@@ -155,7 +155,7 @@ DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/13/db-sync-snapshot-schema-13-block-7960123-x86_64.tgz \
-  --cache-from=inputoutput/cardano-rosetta:master \
+  --cache-from=cardanofoundation/cardano-rosetta:master \
   -t cardanofoundation/cardano-rosetta:2.2.0-apply-snapshot \
   https://github.com/cardanofoundation/cardano-rosetta.git#2.2.0
 ```
@@ -210,13 +210,13 @@ docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql /data/db
 <hr/>
 
 <p align="center">
-  <a href="https://github.com/input-output-hk/cardano-rosetta/blob/master/LICENSE.md"><img src="https://img.shields.io/github/license/input-output-hk/cardano-rosetta.svg?style=for-the-badge" /></a>
+  <a href="https://github.com/cardano-foundation/cardano-rosetta/blob/master/LICENSE.md"><img src="https://img.shields.io/github/license/cardano-foundation/cardano-rosetta.svg?style=for-the-badge" /></a>
 </p>
 
-[img_src_CI]: https://github.com/input-output-hk/cardano-rosetta/workflows/CI/badge.svg
-[workflow_CI]: https://github.com/input-output-hk/cardano-rosetta/actions?query=workflow%3ACI
-[img_src_Nightly]: https://github.com/input-output-hk/cardano-rosetta/workflows/Nightly/badge.svg
-[workflow_Nightly]: https://github.com/input-output-hk/cardano-rosetta/actions?query=workflow%3ANightly
+[img_src_CI]: https://github.com/cardano-foundation/cardano-rosetta/workflows/CI/badge.svg
+[workflow_CI]: https://github.com/cardano-foundation/cardano-rosetta/actions?query=workflow%3ACI
+[img_src_Nightly]: https://github.com/cardano-foundation/cardano-rosetta/workflows/Nightly/badge.svg
+[workflow_Nightly]: https://github.com/cardano-foundation/cardano-rosetta/actions?query=workflow%3ANightly
 [Rosetta]: https://www.rosetta-api.org/docs/welcome.html
 [Cardano]: https://cardano.org/
 [OpenApi schema]: cardano-rosetta-server/src/server/openApi.json#L4
