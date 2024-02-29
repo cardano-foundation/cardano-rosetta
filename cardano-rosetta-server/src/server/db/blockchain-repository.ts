@@ -16,8 +16,8 @@ import {
   Utxo,
   MaBalance,
   TotalCount,
-  SearchFilters,
-  ProtocolParameters
+  SearchFilters
+  // ProtocolParameters
 } from '../models';
 import {
   hexStringToBuffer,
@@ -671,10 +671,10 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
       maxValSize: 0, //result.rows[0].max_val_size || 0,
       keyDeposit: '2000000', //result.rows[0].key_deposit,
       maxCollateralInputs: 0, //result.rows[0].max_collateral_inputs || 0,
-      minFeeCoefficient: 44,//result.rows[0].min_fee_a,
+      minFeeCoefficient: 44, //result.rows[0].min_fee_a,
       minFeeConstant: 155381, //result.rows[0].min_fee_b,
-      minPoolCost: '340000000',//result.rows[0].min_pool_cost,
-      poolDeposit: '500000000',//result.rows[0].pool_deposit,
+      minPoolCost: '340000000', //result.rows[0].min_pool_cost,
+      poolDeposit: '500000000', //result.rows[0].pool_deposit,
       protocol: 2 //result.rows[0].protocol_major
     };
   },
