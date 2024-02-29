@@ -665,16 +665,17 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
     logger.debug('[getLinearFeeParameters] About to run findProtocolParameters query');
     const result: QueryResult<ProtocolParameters> = await databaseInstance.query(Queries.findProtocolParameters);
     return {
-      coinsPerUtxoSize: result.rows[0].coins_per_utxo_size || '0',
-      maxTxSize: result.rows[0].max_tx_size,
-      maxValSize: result.rows[0].max_val_size || 0,
-      keyDeposit: result.rows[0].key_deposit,
-      maxCollateralInputs: result.rows[0].max_collateral_inputs || 0,
-      minFeeCoefficient: result.rows[0].min_fee_a,
-      minFeeConstant: result.rows[0].min_fee_b,
-      minPoolCost: result.rows[0].min_pool_cost,
-      poolDeposit: result.rows[0].pool_deposit,
-      protocol: result.rows[0].protocol_major
+      // ToDo Need to fix db-sync disabled ledger state
+      coinsPerUtxoSize: '0', // result.rows[0].coins_per_utxo_size || '0',
+      maxTxSize: 16384, //result.rows[0].max_tx_size,
+      maxValSize: 0, //result.rows[0].max_val_size || 0,
+      keyDeposit: "2000000", //result.rows[0].key_deposit,
+      maxCollateralInputs: 0, //result.rows[0].max_collateral_inputs || 0,
+      minFeeCoefficient: 44,//result.rows[0].min_fee_a,
+      minFeeConstant: 155381, //result.rows[0].min_fee_b,
+      minPoolCost: "340000000",//result.rows[0].min_pool_cost,
+      poolDeposit: "500000000",//result.rows[0].pool_deposit,
+      protocol: 2, //result.rows[0].protocol_major
     };
   },
 
