@@ -1,7 +1,7 @@
 result*
 node_modules/*
 .idea
-/config/network/mainnet/cardano-db-sync/pgpass
+/config/network/mainnet_non-p2p/cardano-db-sync/pgpass
 /cardano-rosetta-server/bin/rosetta-cli
 *.iml
 /test/deployed-environment-test/newman/*.json
