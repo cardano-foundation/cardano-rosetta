@@ -12,7 +12,7 @@ inputs:
   build-cache-image:
     description: From the Docker registry, including tag
     required: false
-    default: inputoutput/cardano-rosetta:master
+    default: cardanofoundation/cardano-rosetta:master
   build-context:
     description: Mapped to the docker build command
     required: true

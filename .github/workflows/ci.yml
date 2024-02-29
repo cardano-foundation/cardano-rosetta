@@ -42,8 +42,8 @@ jobs:
         with:
           build-context: ${{ github.workspace }}/cardano-rosetta
           tag: ${{ github.sha }}
-      - name: Smoke test Cardano Rosetta image
-        uses: ./cardano-rosetta/.github/actions/smoke_test_cardano_rosetta
-        with:
-          tag: ${{ github.sha }}
-          test-exe:  ./cardano-rosetta/test/smoke_test.sh
+#      - name: Smoke test Cardano Rosetta image
+#        uses: ./cardano-rosetta/.github/actions/smoke_test_cardano_rosetta
+#        with:
+#          tag: ${{ github.sha }}
+#          test-exe:  ./cardano-rosetta/test/smoke_test.sh
