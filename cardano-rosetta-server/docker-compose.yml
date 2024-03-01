@@ -22,26 +22,26 @@ services:
         max-size: "200k"
         max-file: "10"
   cardano-node:
-    image: inputoutput/cardano-node:${CARDANO_NODE_VERSION:-8.1.2}
+    image: inputoutput/cardano-node:${CARDANO_NODE_VERSION:-8.7.3}
     environment:
       - NETWORK=${NETWORK:-mainnet}
     volumes:
-      - node-db:/data/db
-      - node-ipc:/ipc
+      - ../node-db:/data/db
+      - ../node-ipc:/ipc
     logging:
       driver: "json-file"
       options:
         max-size: "400k"
         max-file: "20"
   cardano-db-sync:
-    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-13.1.1.3}
+    image: inputoutput/cardano-db-sync:${CARDANO_DB_SYNC_VERSION:-13.2.0.1}
     command: [
       "--config", "/config/cardano-db-sync/config.json",
       "--socket-path", "/node-ipc/node.socket"
     ]
     environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
+      - POSTGRES_HOST=${DB_HOST}
+      - POSTGRES_PORT=${DB_PORT}
       - RESTORE_SNAPSHOT=${RESTORE_SNAPSHOT:-}
       - RESTORE_RECREATE_DB=N
     depends_on:
@@ -53,46 +53,46 @@ services:
       - postgres_db
     volumes:
       - ../config/network/${NETWORK:-mainnet}:/config
-      - db-sync-data:/data
-      - node-ipc:/node-ipc
+      - ../db-sync-data:/data
+      - ../node-ipc:/node-ipc
     restart: on-failure
     logging:
       driver: "json-file"
       options:
         max-size: "200k"
         max-file: "10"
-  cardano-rosetta-server:
-    build:
-      cache_from:
-        - inputoutput/cardano-rosetta:master
-      context: ..
-      target: cardano-rosetta-server
-    environment:
-      - BIND_ADDRESS=0.0.0.0
-      - CARDANO_CLI_PATH=/usr/local/bin/cardano-cli
-      - CARDANO_NODE_PATH=/usr/local/bin/cardano-node
-      - CARDANO_NODE_SOCKET_PATH=/node-ipc/node.socket
-      - DB_CONNECTION_STRING=postgresql://postgres:notForProduction!@postgres:5432/cexplorer
-      - DEFAULT_RELATIVE_TTL=1000
-      - GENESIS_SHELLEY_PATH=/config/genesis/shelley.json
-      - LOGGER_LEVEL=debug
-      - PAGE_SIZE=30
-      - PORT=8080
-      - TOPOLOGY_FILE_PATH=/config/cardano-node/topology.json
-      - DEFAULT_POOL_DEPOSIT=500000000
-      - DEFAULT_KEY_DEPOSIT=2000000
-    expose:
-      - 8080
-    ports:
-      - ${PORT:-8080}:8080
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "200k"
-        max-file: "10"
-    volumes:
-      - ../config/network/${NETWORK:-mainnet}:/config
-      - node-ipc:/node-ipc
+#  cardano-rosetta-server:
+#    build:
+#      cache_from:
+#        - cardanofoundation/cardano-rosetta:master
+#      context: ..
+#      target: cardano-rosetta-server
+#    environment:
+#      - BIND_ADDRESS=${BIND_ADDRESS:0.0.0.0}
+#      - CARDANO_CLI_PATH=${CARDANO_CLI_PATH:/usr/local/bin/cardano-cli}
+#      - CARDANO_NODE_PATH=${CARDANO_NODE_PATH:/usr/local/bin/cardano-node}
+#      - CARDANO_NODE_SOCKET_PATH=${CARDANO_NODE_SOCKET_PATH:/node-ipc/node.socket}
+#      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING:postgresql://postgres:notForProduction!@postgres:5432/cexplorer}
+#      - DEFAULT_RELATIVE_TTL=${DEFAULT_RELATIVE_TTL:1000}
+#      - GENESIS_SHELLEY_PATH=${GENESIS_SHELLEY_PATH:/config/genesis/shelley.json}
+#      - LOGGER_LEVEL=${LOGGER_LEVEL:debug}
+#      - PAGE_SIZE=${PAGE_SIZE:30}
+#      - PORT=8080
+#      - TOPOLOGY_FILE_PATH=${TOPOLOGY_FILE_PATH:/config/cardano-node/topology.json}
+#      - DEFAULT_POOL_DEPOSIT=${DEFAULT_POOL_DEPOSIT:500000000}
+#      - DEFAULT_KEY_DEPOSIT=${DEFAULT_KEY_DEPOSIT:2000000}
+#    expose:
+#      - 8080
+#    ports:
+#      - ${PORT:-8080}:8080
+#    logging:
+#      driver: "json-file"
+#      options:
+#        max-size: "200k"
+#        max-file: "10"
+#    volumes:
+#      - ../config/network/${NETWORK:-mainnet}:/config
+#      - ../node-ipc:/node-ipc
 secrets:
   postgres_db:
     file: ./config/secrets/postgres_db

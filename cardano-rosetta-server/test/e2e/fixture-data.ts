@@ -47,7 +47,7 @@ export const LATEST_EPOCH_PROTOCOL_PARAMS = {
   minFeeConstant: 155381,
   minPoolCost: '340000000',
   poolDeposit: '500000000',
-  protocol: 4
+  protocol: 2
 };
 
 export const latestBlockHash = '1c42fd317888b2aafe9f84787fdd3b90b95be06687a217cf4e6ca95130157eb5';

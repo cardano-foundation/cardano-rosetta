@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/input-output-hk/cardano-rosetta.git"
+    "url": "git+https://github.com/cardano-foundation/cardano-rosetta.git"
   },
   "keywords": [
     "cardano",
@@ -36,12 +36,12 @@
     "blockchain",
     "proof-of-stake"
   ],
-  "author": "IOHK",
+  "author": "Cardano Foundation",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/input-output-hk/cardano-rosetta/issues"
+    "url": "https://github.com/cardano-foundation/cardano-rosetta/issues"
   },
-  "homepage": "https://github.com/input-output-hk/cardano-rosetta#readme",
+  "homepage": "https://github.com/cardano-foundation/cardano-rosetta#readme",
   "devDependencies": {
     "@types/cbor": "5.0.1",
     "@types/dockerode": "2.5.34",
