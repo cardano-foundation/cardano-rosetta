@@ -57,6 +57,21 @@ docker build \
 ```
 
 </details>
+<details>
+  <summary>Sanchonet</summary>
+
+```console
+DOCKER_BUILDKIT=1 \
+docker build \
+  --build-arg BUILDKIT_INLINE_CACHE=1 \
+  --build-arg NETWORK=sanchonet \
+  --build-arg CARDANO_DB_SYNC_VERSION=sancho-4-0-0
+  --cache-from=cardanofoundation/cardano-rosetta:master \
+  -t cardanofoundation/cardano-rosetta:2.2.0-sanchonet \
+  .
+```
+
+</details>
 
 ## Run
 Run the locally or pre-built images and mount a single volume into the [standard storage 
@@ -105,6 +120,19 @@ docker run \
 
 </details>
 
+<details>
+  <summary>Sanchonet</summary>
+
+```console
+docker run \
+  --name cardano-rosetta-preview \
+  -p 8081:8080 \
+  -v cardano-rosetta-preview:/data \
+  --shm-size=2g \
+  cardanofoundation/cardano-rosetta:2.2.0-sanchonet
+```
+
+</details>
 :information_source: _A trusted DB snapshot can be used to speed up the initial sync, however
 the internal instance of `cardano-node` must be synced past the snapshot point for it to be
 applied. This can be achieved by observing logs emitted from `cardano-node` indicating it's 
