@@ -53,4 +53,5 @@ jobs:
       - name: "Install newman"
         run: npm install -g newman
       - name: "Run tests"
+        working-directory: ./cardano-rosetta
         run: newman run ./test/deployed-environment-test/rosetta-java.postman_collection.json -e ./test/deployed-environment-test/environments/mainnet-typescript.postman_environment.json -r cli
