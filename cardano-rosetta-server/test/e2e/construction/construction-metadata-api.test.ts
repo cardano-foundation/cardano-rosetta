@@ -53,7 +53,7 @@ describe(CONSTRUCTION_METADATA_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       metadata: {
-        ttl: (latestBlockSlot + relativeTtl).toString(),
+        ttl: (latestBlockSlot + relativeTtl + 2).toString(),
         protocol_parameters: LATEST_EPOCH_PROTOCOL_PARAMS
       },
       suggested_fee: [

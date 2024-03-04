@@ -20,7 +20,7 @@ jobs:
       - name: Lint and test
         working-directory: ./cardano-rosetta/cardano-rosetta-server
         run: |
-          yarn install --offline --frozen-lockfile --logevel=error
+          yarn install --offline --frozen-lockfile --loglevel=error
           yarn lint
           yarn test
         env:
