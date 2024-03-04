@@ -692,7 +692,7 @@ export const configure = (databaseInstance: Pool): BlockchainRepository => ({
         minFeeConstant: 155381,
         minPoolCost: '340000000',
         poolDeposit: '500000000',
-        protocol: 2
+        protocol: 4
       };
     }
   },
