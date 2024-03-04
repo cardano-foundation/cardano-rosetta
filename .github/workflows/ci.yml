@@ -43,7 +43,7 @@ jobs:
           build-context: ${{ github.workspace }}/cardano-rosetta
           tag: ${{ github.sha }}
       - name: Start-container
-        run: docker run --rm -it -p 8080:8080 cardano-rosetta:${{ inputs.tag }}
+        run: docker run --rm -p 8080:8080 cardano-rosetta:${{ inputs.tag }}
       - name: Wait for docker to start
         run: sleep 60
       - name: "Install Node"
