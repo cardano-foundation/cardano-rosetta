@@ -5,7 +5,7 @@ ARG NODE_VERSION=8.7.3
 ENV NODE_VERSION=${NODE_VERSION}
 RUN echo "Building tags/${NODE_VERSION}..." \
     && echo tags/${NODE_VERSION} > /CARDANO_BRANCH \
-    && git clone https://github.com/input-output-hk/cardano-node.git \
+    && git clone https://github.com/intersectmbo/cardano-node.git \
     && cd cardano-node \
     && git fetch --all --recurse-submodules --tags \
     && git tag \
@@ -24,7 +24,7 @@ WORKDIR /app/src
 RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
-  git checkout ${CARDANO_DB_SYNC_VERSION}
+  git checkout ${DB_SYNC_TAG}
 RUN mkdir binaries && cd binaries && wget https://github.com/IntersectMBO/cardano-db-sync/releases/download/${DB_SYNC_TAG}/cardano-db-sync-${CARDANO_DB_SYNC_VERSION}-linux.tar.gz && \
     tar -xvf cardano-db-sync-${CARDANO_DB_SYNC_VERSION}-linux.tar.gz && \
     cp -r * /usr/local/bin/
