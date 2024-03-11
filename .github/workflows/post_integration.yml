@@ -34,6 +34,14 @@ jobs:
           network-identifier: preview
           tag: ${{ github.sha }}-preview
 
+      - name: Build Cardano Rosetta - sanchonet
+        uses: ./.github/actions/build_cardano_rosetta
+        with:
+          build-cache-image: cardano-rosetta:${{ github.sha }}
+          build-context: ${{ github.workspace }}
+          network-identifier: sanchonet
+          tag: ${{ github.sha }}-sanchonet
+
       - name: Smoke test Cardano Rosetta image
         uses: ./.github/actions/smoke_test_cardano_rosetta
         with:
@@ -47,6 +55,8 @@ jobs:
           docker tag cardano-rosetta:${{ github.sha }}-preprod cardanofoundation/cardano-rosetta:master-preprod
           docker tag cardano-rosetta:${{ github.sha }}-preview cardanofoundation/cardano-rosetta:${{ github.sha }}-preview
           docker tag cardano-rosetta:${{ github.sha }}-preview cardanofoundation/cardano-rosetta:master-preview
+          docker tag cardano-rosetta:${{ github.sha }}-sanchonet cardanofoundation/cardano-rosetta:${{ github.sha }}-sanchonet
+          docker tag cardano-rosetta:${{ github.sha }}-sanchonet cardanofoundation/cardano-rosetta:master-sanchonet
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
