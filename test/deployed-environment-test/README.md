@@ -5,5 +5,5 @@ Automated API checks for Rosetta deployments on testnet, staging, shelley-qa and
 
 ### Steps:
 - `npm i newman`
-- `node data-deployment-test-all-envs`
+- `newman run rosetta-java.postman_collection.json -e rosetta-TS-Preprod.postman_environment -r cli`
 
