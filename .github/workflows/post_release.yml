@@ -33,12 +33,21 @@ jobs:
           network-identifier: preview
           tag: ${{ github.event.release.tag_name }}-preview
 
-          
-      - name: Smoke test Cardano Rosetta image
-        uses: ./.github/actions/smoke_test_cardano_rosetta
+      - name: Build Cardano Rosetta - sanchonet
+        uses: ./.github/actions/build_cardano_rosetta
         with:
-          tag: ${{ github.event.release.tag_name }}
-          test-exe: ./test/smoke_test.sh
+          build-cache-image: cardano-rosetta:${{ github.event.release.tag_name }}
+          build-context: ${{ github.workspace }}
+          network-identifier: sanchonet
+          db-sync-version: sancho-4-0-0
+          tag: ${{ github.event.release.tag_name }}-sanchonet
+
+          
+#      - name: Smoke test Cardano Rosetta image
+#        uses: ./.github/actions/smoke_test_cardano_rosetta
+#        with:
+#          tag: ${{ github.event.release.tag_name }}
+#          test-exe: ./test/smoke_test.sh
           
       - name: Apply latest tag
         run: |
@@ -46,6 +55,7 @@ jobs:
           docker tag cardano-rosetta:${{ github.event.release.tag_name }} cardanofoundation/cardano-rosetta:latest
           docker tag cardano-rosetta:${{ github.event.release.tag_name }}-preprod cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-preprod
           docker tag cardano-rosetta:${{ github.event.release.tag_name }}-preview cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-preview
+          docker tag cardano-rosetta:${{ github.event.release.tag_name }}-sanchonet cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-sanchonet
 
       - name: Login to Docker Hub
         uses: docker/login-action@v1
@@ -59,3 +69,4 @@ jobs:
           docker push cardanofoundation/cardano-rosetta:latest
           docker push cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-preprod
           docker push cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-preview
+          docker push cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}-sanchonet

@@ -1,0 +1,31 @@
+name: Smoke Test Cardano Rosetta
+description: Runs the image, waits, then performs a basic smoke test
+inputs:
+  tag:
+    description: Docker tag
+    required: false
+    default: latest
+  network-identifier:
+    description: Supported Cardano network
+    required: false
+    default: mainnet
+runs:
+  using: composite
+  steps:
+    - name: Run
+      run: docker run --rm -d -p 8080:8080 --name cardano-rosetta --shm-size=2g cardano-rosetta:${{ inputs.tag }}
+      shell: bash
+    - name: Wait for docker to start
+      run: sleep 60
+      shell: bash
+    - name: "Install Node"
+      uses: actions/setup-node@v1
+      with:
+        node-version: '21.x'
+    - name: "Install newman"
+      run: npm install -g newman
+      shell: bash
+    - name: "Run tests"
+      working-directory: ./cardano-rosetta
+      run: newman run ./test/postmanTests/rosetta-ts.postman_collection.json -e ./test/postmanTests/Rosetta-TS-Mainnet.postman_environment.json -r cli
+      shell: bash

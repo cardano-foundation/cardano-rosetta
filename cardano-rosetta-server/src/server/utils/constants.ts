@@ -87,8 +87,10 @@ export const SUCCESS_STATUS = 'success';
 export const MAINNET = 'mainnet';
 export const PREPROD = 'preprod';
 export const PREVIEW = 'preview';
+export const SANCHONET = 'sanchonet';
 export const PREPROD_NETWORK_MAGIC = 1;
 export const PREVIEW_NETWORK_MAGIC = 2;
+export const SANCHONET_NETWORK_MAGIC = 4;
 
 export const SUCCESS_OPERATION_STATE = {
   status: OperationTypeStatus.SUCCESS,

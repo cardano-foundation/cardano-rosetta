@@ -1,0 +1,238 @@
+{
+	"info": {
+		"_postman_id": "999b3995-f8e2-48a1-83cf-b7da879a26cf",
+		"name": "Cardano-Rosetta",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "data",
+			"item": [
+				{
+					"name": "/network/list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Body has single network identifier\", function () {",
+									"    const networkId = pm.environment.get(\"networkId\");",
+									"    pm.expect(pm.response.json().network_identifiers).to.have.lengthOf(1);",
+									"});",
+									"",
+									"pm.test(\"Body includes correct blockchain\", function () {",
+									"    const networkId = pm.environment.get(\"networkId\");",
+									"    pm.expect(pm.response.json().network_identifiers[0].blockchain).to.eql(\"cardano\");",
+									"});",
+									"",
+									"pm.test(\"Body includes correct network\", function () {",
+									"    const networkId = pm.environment.get(\"networkId\");",
+									"    pm.expect(pm.response.json().network_identifiers[0].network).to.eql(networkId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/network/list",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"network",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/network/options",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/network/options",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"network",
+								"options"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/network/status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Body includes correct genesis block\", function () {",
+									"    const genesisBlock = pm.environment.get(\"genesisBlockHash\");",
+									"    pm.expect(pm.response.json().genesis_block_identifier.hash).to.eql(genesisBlock);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/network/status",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"network",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/block",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Body includes correct block identifier\", function () {",
+									"    const blockIndex = parseInt(pm.environment.get(\"blockIndex\"));",
+									"    const blockHash = pm.environment.get(\"blockHash\");",
+									"    pm.expect(pm.response.json().block.block_identifier.index).to.eql(blockIndex);",
+									"    pm.expect(pm.response.json().block.block_identifier.hash).to.eql(blockHash);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": {{blockIndex}},\n        \"hash\": \"{{blockHash}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/block",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"block"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/block/transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Body includes correct transaction identifier\", function () {",
+									"    const transactionId = pm.environment.get(\"transactionId\");",
+									"    pm.expect(pm.response.json().transaction.transaction_identifier.hash).to.eql(transactionId);",
+									"});",
+									"",
+									"pm.test(\"Body includes at least 1 input\", function () {",
+									"    pm.expect(pm.response.json().transaction.operations[0].type).to.eql(\"input\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": {{blockIndex}},\n        \"hash\": \"{{blockHash}}\"\n    },\n    \"transaction_identifier\": {\n        \"hash\": \"{{transactionId}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/block/transaction",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"block",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

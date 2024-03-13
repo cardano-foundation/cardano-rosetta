@@ -1,6 +1,13 @@
 import { Logger } from 'fastify';
 import { Block, GenesisBlock, Network } from '../models';
-import { PREPROD, PREPROD_NETWORK_MAGIC, PREVIEW, PREVIEW_NETWORK_MAGIC } from '../utils/constants';
+import {
+  PREPROD,
+  PREPROD_NETWORK_MAGIC,
+  PREVIEW,
+  PREVIEW_NETWORK_MAGIC,
+  SANCHONET,
+  SANCHONET_NETWORK_MAGIC
+} from '../utils/constants';
 import { BlockService } from './block-service';
 import fs from 'fs';
 import path from 'path';
@@ -74,6 +81,7 @@ const configure = (
     if (networkId === 'mainnet') return { networkId };
     if (networkMagic === PREPROD_NETWORK_MAGIC) return { networkId: PREPROD };
     if (networkMagic === PREVIEW_NETWORK_MAGIC) return { networkId: PREVIEW };
+    if (networkMagic === SANCHONET_NETWORK_MAGIC) return { networkId: SANCHONET };
     return { networkId: networkMagic.toString() };
   },
   getNetworkStatus: async logger => {

@@ -13,6 +13,10 @@ inputs:
     description: From the Docker registry, including tag
     required: false
     default: cardanofoundation/cardano-rosetta:master
+  db-sync-version:
+    description: Version for db sync
+    required: false
+    default: 13.2.0.1
   build-context:
     description: Mapped to the docker build command
     required: true
