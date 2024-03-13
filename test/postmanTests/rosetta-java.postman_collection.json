@@ -1,0 +1,752 @@
+{
+	"info": {
+		"_postman_id": "f2a51270-0506-4241-843b-268eae9b2bab",
+		"name": "rosetta-java",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32834089"
+	},
+	"item": [
+		{
+			"name": "construction",
+			"item": [
+				{
+					"name": "derive",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('account_identifier.address');",
+									"})",
+									"",
+									"pm.test(\"Correct Address\", function () {",
+									"    const testAccountBaseAddress = pm.environment.get('TestAccountBaseAddress');",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.account_identifier.address).to.eql(testAccountBaseAddress);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"public_key\": {\n        \"hex_bytes\": \"{{TestAccountPubKeyHexBytes}}\",\n        \"curve_type\": \"{{curveType}}\"\n    },\n    \"metadata\": {\n        \"address_type\": \"{{address_type}}\",\n        \"staking_credential\": {\n          \"hex_bytes\": \"{{TestAccountStakePubKeyHex}}\",\n          \"curve_type\": \"{{curveType}}\"\n        }\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/derive",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"derive"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "hash",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('transaction_identifier');",
+									"})",
+									"",
+									"pm.test(\"Correct Address\", function () {",
+									"     const hashedSignedTransaction = pm.environment.get('hashedSignedTransaction');",
+									"     var responseData = pm.response.json();",
+									"     pm.expect(responseData).to.be.an('object');",
+									"     pm.expect(responseData.transaction_identifier).to.be.an('object');",
+									"     pm.expect(responseData.transaction_identifier.hash).to.eql(hashedSignedTransaction);",
+									" });"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed_transaction\": \"{{signedTransaction}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/hash",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"hash"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "metadata",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('suggested_fee');",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"options\": {\n        \"transaction_size\": 40.0,\n        \"relative_ttl\": 10.0\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/metadata",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"metadata"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "preprocess - Simple",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('options');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.options.relative_ttl).to.eql(1000.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(224.0);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"metadata\": {\n    \"deposit_parameters\": {\n      \"poolDeposit\": \"500000000\",\n      \"keyDeposit\": \"2000000\"\n    }\n  },\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/preprocess",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"preprocess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "preprocess - two withdrawals and key registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('options');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(399.0);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"preprod\"\n  },\n  \"metadata\": {\n    \"relative_ttl\": 100,\n    \"deposit_parameters\": {\n      \"poolDeposit\": \"500000000\",\n      \"keyDeposit\": \"2000000\"\n    }\n  },\n  \"operations\" : [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-9000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeKeyRegistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 4\n      },\n      \"type\": \"withdrawal\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        }\n      }\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/preprocess",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"preprocess"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "preprocess - pool registration",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('options');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(921.0);",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"preprod\"\n  },\n  \"metadata\": {\n    \"relative_ttl\": 100,\n    \"deposit_parameters\": {\n      \"poolDeposit\": \"500000000\",\n      \"keyDeposit\": \"2000000\"\n    }\n  },\n  \"operations\" : [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"poolRegistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5\"\n      },\n      \"metadata\": {\n        \"poolRegistrationParams\": {\n          \"vrfKeyHash\": \"8dd154228946bd12967c12bedb1cb6038b78f8b84a1760b1a788fa72a4af3db0\",\n          \"rewardAddress\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\",\n          \"pledge\": \"5000000\",\n          \"cost\": \"3000000\",\n          \"poolOwners\": [\"stake1uxly0q2cnpxrjrqm9vpnr9dwkr0j945gulhhgs3dx33l47sweg9er\"],\n          \"relays\": [\n            {\n              \"type\": \"single_host_addr\",\n              \"ipv4\": \"127.0.0.1\",\n              \"ipv6\": \"2345:0425:2ca1:0000:0000:0567:5673:23b5\",\n              \"port\": \"32\"\n            }\n          ],\n          \"margin\": {\n            \"numerator\": \"1\",\n            \"denominator\": \"1\"\n          },\n          \"poolMetadata\": {\n            \"url\": \"poolMetadataUrl\",\n            \"hash\": \"9ac2217288d1ae0b4e15c41b58d3e05a13206fd9ab81cb15943e4174bf30c90b\"\n          }\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeDelegation\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"pool_key_hash\": \"1b268f4cba3faa7e36d8a0cc4adca2096fb856119412ee7330f692b5\"\n      }\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/preprocess",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"preprocess"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "data",
+			"item": [
+				{
+					"name": "/network/list",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Test: Ok\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"console.log(pm.response.json())",
+									"pm.test(\"Contains Json Body\", function() {",
+									"    pm.response.to.have.jsonBody('network_identifiers')",
+									"        .and.to.have.jsonBody('network_identifiers[0].blockchain')",
+									"});",
+									"",
+									"pm.test(\"Body has single network identifier\", function () {",
+									"    const networkId = pm.environment.get(\"networkId\");",
+									"    pm.expect(pm.response.json().network_identifiers).to.have.lengthOf(1);",
+									"});",
+									"",
+									"pm.test(\"Body includes correct blockchain\", function () {",
+									"    const networkId = pm.environment.get(\"networkId\");",
+									"    pm.expect(pm.response.json().network_identifiers[0].blockchain).to.eql(\"cardano\");",
+									"});",
+									"",
+									"pm.test(\"Body includes correct network\", function () {",
+									"    const networkId = pm.environment.get(\"networkId\");",
+									"    pm.expect(pm.response.json().network_identifiers[0].network).to.eql(networkId);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"metadata\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/network/list",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"network",
+								"list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/network/status",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"});",
+									"console.log(pm.response.json())",
+									"",
+									"var jsonData = pm.response.json();",
+									"postman.setEnvironmentVariable(\"blockIndex\", jsonData.current_block_identifier.index)",
+									"postman.setEnvironmentVariable(\"blockHash\", jsonData.current_block_identifier.hash)",
+									"",
+									"pm.test(\"Body includes correct genesis block\", function () {",
+									"    const genesisBlock = pm.environment.get(\"genesisBlockHash\");",
+									"    pm.expect(pm.response.json().genesis_block_identifier.hash).to.eql(genesisBlock);",
+									"});",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {\n        \n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/network/status",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"network",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/network/options",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"    });",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test(\"Contains Json Body\", function() {",
+									"    pm.response.to.have.jsonBody('version.rosetta_version')",
+									"        .and.to.have.jsonBody('allow.operation_statuses[0].status')",
+									"});",
+									"const rosetta_version = pm.environment.get(\"rosetta_version\");",
+									"pm.test(\"rosetta version is \" + rosetta_version, function () {",
+									"    pm.expect(pm.response.json()).to.be.an('object');",
+									"    pm.expect(pm.response.json().version.rosetta_version).to.equal(rosetta_version);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"metadata\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/network/options",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"network",
+								"options"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/block",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"});",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test(\"Contains Json Body\", function() {",
+									"    pm.response.to.have.jsonBody('block.block_identifier.index')",
+									"        .and.to.have.jsonBody('block.transactions')",
+									"});",
+									"",
+									"pm.test(\"Parent block has previos index\", function () {",
+									"     var responseBody = pm.response.json();",
+									"     pm.expect(responseBody).to.be.an('object');",
+									"     pm.expect(responseBody.block.parent_block_identifier.index).to.be.a('number').below(responseBody.block.block_identifier.index);",
+									"});",
+									"",
+									"//var jsonData = pm.response.json();",
+									"//postman.setEnvironmentVariable(\"transactionHash\", jsonData.block.transactions[0].transaction_identifier.hash)",
+									"//postman.setEnvironmentVariable(\"address\", jsonData.block.transactions[0].operations[1].account.address)"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": {{blockIndex}},\n        \"hash\": \"{{blockHash}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/block",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"block"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/block/transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"});",
+									"console.log(pm.response.json())"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": {{blockIndex}},\n        \"hash\": \"{{blockHash}}\"\n    }, \n    \"transaction_identifier\": {\n        \"hash\": \"{{transactionHash}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/block/transaction",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"block",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/account/balance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"});",
+									"console.log(pm.response.json())",
+									"pm.test(\"Test account balance\", function () {",
+									"    const accountBalance = pm.environment.get('accountBalance');",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody.balances[0].value).to.equal(accountBalance);",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"account_identifier\": {\n        \"address\": \"{{TestAccountBaseAddress}}\"\n    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/account/balance",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"account",
+								"balance"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/account/coins",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"});",
+									"console.log(pm.response.json())",
+									"pm.test(\"Test account coins value\", function () {",
+									"    const accountCoins = pm.environment.get('accountCoins');",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"    pm.expect(responseBody.coins[0].amount.value).to.equal(accountCoins);",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"account_identifier\": {\n        \"address\": \"{{TestAccountBaseAddress}}\"\n    },\n    \"include_mempool\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/account/coins",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"account",
+								"coins"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/mempool/transaction",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"transaction_identifier\": {\n        \"hash\": {{mempoolTransaction}}\n    },\n    \"metadata\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/mempool/transaction",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"mempool",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/mempool",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n        },\n    \"metadata\": {    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/mempool",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"mempool"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "current_block_index",
+			"value": ""
+		},
+		{
+			"key": "current_block_hash",
+			"value": ""
+		}
+	]
+}
