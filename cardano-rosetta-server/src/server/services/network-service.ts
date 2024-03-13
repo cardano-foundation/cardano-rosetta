@@ -4,7 +4,8 @@ import {
   PREPROD,
   PREPROD_NETWORK_MAGIC,
   PREVIEW,
-  PREVIEW_NETWORK_MAGIC, SANCHONET,
+  PREVIEW_NETWORK_MAGIC,
+  SANCHONET,
   SANCHONET_NETWORK_MAGIC
 } from '../utils/constants';
 import { BlockService } from './block-service';
