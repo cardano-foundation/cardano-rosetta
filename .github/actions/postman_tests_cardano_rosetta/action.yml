@@ -17,12 +17,15 @@ runs:
       shell: bash
     - name: Wait for docker to start
       run: sleep 60
+      shell: bash
     - name: "Install Node"
       uses: actions/setup-node@v1
       with:
         node-version: '21.x'
     - name: "Install newman"
       run: npm install -g newman
+      shell: bash
     - name: "Run tests"
       working-directory: ./cardano-rosetta
       run: newman run ./test/postmanTests/rosetta-ts.postman_collection.json -e ./test/Rosetta-TS-Mainnet.postman_environment.json -r cli
+      shell: bash
