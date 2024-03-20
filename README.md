@@ -249,7 +249,7 @@ docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql /data/db
 [Rosetta]: https://www.rosetta-api.org/docs/welcome.html
 [Cardano]: https://cardano.org/
 [OpenApi schema]: cardano-rosetta-server/src/server/openApi.json#L4
-[Docker Hub repository]: https://hub.docker.com/r/inputoutput/cardano-rosetta/tags?page=1&ordering=last_updated
+[Docker Hub repository]: https://hub.docker.com/r/cardanofoundation/cardano-rosetta/tags?page=1&ordering=last_updated
 [from anywhere]: https://www.rosetta-api.org/docs/node_deployment.html#build-anywhere
 [network]: config/network
 [standard storage location]: https://www.rosetta-api.org/docs/standard_storage_location.html
