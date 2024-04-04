@@ -21,13 +21,15 @@ RUN echo "Building tags/${NODE_VERSION}..." \
 ARG CARDANO_DB_SYNC_VERSION=13.2.0.1
 ARG DB_SYNC_TAG=${CARDANO_DB_SYNC_VERSION}
 WORKDIR /app/src
-RUN git clone https://github.com/input-output-hk/cardano-db-sync.git &&\
+RUN git clone https://github.com/intersectmbo/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
   git checkout ${DB_SYNC_TAG}
-RUN mkdir binaries && cd binaries && wget https://github.com/IntersectMBO/cardano-db-sync/releases/download/${DB_SYNC_TAG}/cardano-db-sync-${CARDANO_DB_SYNC_VERSION}-linux.tar.gz && \
-    tar -xvf cardano-db-sync-${CARDANO_DB_SYNC_VERSION}-linux.tar.gz && \
-    cp -r * /usr/local/bin/
+RUN apt-get update -y && apt-get install -y libpq-dev
+RUN cd cardano-db-sync &&\
+  cabal update && \
+  cabal build all
+RUN cp -p "$(find . -name cardano-db-sync -executable -type f)" /usr/local/bin/
 
 FROM ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
 ARG NODEJS_MAJOR_VERSION=18
