@@ -1,7 +1,97 @@
 ARG UBUNTU_VERSION=22.04
-FROM ghcr.io/blinklabs-io/haskell:9.6.3-3.10.2.0-1 AS cardano-node-build
-# Install cardano-node
+FROM ubuntu:${UBUNTU_VERSION} AS cardano-node-build
+# Following: https://github.com/input-output-hk/cardano-node-wiki/blob/main/docs/getting-started/install.md
+ENV DEBIAN_FRONTEND=nonintercative
+ARG CABAL_VERSION=3.10.2.0
+ARG GHC_VERSION=9.6.3
+ARG IOHK_LIBSODIUM_GIT_REV=dbb48cce
+ARG SECP256K1_VERSION=v0.3.2
+ARG BLST_VERSION=v0.3.11
+
 ARG NODE_VERSION=8.7.3
+ARG CARDANO_DB_SYNC_VERSION=13.2.0.1
+
+RUN mkdir -p /app/src
+WORKDIR /app
+RUN apt-get update -y && apt-get install -y \
+  automake \
+  autoconf \
+  build-essential \
+  g++ \
+  git \
+  jq \
+  libffi-dev \
+  libghc-postgresql-libpq-dev \
+  libgmp-dev \
+  liblmdb-dev \
+  libnuma-dev \
+  libncursesw5 \
+  libpq-dev \
+  libssl-dev \
+  libsystemd-dev \
+  libtinfo-dev \
+  llvm-dev \
+  libtool \
+  make \
+  pkg-config \
+  tmux \
+  wget \
+  zlib1g-dev
+
+WORKDIR /app/src
+# Cabal
+ENV CABAL_VERSION=${CABAL_VERSION}
+ENV PATH="/root/.cabal/bin:/root/.ghcup/bin:/root/.local/bin:$PATH"
+RUN wget https://downloads.haskell.org/~cabal/cabal-install-${CABAL_VERSION}/cabal-install-${CABAL_VERSION}-$(uname -m)-linux-ubuntu20_04.tar.xz \
+    && tar -xf cabal-install-${CABAL_VERSION}-$(uname -m)-linux-ubuntu20_04.tar.xz \
+    && rm cabal-install-${CABAL_VERSION}-$(uname -m)-linux-ubuntu20_04.tar.xz \
+    && mkdir -p ~/.local/bin \
+    && mv cabal ~/.local/bin/ \
+    && cabal update && cabal --version
+
+# GHC
+ENV GHC_VERSION=${GHC_VERSION}
+RUN wget https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-$(uname -m)-deb10-linux.tar.xz \
+    && tar -xf ghc-${GHC_VERSION}-$(uname -m)-deb10-linux.tar.xz \
+    && rm ghc-${GHC_VERSION}-$(uname -m)-deb10-linux.tar.xz \
+    && cd ghc-${GHC_VERSION}-$(uname -m)-unknown-linux \
+    && ./configure \
+    && make install
+
+
+# Libsodium
+RUN git clone https://github.com/input-output-hk/libsodium && \
+    cd libsodium && \
+    git checkout ${LIBSODIUM_REF} && \
+    ./autogen.sh && \
+    ./configure && \
+    make && \
+    make install
+ENV LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
+ENV PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"
+
+# secp256k1
+RUN git clone https://github.com/bitcoin-core/secp256k1 && \
+    cd secp256k1 && \
+    git checkout ${SECP256K1_REF} && \
+    ./autogen.sh && \
+    ./configure --enable-module-schnorrsig --enable-experimental && \
+    make && \
+    make install
+
+# BLST
+COPY ./scripts/libblst.pc /usr/local/lib/pkgconfig/
+RUN git clone https://github.com/supranational/blst && \
+    cd blst && \
+    git checkout ${BLST_REF} && \
+    ./build.sh && \
+    cp bindings/blst_aux.h bindings/blst.h bindings/blst.hpp  /usr/local/include/ && \
+    cp libblst.a /usr/local/lib/ && \
+    chmod u=rw,go=r /usr/local/lib/pkgconfig/libblst.pc \
+      /usr/local/include/blst_aux.h /usr/local/include/blst.h /usr/local/include/blst.hpp \
+      /usr/local/lib/libblst.a
+
+# Install cardano-node
 ENV NODE_VERSION=${NODE_VERSION}
 RUN echo "Building tags/${NODE_VERSION}..." \
     && echo tags/${NODE_VERSION} > /CARDANO_BRANCH \
@@ -17,18 +107,20 @@ RUN echo "Building tags/${NODE_VERSION}..." \
     && mkdir -p /root/.local/bin/ \
     && cp -p "$(./scripts/bin-path.sh cardano-node)" /root/.local/bin/
 
+RUN export PATH="/root/.local/bin:$PATH" 
 
-ARG CARDANO_DB_SYNC_VERSION=13.2.0.1
 ARG DB_SYNC_TAG=${CARDANO_DB_SYNC_VERSION}
 WORKDIR /app/src
 RUN git clone https://github.com/intersectmbo/cardano-db-sync.git &&\
   cd cardano-db-sync &&\
   git fetch --all --tags &&\
-  git checkout ${DB_SYNC_TAG}
+  git checkout tags/${DB_SYNC_TAG}
 RUN apt-get update -y && apt-get install -y libpq-dev
 RUN cd cardano-db-sync &&\
+  echo "with-compiler: ghc-8.10.7" >> cabal.project.local &&\
   cabal update && \
-  cabal build all
+  cabal configure --with-compiler=ghc-${GHC_VERSION} &&\
+  cabal build cardano-db-sync
 RUN cp -p "$(find . -name cardano-db-sync -executable -type f)" /usr/local/bin/
 
 FROM ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
