@@ -1,9 +1,9 @@
 ARG UBUNTU_VERSION=22.04
-FROM ubuntu:${UBUNTU_VERSION} AS cardano-node-build
+FROM ubuntu:${UBUNTU_VERSION} AS cardano-builder
 # Following: https://github.com/input-output-hk/cardano-node-wiki/blob/main/docs/getting-started/install.md
 ENV DEBIAN_FRONTEND=nonintercative
-ARG CABAL_VERSION=3.10.2.0
-ARG GHC_VERSION=9.6.3
+ARG CABAL_VERSION=3.10.1.0
+ARG GHC_VERSION=8.10.7
 ARG IOHK_LIBSODIUM_GIT_REV=dbb48cce
 ARG SECP256K1_VERSION=v0.3.2
 ARG BLST_VERSION=v0.3.11
@@ -54,13 +54,13 @@ ENV GHC_VERSION=${GHC_VERSION}
 RUN wget https://downloads.haskell.org/~ghc/${GHC_VERSION}/ghc-${GHC_VERSION}-$(uname -m)-deb10-linux.tar.xz \
     && tar -xf ghc-${GHC_VERSION}-$(uname -m)-deb10-linux.tar.xz \
     && rm ghc-${GHC_VERSION}-$(uname -m)-deb10-linux.tar.xz \
-    && cd ghc-${GHC_VERSION}-$(uname -m)-unknown-linux \
+    && cd ghc-${GHC_VERSION} \
     && ./configure \
     && make install
 
 
 # Libsodium
-RUN git clone https://github.com/input-output-hk/libsodium && \
+RUN git clone https://github.com/intersectmbo/libsodium && \
     cd libsodium && \
     git checkout ${LIBSODIUM_REF} && \
     ./autogen.sh && \
@@ -104,8 +104,11 @@ RUN echo "Building tags/${NODE_VERSION}..." \
     && echo "tests: False" >> cabal.project.local \
     && cabal update \
     && cabal build all \
+    && cabal build cardano-cli
+RUN cd cardano-node \
     && mkdir -p /root/.local/bin/ \
-    && cp -p "$(./scripts/bin-path.sh cardano-node)" /root/.local/bin/
+    && cp -p "$(./scripts/bin-path.sh cardano-node)" /root/.local/bin/ \
+    && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/
 
 RUN export PATH="/root/.local/bin:$PATH" 
 
@@ -121,7 +124,7 @@ RUN cd cardano-db-sync &&\
   cabal update && \
   cabal configure --with-compiler=ghc-${GHC_VERSION} &&\
   cabal build cardano-db-sync
-RUN cp -p "$(find . -name cardano-db-sync -executable -type f)" /usr/local/bin/
+RUN cp -p "$(find . -name cardano-db-sync -executable -type f)" /root/.local/bin/
 
 FROM ubuntu:${UBUNTU_VERSION} as ubuntu-nodejs
 ARG NODEJS_MAJOR_VERSION=18
@@ -150,11 +153,10 @@ RUN curl --proto '=https' --tlsv1.2 -sSf -L https://www.postgresql.org/media/key
   postgresql-12 \
   postgresql-client-12 &&\
   npm install pm2 -g
-COPY --from=cardano-node-build /usr/local/lib /usr/local/lib
-COPY --from=cardano-node-build /usr/local/include/ /usr/local/include/
-COPY --from=cardano-node-build /root/.local/bin/cardano-* /usr/local/bin/
-COPY --from=cardano-node-build /usr/local/bin/cardano-db-sync /usr/local/bin/
-COPY --from=cardano-node-build /app/src/cardano-db-sync/schema /cardano-db-sync/schema
+COPY --from=cardano-builder /usr/local/lib /usr/local/lib
+COPY --from=cardano-builder /usr/local/include/ /usr/local/include/
+COPY --from=cardano-builder /root/.local/bin/cardano-* /usr/local/bin/
+COPY --from=cardano-builder /app/src/cardano-db-sync/schema /cardano-db-sync/schema
 # Configure dynamic linker
 RUN ldconfig
 # easy step-down from root
@@ -204,8 +206,8 @@ RUN yarn --offline --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
 ARG NETWORK=mainnet
-COPY --from=haskell-builder /usr/local/bin/cardano-cli \
-  /usr/local/bin/cardano-node \
+COPY --from=cardano-builder /root/.local/bin/cardano-cli \
+  /root/.local/bin/cardano-node \
   /usr/local/bin/
 COPY --from=rosetta-server-builder /app/dist /cardano-rosetta-server/dist
 COPY --from=rosetta-server-production-deps /app/node_modules /cardano-rosetta-server/node_modules
@@ -213,9 +215,8 @@ COPY config/network/${NETWORK} /config/
 EXPOSE 8080
 CMD ["node", "/cardano-rosetta-server/dist/src/server/index.js"]
 
-FROM ghcr.io/blinklabs-io/cardano-cli:8.17.0.0 AS cardano-cli
 FROM runtime-base
-COPY --from=cardano-cli /usr/local/bin/cardano-cli /usr/local/bin/
+COPY --from=cardano-builder /root/.local/bin/cardano-cli /usr/local/bin/
 ARG NETWORK=mainnet
 ARG SNAPSHOT_URL
 ENV DEFAULT_RELATIVE_TTL=1000 LOGGER_MIN_SEVERITY=info PAGE_SIZE=25 DEFAULT_POOL_DEPOSIT=500000000 DEFAULT_KEY_DEPOSIT=2000000
