@@ -110,7 +110,7 @@ RUN cd cardano-node \
     && cp -p "$(./scripts/bin-path.sh cardano-node)" /root/.local/bin/ \
     && cp -p "$(./scripts/bin-path.sh cardano-cli)" /root/.local/bin/
 
-RUN export PATH="/root/.local/bin:$PATH" 
+RUN export PATH="/root/.local/bin:$PATH"
 
 ARG DB_SYNC_TAG=${CARDANO_DB_SYNC_VERSION}
 WORKDIR /app/src
