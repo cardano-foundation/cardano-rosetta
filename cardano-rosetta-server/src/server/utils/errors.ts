@@ -266,7 +266,7 @@ export const ErrorFactory = {
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>
-  new ServerError('Environment configurations needed to run server were not found');
+  new ServerError('File not found. environment configurations needed to run server were not found.');
 
 export type nodeOutputToError = {
   error: Error;

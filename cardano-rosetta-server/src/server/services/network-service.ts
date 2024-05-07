@@ -26,9 +26,16 @@ interface PublicRoot {
     accessPoints: AccessPoint[];
   };
 }
+
+interface BootstrapPeer {
+  address: string;
+  port: number;
+}
+
 export interface TopologyConfig {
   Producers?: Producer[];
   PublicRoots?: PublicRoot[];
+  bootstrapPeers?: BootstrapPeer[];
 }
 
 export interface Peer {
@@ -50,9 +57,15 @@ export interface NetworkService {
 const getPublicRoots = (publicRoots?: PublicRoot[]) =>
   publicRoots?.map(pr => pr.publicRoots.accessPoints.map(ap => ({ addr: ap.address }))).flat() || [];
 
+const getBootstrapPeers = (bootstrapPeers?: BootstrapPeer[]) =>
+  bootstrapPeers?.map(bp => ({ addr: bp.address })).flat() || [];
+
 const getPeersFromConfig = (logger: Logger, topologyFile: TopologyConfig): Peer[] => {
   logger.info('[getPeersFromConfig] Looking for peers from topologyFile');
-  const Producers = topologyFile?.Producers || getPublicRoots(topologyFile.PublicRoots);
+  const Producers =
+    topologyFile?.Producers ||
+    getBootstrapPeers(topologyFile.bootstrapPeers) ||
+    getPublicRoots(topologyFile.PublicRoots);
   logger.debug(`[getPeersFromConfig] Found ${Producers.length} peers`);
   return Producers as Peer[];
 };
