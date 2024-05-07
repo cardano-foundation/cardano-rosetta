@@ -8,7 +8,7 @@ import { generateNetworkPayload } from './common';
 import { latestBlockIdentifier } from '../fixture-data';
 
 const NETWORK_STATUS_ENDPOINT = '/network/status';
-const peers = [{ peer_id: 'relays-new.cardano-mainnet.iohk.io' }];
+const peers = [{ peer_id: 'preprod-node.play.dev.cardano.org' }];
 const genesis_block_identifier = {
   hash: '5f20df933584822601f9e3f8c024eb5eb252fe8cefb24d1317dc3d432e940ebb',
   index: 0 // FIXME this is not ok
