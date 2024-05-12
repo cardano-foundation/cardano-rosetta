@@ -22,5 +22,5 @@ runs:
       run: |
         sleep 10
         ${{ inputs.test-exe }} ${{ inputs.network-identifier }}
-        docker stop cardano-rosetta
+        docker stop cardano-rosetta-smoke-test
       shell: bash
