@@ -17,7 +17,7 @@ jobs:
         with:
           path: cardano-rosetta
       - name: Free Diskspace
-        uses: ../cardano-rosetta/.github/actions/free_disk_space
+        uses: ./cardano-rosetta/.github/actions/free_disk_space
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
