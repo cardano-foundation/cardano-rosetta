@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - master
+  push:
+    branches:
+      - fix/free-github-actions-storage
 
 jobs:
   tests:
