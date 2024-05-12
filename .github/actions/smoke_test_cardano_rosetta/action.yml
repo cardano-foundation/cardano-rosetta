@@ -16,10 +16,11 @@ runs:
   using: composite
   steps:
     - name: Run
-      run: docker run --rm -d -p 8080:8080 --name cardano-rosetta --shm-size=2g cardano-rosetta:${{ inputs.tag }}
+      run: docker run --rm -d -p 8080:8080 --name cardano-rosetta-smoke-test --shm-size=2g cardano-rosetta:${{ inputs.tag }}
       shell: bash
     - name: Test
       run: |
         sleep 10
         ${{ inputs.test-exe }} ${{ inputs.network-identifier }}
+        docker stop cardano-rosetta
       shell: bash
