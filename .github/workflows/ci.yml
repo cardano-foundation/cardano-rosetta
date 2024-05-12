@@ -11,14 +11,16 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
+        with:
+          path: cardano-rosetta
       - name: Free Diskspace
-        uses: ./.github/actions/free_disk_space
+        uses: ./cardano-rosetta/.github/actions/free_disk_space
       - name: Setup Node.js
         uses: actions/setup-node@v1
         with:
           node-version: 18
       - name: Lint and test
-        working-directory: ./cardano-rosetta-server
+        working-directory: ./cardano-rosetta/cardano-rosetta-server
         run: |
           yarn install --offline --frozen-lockfile --loglevel=error
           yarn lint
@@ -38,16 +40,16 @@ jobs:
           PAGE_SIZE: 5
           DEFAULT_RELATIVE_TTL: 1000
       - name: Build Cardano Rosetta
-        uses: ./.github/actions/build_cardano_rosetta
+        uses: ./cardano-rosetta/.github/actions/build_cardano_rosetta
         with:
           build-context: ${{ github.workspace }}/cardano-rosetta
           tag: ${{ github.sha }}
       - name: Smoke test Cardano Rosetta image
-        uses: ./.github/actions/smoke_test_cardano_rosetta
+        uses: ./cardano-rosetta/.github/actions/smoke_test_cardano_rosetta
         with:
           tag: ${{ github.sha }}
-          test-exe: ./test/smoke_test.sh
+          test-exe: ./cardano-rosetta/test/smoke_test.sh
       - name: Postman Tests
-        uses: ./.github/actions/postman_tests_cardano_rosetta
+        uses: ./cardano-rosetta/.github/actions/postman_tests_cardano_rosetta
         with:
           tag: ${{ github.sha }}
