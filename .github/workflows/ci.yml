@@ -9,6 +9,12 @@ jobs:
   tests:
     runs-on: ubuntu-20.04
     steps:
+      - name: Check disk space
+        run: df -h
+      - name: Remove unused docker
+        run: docker system prune -f
+      - name: Check disk space again
+        run: df -h
       - name: Checkout source code
         uses: actions/checkout@v2
         with:
