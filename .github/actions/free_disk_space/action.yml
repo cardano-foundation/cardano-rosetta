@@ -4,8 +4,10 @@ runs:
   using: composite
   steps:
     - name: Check disk space
+      shell: bash
       run: df -h
     - name: Free disk space
+      shell: bash
       run: |
         sudo docker rmi $(docker image ls -aq) >/dev/null 2>&1 || true
         sudo rm -rf \
@@ -34,8 +36,10 @@ runs:
         sudo apt-get autoclean -y >/dev/null 2>&1
         echo "some packages purged"
     - name: Check disk space again
+      shell: bash
       run: df -h
     - name: Get more space
+      shell: bash
       run: |
         sudo rm -rf ${GITHUB_WORKSPACE}/.git
         df . -h
