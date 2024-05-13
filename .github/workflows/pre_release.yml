@@ -9,6 +9,8 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
+      - name: Free Diskspace
+        uses: ./.github/actions/free_disk_space
       - name: Build from Git URL with no cache
         run: docker build
           -t cardano-rosetta:${{ github.sha }}

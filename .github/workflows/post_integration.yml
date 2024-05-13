@@ -11,7 +11,8 @@ jobs:
     steps:
       - name: Checkout source code
         uses: actions/checkout@v2
-        
+      - name: Free Diskspace
+        uses: ./.github/actions/free_disk_space
       - name: Build Cardano Rosetta - mainnet
         uses: ./.github/actions/build_cardano_rosetta
         with:

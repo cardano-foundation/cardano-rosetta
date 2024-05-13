@@ -13,7 +13,7 @@ runs:
   using: composite
   steps:
     - name: Run
-      run: docker run --rm -d -p 8080:8080 --name cardano-rosetta --shm-size=2g cardano-rosetta:${{ inputs.tag }}
+      run: docker run --rm -d -p 8080:8080 --name cardano-rosetta-postman-tests --shm-size=2g cardano-rosetta:${{ inputs.tag }}
       shell: bash
     - name: Wait for docker to start
       run: sleep 60
