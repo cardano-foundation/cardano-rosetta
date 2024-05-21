@@ -197,12 +197,12 @@ FROM rosetta-server-base as rosetta-server-builder
 COPY cardano-rosetta-server/tsconfig-dist.json \
   cardano-rosetta-server/tsconfig.json \
   /app/
-RUN yarn --offline --frozen-lockfile --non-interactive
+RUN yarn --frozen-lockfile --non-interactive
 COPY cardano-rosetta-server/src /app/src
 RUN yarn build
 
 FROM rosetta-server-base as rosetta-server-production-deps
-RUN yarn --offline --frozen-lockfile --non-interactive --production
+RUN yarn --frozen-lockfile --non-interactive --production
 
 FROM ubuntu-nodejs as cardano-rosetta-server
 ARG NETWORK=mainnet
