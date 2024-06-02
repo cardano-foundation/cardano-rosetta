@@ -1,0 +1,37 @@
+Feature: Pledge to a stakepool
+
+    Rule: Pledging transaction can be constructed
+  
+        Scenario: Valid case
+            Given I am the owner of STAKEPOOL_1
+            And I hold 1'000'000 ADA in my account
+            When I provide pledging intent of 350'000 ADA
+            Then exchange constructs a transaction for my pledge
+            And the delegation transaction matches my pledging intent of 350'000 ADA
+	
+    	Scenario: Invalid case - no enough funds to pledge
+            Given I am the owner of STAKEPOOL_1
+            And I hold 1'000 ADA in my account
+            When I probide pledging intent of 320'000 ADA
+            Then exchange does not construct a transaction for my pledge
+	
+    	Scenario: Invalid case - stakepool not registered
+            Given I am not the owner of STAKEPOOL_2
+            And I hold 1'000'000 ADA in my account
+            When I provide pledging intent of 350'000 ADA
+            Then exchange does not construct a transaction for my pledger
+
+    Rule: Pledging transaction can be submitted
+  
+        Scenario: Valid pledging transaction
+            Given I am the owner of STAKEPOOL_1
+            And exchange has already constructed my pledging transaction for 350'000 ADA
+            When exchange submits the transaction
+            Then a successful response is returned
+            And there is onchain proof
+
+        Scenario: Invalid case – stakepool not registered
+		    Given exchange has constructed a delegation transaction using a stakepool id that is not registered
+		    When exchange submits the transaction
+    		Then an error is returned
+    		And pledge is not accepted on the blockchain
