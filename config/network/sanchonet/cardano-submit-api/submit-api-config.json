@@ -1,9 +1,7 @@
 {
-  "EnableFutureGenesis": true,
   "EnableLogMetrics": false,
   "EnableLogging": true,
-  "NetworkName": "preview",
-  "NodeConfigFile": "../cardano-node/config.json",
+  "GenesisHash": "785eb88427e136378a15b0a152a8bfbeec7a611529ccda29c43a1e60ffb48eaa",
   "PrometheusPort": 8080,
   "RequiresNetworkMagic": "RequiresMagic",
   "defaultBackends": [

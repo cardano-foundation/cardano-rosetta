@@ -1,7 +1,7 @@
 {
 	"info": {
-		"_postman_id": "43a01e72-964c-4176-abae-1f0e5d965ca2",
-		"name": "rosetta-ts",
+		"_postman_id": "6db35c15-7a0a-42a6-a88d-c10c3c970750",
+		"name": "rosetta-java",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "32834089"
 	},
@@ -34,7 +34,8 @@
 									"",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -142,7 +143,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"options\": {\n        \"transaction_size\": 40.0,\n        \"relative_ttl\": 10.0\n    }\n}",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"options\": {\n        \"transaction_size\": 40,\n        \"relative_ttl\": 10\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -328,6 +329,286 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "payload - simple",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('payloads');",
+									"    pm.response.to.have.jsonBody('unsigned_transaction');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.payloads.length).to.equal(2)",
+									"    pm.expect(responseData.payloads[0].hex_bytes).to.equal('159434d5bab91b4a3b041ee49540d01bcaeef35481bd386f9feb17acfc3aa0af')",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-90000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeKeyDeregistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"0\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/payloads",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"payloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "payload - multiple assets",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('payloads');",
+									"    pm.response.to.have.jsonBody('unsigned_transaction');",
+									"})",
+									"",
+									"pm.test(\"Correct Values\", function () {",
+									"    ",
+									"    var responseData = pm.response.json();",
+									"    pm.expect(responseData).to.be.an('object');",
+									"    pm.expect(responseData.payloads.length).to.equal(1)",
+									"    pm.expect(responseData.payloads[0].account_identifier.address).to.equal('addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx')",
+									"});",
+									"",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"operations\": [\n    {\n      \"operation_identifier\": {\n        \"index\": 0,\n        \"network_index\": 0\n      },\n      \"type\": \"input\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"-9000000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      },\n      \"coin_change\": {\n        \"coin_identifier\": {\n          \"identifier\": \"2f23fd8cca835af21f3ac375bac601f97ead75f2e79143bdf71fe2c4be043e8f:1\"\n        },\n        \"coin_action\": \"coin_spent\"\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 1\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"10000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 2\n      },\n      \"related_operations\": [\n        {\n          \"index\": 0\n        }\n      ],\n      \"type\": \"output\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx\"\n      },\n      \"amount\": {\n        \"value\": \"40000\",\n        \"currency\": {\n          \"symbol\": \"ADA\",\n          \"decimals\": 6\n        }\n      }\n    },\n    {\n      \"operation_identifier\": {\n        \"index\": 3\n      },\n      \"type\": \"stakeKeyRegistration\",\n      \"status\": \"success\",\n      \"account\": {\n        \"address\": \"stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5\"\n      },\n      \"metadata\": {\n        \"staking_credential\": {\n          \"hex_bytes\": \"1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F\",\n          \"curve_type\": \"edwards25519\"\n        },\n        \"depositAmount\": {\n          \"currency\": {\n            \"decimals\": 6,\n            \"symbol\": \"ADA\"\n          },\n          \"value\": \"2000000\"\n        }\n      }\n    }\n  ],\n  \"metadata\": {\n    \"ttl\": \"1000\",\n    \"protocol_parameters\": {\n      \"coinsPerUtxoSize\": \"0\",\n      \"maxTxSize\": 16384,\n      \"maxValSize\": 0,\n      \"keyDeposit\": \"2000000\",\n      \"maxCollateralInputs\": 0,\n      \"minFeeCoefficient\": 44,\n      \"minFeeConstant\": 155381,\n      \"minPoolCost\": \"340000000\",\n      \"poolDeposit\": \"500000000\",\n      \"protocol\": 4\n    }\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/payloads",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"payloads"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "combine",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Status code is 200', function () {",
+									"    pm.response.to.have.status(200);",
+									"})",
+									"console.log(pm.response.json())",
+									"",
+									"pm.test('Contains Json Body', function () {",
+									"    pm.response.to.have.jsonBody('signed_transaction');",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"unsigned_transaction\": \"8278ee61343030383138323538323032663233666438636361383335616632316633616333373562616336303166393765616437356632653739313433626466373166653263346265303433653866303130313832383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139323731303832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666231393963343030323139396334303033313930336538a16a6f7065726174696f6e7381a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783b416532746450775550455a4336574a66565178544e4e3274577734736b47724e367a5256756b76784a6d544679316e596b5647514275555255334c66616d6f756e74a26576616c7565662d39303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74\",\n  \"signatures\": [\n    {\n      \"signing_payload\": {\n        \"account_identifier\": {\n          \"address\": \"Ae2tdPwUPEZC6WJfVQxTNN2tWw4skGrN6zRVukvxJmTFy1nYkVGQBuURU3L\",\n          \"metadata\": {\n            \"chain_code\": \"dd75e154da417becec55cdd249327454138f082110297d5e87ab25e15fad150f\"\n          }\n        },\n        \"hex_bytes\": \"4691ebf945f37962153f74e198ba2553177e6dc8e464303e37589077f634397c\",\n        \"signature_type\": \"ed25519\"\n      },\n      \"public_key\": {\n        \"hex_bytes\": \"73fea80d424276ad0978d4fe5310e8bc2d485f5f6bb3bf87612989f112ad5a7d\",\n        \"curve_type\": \"edwards25519\"\n      },\n      \"signature_type\": \"ed25519\",\n      \"hex_bytes\": \"dc2a1948bfa9411b37e8d280b04c48a85af5588bcf509c0fca798f7b462ebca92d6733dacc1f1c6c1463623c085401be07ea422ad4f1c543375e7d3d2393aa0b\"\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/combine",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"combine"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "parse - Deposit",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed\": false,\n  \"transaction\": \"8279013a6135303038313832353832303266323366643863636138333561663231663361633337356261633630316639376561643735663265373931343362646637316665326334626530343365386630313031383238323538316436316262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032316130303661306337303033313930336538303438313832303038323030353831636262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662a16a6f7065726174696f6e7382a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26576616c7565682d393030303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74a5746f7065726174696f6e5f6964656e746966696572a165696e646578036474797065747374616b654b6579526567697374726174696f6e667374617475736773756363657373676163636f756e74a16761646472657373783b7374616b653175786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e376361656b376135686d65746164617461a2727374616b696e675f63726564656e7469616ca2696865785f62797465737840314234303044363041414633344541463644434241423942424134363030314132333439373838364346313130363646373834363933334433304535414433466a63757276655f747970656c6564776172647332353531396d6465706f736974416d6f756e74a26863757272656e6379a26673796d626f6c6341444168646563696d616c73066576616c75656732303030303030\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/parse",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"parse"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "parse - refund",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed\": false,\n  \"transaction\": \"82790132613530303831383235383230326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663031303138323832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666230313832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666230343032316130353762636566623033313930336538303438313832303138323030353831636262343066316136343762633838633162643662373338646238656236363335376439323634373465613566666436626161373663396662a16a6f7065726174696f6e7382a6746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26576616c7565692d39303030303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74a5746f7065726174696f6e5f6964656e746966696572a165696e646578036474797065767374616b654b65794465726567697374726174696f6e667374617475736773756363657373676163636f756e74a16761646472657373783b7374616b653175387a666e6b687034673676686e6565746d763271656e3766356e64726b6c716a7138653973326e636b3968333063667a36716d70686d65746164617461a2727374616b696e675f63726564656e7469616ca2696865785f62797465737840314234303044363041414633344541463644434241423942424134363030314132333439373838364346313130363646373834363933334433304535414433466a63757276655f747970656c6564776172647332353531396c726566756e64416d6f756e74a26576616c7565682d323030303030306863757272656e6379a26673796d626f6c6341444168646563696d616c7306\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/parse",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"parse"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "parse - Signed Multiasset",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed\": true,\n  \"transaction\": \"8279025a3833613430303831383235383230326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663031303138323832353831643631626234306631613634376263383863316264366237333864623865623636333537643932363437346561356666643662616137366339666238323139323731306131353831636230643037643435666539353134663830323133663430323065356136313234313435386265363236383431636465373137636233386137613334393437373536393634366634333666363936653139303930363530346137353631366534333732373537613534366636623635366536313761366631393161306134373665373537343633366636393665313932373130383235383164363162623430663161363437626338386331626436623733386462386562363633353764393236343734656135666664366261613736633966623139396334303032313939633430303330306131303038313832353832303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303035383430303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303030303066356636a16a6f7065726174696f6e7381a7746f7065726174696f6e5f6964656e746966696572a265696e646578006d6e6574776f726b5f696e64657800647479706565696e707574667374617475736773756363657373676163636f756e74a16761646472657373783a616464723176786135707564786737376733736461646465636d773874766336686d796e79776e34396c6c747434666d766e3763706e6b63707866616d6f756e74a26576616c7565662d39303030306863757272656e6379a26673796d626f6c6341444168646563696d616c73066b636f696e5f6368616e6765a26f636f696e5f6964656e746966696572a16a6964656e7469666965727842326632336664386363613833356166323166336163333735626163363031663937656164373566326537393134336264663731666532633462653034336538663a316b636f696e5f616374696f6e6a636f696e5f7370656e74686d65746164617461a16b746f6b656e42756e646c6581a268706f6c69637949647838623064303764343566653935313466383032313366343032306535613631323431343538626536323638343163646537313763623338613766746f6b656e7383a26576616c756564323331306863757272656e6379a26673796d626f6c7234373735363936343666343336663639366568646563696d616c7300a26576616c756564363636366863757272656e6379a26673796d626f6c7820346137353631366534333732373537613534366636623635366536313761366668646563696d616c7300a26576616c75656531303030306863757272656e6379a26673796d626f6c6e366537353734363336663639366568646563696d616c7300\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/parse",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"parse"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "submit",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"network_identifier\": {\n    \"blockchain\": \"cardano\",\n    \"network\": \"{{networkId}}\"\n  },\n  \"signed_transaction\": \"84a3008182582047f2a85b713bcf587bd46896da628fd80c268665d9b86050a6a8cf9030c5b8d3010182825839006971735734b6c29b6ab065142aaf89eb524d1ea6a293bb43b672a1bae8f8fdcc485472d5a3a6c2416bfc4bc0fa81dbcc9bc4317a4a68e1631a004c4b4082583900a8b3b814a65e5e43777f89b30c87eac4e3396a9b9c24cd08d66094998e5053d0eb80dda519e85bf8e08144bedb5485f8808502aa538447731a040c7d64021a0002a121a10081825820d498c3d54941e01cbcfb565371a844f1342edee82795ef5297de45be3acb19d85840dced88adf01fa809af2db1c76c5273394f1bca48c0c6709800b469231608713916d2292a644a503c275492ef68aa29ec8c5543034897ded231c461eb34d9180cf5f6\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/construction/submit",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"construction",
+								"submit"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -416,7 +697,8 @@
 									"});",
 									""
 								],
-								"type": "text/javascript"
+								"type": "text/javascript",
+								"packages": {}
 							}
 						}
 					],
@@ -517,7 +799,11 @@
 									"     var responseBody = pm.response.json();",
 									"     pm.expect(responseBody).to.be.an('object');",
 									"     pm.expect(responseBody.block.parent_block_identifier.index).to.be.a('number').below(responseBody.block.block_identifier.index);",
-									"});"
+									"});",
+									"",
+									"//var jsonData = pm.response.json();",
+									"//postman.setEnvironmentVariable(\"transactionHash\", jsonData.block.transactions[0].transaction_identifier.hash)",
+									"//postman.setEnvironmentVariable(\"address\", jsonData.block.transactions[0].operations[1].account.address)"
 								],
 								"type": "text/javascript",
 								"packages": {}
@@ -529,7 +815,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": {{blockIndex}},\n        \"hash\": \"{{blockHash}}\"\n    }\n}",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"block_identifier\": {\n        \"index\": \"{{blockIndex}}\"\n    }\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -543,6 +829,184 @@
 							],
 							"path": [
 								"block"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/account/balance",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"});",
+									"console.log(pm.response.json())",
+									"pm.test(\"Test account balance\", function () {",
+									"    const accountBalance = pm.environment.get('accountBalance');",
+									"    var responseBody = pm.response.json();",
+									"    pm.expect(responseBody).to.be.an('object');",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n                \"network_identifier\": {\n                    \"blockchain\": \"cardano\",\n                    \"network\": \"{{networkId}}\"\n                },\n                \"account_identifier\": {\n                    \"address\": \"{{TestAccountBaseAddress}}\"\n                }\n            }",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/account/balance",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"account",
+								"balance"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/account/coins",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"        pm.response.to.have.status(200);",
+									"});",
+									"console.log(pm.response.json());",
+									"pm.test(\"Body has not empty address\", function () {",
+									"    const current_block_index = Number.parseInt(pm.environment.get('blockIndex'));",
+									"    const current_block_hash = pm.environment.get('blockHash');",
+									"    pm.expect(pm.response.json().block_identifier.index).to.not.eq(null)",
+									"    pm.expect(pm.response.json().block_identifier.hash).to.not.eq(null)",
+									"    pm.expect(pm.response.json().block_identifier.hash).to.not.eq(\"\")",
+									"});",
+									"",
+									"const coin_with_metadata_index = pm.response.json().coins.findIndex(el => el.metadata != null);",
+									"var coin_identifier;",
+									"",
+									"if (coin_with_metadata_index !== -1) {",
+									"    coin_identifier = pm.response.json().coins[coin_with_metadata_index].coin_identifier.identifier;",
+									"} else {",
+									"    console.warn(\"No UTxO with metadata was found\")",
+									"};",
+									"",
+									"pm.test(\"UTxO has token policyId(s)\", function () {",
+									"    if (coin_identifier) {",
+									"        pm.expect(pm.response.json().coins[coin_with_metadata_index].metadata[coin_identifier]).length.to.be.greaterThan(0)",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"Policy has 1 token\", function () {",
+									"    if (coin_identifier) {",
+									"        pm.expect(pm.response.json().coins[coin_with_metadata_index].metadata[coin_identifier][0].tokens).to.have.lengthOf(1)",
+									"    }",
+									"});",
+									"",
+									"pm.test(\"UTxO has Testcoin token(s)\", function () {",
+									"    if (coin_identifier) {",
+									"        const value = Number(pm.response.json().coins[coin_with_metadata_index].metadata[coin_identifier][0].tokens[0].value)",
+									"        pm.expect(value).to.be.greaterThan(0)",
+									"    }",
+									"});",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"account_identifier\": {\n        \"address\": \"{{TestAccountBaseAddress}}\"\n    },\n    \"include_mempool\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/account/coins",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"account",
+								"coins"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/mempool/transaction",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n    },\n    \"transaction_identifier\": {\n        \"hash\": {{mempoolTransaction}}\n    },\n    \"metadata\": {}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/mempool/transaction",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"mempool",
+								"transaction"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "/mempool",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"network_identifier\": {\n        \"blockchain\": \"cardano\",\n        \"network\": \"{{networkId}}\"\n        },\n    \"metadata\": {    }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/mempool",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"mempool"
 							]
 						}
 					},
