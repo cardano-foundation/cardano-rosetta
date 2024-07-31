@@ -13,6 +13,10 @@ jobs:
         uses: actions/checkout@v2
       - name: Free Diskspace
         uses: ./.github/actions/free_disk_space
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18
       - name: Build Cardano Rosetta - mainnet
         uses: ./.github/actions/build_cardano_rosetta
         with:
@@ -44,13 +48,11 @@ jobs:
           db-sync-version: sancho-4-0-0
           tag: ${{ github.event.release.tag_name }}-sanchonet
 
-          
-#      - name: Smoke test Cardano Rosetta image
-#        uses: ./.github/actions/smoke_test_cardano_rosetta
-#        with:
-#          tag: ${{ github.event.release.tag_name }}
-#          test-exe: ./test/smoke_test.sh
-          
+      - name: Postman Tests
+        uses: ./.github/actions/postman_tests_cardano_rosetta
+        with:
+          tag: ${{ github.event.release.tag_name }}
+
       - name: Apply latest tag
         run: |
           docker tag cardano-rosetta:${{ github.event.release.tag_name }} cardanofoundation/cardano-rosetta:${{ github.event.release.tag_name }}

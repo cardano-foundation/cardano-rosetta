@@ -11,6 +11,10 @@ jobs:
         uses: actions/checkout@v2
       - name: Free Diskspace
         uses: ./.github/actions/free_disk_space
+      - name: Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 18
       - name: Build from Git URL with no cache
         run: docker build
           -t cardano-rosetta:${{ github.sha }}
@@ -25,9 +29,7 @@ jobs:
           --build-arg NETWORK=preprod
           -t cardano-rosetta:preprod-${{ github.sha }}
           https://github.com/cardano-foundation/cardano-rosetta.git#${{ github.sha }}
-      - name: Smoke test remote preprod build with local cache
-        uses: ./.github/actions/smoke_test_cardano_rosetta
+      - name: Postman Tests
+        uses: ./.github/actions/postman_tests_cardano_rosetta
         with:
-          tag: preprod-${{ github.sha }}
-          network-identifier: preprod
-          test-exe: ./test/smoke_test.sh
+          tag: ${{ github.sha }}
