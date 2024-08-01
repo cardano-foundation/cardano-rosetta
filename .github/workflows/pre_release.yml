@@ -11,10 +11,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Free Diskspace
         uses: ./.github/actions/free_disk_space
-      - name: Setup Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 18
       - name: Build from Git URL with no cache
         run: docker build
           -t cardano-rosetta:${{ github.sha }}
