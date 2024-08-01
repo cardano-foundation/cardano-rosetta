@@ -169,60 +169,21 @@ As per the release notes, you **_may_** be required to refresh the state managed
 `cardano-db-sync`. This can be achieved without requiring a network re-sync using one of the two 
 following approached:
 
-#### 1. Apply a Trusted `cardano-db-sync` Snapshot
-Run the build command with the addition of an argument providing a version and network-specific 
-link, sourced from the `cardano-db-sync` [release notes](https://github.com/input-output-hk/cardano-db-sync/releases).
-For example:
-
-##### Build
-<details open>
-  <summary>mainnet</summary>
-
-```console
-DOCKER_BUILDKIT=1 \
-docker build \
-  --build-arg BUILDKIT_INLINE_CACHE=1 \
-  --build-arg SNAPSHOT_URL=https://update-cardano-mainnet.iohk.io/cardano-db-sync/13/db-sync-snapshot-schema-13-block-7960123-x86_64.tgz \
-  --cache-from=cardanofoundation/cardano-rosetta:master \
-  -t cardanofoundation/cardano-rosetta:2.3.0-apply-snapshot \
-  https://github.com/cardanofoundation/cardano-rosetta.git#2.3.0
-```
-
-</details>
-
-##### Run
-
-<details open>
-  <summary>mainnet</summary>
-
-```console
-docker run \
-  --name cardano-rosetta \
-  -p 8080:8080 \
-  -v cardano-rosetta:/data \
-  --shm-size=2g \
-  cardanofoundation/cardano-rosetta:2.3.0-apply-snapshot
-```
-
-</details>
-
-:information_source: _Build a new image as per the [standard build instructions] if you need to 
-recreate the container, otherwise the data will be dropped and restored again._
-
-:information_source: _The snapshot will only be applied if `cardano-node` is synced past the 
-snapshot point, since the benefit of using it would be eliminated given `cardano-db-sync` rolls back
-to genesis under these conditions. For best results, ensure the node is close to the network tip
-prior to upgrading._ 
-
-#### 2. Re-sync From Genesis
-A _trustless_ approach to rebuild the DB, by syncing from genesis at the cost of an extended sync 
+#### 1. Re-sync From Genesis
+A _trustless_ approach to rebuild the DB, by syncing from genesis at the cost of an extended sync
 duration:
 ```console
 docker stop cardano-rosetta && \
 docker rm cardano-rosetta && \
 docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql /data/db-sync
 ```
-... then start a container as per usual. Sync progress will be logged by the new container. 
+... then start a container as per usual. Sync progress will be logged by the new container.
+
+#### 2. Apply a Trusted `cardano-db-sync` Snapshot
+> **Disclaimer:** There is currently a known issue with `cardano-db-sync` which hinders using a snapshot.
+> We will provide an update once the issue is resolved.
+
+
 
 ## Documentation
 
