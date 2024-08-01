@@ -40,7 +40,7 @@ jobs:
       - name: Build Cardano Rosetta
         uses: ./.github/actions/build_cardano_rosetta
         with:
-          build-context: ${{ github.workspace }}/cardano-rosetta
+          build-context: ${{ github.workspace }}
           tag: ${{ github.sha }}
       - name: Postman Tests
         uses: ./.github/actions/postman_tests_cardano_rosetta
