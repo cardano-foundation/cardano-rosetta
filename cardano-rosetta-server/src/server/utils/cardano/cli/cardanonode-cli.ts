@@ -13,7 +13,13 @@ export interface CardanoCli {
   submitTransaction(logger: Logger, signedTransaction: string, isMainnet: boolean): Promise<void>;
 }
 
-export const SUPPORTED_ERAS = ['Tx AlonzoEra', 'Tx MaryEra', 'Tx AllegraEra', 'TxSignedShelley'];
+export const SUPPORTED_ERAS = [
+  'Witnessed Tx BabbageEra',
+  'Tx AlonzoEra',
+  'Tx MaryEra',
+  'Tx AllegraEra',
+  'TxSignedShelley'
+];
 
 const wrongErraDetectRegex = /The era of the node and the tx do not match|DecoderErrorDeserialiseFailure/;
 /**
