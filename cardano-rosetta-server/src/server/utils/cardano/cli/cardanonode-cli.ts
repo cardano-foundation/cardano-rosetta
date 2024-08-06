@@ -14,11 +14,12 @@ export interface CardanoCli {
 }
 
 export const SUPPORTED_ERAS = [
+  'Witnessed Tx ShelleyEra',
+  'Witnessed Tx AllegraEra',
+  'Witnessed Tx MaryEra',
+  'Witnessed Tx AlonzoEra',
   'Witnessed Tx BabbageEra',
-  'Tx AlonzoEra',
-  'Tx MaryEra',
-  'Tx AllegraEra',
-  'TxSignedShelley'
+  'Witnessed Tx ConwayEra',
 ];
 
 const wrongErraDetectRegex = /The era of the node and the tx do not match|DecoderErrorDeserialiseFailure/;
