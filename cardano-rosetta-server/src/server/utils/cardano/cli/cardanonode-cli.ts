@@ -19,7 +19,7 @@ export const SUPPORTED_ERAS = [
   'Witnessed Tx MaryEra',
   'Witnessed Tx AlonzoEra',
   'Witnessed Tx BabbageEra',
-  'Witnessed Tx ConwayEra',
+  'Witnessed Tx ConwayEra'
 ];
 
 const wrongErraDetectRegex = /The era of the node and the tx do not match|DecoderErrorDeserialiseFailure/;
