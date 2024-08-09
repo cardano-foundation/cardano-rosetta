@@ -22,7 +22,7 @@ DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --cache-from=cardanofoundation/cardano-rosetta:master \
-  -t cardanofoundation/cardano-rosetta:2.3.0 \
+  -t cardanofoundation/cardano-rosetta:2.3.1 \
   .
 ```
 
@@ -37,7 +37,7 @@ docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=preprod \
   --cache-from=cardanofoundation/cardano-rosetta:master \
-  -t cardanofoundation/cardano-rosetta:2.3.0-preprod \
+  -t cardanofoundation/cardano-rosetta:2.3.1-preprod \
   .
 ```
 
@@ -52,7 +52,7 @@ docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=preview \
   --cache-from=cardanofoundation/cardano-rosetta:master \
-  -t cardanofoundation/cardano-rosetta:2.3.0-preview \
+  -t cardanofoundation/cardano-rosetta:2.3.1-preview \
   .
 ```
 
@@ -68,7 +68,7 @@ docker build \
   --build-arg CARDANO_DB_SYNC_VERSION=13.3.0.0 \
   --build-arg DB_SYNC_TAG=sanch-5-1-0
   --cache-from=cardanofoundation/cardano-rosetta:master \
-  -t cardanofoundation/cardano-rosetta:2.3.0-sanchonet \
+  -t cardanofoundation/cardano-rosetta:2.3.1-sanchonet \
   .
 ```
 
@@ -88,7 +88,7 @@ docker run \
   -p 8080:8080 \
   -v cardano-rosetta:/data \
   --shm-size=2g \
-  cardanofoundation/cardano-rosetta:2.3.0
+  cardanofoundation/cardano-rosetta:2.3.1
 
 </details>
 
@@ -101,7 +101,7 @@ docker run \
   -p 8081:8080 \
   -v cardano-rosetta-preprod:/data \
   --shm-size=2g \
-  cardanofoundation/cardano-rosetta:2.3.0-preprod
+  cardanofoundation/cardano-rosetta:2.3.1-preprod
 ```
 
 </details>
@@ -115,7 +115,7 @@ docker run \
   -p 8081:8080 \
   -v cardano-rosetta-preview:/data \
   --shm-size=2g \
-  cardanofoundation/cardano-rosetta:2.3.0-preview
+  cardanofoundation/cardano-rosetta:2.3.1-preview
 ```
 
 </details>
@@ -129,7 +129,7 @@ docker run \
   -p 8081:8080 \
   -v cardano-rosetta-preview:/data \
   --shm-size=2g \
-  cardanofoundation/cardano-rosetta:2.3.0-sanchonet
+  cardanofoundation/cardano-rosetta:2.3.1-sanchonet
 ```
 
 </details>
