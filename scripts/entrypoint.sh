@@ -51,7 +51,7 @@ elif [ "$MODE" == "online" ]; then
       fi
       tmp_dir=$(gosu postgres mktemp --directory -t db-sync-snapshot-XXXXXXXXXX)
       echo "Extracting tarball"
-      gosu postgres tar -zxvf /snapshot/*.tgz --directory "$tmp_dir"
+      gosu postgres tar xvf /snapshot/*.tgz --directory "$tmp_dir"
       db_file=$(find "$tmp_dir/" -iname "*.sql")
       lstate_file=$(find "${tmp_dir}/" -iname "*.lstate")
       mv "${lstate_file}" "$DATA_DIR_DB_SYNC"

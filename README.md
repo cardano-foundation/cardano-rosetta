@@ -25,7 +25,6 @@ docker build \
   -t cardanofoundation/cardano-rosetta:2.3.2 \
   .
 ```
-
 </details>
 
 <details>
@@ -71,7 +70,6 @@ docker build \
   -t cardanofoundation/cardano-rosetta:2.3.2-sanchonet \
   .
 ```
-
 </details>
 
 ## Run
@@ -89,7 +87,7 @@ docker run \
   -v cardano-rosetta:/data \
   --shm-size=2g \
   cardanofoundation/cardano-rosetta:2.3.2
-
+```
 </details>
 
 <details>
