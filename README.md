@@ -64,7 +64,7 @@ DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=sanchonet \
-  --build-arg CARDANO_DB_SYNC_VERSION=13.5.0.0 \
+  --build-arg CARDANO_DB_SYNC_VERSION=13.5.0.1 \
   --build-arg DB_SYNC_TAG=sanch-5-1-0
   --cache-from=cardanofoundation/cardano-rosetta:master \
   -t cardanofoundation/cardano-rosetta:2.3.3-sanchonet \
