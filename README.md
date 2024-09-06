@@ -64,7 +64,7 @@ DOCKER_BUILDKIT=1 \
 docker build \
   --build-arg BUILDKIT_INLINE_CACHE=1 \
   --build-arg NETWORK=sanchonet \
-  --build-arg CARDANO_DB_SYNC_VERSION=13.5.0.1 \
+  --build-arg CARDANO_DB_SYNC_VERSION=13.5.0.2 \
   --build-arg DB_SYNC_TAG=sanch-5-1-0
   --cache-from=cardanofoundation/cardano-rosetta:master \
   -t cardanofoundation/cardano-rosetta:2.3.3-sanchonet \
@@ -178,8 +178,7 @@ docker run --rm -v cardano-rosetta:/data ubuntu rm -rf /data/postgresql /data/db
 ... then start a container as per usual. Sync progress will be logged by the new container.
 
 #### 2. Apply a Trusted `cardano-db-sync` Snapshot
-Run the build command with the addition of an argument providing a version and network-specific
-link, sourced from the `cardano-db-sync` [release notes](https://github.com/input-output-hk/cardano-db-sync/releases).
+Run the build command with the addition of an argument providing the most recent weekly snapshot link (https://update-cardano-mainnet.iohk.io/cardano-db-sync/index.html) and set is as 'SNAPSHOT_URL' below.
 For example:
 
 ##### Build
