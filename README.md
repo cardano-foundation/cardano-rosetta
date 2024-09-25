@@ -1,7 +1,7 @@
 # Cardano Rosetta
 [![CI][img_src_CI]][workflow_CI] [![Nightly][img_src_Nightly]][workflow_Nightly]
 
-> [!CAUTION] 
+> [!WARNING] 
 > 
 > This Repository will be depcrecated soon. Please refer to the new Rosetta-Java Repository [here](https://github.com/cardano-foundation/cardano-rosetta-java)
 
