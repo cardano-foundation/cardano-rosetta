@@ -59,7 +59,7 @@ export const configure = (
         logger.debug(
           `[submitTransaction] Invoking cardano-cli at ${cardanoCliPath} using ${networkMagic} networkMagic`
         );
-        const commonParameters = ['transaction', 'submit', '--tx-file', file];
+        const commonParameters = ['conway', 'transaction', 'submit', '--tx-file', file];
         const parameters = isMainnet
           ? commonParameters.concat('--mainnet')
           : commonParameters.concat('--testnet-magic', networkMagic.toString());
