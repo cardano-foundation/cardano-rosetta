@@ -169,7 +169,7 @@ Default: `25`
 ### Upgrading
 As per the release notes, you **_may_** be required to refresh the state managed by 
 `cardano-db-sync`. This can be achieved without requiring a network re-sync using one of the two 
-following approached:
+following approaches:
 
 #### 1. Re-sync From Genesis
 A _trustless_ approach to rebuild the DB, by syncing from genesis at the cost of an extended sync
