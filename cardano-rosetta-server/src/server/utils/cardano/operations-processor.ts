@@ -2,6 +2,7 @@
 import CardanoWasm, {
   AssetName,
   Assets,
+  AuxiliaryData,
   BigNum,
   GeneralTransactionMetadata,
   MetadataJsonSchema,
@@ -13,9 +14,9 @@ import CardanoWasm, {
   StakeDelegation,
   StakeDeregistration,
   StakeRegistration,
-  AuxiliaryData,
   TransactionMetadatum,
-  Value
+  Value,
+  VoteDelegation
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import {
@@ -29,9 +30,9 @@ import {
 import { ErrorFactory, getErrorMessage } from '../errors';
 import { add0xPrefix, bytesToHex, hexStringToBuffer } from '../formatters';
 import { isEd25519Signature, isKeyValid, isPolicyIdValid, isTokenNameValid } from '../validations';
-import { generateRewardAddress, generateAddress, parseToRewardAddress } from './addresses';
+import { generateAddress, generateRewardAddress, parseToRewardAddress } from './addresses';
 import { getPublicKey, getStakingCredentialFromHex } from './staking-credentials';
-import { parsePoolOwners, parsePoolRewardAccount } from './transactions-processor';
+import { parseDrep, parsePoolOwners, parsePoolRewardAccount } from './transactions-processor';
 import { ManagedFreeableScope } from '../freeable';
 import ApiError from '../../api-error';
 
@@ -309,6 +310,17 @@ const processOperationCertification = (
     const poolKeyHash = validateAndParsePoolKeyHash(scope, logger, operation.metadata?.pool_key_hash);
     const certificate = scope.manage(
       CardanoWasm.Certificate.new_stake_delegation(scope.manage(StakeDelegation.new(credential, poolKeyHash)))
+    );
+    return { certificate, address };
+  }
+  if (operation.type === OperationType.VOTE_DREP_DELEGATION) {
+    const drep = operation.metadata?.drep;
+    if (!drep) {
+      throw ErrorFactory.missingDrep();
+    }
+    const parsedDrep = parseDrep(logger, drep);
+    const certificate = scope.manage(
+      CardanoWasm.Certificate.new_vote_delegation(scope.manage(VoteDelegation.new(credential, parsedDrep)))
     );
     return { certificate, address };
   }
@@ -719,6 +731,13 @@ const operationProcessor: (
     resultAccumulator.addresses.push(address);
     return resultAccumulator;
   },
+  // eslint-disable-next-line sonarjs/no-identical-functions
+  [OperationType.VOTE_DREP_DELEGATION]: () => {
+    const { certificate, address } = processOperationCertification(scope, logger, network, operation);
+    resultAccumulator.certificates.add(certificate);
+    resultAccumulator.addresses.push(address);
+    return resultAccumulator;
+  },
   [OperationType.WITHDRAWAL]: () => {
     const { reward, address } = processWithdrawal(scope, logger, network, operation);
     const withdrawalAmount = BigInt(operation.amount?.value || 0);
@@ -748,8 +767,7 @@ const operationProcessor: (
     return resultAccumulator;
   },
   [OperationType.VOTE_REGISTRATION]: () => {
-    const voteRegistrationMetadata = processVoteRegistration(scope, logger, operation);
-    resultAccumulator.voteRegistrationMetadata = voteRegistrationMetadata;
+    resultAccumulator.voteRegistrationMetadata = processVoteRegistration(scope, logger, operation);
     return resultAccumulator;
   }
 });

@@ -8,6 +8,7 @@ import {
   CatalystLabels,
   CatalystSigIndexes,
   CurveType,
+  DRepType,
   OperationType,
   RelayType,
   StakingOperations
@@ -63,11 +64,7 @@ export const parsePoolOwners = (
     const ownersCount = owners.len();
     for (let index = 0; index < ownersCount; index++) {
       const owner = scope.manage(owners.get(index));
-      const address = generateRewardAddress(
-        logger,
-        network,
-        scope.manage(CardanoWasm.StakeCredential.from_keyhash(owner))
-      );
+      const address = generateRewardAddress(logger, network, scope.manage(CardanoWasm.Credential.from_keyhash(owner)));
       poolOwners.push(address);
     }
     return poolOwners;
@@ -81,6 +78,41 @@ export const parsePoolRewardAccount = (
   usingAutoFree(scope =>
     generateRewardAddress(logger, network, scope.manage(scope.manage(poolParameters.reward_account()).payment_cred()))
   );
+
+export const parseDrep = (logger: Logger, drep: Components.Schemas.DRep): CardanoWasm.DRep =>
+  usingAutoFree(scope => {
+    switch (drep.type) {
+      case DRepType.ABSTAIN: {
+        return CardanoWasm.DRep.new_always_abstain();
+      }
+      case DRepType.NO_CONFIDENCE: {
+        return CardanoWasm.DRep.new_always_no_confidence();
+      }
+      case DRepType.KEY_HASH: {
+        if (!drep.id) throw ErrorFactory.missingDrepId();
+        try {
+          const keyHash = scope.manage(CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(drep.id, 'hex')));
+          return CardanoWasm.DRep.new_key_hash(keyHash);
+        } catch {
+          logger.error(`[parseDrep] Invalid key_hash value: ${drep.id}`);
+          throw ErrorFactory.invalidKeyHash();
+        }
+      }
+      case DRepType.SCRIPT_HASH: {
+        if (!drep.id) throw ErrorFactory.missingDrepId();
+        try {
+          const scriptHash = scope.manage(CardanoWasm.ScriptHash.from_bytes(Buffer.from(drep.id, 'hex')));
+          return CardanoWasm.DRep.new_script_hash(scriptHash);
+        } catch {
+          logger.error(`[parseDrep] Invalid script_hash value: ${drep.id}`);
+          throw ErrorFactory.invalidScriptHash();
+        }
+      }
+      default: {
+        throw ErrorFactory.invalidDrepType();
+      }
+    }
+  });
 
 const parseIpv4 = (wasmIp?: CardanoWasm.Ipv4): string | undefined => {
   if (wasmIp) {
@@ -298,12 +330,18 @@ const parseCertToOperation = (
         staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
       }
     };
-    const delegationCert = scope.manage(cert.as_stake_delegation());
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    if (delegationCert)
-      operation.metadata!.pool_key_hash = Buffer.from(scope.manage(delegationCert.pool_keyhash()).to_bytes()).toString(
-        'hex'
-      );
+    if (operation.type === OperationType.VOTE_DREP_DELEGATION) {
+      const voteDelegCert = scope.manage(cert.as_vote_delegation());
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (voteDelegCert) operation.metadata!.drep = parseCertToDrep(scope.manage(voteDelegCert.drep()));
+    } else {
+      const stakeDelegCert = scope.manage(cert.as_stake_delegation());
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      if (stakeDelegCert)
+        operation.metadata!.pool_key_hash = Buffer.from(
+          scope.manage(stakeDelegCert.pool_keyhash()).to_bytes()
+        ).toString('hex');
+    }
     return operation;
   });
 
@@ -468,6 +506,30 @@ const parseVoteMetadataToOperation = (
     };
   });
 
+const parseCertToDrep = (drep: CardanoWasm.DRep): Components.Schemas.DRep =>
+  usingAutoFree(scope => {
+    const drepTypeKindMap = new Map<CardanoWasm.DRepKind, DRepType>([
+      [CardanoWasm.DRepKind.AlwaysAbstain, DRepType.ABSTAIN],
+      [CardanoWasm.DRepKind.AlwaysNoConfidence, DRepType.NO_CONFIDENCE],
+      [CardanoWasm.DRepKind.KeyHash, DRepType.KEY_HASH],
+      [CardanoWasm.DRepKind.ScriptHash, DRepType.SCRIPT_HASH]
+    ]);
+    const type = drepTypeKindMap.get(drep.kind());
+    if (!type) throw ErrorFactory.invalidDrepType();
+    const rosettaDrep: Components.Schemas.DRep = {
+      type: type
+    };
+    if (type === DRepType.KEY_HASH) {
+      const keyHash = scope.manage(drep.to_key_hash());
+      if (keyHash) rosettaDrep.id = Buffer.from(keyHash.to_bytes()).toString('hex');
+    }
+    if (type === DRepType.SCRIPT_HASH) {
+      const scriptHash = scope.manage(drep.to_script_hash());
+      if (scriptHash) rosettaDrep.id = Buffer.from(scriptHash.to_bytes()).toString('hex');
+    }
+    return rosettaDrep;
+  });
+
 /**
  * Converts a Cardano Transaction into a Rosetta Operation array.
  *
@@ -508,6 +570,7 @@ export const convert = (
         OperationType.STAKE_KEY_REGISTRATION,
         OperationType.STAKE_KEY_DEREGISTRATION,
         OperationType.STAKE_DELEGATION,
+        OperationType.VOTE_DREP_DELEGATION,
         OperationType.POOL_REGISTRATION,
         OperationType.POOL_REGISTRATION_WITH_CERT,
         OperationType.POOL_RETIREMENT

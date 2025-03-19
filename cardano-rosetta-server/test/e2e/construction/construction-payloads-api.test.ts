@@ -71,7 +71,15 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_SIGNATURE,
   CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_INVALID_SIGNATURE,
   CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_NO_METADATA,
-  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_EMPTY_METADATA
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_WITH_EMPTY_METADATA,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION_RESPONSE
 } from '../fixture-data';
 import {
   SIGNATURE_TYPE,
@@ -444,6 +452,122 @@ describe(CONSTRUCTION_PAYLOADS_ENDPOINT, () => {
           },
           signature_type: SIGNATURE_TYPE,
           hex_bytes: 'd4818d5a1ad1163fdb84b1e538d6d2c2fc34a86a91cd13f628dd3a7e4458a7c1'
+        }
+      ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including stake key registration and vote delegation to an abstain drep', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'f0e810f7ad3b9f74c0bed9a7bc7bafc18600c3b56fccd283a9f68a3e7710fe09'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: 'f0e810f7ad3b9f74c0bed9a7bc7bafc18600c3b56fccd283a9f68a3e7710fe09'
+        }
+      ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including stake key registration and vote delegation to a no confidence drep', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '3128ce648ae331ddb7caa6639180c9e01c114f15c75b9d7cc47e67fef16888c4'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '3128ce648ae331ddb7caa6639180c9e01c114f15c75b9d7cc47e67fef16888c4'
+        }
+      ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including stake key registration and vote delegation to a key hash drep', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '6a86507ef64f551eb079fcd494d9eefde57c30de028315f5a6478bf6c975c389'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '6a86507ef64f551eb079fcd494d9eefde57c30de028315f5a6478bf6c975c389'
+        }
+      ]
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid unsigned transaction hash when sending valid operations including stake key registration and vote delegation to a script hash drep', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PAYLOADS_ENDPOINT,
+      payload: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      unsigned_transaction: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION_RESPONSE,
+      payloads: [
+        {
+          account_identifier: {
+            address: 'addr1vxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7cpnkcpx'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '63ecbf6037e2c57820a31b907f8f7fb26fb22e5251cf6422428f574ab8345e14'
+        },
+        {
+          account_identifier: {
+            address: 'stake1uxa5pudxg77g3sdaddecmw8tvc6hmynywn49lltt4fmvn7caek7a5'
+          },
+          signature_type: SIGNATURE_TYPE,
+          hex_bytes: '63ecbf6037e2c57820a31b907f8f7fb26fb22e5251cf6422428f574ab8345e14'
         }
       ]
     });

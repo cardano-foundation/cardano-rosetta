@@ -50,7 +50,15 @@ import {
   TRANSACTION_WITH_BYRON_INPUT_SIZE,
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
   SIGNED_TX_WITH_POOL_RETIREMENT,
-  LATEST_EPOCH_PROTOCOL_PARAMS
+  LATEST_EPOCH_PROTOCOL_PARAMS,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION,
+  SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION
 } from '../fixture-data';
 import { modifyMAOperation, setupDatabase, setupServer, testInvalidNetworkParameters } from '../utils/test-utils';
 
@@ -269,6 +277,98 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json()).toEqual({
       options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_DELEGATION) }
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid TTL when the operations include stake key registration and abstrain drep vote delegation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        operations: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION.operations,
+        relativeTtl: 100
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: {
+        relative_ttl: 100,
+        transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION)
+      }
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid TTL when the operations include stake key registration and no confidence drep vote delegation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        operations: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION.operations,
+        relativeTtl: 100
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: {
+        relative_ttl: 100,
+        transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION)
+      }
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid TTL when the operations include stake key registration and key hash drep vote delegation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        operations: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION.operations,
+        relativeTtl: 100
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: {
+        relative_ttl: 100,
+        transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION)
+      }
+    });
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return a valid TTL when the operations include stake key registration and script hash drep vote delegation', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PREPROCESS_ENDPOINT,
+      // eslint-disable-next-line no-magic-numbers
+      payload: generateProcessPayload({
+        blockchain: 'cardano',
+        network: 'mainnet',
+        operations: CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION.operations,
+        relativeTtl: 100
+      })
+    });
+
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json()).toEqual({
+      options: {
+        relative_ttl: 100,
+        transaction_size: sizeInBytes(SIGNED_TX_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION)
+      }
     });
   });
 

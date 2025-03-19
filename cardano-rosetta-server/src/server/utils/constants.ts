@@ -44,7 +44,8 @@ export enum OperationType {
   POOL_REGISTRATION = 'poolRegistration',
   POOL_REGISTRATION_WITH_CERT = 'poolRegistrationWithCert',
   POOL_RETIREMENT = 'poolRetirement',
-  VOTE_REGISTRATION = 'voteRegistration'
+  VOTE_REGISTRATION = 'voteRegistration',
+  VOTE_DREP_DELEGATION = 'dRepVoteDelegation'
 }
 
 export enum RelayType {
@@ -56,6 +57,7 @@ export enum RelayType {
 export const OPERATION_TYPES: string[] = Object.values(OperationType);
 
 export const StakingOperations = [
+  OperationType.VOTE_DREP_DELEGATION,
   OperationType.STAKE_DELEGATION,
   OperationType.STAKE_KEY_REGISTRATION,
   OperationType.STAKE_KEY_DEREGISTRATION,
@@ -80,6 +82,13 @@ export enum CurveType {
   secp256r1 = 'secp256r1',
   edwards25519 = 'edwards25519',
   tweedle = 'tweedle'
+}
+
+export enum DRepType {
+  ABSTAIN = 'abstain',
+  NO_CONFIDENCE = 'no_confidence',
+  KEY_HASH = 'key_hash',
+  SCRIPT_HASH = 'script_hash'
 }
 
 export const SUCCESS_STATUS = 'success';

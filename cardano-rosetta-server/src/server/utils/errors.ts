@@ -118,7 +118,13 @@ export const Errors = {
   STATUS_SUCCESS_MATCH_ERROR: { message: 'Given operation status and success state does not match', code: 5014 },
   TX_HASH_COIN_NOT_MATCH: { message: 'Transaction hash does not match to given coin identifier', code: 5015 },
   ADDRESS_AND_ACCOUNT_ID_NOT_MATCH: { message: 'Address and account identifier does not match', code: 5016 },
-  BAD_FORMED_COIN_ERROR: { message: 'Coin identifier has an invalid format', code: 5017 }
+  BAD_FORMED_COIN_ERROR: { message: 'Coin identifier has an invalid format', code: 5017 },
+  INVALID_KEY_HASH: { message: 'Invalid key hash', code: 5018 },
+  INVALID_SCRIPT_HASH: { message: 'Invalid script hash', code: 5019 },
+  INVALID_DREP_TYPE: { message: 'Invalid drep type', code: 5037 },
+  MISSING_DREP: { message: 'Missing drep', code: 5038 },
+  MISSING_DREP_ID: { message: 'Missing drep id', code: 5039 },
+  MISSING_DREP_TYPE: { message: 'Missing drep type', code: 5040 }
 };
 
 export const buildApiError = (error: Error, retriable: boolean, details?: string): ApiError =>
@@ -207,6 +213,12 @@ const addressAndAccountIdNotMatchError: CreateErrorFunction = (details?: string)
   buildApiError(Errors.ADDRESS_AND_ACCOUNT_ID_NOT_MATCH, false, details);
 const badFormedCoinError: CreateErrorFunction = (details?: string) =>
   buildApiError(Errors.BAD_FORMED_COIN_ERROR, false, details);
+const invalidKeyHash: CreateErrorFunction = () => buildApiError(Errors.INVALID_KEY_HASH, false);
+const invalidScriptHash: CreateErrorFunction = () => buildApiError(Errors.INVALID_SCRIPT_HASH, false);
+const invalidDrepType: CreateErrorFunction = () => buildApiError(Errors.INVALID_DREP_TYPE, false);
+const missingDrep: CreateErrorFunction = () => buildApiError(Errors.MISSING_DREP, false);
+const missingDrepId: CreateErrorFunction = () => buildApiError(Errors.MISSING_DREP_ID, false);
+const missingDrepType: CreateErrorFunction = () => buildApiError(Errors.MISSING_DREP_TYPE, false);
 export const ErrorFactory = {
   blockNotFoundError,
   networkNotFoundError,
@@ -262,7 +274,13 @@ export const ErrorFactory = {
   statusAndSuccessMatchError,
   txHashAndCoinNotMatchError,
   addressAndAccountIdNotMatchError,
-  badFormedCoinError
+  badFormedCoinError,
+  invalidKeyHash,
+  invalidScriptHash,
+  invalidDrepType,
+  missingDrep,
+  missingDrepId,
+  missingDrepType
 };
 
 export const configNotFoundError: CreateServerErrorFunction = () =>

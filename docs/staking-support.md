@@ -140,6 +140,33 @@ No amount is needed for this operation since the refund will be calculated with 
 }
 ```
 
+### Vote delegation
+
+
+A staking key should be sent as metadata, which should be of the same type of the public key and also a drep. Both of them are mandatory for this kind of operation.
+
+The drep must specify its type and some of them requires an id value. Valid types: 'key_hash', 'script_hash', 'abstain', 'no_confidence'.
+
+```json
+{
+  "operation_identifier": { 
+    "index": 3 
+  },
+  "type": "dRepVoteDelegation",
+  "status": "success",
+  "metadata": {
+    "staking_credential": {
+      "hex_bytes": "1B400D60AAF34EAF6DCBAB9BBA46001A23497886CF11066F7846933D30E5AD3F",
+      "curve_type": "edwards25519"
+    },
+    "drep": {
+      "id": "74984fae4ca1715fa1f8759f9d871015ac87f449a85dea6cf9956da1",
+      "type": "key_hash"
+    }
+  }
+}
+```
+
 ### Withdrawal
 
 A staking key should be sent as metadata, which should be of the same type of the public key. This is mandatory for this kind of operation. The amount that is to be withdrawn is also mandatory.

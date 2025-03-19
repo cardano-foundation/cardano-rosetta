@@ -395,6 +395,26 @@ const buildRegistrationOperation = (
   },
 });
 
+const buildVoteDrepDelegationOperation = (
+    stakingKey: string,
+    currentIndex: number
+) => ({
+  operation_identifier: {
+    index: currentIndex + 1,
+  },
+  type: "dRepVoteDelegation",
+  status: "success",
+  metadata: {
+    staking_credential: {
+      hex_bytes: stakingKey,
+      curve_type: "edwards25519",
+    },
+    drep: {
+      type: "abstain",
+    },
+  },
+})
+
 const harden = (
   num: number
 ) => {
@@ -512,6 +532,7 @@ export {
   buildOperation,
   buildOperationsToPayAda,
   buildRegistrationOperation,
+  buildVoteDrepDelegationOperation,
   constructionDerive,
   constructionPreprocess,
   constructionMetadata,

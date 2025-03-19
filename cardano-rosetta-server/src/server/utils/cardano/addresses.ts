@@ -1,4 +1,4 @@
-import CardanoWasm, { Address, ByronAddress, StakeCredential } from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm, { Address, ByronAddress, Credential } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import {
   NetworkIdentifier,
@@ -30,7 +30,7 @@ export const getAddressPrefix = (network: number, addressPrefix: AddressPrefix =
 export const generateRewardAddress = (
   logger: Logger,
   network: NetworkIdentifier,
-  paymentCredential: StakeCredential
+  paymentCredential: Credential
 ): string =>
   usingAutoFree(scope => {
     logger.info('[generateRewardAddress] Deriving cardano reward address from valid public staking key');
@@ -52,8 +52,8 @@ export const generateRewardAddress = (
 export const generateBaseAddress = (
   logger: Logger,
   network: NetworkIdentifier,
-  paymentCredential: StakeCredential,
-  stakingCredential: StakeCredential
+  paymentCredential: Credential,
+  stakingCredential: Credential
 ): string =>
   usingAutoFree(scope => {
     logger.info('[generateAddress] Deriving cardano address from valid public key and staking key');
@@ -72,7 +72,7 @@ export const generateBaseAddress = (
 export const generateEnterpriseAddress = (
   logger: Logger,
   network: NetworkIdentifier,
-  paymentCredential: StakeCredential
+  paymentCredential: Credential
 ): string =>
   usingAutoFree(scope => {
     // Enterprise address - default scenario

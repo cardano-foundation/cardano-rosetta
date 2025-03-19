@@ -517,6 +517,23 @@ declare namespace Components {
      */
     export type Direction = 'forward' | 'backward';
     /**
+     * A Delegated Representative (DRep) is an entity that serves community as a spokenperson that exercises voting rights.
+     */
+    export interface DRep {
+      /**
+       * The DRep ID is present only for standard DReps (e.g., key_hash or script_hash); CIP-129 is not supported yet.
+       */
+      id?: string;
+      /**
+       * Mandatory, valid values are: 'key_hash', 'script_hash', 'abstain', 'no_confidence'
+       */
+      type: DRepType;
+    }
+    /**
+     *
+     */
+    export type DRepType = 'key_hash' | 'script_hash' | 'abstain' | 'no_confidence';
+    /**
      * Instead of utilizing HTTP status codes to describe node errors (which often do not have a good analog), rich errors are returned using this object. Both the code and message fields can be individually used to correctly identify an error. Implementations MUST use unique values for both fields.
      */
     export interface Error {
@@ -763,6 +780,10 @@ declare namespace Components {
       staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
       pool_key_hash?: string;
       epoch?: number;
+      /**
+       * If it's a vote delegation operation, the Delegated Representative (DRep) will be returned here.
+       */
+      drep?: DRep;
       /**
        * A token bundle is a heterogeneous (‘mixed’) collection of tokens. Any tokens can be bundled together. Token bundles are the standard - and only - way to represent and store assets on the Cardano blockchain.
        */
