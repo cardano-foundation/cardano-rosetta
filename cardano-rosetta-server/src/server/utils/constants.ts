@@ -91,6 +91,10 @@ export enum DRepType {
   SCRIPT_HASH = 'script_hash'
 }
 
+export const DREP_TYPES: string[] = Object.values(DRepType);
+
+export const DREP_TYPES_ID_REQUIRED: string[] = Object.values([DRepType.SCRIPT_HASH, DRepType.KEY_HASH]);
+
 export const SUCCESS_STATUS = 'success';
 
 export const MAINNET = 'mainnet';

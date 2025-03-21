@@ -8,6 +8,8 @@ import {
   CatalystLabels,
   CatalystSigIndexes,
   CurveType,
+  DREP_TYPES,
+  DREP_TYPES_ID_REQUIRED,
   DRepType,
   OperationType,
   RelayType,
@@ -313,6 +315,29 @@ const parsePoolCertToOperation = (
   return operation;
 };
 
+const parseDRepToOperation = (logger: Logger, certOperation: Components.Schemas.Operation): Components.Schemas.DRep => {
+  const drep = certOperation.metadata?.drep;
+  if (!drep) {
+    logger.error('[parseDRepToOperation] Drep is required for dRepVoteDelegation operations');
+    throw ErrorFactory.missingDrep();
+  }
+  if (!drep.type) {
+    logger.error('[parseDRepToOperation] Drep type is required');
+    throw ErrorFactory.missingDrepType();
+  }
+  const invalidType = DREP_TYPES.includes(drep.toString());
+  if (invalidType) {
+    logger.error(`[parseDRepToOperation] Invalid drep type: ${drep.type}`);
+    throw ErrorFactory.invalidDrepType();
+  }
+  const requiresId = DREP_TYPES_ID_REQUIRED.includes(drep.toString());
+  if (requiresId && !drep.id) {
+    logger.error(`[parseDRepToOperation] ID is required for drep of type ${drep.type}`);
+    throw ErrorFactory.missingDrepId();
+  }
+  return drep;
+};
+
 const parseCertToOperation = (
   cert: CardanoWasm.Certificate,
   index: number,
@@ -330,18 +355,12 @@ const parseCertToOperation = (
         staking_credential: { hex_bytes: hash, curve_type: CurveType.edwards25519 }
       }
     };
-    if (operation.type === OperationType.VOTE_DREP_DELEGATION) {
-      const voteDelegCert = scope.manage(cert.as_vote_delegation());
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      if (voteDelegCert) operation.metadata!.drep = parseCertToDrep(scope.manage(voteDelegCert.drep()));
-    } else {
-      const stakeDelegCert = scope.manage(cert.as_stake_delegation());
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      if (stakeDelegCert)
-        operation.metadata!.pool_key_hash = Buffer.from(
-          scope.manage(stakeDelegCert.pool_keyhash()).to_bytes()
-        ).toString('hex');
-    }
+    const delegationCert = scope.manage(cert.as_stake_delegation());
+    //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    if (delegationCert)
+      operation.metadata!.pool_key_hash = Buffer.from(scope.manage(delegationCert.pool_keyhash()).to_bytes()).toString(
+        'hex'
+      );
     return operation;
   });
 
@@ -356,9 +375,10 @@ const parseCertsToOperations = (
     const certs = scope.manage(transactionBody.certs());
     const certsCount = certs?.len() || 0;
     logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
-
     for (let index = 0; index < certsCount; index++) {
       const certOperation = certOps[index];
+      const cert = scope.manage(certs?.get(index));
+      if (!cert) continue;
       if (StakingOperations.includes(certOperation.type as OperationType)) {
         const hex = certOperation.metadata?.staking_credential?.hex_bytes;
         if (!hex) {
@@ -367,29 +387,25 @@ const parseCertsToOperations = (
         }
         const credential = getStakingCredentialFromHex(scope, logger, certOperation.metadata?.staking_credential);
         const address = generateRewardAddress(logger, network, credential);
-        const cert = scope.manage(certs?.get(index));
-        if (cert) {
-          const parsedOperation = parseCertToOperation(
-            cert,
-            certOperation.operation_identifier.index,
-            hex,
-            certOperation.type,
-            address
-          );
-          parsedOperations.push(parsedOperation);
-        }
+        const parsedOperation = parseCertToOperation(
+          cert,
+          certOperation.operation_identifier.index,
+          hex,
+          certOperation.type,
+          address
+        );
+        if (certOperation.type === OperationType.VOTE_DREP_DELEGATION)
+          parsedOperation.metadata!.drep = parseDRepToOperation(logger, parsedOperation);
+        parsedOperations.push(parsedOperation);
       } else {
-        const cert = scope.manage(certs?.get(index));
-        if (cert) {
-          const parsedOperation = parsePoolCertToOperation(
-            logger,
-            network,
-            cert,
-            certOperation.operation_identifier.index,
-            certOperation.type
-          );
-          parsedOperations.push({ ...parsedOperation, account: certOperation.account });
-        }
+        const parsedOperation = parsePoolCertToOperation(
+          logger,
+          network,
+          cert,
+          certOperation.operation_identifier.index,
+          certOperation.type
+        );
+        parsedOperations.push({ ...parsedOperation, account: certOperation.account });
       }
     }
 
@@ -504,30 +520,6 @@ const parseVoteMetadataToOperation = (
       type: OperationType.VOTE_REGISTRATION,
       metadata: { voteRegistrationMetadata: parsedMetadata }
     };
-  });
-
-const parseCertToDrep = (drep: CardanoWasm.DRep): Components.Schemas.DRep =>
-  usingAutoFree(scope => {
-    const drepTypeKindMap = new Map<CardanoWasm.DRepKind, DRepType>([
-      [CardanoWasm.DRepKind.AlwaysAbstain, DRepType.ABSTAIN],
-      [CardanoWasm.DRepKind.AlwaysNoConfidence, DRepType.NO_CONFIDENCE],
-      [CardanoWasm.DRepKind.KeyHash, DRepType.KEY_HASH],
-      [CardanoWasm.DRepKind.ScriptHash, DRepType.SCRIPT_HASH]
-    ]);
-    const type = drepTypeKindMap.get(drep.kind());
-    if (!type) throw ErrorFactory.invalidDrepType();
-    const rosettaDrep: Components.Schemas.DRep = {
-      type: type
-    };
-    if (type === DRepType.KEY_HASH) {
-      const keyHash = scope.manage(drep.to_key_hash());
-      if (keyHash) rosettaDrep.id = Buffer.from(keyHash.to_bytes()).toString('hex');
-    }
-    if (type === DRepType.SCRIPT_HASH) {
-      const scriptHash = scope.manage(drep.to_script_hash());
-      if (scriptHash) rosettaDrep.id = Buffer.from(scriptHash.to_bytes()).toString('hex');
-    }
-    return rosettaDrep;
   });
 
 /**
