@@ -44,7 +44,7 @@ This workflow generates a transaction that:
 1. Create two keys, one for staking and one for payments
 2. Generates a staking and base address
 3. Waits for funds in the base address
-4. Creates a transaction that registers the stake certificate and delegates to a pool provided as environment variable
+4. Creates a transaction that registers the stake certificate, delegate votes to an abstain drep and delegates to a pool provided as environment variable
 5. Broadcasts the transaction and receives the change in the specified address
 
 ``` bash

@@ -214,6 +214,16 @@ delegate(10){
           "staking_credential": {{staking_key.public_key}},
           "pool_key_hash": {{transfer_dry_run.pool_key_hash}}
         }
+      },
+      {
+        "operation_identifier": { "index": 5 },
+        "type": "dRepVoteDelegation",
+        "account":{{transfer_dry_run.staking_account_identifier}},
+        "status": "",
+        "metadata": {
+          "staking_credential": {{staking_key.public_key}},
+          "drep": { "type": "abstain" }
+        }
       }
     ];
 
@@ -295,8 +305,21 @@ delegate(10){
           },
           "pool_key_hash": {{transfer_dry_run.pool_key_hash}}
         }
+      },
+      {
+        "operation_identifier": { "index": 5 },
+        "type": "dRepVoteDelegation",
+        "account":{{transfer_dry_run.staking_account_identifier}},
+        "status": "",
+        "metadata": {
+          "staking_credential": {
+            "hex_bytes": {{staking_key.public_key.hex_bytes}},
+            "curve_type": {{staking_key.public_key.curve_type}}
+          },
+          "drep": { "type": "abstain" }
+        }
       }
-    ]; 
+    ];
 
     print_message({
       "transfer operations": {{transfer.operations}}

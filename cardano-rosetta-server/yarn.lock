@@ -342,10 +342,10 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@emurgo/cardano-serialization-lib-nodejs@11.1.1":
-  version "11.1.1"
-  resolved "https://registry.yarnpkg.com/@emurgo/cardano-serialization-lib-nodejs/-/cardano-serialization-lib-nodejs-11.1.1.tgz#4c53690c6ecf53fd791e27264a6ffed78fa784b0"
-  integrity sha512-qYMSlFWPY0bB7Lys+eaSN8p3NrwmmcMM0j3c3TgLeVl9jAJsNSFqwFLEyD50u6nF/DkA49ixo2P1K/luZ24thg==
+"@emurgo/cardano-serialization-lib-nodejs@12.1.1":
+  version "12.1.1"
+  resolved "https://registry.yarnpkg.com/@emurgo/cardano-serialization-lib-nodejs/-/cardano-serialization-lib-nodejs-12.1.1.tgz#d6a72eb2423f34f62d32b4cf6fbdc141286de29c"
+  integrity sha512-zXJNbtCrurlQtNvGaXjEjqCzVeCQ92mQgxwPziKZAxqd5w+Lb7iJ+48Brl58BQS9KTrtennlVIZ/R90aP2WFqw==
 
 "@eslint-community/eslint-utils@^4.2.0", "@eslint-community/eslint-utils@^4.4.0":
   version "4.4.0"

@@ -46,7 +46,15 @@ import {
   CONSTRUCTION_PAYLOADS_WITH_POOL_RETIREMENT,
   CONSTRUCTION_SIGNED_TX_WITH_VOTE_REGISTRATION,
   CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION,
-  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE
+  CONSTRUCTION_PAYLOADS_WITH_VOTE_REGISTRATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION_RESPONSE,
+  CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION
 } from '../fixture-data';
 import { setupOfflineDatabase, setupServer } from '../utils/test-utils';
 
@@ -58,6 +66,7 @@ const generateParsePayload = (blockchain: string, network: string, signed: boole
   transaction
 });
 
+// eslint-disable-next-line max-statements
 describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
   let database: Pool;
   let server: FastifyInstance;
@@ -217,6 +226,86 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().operations).toEqual(
       constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_DELEGATION)
+    );
+    expect(response.json().account_identifier_signers).toEqual([]);
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to abstain drep and empty signers if a valid unsigned transaction is set', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload(
+        'cardano',
+        'mainnet',
+        false,
+        CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION_RESPONSE
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_ABSTAIN_DREP_VOTE_DELEGATION)
+    );
+    expect(response.json().account_identifier_signers).toEqual([]);
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to no confidence drep and empty signers if a valid unsigned transaction is set', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload(
+        'cardano',
+        'mainnet',
+        false,
+        CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION_RESPONSE
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(
+        CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_NO_CONFIDENCE_DREP_VOTE_DELEGATION
+      )
+    );
+    expect(response.json().account_identifier_signers).toEqual([]);
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to key hash drep and empty signers if a valid unsigned transaction is set', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload(
+        'cardano',
+        'mainnet',
+        false,
+        CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION_RESPONSE
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_KEY_HASH_DREP_VOTE_DELEGATION)
+    );
+    expect(response.json().account_identifier_signers).toEqual([]);
+  });
+
+  // eslint-disable-next-line max-len
+  test('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to script hash drep and empty signers if a valid unsigned transaction is set', async () => {
+    const response = await server.inject({
+      method: 'post',
+      url: CONSTRUCTION_PARSE_ENDPOINT,
+      payload: generateParsePayload(
+        'cardano',
+        'mainnet',
+        false,
+        CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION_RESPONSE
+      )
+    });
+    expect(response.statusCode).toEqual(StatusCodes.OK);
+    expect(response.json().operations).toEqual(
+      constructionParseOperations(
+        CONSTRUCTION_PAYLOADS_WITH_STAKE_KEY_REGISTRATION_AND_SCRIPT_HASH_DREP_VOTE_DELEGATION
+      )
     );
     expect(response.json().account_identifier_signers).toEqual([]);
   });

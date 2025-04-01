@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import CardanoWasm, { StakeCredential } from '@emurgo/cardano-serialization-lib-nodejs';
+import CardanoWasm, { Credential } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Logger } from 'fastify';
 import { ErrorFactory } from '../errors';
 import { hexStringToBuffer } from '../formatters';
@@ -35,7 +35,7 @@ export const getStakingCredentialFromHex = (
   scope: ManagedFreeableScope,
   logger: Logger,
   staking_credential?: Components.Schemas.PublicKey
-): StakeCredential => {
+): Credential => {
   const stakingKey = getPublicKey(scope, logger, staking_credential);
-  return scope.manage(StakeCredential.from_keyhash(stakingKey.hash()));
+  return scope.manage(Credential.from_keyhash(stakingKey.hash()));
 };

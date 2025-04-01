@@ -8,6 +8,9 @@ import {
   CatalystLabels,
   CatalystSigIndexes,
   CurveType,
+  DREP_TYPES,
+  DREP_TYPES_ID_REQUIRED,
+  DRepType,
   OperationType,
   RelayType,
   StakingOperations
@@ -63,11 +66,7 @@ export const parsePoolOwners = (
     const ownersCount = owners.len();
     for (let index = 0; index < ownersCount; index++) {
       const owner = scope.manage(owners.get(index));
-      const address = generateRewardAddress(
-        logger,
-        network,
-        scope.manage(CardanoWasm.StakeCredential.from_keyhash(owner))
-      );
+      const address = generateRewardAddress(logger, network, scope.manage(CardanoWasm.Credential.from_keyhash(owner)));
       poolOwners.push(address);
     }
     return poolOwners;
@@ -81,6 +80,41 @@ export const parsePoolRewardAccount = (
   usingAutoFree(scope =>
     generateRewardAddress(logger, network, scope.manage(scope.manage(poolParameters.reward_account()).payment_cred()))
   );
+
+export const parseDrep = (logger: Logger, drep: Components.Schemas.DRep): CardanoWasm.DRep =>
+  usingAutoFree(scope => {
+    switch (drep.type) {
+      case DRepType.ABSTAIN: {
+        return CardanoWasm.DRep.new_always_abstain();
+      }
+      case DRepType.NO_CONFIDENCE: {
+        return CardanoWasm.DRep.new_always_no_confidence();
+      }
+      case DRepType.KEY_HASH: {
+        if (!drep.id) throw ErrorFactory.missingDrepId();
+        try {
+          const keyHash = scope.manage(CardanoWasm.Ed25519KeyHash.from_bytes(Buffer.from(drep.id, 'hex')));
+          return CardanoWasm.DRep.new_key_hash(keyHash);
+        } catch {
+          logger.error(`[parseDrep] Invalid key_hash value: ${drep.id}`);
+          throw ErrorFactory.invalidKeyHash();
+        }
+      }
+      case DRepType.SCRIPT_HASH: {
+        if (!drep.id) throw ErrorFactory.missingDrepId();
+        try {
+          const scriptHash = scope.manage(CardanoWasm.ScriptHash.from_bytes(Buffer.from(drep.id, 'hex')));
+          return CardanoWasm.DRep.new_script_hash(scriptHash);
+        } catch {
+          logger.error(`[parseDrep] Invalid script_hash value: ${drep.id}`);
+          throw ErrorFactory.invalidScriptHash();
+        }
+      }
+      default: {
+        throw ErrorFactory.invalidDrepType();
+      }
+    }
+  });
 
 const parseIpv4 = (wasmIp?: CardanoWasm.Ipv4): string | undefined => {
   if (wasmIp) {
@@ -281,6 +315,29 @@ const parsePoolCertToOperation = (
   return operation;
 };
 
+const parseDRepToOperation = (logger: Logger, certOperation: Components.Schemas.Operation): Components.Schemas.DRep => {
+  const drep = certOperation.metadata?.drep;
+  if (!drep) {
+    logger.error('[parseDRepToOperation] Drep is required for dRepVoteDelegation operations');
+    throw ErrorFactory.missingDrep();
+  }
+  if (!drep.type) {
+    logger.error('[parseDRepToOperation] Drep type is required');
+    throw ErrorFactory.missingDrepType();
+  }
+  const invalidType = DREP_TYPES.includes(drep.toString());
+  if (invalidType) {
+    logger.error(`[parseDRepToOperation] Invalid drep type: ${drep.type}`);
+    throw ErrorFactory.invalidDrepType();
+  }
+  const requiresId = DREP_TYPES_ID_REQUIRED.includes(drep.toString());
+  if (requiresId && !drep.id) {
+    logger.error(`[parseDRepToOperation] ID is required for drep of type ${drep.type}`);
+    throw ErrorFactory.missingDrepId();
+  }
+  return drep;
+};
+
 const parseCertToOperation = (
   cert: CardanoWasm.Certificate,
   index: number,
@@ -299,7 +356,7 @@ const parseCertToOperation = (
       }
     };
     const delegationCert = scope.manage(cert.as_stake_delegation());
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    //   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     if (delegationCert)
       operation.metadata!.pool_key_hash = Buffer.from(scope.manage(delegationCert.pool_keyhash()).to_bytes()).toString(
         'hex'
@@ -318,9 +375,10 @@ const parseCertsToOperations = (
     const certs = scope.manage(transactionBody.certs());
     const certsCount = certs?.len() || 0;
     logger.info(`[parseCertsToOperations] About to parse ${certsCount} certs`);
-
     for (let index = 0; index < certsCount; index++) {
       const certOperation = certOps[index];
+      const cert = scope.manage(certs?.get(index));
+      if (!cert) continue;
       if (StakingOperations.includes(certOperation.type as OperationType)) {
         const hex = certOperation.metadata?.staking_credential?.hex_bytes;
         if (!hex) {
@@ -329,29 +387,25 @@ const parseCertsToOperations = (
         }
         const credential = getStakingCredentialFromHex(scope, logger, certOperation.metadata?.staking_credential);
         const address = generateRewardAddress(logger, network, credential);
-        const cert = scope.manage(certs?.get(index));
-        if (cert) {
-          const parsedOperation = parseCertToOperation(
-            cert,
-            certOperation.operation_identifier.index,
-            hex,
-            certOperation.type,
-            address
-          );
-          parsedOperations.push(parsedOperation);
-        }
+        const parsedOperation = parseCertToOperation(
+          cert,
+          certOperation.operation_identifier.index,
+          hex,
+          certOperation.type,
+          address
+        );
+        if (certOperation.type === OperationType.VOTE_DREP_DELEGATION)
+          parsedOperation.metadata!.drep = parseDRepToOperation(logger, parsedOperation);
+        parsedOperations.push(parsedOperation);
       } else {
-        const cert = scope.manage(certs?.get(index));
-        if (cert) {
-          const parsedOperation = parsePoolCertToOperation(
-            logger,
-            network,
-            cert,
-            certOperation.operation_identifier.index,
-            certOperation.type
-          );
-          parsedOperations.push({ ...parsedOperation, account: certOperation.account });
-        }
+        const parsedOperation = parsePoolCertToOperation(
+          logger,
+          network,
+          cert,
+          certOperation.operation_identifier.index,
+          certOperation.type
+        );
+        parsedOperations.push({ ...parsedOperation, account: certOperation.account });
       }
     }
 
@@ -508,6 +562,7 @@ export const convert = (
         OperationType.STAKE_KEY_REGISTRATION,
         OperationType.STAKE_KEY_DEREGISTRATION,
         OperationType.STAKE_DELEGATION,
+        OperationType.VOTE_DREP_DELEGATION,
         OperationType.POOL_REGISTRATION,
         OperationType.POOL_REGISTRATION_WITH_CERT,
         OperationType.POOL_RETIREMENT

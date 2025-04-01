@@ -502,6 +502,20 @@ declare namespace Components {
      * CurveType is the type of cryptographic curve associated with a PublicKey. * secp256k1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * secp256r1: SEC compressed - `33 bytes` (https://secg.org/sec1-v2.pdf#subsubsection.2.3.3) * edwards25519: `y (255-bits) || x-sign-bit (1-bit)` - `32 bytes` (https://ed25519.cr.yp.to/ed25519-20110926.pdf) * tweedle: 1st pk : Fq.t (32 bytes) || 2nd pk : Fq.t (32 bytes) (https://github.com/CodaProtocol/coda/blob/develop/rfcs/0038-rosetta-construction-api.md#marshal-keys)
      */
     export type CurveType = 'secp256k1' | 'secp256r1' | 'edwards25519' | 'tweedle';
+    /**
+     * If it's a vote delegation operation, the Delegated Representative (DRep) will be returned here.
+     */
+    export interface DRep {
+      type: /* Mandatory, valid values are: 'key_hash', 'script_hash', 'abstain', 'no_confidence' */ DRepType;
+      /**
+       * The DRep ID is present only for standard DReps (e.g., key_hash or script_hash); CIP-129 is not supported yet.
+       */
+      id?: string;
+    }
+    /**
+     * Mandatory, valid values are: 'key_hash', 'script_hash', 'abstain', 'no_confidence'
+     */
+    export type DRepType = 'abstain' | 'no_confidence' | 'key_hash' | 'script_hash';
     export interface DepositParameters {
       /**
        * key registration cost in Lovelace
@@ -761,6 +775,7 @@ declare namespace Components {
        */
       refundAmount?: /* Amount is some Value of a Currency. It is considered invalid to specify a Value without a Currency. */ Amount;
       staking_credential?: /* PublicKey contains a public key byte array for a particular CurveType encoded in hex. Note that there is no PrivateKey struct as this is NEVER the concern of an implementation. */ PublicKey;
+      drep?: /* If it's a vote delegation operation, the Delegated Representative (DRep) will be returned here. */ DRep;
       pool_key_hash?: string;
       epoch?: number;
       /**

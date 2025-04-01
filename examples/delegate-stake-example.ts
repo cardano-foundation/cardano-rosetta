@@ -5,6 +5,7 @@
 import {
   buildDelegationOperation,
   buildRegistrationOperation,
+  buildVoteDrepDelegationOperation,
   constructionDerive,
   constructionPreprocess,
   constructionMetadata,
@@ -66,8 +67,13 @@ const doRun = async (): Promise<void> => {
     currentIndex + 1,
     vars.STAKE_POOL_KEY_HASH
   );
+  const builtDrepVoteDelegation = buildVoteDrepDelegationOperation(
+      stakingKeys.publicKey.to_raw_key().to_hex(),
+      currentIndex + 1
+  );
   builtOperations.operations.push(builtRegistrationOperation);
   builtOperations.operations.push(builtDelegationOperation);
+  builtOperations.operations.push(builtDrepVoteDelegation);
   logger.info(`[doRun] operations to be sent are ${JSON.stringify(builtOperations.operations)}`);
   const preprocess = await constructionPreprocess(
     builtOperations.operations,

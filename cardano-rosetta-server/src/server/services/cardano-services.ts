@@ -4,7 +4,7 @@ import CardanoWasm, {
   BigNum,
   Ed25519Signature,
   PublicKey,
-  StakeCredential,
+  Credential,
   Vkey,
   AuxiliaryData
 } from '@emurgo/cardano-serialization-lib-nodejs';
@@ -420,7 +420,7 @@ const configure = (repository: BlockchainRepository, defaultDepositParameters: D
     return usingAutoFree(scope => {
       const publicKeyBuffer = Buffer.from(publicKeyString, 'hex');
       const pub = scope.manage(CardanoWasm.PublicKey.from_bytes(publicKeyBuffer));
-      const paymentCredential = scope.manage(StakeCredential.from_keyhash(scope.manage(pub.hash())));
+      const paymentCredential = scope.manage(Credential.from_keyhash(scope.manage(pub.hash())));
 
       if (type === AddressType.REWARD) {
         return generateRewardAddress(logger, network, paymentCredential);

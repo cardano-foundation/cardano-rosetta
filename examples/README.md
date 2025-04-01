@@ -75,7 +75,7 @@ In order to execute the example, run:
 $ yarn send-transaction-with-byron-example
 ```
 
-## Staking key registration and delegation
+## Staking key registration, delegation and vote delegation
 
 Uses the staking credentials based on a predefined private key and generates an address from a different predefined private key, asks for funds and once found the address is drained and sent to a specific address.
 
