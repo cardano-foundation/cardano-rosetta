@@ -31,3 +31,4 @@ app.post(
 })
 
 app.listen(3773);
+console.log("Server is running on port 3773");

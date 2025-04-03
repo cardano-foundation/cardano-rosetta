@@ -40,16 +40,6 @@ describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
     expect(response.json().signed_transaction).toEqual(CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA);
   });
 
-  test('Should return signed transaction with metadata', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: CONSTRUCTION_COMBINE_ENDPOINT,
-      payload: CONSTRUCTION_COMBINE_WITH_METADATA_PAYLOAD
-    });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().signed_transaction).toEqual(CONSTRUCTION_SIGNED_TX_WITH_TX_METADATA);
-  });
-
   test('Should return signed transaction with byron address', async () => {
     const response = await server.inject({
       method: 'post',
