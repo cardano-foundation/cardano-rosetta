@@ -102,29 +102,34 @@ const allow = {
       retriable: false
     },
     {
-      code : 5018,
-      message : "Invalid key hash",
-      retriable : false
-    }, {
-      code : 5019,
-      message : "Invalid script hash",
-      retriable : false
-    }, {
-      code : 5037,
-      message : "Invalid drep type",
-      retriable : false
-    }, {
-      code : 5038,
-      message : "Missing drep",
-      retriable : false
-    }, {
-      code : 5039,
-      message : "Missing drep id",
-      retriable : false
-    }, {
-      code : 5040,
-      message : "Missing drep type",
-      retriable : false
+      code: 5018,
+      message: 'Invalid key hash',
+      retriable: false
+    },
+    {
+      code: 5019,
+      message: 'Invalid script hash',
+      retriable: false
+    },
+    {
+      code: 5037,
+      message: 'Invalid drep type',
+      retriable: false
+    },
+    {
+      code: 5038,
+      message: 'Missing drep',
+      retriable: false
+    },
+    {
+      code: 5039,
+      message: 'Missing drep id',
+      retriable: false
+    },
+    {
+      code: 5040,
+      message: 'Missing drep type',
+      retriable: false
     }
   ],
   historical_balance_lookup: true,
