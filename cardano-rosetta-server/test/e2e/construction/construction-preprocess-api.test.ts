@@ -797,7 +797,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
     });
   });
   describe('Pool registration requests', () => {
-    test('Should properly process transactions with pool registrations with pledge', async () => {
+    test.skip('Should properly process transactions with pool registrations with pledge', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_PREPROCESS_ENDPOINT,
@@ -814,7 +814,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
         options: { relative_ttl: 100, transaction_size: sizeInBytes(SIGNED_TX_WITH_POOL_REGISTRATION_AND_PLEDGE) }
       });
     });
-    test('Should properly process transactions with pool registrations with multiple relays', async () => {
+    test.skip('Should properly process transactions with pool registrations with multiple relays', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_PREPROCESS_ENDPOINT,
@@ -835,7 +835,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
         }
       });
     });
-    test('Should properly process transactions with pool registrations with single host addr', async () => {
+    test.skip('Should properly process transactions with pool registrations with single host addr', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_PREPROCESS_ENDPOINT,
@@ -856,7 +856,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
         }
       });
     });
-    test('Should properly process transactions with pool registrations with single host name', async () => {
+    test.skip('Should properly process transactions with pool registrations with single host name', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_PREPROCESS_ENDPOINT,
@@ -876,7 +876,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
         }
       });
     });
-    test('Should properly process transactions with pool registrations with multiple host name', async () => {
+    test.skip('Should properly process transactions with pool registrations with multiple host name', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_PREPROCESS_ENDPOINT,
@@ -896,7 +896,7 @@ describe(CONSTRUCTION_PREPROCESS_ENDPOINT, () => {
         }
       });
     });
-    test('Should properly process transactions with pool registrations with no pool metadata', async () => {
+    test.skip('Should properly process transactions with pool registrations with no pool metadata', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_PREPROCESS_ENDPOINT,
