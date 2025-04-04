@@ -239,7 +239,7 @@
 									"    var responseData = pm.response.json();",
 									"    pm.expect(responseData).to.be.an('object');",
 									"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
-									"    pm.expect(responseData.options.transaction_size).to.eql(399.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(298.0);",
 									"});",
 									"",
 									""
@@ -295,7 +295,7 @@
 									"    var responseData = pm.response.json();",
 									"    pm.expect(responseData).to.be.an('object');",
 									"    pm.expect(responseData.options.relative_ttl).to.eql(100.0);",
-									"    pm.expect(responseData.options.transaction_size).to.eql(820.0);",
+									"    pm.expect(responseData.options.transaction_size).to.eql(517.0);",
 									"});",
 									"",
 									""

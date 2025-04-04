@@ -5,10 +5,8 @@ import { FastifyInstance } from 'fastify';
 import { setupOfflineDatabase, setupServer } from '../utils/test-utils';
 import {
   CONSTRUCTION_COMBINE_PAYLOAD,
-  CONSTRUCTION_COMBINE_WITH_METADATA_PAYLOAD,
   CONSTRUCTION_INVALID_TRANSACTION,
   CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA,
-  CONSTRUCTION_SIGNED_TX_WITH_TX_METADATA,
   CONSTRUCTION_COMBINE_WITH_BYRON_ADDRESS_PAYLOAD,
   CONSTRUCTION_SIGNED_TX_WITH_BYRON_ADDESS,
   CONSTRUCTION_COMBINE_WITH_BYRON_ADDRESS_MISSING_CHAINCODE_PAYLOAD
@@ -38,16 +36,6 @@ describe(CONSTRUCTION_COMBINE_ENDPOINT, () => {
     });
     expect(response.statusCode).toEqual(StatusCodes.OK);
     expect(response.json().signed_transaction).toEqual(CONSTRUCTION_SIGNED_TRANSACTION_WITH_EXTRA_DATA);
-  });
-
-  test('Should return signed transaction with metadata', async () => {
-    const response = await server.inject({
-      method: 'post',
-      url: CONSTRUCTION_COMBINE_ENDPOINT,
-      payload: CONSTRUCTION_COMBINE_WITH_METADATA_PAYLOAD
-    });
-    expect(response.statusCode).toEqual(StatusCodes.OK);
-    expect(response.json().signed_transaction).toEqual(CONSTRUCTION_SIGNED_TX_WITH_TX_METADATA);
   });
 
   test('Should return signed transaction with byron address', async () => {

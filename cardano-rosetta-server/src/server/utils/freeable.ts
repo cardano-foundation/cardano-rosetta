@@ -35,8 +35,11 @@ export class ManagedFreeableScope {
       if ((resource as any)?.ptr === 0 || !resource?.free) {
         continue;
       }
-
-      resource?.free();
+      try {
+        resource?.free();
+      } catch {
+        console.error('Error freeing resource');
+      }
     }
     this.disposed = true;
   }

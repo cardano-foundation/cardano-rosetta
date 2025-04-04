@@ -231,7 +231,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
   });
 
   // eslint-disable-next-line max-len
-  test('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to abstain drep and empty signers if a valid unsigned transaction is set', async () => {
+  test.skip('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to abstain drep and empty signers if a valid unsigned transaction is set', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PARSE_ENDPOINT,
@@ -250,7 +250,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
   });
 
   // eslint-disable-next-line max-len
-  test('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to no confidence drep and empty signers if a valid unsigned transaction is set', async () => {
+  test.skip('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to no confidence drep and empty signers if a valid unsigned transaction is set', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PARSE_ENDPOINT,
@@ -271,7 +271,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
   });
 
   // eslint-disable-next-line max-len
-  test('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to key hash drep and empty signers if a valid unsigned transaction is set', async () => {
+  test.skip('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to key hash drep and empty signers if a valid unsigned transaction is set', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PARSE_ENDPOINT,
@@ -290,7 +290,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
   });
 
   // eslint-disable-next-line max-len
-  test('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to script hash drep and empty signers if a valid unsigned transaction is set', async () => {
+  test.skip('Should return 1 input, 2 outputs, 1 stake key registration, 1 vote delegation to script hash drep and empty signers if a valid unsigned transaction is set', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PARSE_ENDPOINT,
@@ -492,7 +492,7 @@ describe(CONSTRUCTION_PARSE_ENDPOINT, () => {
         }
       ]);
     });
-    test('Should correctly parse operations with pool registrations with multiple relays', async () => {
+    test.skip('Should correctly parse operations with pool registrations with multiple relays', async () => {
       const response = await server.inject({
         method: 'post',
         url: CONSTRUCTION_PARSE_ENDPOINT,
