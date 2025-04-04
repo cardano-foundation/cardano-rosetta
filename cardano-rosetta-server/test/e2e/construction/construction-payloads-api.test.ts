@@ -1029,7 +1029,7 @@ describe('Pool Registration', () => {
     await database.end();
   });
 
-  test.skip('Should return a valid unsigned transaction hash when sending valid operations with pool registration with pledge', async () => {
+  test('Should return a valid unsigned transaction hash when sending valid operations with pool registration with pledge', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -1070,7 +1070,7 @@ describe('Pool Registration', () => {
       ]
     });
   });
-  test.skip('Should return a valid unsigned transaction hash when sending valid operations including pool registration with Single Host Addr relay', async () => {
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with Single Host Addr relay', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -1111,7 +1111,7 @@ describe('Pool Registration', () => {
       ]
     });
   });
-  test.skip('Should return a valid unsigned transaction hash when sending valid operations including pool registration with Single Host Name relay', async () => {
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with Single Host Name relay', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -1152,7 +1152,7 @@ describe('Pool Registration', () => {
       ]
     });
   });
-  test.skip('Should return a valid unsigned transaction hash when sending valid operations including pool registration with Multi Host Name relay', async () => {
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with Multi Host Name relay', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -1193,7 +1193,7 @@ describe('Pool Registration', () => {
       ]
     });
   });
-  test.skip('Should return a valid unsigned transaction hash when sending valid operations including pool registration with no pool metadata', async () => {
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with no pool metadata', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
@@ -1234,7 +1234,7 @@ describe('Pool Registration', () => {
       ]
     });
   });
-  test.skip('Should return a valid unsigned transaction hash when sending valid operations including pool registration with multiple relays', async () => {
+  test('Should return a valid unsigned transaction hash when sending valid operations including pool registration with multiple relays', async () => {
     const response = await server.inject({
       method: 'post',
       url: CONSTRUCTION_PAYLOADS_ENDPOINT,
