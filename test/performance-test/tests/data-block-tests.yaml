@@ -1,0 +1,35 @@
+Network-Identifier: &network_identifier
+    network_identifier:
+        blockchain: "cardano"
+        network: "{{ networkId }}"
+
+scenarios:
+    - name: Query Block
+      weight: 1
+      flow:
+          - log: "/block"
+          - post:
+              url: "/block"
+              headers:
+                Content-Type: "application/json"
+              json:
+                <<: *network_identifier
+                block_identifier:
+                    index: "{{  blockIndex }}"
+                    hash: "{{  blockHash }}"
+
+    - name: Query Transaction
+      weight: 2
+      flow:
+        - log: "/block/transaction"
+        - post:
+            url: "/block/transaction"
+            headers:
+                Content-Type: "application/json"
+            json:
+                <<: *network_identifier
+                block_identifier:
+                    index: "{{  blockIndex }}"
+                    hash: "{{  blockHash }}"
+                transaction_identifier:
+                    hash: "{{ transactionId }}"
