@@ -1,0 +1,47 @@
+Feature: Delegation
+
+    Rule: Delegation transaction can be constructed
+
+        Scenario: Valid case
+            Given exchange holds 2'463'071'701 ADA in my account
+            And stake pool TEST_1 is registered
+            When I provide details of my delegation intent
+            Then exchange can construct a transaction for this delegation
+		    And the delegation transaction matches my delegation intent
+
+        Scenario: Invalid case – no funds
+            Given exchange holds no funds in my account
+            And stake pool TEST_1 is registered
+            When I provide details of my delegation intent
+            Then an error is returned (this validation may not occur until submit)
+            And exchange doesn't construct a transaction for this delegation
+
+        Scenario: Invalid case – not enough funds to delegate (less than 2ADA)
+            Given exchange holds 1.5 ADA in my account
+            And stake pool TEST_1 is registered
+            When I provide details of my delegation intent
+            Then an error is returned (this validation may not occur until submit)
+            And exchange doesn't construct a transaction for this delegation
+    
+        Scenario: Invalid case – not my account
+            Given exchange holds 1'000 ADA in my account
+            And stake pool TEST_1 is registered
+            When I provide my delegation intent using a different account address
+            Then an error is returned due to me not having permission
+            And exchange doesn't construct a transaction for this delegation
+
+    Rule: Delegation transaction can be submitted
+
+        Scenario: Valid delegation transaction
+		    Given exchange holds 100 ADA in my account
+    		And exchange has constructed a valid delegation transaction for stake pool TEST_1
+	    	When exchange submits the transaction
+		    Then a successful response is returned
+            And there is onchain proof
+
+        Scenario: Invalid case – stakepool not registered
+	    	Given exchange holds 100 ADA in my account
+     	    And exchange has constructed a delegation transaction using a stakepool id that is not registered
+	    	When exchange submits the transaction
+    		Then an error is returned
+	    	And delegation is not accepted on the blockchain
